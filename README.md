@@ -1,2 +1,2 @@
 # libalpmd
-ibAlpm port to D lang
+Port of libalpm on D language
