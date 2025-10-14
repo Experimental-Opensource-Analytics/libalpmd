@@ -615,8 +615,7 @@ int _alpm_gpgme_checksig(alpm_handle_t* handle, const(char)* path, const(char)* 
 			gpgsig; gpgsig = gpgsig.next, sigcount++){}
 	_alpm_log(handle, ALPM_LOG_DEBUG, "%d signatures returned\n", sigcount);
 
-	CALLOC(siglist.results, sigcount, alpm_sigresult_t.sizeof,
-			GOTO_ERR(handle, ALPM_ERR_MEMORY, gpg_error));
+	CALLOC(siglist.results, sigcount, alpm_sigresult_t.sizeof);
 	siglist.count = sigcount;
 
 	for(gpgsig = verify_result.signatures, sigcount = 0; gpgsig;
@@ -777,7 +776,7 @@ char* _alpm_sigpath(alpm_handle_t* handle, const(char)* path)
 		return null;
 	}
 	len = strlen(path) + 5;
-	CALLOC(sigpath, len, char.sizeof, RET_ERR(handle, ALPM_ERR_MEMORY, null));
+	CALLOC(sigpath, len, char.sizeof);
 	snprintf(sigpath, len, "%s.sig", path);
 	return sigpath;
 }
@@ -801,8 +800,7 @@ int _alpm_check_pgp_helper(alpm_handle_t* handle, const(char)* path, const(char)
 	alpm_siglist_t* siglist = void;
 	int ret = void;
 
-	CALLOC(siglist, 1, alpm_siglist_t.sizeof,
-			RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	CALLOC(siglist, 1, alpm_siglist_t.sizeof);
 
 	ret = _alpm_gpgme_checksig(handle, path, base64_sig, siglist);
 	if(ret && handle.pm_errno == ALPM_ERR_SIG_MISSING) {

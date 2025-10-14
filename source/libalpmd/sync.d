@@ -333,7 +333,7 @@ private int compute_download_size(alpm_pkg_t* newpkg)
 	}
 
 	fnamepartlen = strlen(fname) + 6;
-	CALLOC(fnamepart, fnamepartlen, char.sizeof, return -1);
+	CALLOC(fnamepart, fnamepartlen, char.sizeof);
 	snprintf(fnamepart, fnamepartlen, "%s.part", fname);
 	fpath = _alpm_filecache_find(handle, fnamepart);
 	if(fpath) {
@@ -800,7 +800,7 @@ private int download_files(alpm_handle_t* handle)
 			_alpm_log(handle, ALPM_LOG_DEBUG, "checking available disk space for download\n");
 
 			num_files = alpm_list_count(files);
-			CALLOC(file_sizes, num_files, off_t.sizeof, goto finish);
+			CALLOC(file_sizes, num_files, off_t.sizeof);
 
 			for(i = files, idx = 0; i; i = i.next, idx++) {
 				const(alpm_pkg_t)* pkg = i.data;
@@ -832,7 +832,7 @@ private int download_files(alpm_handle_t* handle)
 			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(pkg));
 			dload_payload* payload = null;
 
-			CALLOC(payload, 1, typeof(*payload).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
+			CALLOC(payload, 1, typeof(*payload).sizeof);
 			STRDUP(payload.remote_name, pkg.filename);
 			STRDUP(payload.filepath, pkg.filename);
 			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, "");

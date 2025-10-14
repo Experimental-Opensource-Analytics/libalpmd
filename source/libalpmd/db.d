@@ -369,7 +369,7 @@ alpm_db_t* _alpm_db_new(const(char)* treename, int is_local)
 {
 	alpm_db_t* db = void;
 
-	CALLOC(db, 1, alpm_db_t.sizeof, return NULL);
+	CALLOC(db, 1, alpm_db_t.sizeof);
 	STRDUP(db.treename, treename);
 	if(is_local) {
 		db.status |= DB_STATUS_LOCAL;
@@ -413,13 +413,13 @@ const(char)* _alpm_db_path(alpm_db_t* db)
 
 		if(db.status & DB_STATUS_LOCAL) {
 			pathsize = strlen(dbpath) + strlen(db.treename) + 2;
-			CALLOC(db._path, 1, pathsize, RET_ERR(db.handle, ALPM_ERR_MEMORY, null));
+			CALLOC(db._path, 1, pathsize);
 			snprintf(db._path, pathsize, "%s%s/", dbpath, db.treename);
 		} else {
 			const(char)* dbext = db.handle.dbext;
 
 			pathsize = strlen(dbpath) + 5 + strlen(db.treename) + strlen(dbext) + 1;
-			CALLOC(db._path, 1, pathsize, RET_ERR(db.handle, ALPM_ERR_MEMORY, null));
+			CALLOC(db._path, 1, pathsize);
 			/* all sync DBs now reside in the sync/ subdir of the dbpath */
 			snprintf(db._path, pathsize, "%ssync/%s%s", dbpath, db.treename, dbext);
 		}

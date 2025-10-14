@@ -50,7 +50,7 @@ private alpm_conflict_t* conflict_new(alpm_pkg_t* pkg1, alpm_pkg_t* pkg2, alpm_d
 {
 	alpm_conflict_t* conflict = void;
 
-	CALLOC(conflict, 1, alpm_conflict_t.sizeof, return NULL);
+	CALLOC(conflict, 1, alpm_conflict_t.sizeof);
 
 	ASSERT(_alpm_pkg_dup(pkg1, &conflict.package1) == 0);
 	ASSERT(_alpm_pkg_dup(pkg2, &conflict.package2) == 0);
@@ -78,7 +78,7 @@ void  alpm_conflict_free(alpm_conflict_t* conflict)
 alpm_conflict_t* _alpm_conflict_dup(const(alpm_conflict_t)* conflict)
 {
 	alpm_conflict_t* newconflict = void;
-	CALLOC(newconflict, 1, alpm_conflict_t.sizeof, return NULL);
+	CALLOC(newconflict, 1, alpm_conflict_t.sizeof);
 
 	ASSERT(_alpm_pkg_dup(conflict.package1, &newconflict.package1) == 0);
 	ASSERT(_alpm_pkg_dup(conflict.package2, &newconflict.package2) == 0);
@@ -256,7 +256,7 @@ alpm_list_t * alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
 private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* conflicts, const(char)* filestr, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
 {
 	alpm_fileconflict_t* conflict = void;
-	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof, goto error);
+	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof);
 
 	STRDUP(conflict.target, pkg1.name);
 	STRDUP(conflict.file, filestr);

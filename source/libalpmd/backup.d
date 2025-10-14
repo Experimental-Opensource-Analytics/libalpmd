@@ -89,7 +89,7 @@ void _alpm_backup_free(alpm_backup_t* backup)
 alpm_backup_t* _alpm_backup_dup(const(alpm_backup_t)* backup)
 {
 	alpm_backup_t* newbackup = void;
-	CALLOC(newbackup, 1, alpm_backup_t.sizeof, return NULL);
+	CALLOC(newbackup, 1, alpm_backup_t.sizeof);
 
 	STRDUP(newbackup.name, backup.name);
 	STRDUP(newbackup.hash, backup.hash);

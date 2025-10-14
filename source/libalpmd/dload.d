@@ -637,7 +637,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 		free(_effective_filename);
 
 		len = strlen(url) + 5;
-		CALLOC(sig, 1, typeof(*sig).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		CALLOC(sig, 1, typeof(*sig).sizeof);
 		MALLOC(sig.fileurl, len);
 		snprintf(sig.fileurl, len, "%s.sig", url);
 
@@ -766,7 +766,7 @@ private int curl_add_payload(alpm_handle_t* handle, CURLM* curlm, dload_payload*
 		ASSERT(payload.filepath);
 
 		len = strlen(server) + strlen(payload.filepath) + 2;
-		MALLOC(payload.fileurl, len, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		MALLOC(payload.fileurl, len);
 		snprintf(payload.fileurl, len, "%s/%s", server, payload.filepath);
 	}
 
@@ -1349,7 +1349,7 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 			char* c = void;
 
 			ASSERT(url);
-			CALLOC(payload, 1, typeof(*payload).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, err));
+			CALLOC(payload, 1, typeof(*payload).sizeof);
 			STRDUP(payload.fileurl, url);
 
 			STRDUP(payload.remote_name, get_filename(payload.fileurl));

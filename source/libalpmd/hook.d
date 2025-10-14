@@ -171,7 +171,7 @@ enum string warning(...) = `_alpm_log(handle, ALPM_LOG_WARNING, __VA_ARGS__);`;
 		/* beginning a new section */
 		if(strcmp(section, "Trigger") == 0) {
 			_alpm_trigger_t* t;
-			CALLOC(t, _alpm_trigger_t.sizeof, 1, return 1);
+			CALLOC(t, _alpm_trigger_t.sizeof, 1);
 			hook.triggers = alpm_list_add(hook.triggers, t);
 		} else if(strcmp(section, "Action") == 0) {
 			/* no special processing required */
@@ -602,8 +602,7 @@ int _alpm_hook_run(alpm_handle_t* handle, alpm_hook_when_t when)
 				continue;
 			}
 
-			CALLOC(ctx.hook, _alpm_hook_t.sizeof, 1,
-					ret = -1; closedir(d); goto cleanup);
+			CALLOC(ctx.hook, _alpm_hook_t.sizeof, 1);
 
 			_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s\n", path.ptr);
 			if(parse_ini(path.ptr, &_alpm_hook_parse_cb, &ctx) != 0

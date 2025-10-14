@@ -72,6 +72,10 @@ void MALLOC(T)(T* ptr, size_t size) {
 	*ptr = malloc(size);
 }
 
+void CALLOC(T, L)(ref T t, L l, size_t size) {
+	t = calloc(l, size);
+}
+
 void STRDUP(ref char* str, char* _str) {
 	str = strndup(_str);
 } 
@@ -1252,7 +1256,7 @@ int _alpm_archive_fgets(archive* a, archive_read_buffer* b)
 		/* allocate our buffer, or ensure our existing one is big enough */
 		if(!b.line) {
 			/* set the initial buffer to the read block_size */
-			CALLOC(b.line, b.block_size + 1, char.sizeof, b.ret = -ENOMEM; goto cleanup);
+			CALLOC(b.line, b.block_size + 1, char.sizeof);
 			b.line_size = b.block_size + 1;
 			b.line_offset = b.line;
 		} else {
@@ -1267,7 +1271,7 @@ int _alpm_archive_fgets(archive* a, archive_read_buffer* b)
 			if(needed > b.line_size) {
 				/* need to realloc + copy data to fit total length */
 				char* new_line = void;
-				CALLOC(new_line, needed, char.sizeof, b.ret = -ENOMEM; goto cleanup);
+				CALLOC(new_line, needed, char.sizeof);
 				memcpy(new_line, b.line, b.line_size);
 				b.line_size = needed;
 				b.line_offset = new_line + (b.line_offset - b.line);
@@ -1468,7 +1472,7 @@ version (AT_SYMLINK_NOFOLLOW) {
 		char* check_path = void;
 
 		len = strlen(dir) + strlen(file) + 1;
-		CALLOC(check_path, len, char.sizeof, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+		CALLOC(check_path, len, char.sizeof);
 		snprintf(check_path, len, "%s%s", dir, file);
 
 		ret = faccessat(AT_FDCWD, check_path, amode, flag);

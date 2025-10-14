@@ -45,7 +45,7 @@ alpm_handle_t* _alpm_handle_new()
 {
 	alpm_handle_t* handle = void;
 
-	CALLOC(handle, 1, alpm_handle_t.sizeof, return NULL);
+	CALLOC(handle, 1, alpm_handle_t.sizeof);
 	handle.lockfd = -1;
 
 	return handle;
@@ -426,7 +426,7 @@ private char* canonicalize_path(const(char)* path)
 	if(path[len - 1] != '/') {
 		len += 1;
 	}
-	CALLOC(new_path, len + 1, char.sizeof, return NULL);
+	CALLOC(new_path, len + 1, char.sizeof);
 	strcpy(new_path, path);
 	new_path[len - 1] = '/';
 	return new_path;

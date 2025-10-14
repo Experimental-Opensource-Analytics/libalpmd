@@ -66,7 +66,7 @@ alpm_pkghash_t* _alpm_pkghash_create(uint size)
 	alpm_pkghash_t* hash = null;
 	uint i = void, loopsize = void;
 
-	CALLOC(hash, 1, alpm_pkghash_t.sizeof, return NULL);
+	CALLOC(hash, 1, alpm_pkghash_t.sizeof);
 	size = size / initial_hash_load + 1;
 
 	loopsize = ARRAYSIZE(prime_list.ptr);
@@ -84,8 +84,7 @@ alpm_pkghash_t* _alpm_pkghash_create(uint size)
 		return null;
 	}
 
-	CALLOC(hash.hash_table, hash.buckets, (alpm_list_t*).sizeof, 
-				free(hash); return null);
+	CALLOC(hash.hash_table, hash.buckets, (alpm_list_t*).sizeof);
 
 	return hash;
 }

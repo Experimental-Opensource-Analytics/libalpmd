@@ -243,7 +243,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 				newpkg.provides = alpm_list_add(newpkg.provides, provide);
 			} else if(strcmp(key, "backup") == 0) {
 				alpm_backup_t* backup = void;
-				CALLOC(backup, 1, alpm_backup_t.sizeof, return -1);
+				CALLOC(backup, 1, alpm_backup_t.sizeof);
 				STRDUP(backup.name, ptr);
 				newpkg.backup = alpm_list_add(newpkg.backup, backup);
 			} else if(strcmp(key, "xdata") == 0) {

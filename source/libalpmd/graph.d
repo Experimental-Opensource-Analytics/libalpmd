@@ -28,7 +28,7 @@ alpm_graph_t* _alpm_graph_new()
 {
 	alpm_graph_t* graph = null;
 
-	CALLOC(graph, 1, alpm_graph_t.sizeof, return NULL);
+	CALLOC(graph, 1, alpm_graph_t.sizeof);
 	return graph;
 }
 

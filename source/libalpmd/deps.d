@@ -51,7 +51,7 @@ private alpm_depmissing_t* depmiss_new(const(char)* target, alpm_depend_t* dep, 
 {
 	alpm_depmissing_t* miss = void;
 
-	CALLOC(miss, 1, alpm_depmissing_t.sizeof, return NULL);
+	CALLOC(miss, 1, alpm_depmissing_t.sizeof);
 
 	STRDUP(miss.target, target);
 	miss.depend = _alpm_dep_dup(dep);
@@ -461,7 +461,7 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 		return null;
 	}
 
-	CALLOC(depend, 1, alpm_depend_t.sizeof, return NULL);
+	CALLOC(depend, 1, alpm_depend_t.sizeof);
 
 	/* Note the extra space in ": " to avoid matching the epoch */
 	if((desc = strstr(depstring, ": ")) != null) {
@@ -521,7 +521,7 @@ error:
 alpm_depend_t* _alpm_dep_dup(const(alpm_depend_t)* dep)
 {
 	alpm_depend_t* newdep = void;
-	CALLOC(newdep, 1, alpm_depend_t.sizeof, return NULL);
+	CALLOC(newdep, 1, alpm_depend_t.sizeof);
 
 	STRDUP(newdep.name, dep.name);
 	STRDUP(newdep.version_, dep.version_);

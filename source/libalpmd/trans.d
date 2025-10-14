@@ -60,7 +60,7 @@ int  alpm_trans_init(alpm_handle_t* handle, int flags)
 		}
 	}
 
-	CALLOC(trans, 1, alpm_trans_t.sizeof, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	CALLOC(trans, 1, alpm_trans_t.sizeof);
 	trans.flags = flags;
 	trans.state = STATE_INITIALIZED;
 

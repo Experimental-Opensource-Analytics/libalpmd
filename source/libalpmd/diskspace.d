@@ -122,7 +122,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 			continue;
 		}
 
-		CALLOC(mp, 1, alpm_mountpoint_t.sizeof, RET_ERR(handle, ALPM_ERR_MEMORY, null));
+		CALLOC(mp, 1, alpm_mountpoint_t.sizeof);
 		STRDUP(mp.mount_dir, mnt.mnt_dir);
 		mp.mount_dir_len = strlen(mp.mount_dir);
 
@@ -149,7 +149,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 			continue;
 		}
 
-		CALLOC(mp, 1, alpm_mountpoint_t.sizeof, RET_ERR(handle, ALPM_ERR_MEMORY, null));
+		CALLOC(mp, 1, alpm_mountpoint_t.sizeof);
 		STRDUP(mp.mount_dir, mnt.mnt_mountp);
 		mp.mount_dir_len = strlen(mp.mount_dir);
 
@@ -180,7 +180,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 			continue;
 		}
 
-		CALLOC(mp, 1, alpm_mountpoint_t.sizeof, RET_ERR(handle, ALPM_ERR_MEMORY, null));
+		CALLOC(mp, 1, alpm_mountpoint_t.sizeof);
 		STRDUP(mp.mount_dir, fsp.f_mntonname);
 		mp.mount_dir_len = strlen(mp.mount_dir);
 		memcpy(&(mp.fsp), fsp, FSSTATSTYPE.sizeof);

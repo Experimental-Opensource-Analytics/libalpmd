@@ -571,7 +571,7 @@ alpm_pkg_t* _alpm_pkg_new()
 {
 	alpm_pkg_t* pkg = void;
 
-	CALLOC(pkg, 1, alpm_pkg_t.sizeof, return NULL);
+	CALLOC(pkg, 1, alpm_pkg_t.sizeof);
 
 	return pkg;
 }
@@ -613,7 +613,7 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 		pkg.handle.pm_errno = ALPM_ERR_PKG_INVALID;
 	}
 
-	CALLOC(newpkg, 1, alpm_pkg_t.sizeof, goto cleanup);
+	CALLOC(newpkg, 1, alpm_pkg_t.sizeof);
 
 	newpkg.name_hash = pkg.name_hash;
 	STRDUP(newpkg.filename, pkg.filename);
@@ -691,7 +691,7 @@ alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(const(char)* string)
 		return null;
 	}
 
-	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof, return NULL);
+	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof);
 	STRNDUP(pd.name, string, sep - string, FREE(pd); return null);
 	STRDUP(pd.value, sep + 1);
 
