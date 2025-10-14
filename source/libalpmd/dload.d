@@ -36,16 +36,17 @@ import core.sys.posix.sys.wait;
 import core.stdc.signal;
 import core.sys.posix.dirent;
 import core.sys.posix.pwd;
+import etc.c.curl;
 
 version (HAVE_NETINET_IN_H) {
-import netinet/in; /* IPPROTO_TCP */
+import core.sys.posix.netinet.in_; /* IPPROTO_TCP */
 }
 version (HAVE_NETINET_TCP_H) {
-import netinet/tcp; /* TCP_KEEPINTVL, TCP_KEEPIDLE */
+import core.sys.posix.netinet.in_; /* TCP_KEEPINTVL, TCP_KEEPIDLE */
 }
 
 version (HAVE_LIBCURL) {
-import curl/curl;
+import etc.c.curl;
 }
 
 /* libalpm */
