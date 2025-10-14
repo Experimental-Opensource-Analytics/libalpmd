@@ -44,7 +44,7 @@ int  alpm_decode_signature(const(char)* base64_data, ubyte** data, size_t* data_
 	ubyte* usline = cast(ubyte*)base64_data;
 	/* reasonable allocation of expected length is 3/4 of encoded length */
 	size_t destlen = len * 3 / 4;
-	MALLOC(*data, destlen, goto error);
+	MALLOC(*data, destlen);
 	if(base64_decode(*data, &destlen, usline, len)) {
 		free(*data);
 		goto error;
@@ -320,7 +320,7 @@ private int key_search_keyserver(alpm_handle_t* handle, const(char)* fpr, alpm_p
 	/* gpg2 goes full retard here. For key searches ONLY, we need to prefix the
 	 * key fingerprint with 0x, or the lookup will fail. */
 	fpr_len = strlen(fpr);
-	MALLOC(full_fpr, fpr_len + 3, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	MALLOC(full_fpr, fpr_len + 3);
 	snprintf(full_fpr, fpr_len + 3, "0x%s", fpr);
 
 	gpg_err = gpgme_new(&ctx);

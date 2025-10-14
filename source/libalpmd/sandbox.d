@@ -136,7 +136,7 @@ void _alpm_sandbox_cb_log(void* ctx, alpm_loglevel_t level, const(char)* fmt, va
 		va_end(copy);
 		return;
 	}
-	MALLOC(string, string_size + 1, return);
+	MALLOC(string, string_size + 1);
 	string_size = vsnprintf(string, string_size + 1, fmt, args);
 	if(string_size > 0) {
 		write_to_pipe(context.callback_pipe, &type, type.sizeof);
@@ -193,7 +193,7 @@ bool _alpm_sandbox_process_cb_log(alpm_handle_t* handle, int callback_pipe) {
 	ASSERT(read_from_pipe(callback_pipe, &string_size, string_size.sizeof) != -1, return false);
 	ASSERT(string_size > 0 && cast(size_t)string_size < SIZE_MAX, return false);
 
-	MALLOC(string, cast(size_t)string_size + 1, return false);
+	MALLOC(string, cast(size_t)string_size + 1);
 
 	ASSERT(read_from_pipe(callback_pipe, string, string_size) != -1, FREE(string); return false);
 	string[string_size] = '\0';
@@ -240,7 +240,7 @@ bool _alpm_sandbox_process_cb_download(alpm_handle_t* handle, int callback_pipe)
 	ASSERT(read_from_pipe(callback_pipe, &filename_size, filename_size.sizeof) != -1, return false);{}
 	ASSERT(filename_size < PATH_MAX, return false);
 
-	MALLOC(filename, filename_size + 1, return false);
+	MALLOC(filename, filename_size + 1);
 
 	ASSERT(read_from_pipe(callback_pipe, filename, filename_size) != -1, FREE(filename); return false);
 	filename[filename_size] = '\0';

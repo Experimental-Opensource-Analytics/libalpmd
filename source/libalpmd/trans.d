@@ -101,7 +101,7 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 			const(char)* pkgname = pkg.name;
 			const(char)* pkgver = pkg.version_;
 			size_t len = strlen(pkgname) + strlen(pkgver) + strlen(pkgarch) + 3;
-			MALLOC(string, len, RET_ERR(handle, ALPM_ERR_MEMORY, invalid));
+			MALLOC(string, len);
 			snprintf(string, len, "%s-%s-%s", pkgname, pkgver, pkgarch);
 			invalid = alpm_list_add(invalid, string);
 		}
@@ -361,7 +361,7 @@ int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)
 
 	/* create a directory in $root/tmp/ for copying/extracting the scriptlet */
 	len = strlen(handle.root) + strlen("tmp/alpm_XXXXXX") + 1;
-	MALLOC(tmpdir, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	MALLOC(tmpdir, len);
 	snprintf(tmpdir, len, "%stmp/", handle.root);
 	if(access(tmpdir, F_OK) != 0) {
 		_alpm_makepath_mode(tmpdir, 01777);
@@ -375,7 +375,7 @@ int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)
 
 	/* either extract or copy the scriptlet */
 	len += strlen("/.INSTALL");
-	MALLOC(scriptfn, len, free(tmpdir); RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	MALLOC(scriptfn, len);
 	snprintf(scriptfn, len, "%s/.INSTALL", tmpdir);
 	if(is_archive) {
 		if(_alpm_unpack_single(handle, filepath, tmpdir, ".INSTALL")) {

@@ -545,7 +545,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 					};
 					char* newpath = void;
 					size_t len = strlen(file.ptr) + 8 + 1;
-					MALLOC(newpath, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+					MALLOC(newpath, len);
 					shift_pacsave(handle, file.ptr);
 					snprintf(newpath, len, "%s.pacsave", file.ptr);
 					if(rename(file.ptr, newpath)) {

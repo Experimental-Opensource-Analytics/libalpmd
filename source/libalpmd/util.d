@@ -68,6 +68,10 @@ import alpm_list;
 import handle;
 import trans;
 
+void MALLOC(T)(T* ptr, size_t size) {
+	*ptr = malloc(size);
+}
+
 version (HAVE_STRSEP) {} else {
 /** Extracts tokens from a string.
  * Replaces strset which is not portable (missing on Solaris).
@@ -165,7 +169,7 @@ int _alpm_copyfile(const(char)* src, const(char)* dest)
 	ssize_t nread = void;
 	stat st = void;
 
-	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE, return 1);
+	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE);
 
 	OPEN(in_, src, O_RDONLY | O_CLOEXEC);
 	do {
@@ -218,7 +222,7 @@ char* _alpm_get_fullpath(const(char)* path, const(char)* filename, const(char)* 
 	char* filepath = void;
 	/* len = localpath len + filename len + suffix len + null */
 	size_t len = strlen(path) + strlen(filename) + strlen(suffix) + 1;
-	MALLOC(filepath, len, return NULL);
+	MALLOC(filepath, len);
 	snprintf(filepath, len, "%s%s%s", path, filename, suffix);
 
 	return filepath;
@@ -961,7 +965,7 @@ char* _alpm_temporary_download_dir_setup(const(char)* dir, const(char)* user)
 	const(char)[16] template_ = "download-XXXXXX";
 	size_t newdirlen = strlen(dir) + ((template_) + 1).sizeof;
 	char* newdir = null;
-	MALLOC(newdir, newdirlen, return NULL);
+	MALLOC(newdir, newdirlen);
 	snprintf(newdir, newdirlen - 1, "%s%s", dir, template_);
 	if(mkdtemp(newdir) == null) {
 		free(newdir);
@@ -1029,7 +1033,7 @@ static if (HAVE_LIBSSL) {
 	ssize_t n = void;
 	int fd = void;
 
-	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE, return 1);
+	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE);
 
 	OPEN(fd, path, O_RDONLY | O_CLOEXEC);
 	if(fd < 0) {
@@ -1088,7 +1092,7 @@ static if (HAVE_LIBSSL) {
 	ssize_t n = void;
 	int fd = void;
 
-	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE, return 1);
+	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE);
 
 	OPEN(fd, path, O_RDONLY | O_CLOEXEC);
 	if(fd < 0) {
@@ -1611,7 +1615,7 @@ alpm_errno_t _alpm_read_file(const(char)* filepath, ubyte** data, size_t* data_l
 	}
 	*data_len = st.st_size;
 
-	MALLOC(*data, *data_len, fclose(fp); return ALPM_ERR_MEMORY);
+	MALLOC(*data, *data_len);
 
 	if(fread(*data, *data_len, 1, fp) != 1) {
 		FREE(*data);

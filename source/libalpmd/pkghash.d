@@ -178,7 +178,7 @@ private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, alpm_pkg_t* pk
 
 	position = get_hash_position(pkg.name_hash, hash);
 
-	MALLOC(ptr, alpm_list_t.sizeof, return NULL);
+	MALLOC(ptr, alpm_list_t.sizeof);
 
 	ptr.data = pkg;
 	ptr.prev = ptr;

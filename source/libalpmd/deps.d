@@ -910,7 +910,7 @@ char * alpm_dep_compute_string(const(alpm_depend_t)* dep)
 	 * reassignments above also ensure we do not do a strlen(NULL). */
 	len = strlen(name) + strlen(opr) + strlen(ver)
 		+ strlen(desc_delim) + strlen(desc) + 1;
-	MALLOC(str, len, return NULL);
+	MALLOC(str, len);
 	snprintf(str, len, "%s%s%s%s%s", name, opr, ver, desc_delim, desc);
 
 	return str;

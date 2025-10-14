@@ -675,7 +675,7 @@ char* _alpm_local_db_pkgpath(alpm_db_t* db, alpm_pkg_t* info, const(char)* filen
 	dbpath = _alpm_db_path(db);
 	len = strlen(dbpath) + strlen(info.name) + strlen(info.version_) + 3;
 	len += filename ? strlen(filename) : 0;
-	MALLOC(pkgpath, len, RET_ERR(db.handle, ALPM_ERR_MEMORY, null));
+	MALLOC(pkgpath, len);
 	snprintf(pkgpath, len, "%s%s-%s/%s", dbpath, info.name, info.version_,
 			filename ? filename : "");
 	return pkgpath;
@@ -872,7 +872,7 @@ private int local_db_read(alpm_pkg_t* info, int inforeq)
 					/* since we know the length of the file string already,
 					 * we can do malloc + memcpy rather than strdup */
 					len += 1;
-					MALLOC(files[files_count].name, len, goto nomem);
+					MALLOC(files[files_count].name, len);
 					memcpy(files[files_count].name, line.ptr, len);
 					files_count++;
 				}

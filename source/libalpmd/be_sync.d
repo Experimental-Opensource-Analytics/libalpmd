@@ -51,7 +51,7 @@ private char* get_sync_dir(alpm_handle_t* handle)
 	char* syncpath = void;
 	stat buf = void;
 
-	MALLOC(syncpath, len, RET_ERR(handle, ALPM_ERR_MEMORY, null));
+	MALLOC(syncpath, len);
 	snprintf(syncpath, len, "%s%s", handle.dbpath, "sync/");
 
 	if(stat(syncpath, &buf) != 0) {
@@ -193,8 +193,7 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 		payload.servers = db.servers;
 		/* print server + filename into a buffer */
 		len = strlen(db.treename) + strlen(dbext) + 1;
-		MALLOC(payload.filepath, len,
-			FREE(payload); GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		MALLOC(payload.filepath, len);
 		snprintf(payload.filepath, len, "%s%s", db.treename, dbext);
 
 		STRDUP(payload.remote_name, payload.filepath,

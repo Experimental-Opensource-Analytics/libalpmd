@@ -648,7 +648,7 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 	if(pkg.files.count) {
 		size_t filenum = void;
 		size_t len = ((alpm_file_t) * pkg.files.count).sizeof;
-		MALLOC(newpkg.files.files, len, goto cleanup);
+		MALLOC(newpkg.files.files, len);
 		for(filenum = 0; filenum < pkg.files.count; filenum++) {
 			if(!_alpm_file_copy(newpkg.files.files + filenum,
 						pkg.files.files + filenum)) {

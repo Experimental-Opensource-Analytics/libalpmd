@@ -103,7 +103,7 @@ private FILE* create_tempfile(dload_payload* payload, const(char)* localpath)
 
 	/* create a random filename, which is opened with O_EXCL */
 	len = strlen(localpath) + 14 + 1;
-	MALLOC(randpath, len, RET_ERR(payload.handle, ALPM_ERR_MEMORY, null));
+	MALLOC(randpath, len);
 	snprintf(randpath, len, "%salpmtmp.XXXXXX", localpath);
 	if((fd = mkstemp(randpath)) == -1 ||
 			fchmod(fd, ~cast(_getumask) & 0666) ||
@@ -453,7 +453,7 @@ private int curl_retry_next_server(CURLM* curlm, CURL* curl, dload_payload* payl
 	/* regenerate a new fileurl */
 	FREE(payload.fileurl);
 	len = strlen(server) + strlen(payload.filepath) + 2;
-	MALLOC(payload.fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	MALLOC(payload.fileurl, len);
 	snprintf(payload.fileurl, len, "%s/%s", server, payload.filepath);
 	_alpm_log(handle, ALPM_LOG_DEBUG,
 			"%s: retrying from %s\n",
@@ -639,23 +639,20 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 
 		len = strlen(url) + 5;
 		CALLOC(sig, 1, typeof(*sig).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
-		MALLOC(sig.fileurl, len, FREE(sig); GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		MALLOC(sig.fileurl, len);
 		snprintf(sig.fileurl, len, "%s.sig", url);
 
 		int remote_name_len = strlen(payload.remote_name) + 5;
-		MALLOC(sig.remote_name, remote_name_len, _alpm_dload_payload_reset(sig);
-			FREE(sig); GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		MALLOC(sig.remote_name, remote_name_len);
 		snprintf(sig.remote_name, remote_name_len, "%s.sig", payload.remote_name);
 
 		/* force the filename to be realname + ".sig" */
 		int destfile_name_len = strlen(realname) + 5;
-		MALLOC(sig.destfile_name, destfile_name_len, _alpm_dload_payload_reset(sig);
-				FREE(sig); GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		MALLOC(sig.destfile_name, destfile_name_len);
 		snprintf(sig.destfile_name, destfile_name_len, "%s.sig", realname);
 
 		int tempfile_name_len = strlen(realname) + 10;
-		MALLOC(sig.tempfile_name, tempfile_name_len, _alpm_dload_payload_reset(sig);
-				FREE(sig); GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		MALLOC(sig.tempfile_name, tempfile_name_len);
 		snprintf(sig.tempfile_name, tempfile_name_len, "%s.sig.part", realname);
 
 
@@ -1069,7 +1066,7 @@ private int payload_download_fetchcb(dload_payload* payload, const(char)* server
 	alpm_handle_t* handle = payload.handle;
 
 	size_t len = strlen(server.ptr) + strlen(payload.filepath) + 2;
-	MALLOC(fileurl, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	MALLOC(fileurl, len);
 	snprintf(fileurl, len, "%s/%s", server.ptr, payload.filepath);
 
 	ret = handle.fetchcb(handle.fetchcb_ctx, fileurl, localpath, payload.force);
@@ -1224,7 +1221,7 @@ version (HAVE_LIBCURL) {
 					size_t sig_len = strlen(payload.fileurl) + 5;
 					int retsig = -1;
 
-					MALLOC(sig_fileurl, sig_len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+					MALLOC(sig_fileurl, sig_len);
 					snprintf(sig_fileurl, sig_len, "%s.sig", payload.fileurl);
 
 					retsig = handle.fetchcb(handle.fetchcb_ctx, sig_fileurl, temporary_localpath,  payload.force);
@@ -1255,7 +1252,7 @@ download_signature:
 					size_t sig_len = strlen(s.data) + strlen(payload.filepath) + 6;
 					int retsig = -1;
 
-					MALLOC(sig_fileurl, sig_len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+					MALLOC(sig_fileurl, sig_len);
 					snprintf(sig_fileurl, sig_len, "%s/%s.sig", cast(const(char)*)(s.data), payload.filepath);
 
 					retsig = handle.fetchcb(handle.fetchcb_ctx, sig_fileurl, temporary_localpath, payload.force);

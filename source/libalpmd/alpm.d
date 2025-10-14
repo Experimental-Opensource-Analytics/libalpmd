@@ -63,7 +63,7 @@ alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_err
 	 * with a slash) correctly, we skip SYSHOOKDIR[0]; the regular +1 therefore
 	 * disappears from the allocation */
 	hookdirlen = strlen(myhandle.root) + strlen(SYSHOOKDIR);
-	MALLOC(hookdir, hookdirlen, goto nomem);
+	MALLOC(hookdir, hookdirlen);
 	snprintf(hookdir, hookdirlen, "%s%s", myhandle.root, &SYSHOOKDIR[1]);
 	myhandle.hookdirs = alpm_list_add(null, hookdir);
 
@@ -71,7 +71,7 @@ alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_err
 	STRDUP(myhandle.dbext, ".db", goto nomem);
 
 	lockfilelen = strlen(myhandle.dbpath) + strlen(lf) + 1;
-	MALLOC(myhandle.lockfile, lockfilelen, goto nomem);
+	MALLOC(myhandle.lockfile, lockfilelen);
 	snprintf(myhandle.lockfile, lockfilelen, "%s%s", myhandle.dbpath, lf);
 
 	if(_alpm_db_register_local(myhandle) == null) {
@@ -88,7 +88,7 @@ version (HAVE_LIBCURL) {
 
 	/* set default sandboxuser */
 	ASSERT((pw = getpwuid(0)) != null, myerr = errno; goto cleanup);
-	STRDUP(myhandle.sandboxuser, pw.pw_name, goto nomem);
+	STRDUP(myhandle.sandboxuser, pw.pw_name);
 	
 version (ENABLE_NLS) {
 	bindtextdomain("libalpm", LOCALEDIR);

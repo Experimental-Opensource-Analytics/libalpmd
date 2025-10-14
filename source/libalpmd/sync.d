@@ -751,7 +751,7 @@ private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 				char* sig_filename = null;
 				int len = strlen(spkg.filename) + 5;
 
-				MALLOC(sig_filename, len, RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+				MALLOC(sig_filename, len);
 				snprintf(sig_filename, len, "%s.sig", spkg.filename);
 
 				need_download = !_alpm_filecache_exists(handle, sig_filename);
@@ -1026,7 +1026,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 					v.siglevel, &v.siglist, &v.validation) == -1) {
 			validity* invalid = void;
 			v.error = handle.pm_errno;
-			MALLOC(invalid, validity.sizeof, return -1);
+			MALLOC(invalid, validity.sizeof);
 			memcpy(invalid, &v, validity.sizeof);
 			errors = alpm_list_add(errors, invalid);
 		} else {

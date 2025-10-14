@@ -417,7 +417,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
 	if(type == AE_IFDIR && path[pathlen - 1] != '/') {
 		/* 2 = 1 for / + 1 for \0 */
 		char* newpath = void;
-		MALLOC(newpath, pathlen + 2, return -1);
+		MALLOC(newpath, pathlen + 2);
 		strcpy(newpath, path);
 		newpath[pathlen] = '/';
 		newpath[pathlen + 1] = '\0';
@@ -708,7 +708,7 @@ private int read_sigfile(const(char)* sigpath, ubyte** sig)
 		return -1;
 	}
 
-	MALLOC(*sig, st.st_size, fclose(fp); return -1);
+	MALLOC(*sig, st.st_size);
 
 	if(fread(*sig, st.st_size, 1, fp) != 1) {
 		free(*sig);
