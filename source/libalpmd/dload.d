@@ -107,7 +107,7 @@ private FILE* create_tempfile(dload_payload* payload, const(char)* localpath)
 	MALLOC(randpath, len);
 	snprintf(randpath, len, "%salpmtmp.XXXXXX", localpath);
 	if((fd = mkstemp(randpath)) == -1 ||
-			fchmod(fd, ~cast(_getumask) & 0666) ||
+			fchmod(fd, ~cast(_getumask) & octal!"0666") ||
 			((fp = fdopen(fd, payload.tempfile_openmode)) == 0)) {
 		unlink(randpath);
 		close(fd);

@@ -161,7 +161,7 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 	ASSERT(temporary_syncpath != null);
 
 	/* make sure we have a sane umask */
-	oldmask = umask(0022);
+	oldmask = umask(octal!"0022");
 
 	/* attempt to grab a lock */
 	if(_alpm_handle_lock(handle)) {

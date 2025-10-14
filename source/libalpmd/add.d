@@ -181,7 +181,7 @@ private int extract_db_file(alpm_handle_t* handle, archive* archive, archive_ent
 		archive_read_data_skip(archive);
 		return 0;
 	}
-	archive_entry_set_perm(entry, 0644);
+	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
 			_alpm_db_path(handle.db_local), newpkg.name, newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
@@ -255,7 +255,7 @@ version (none) {
 		/* case 6: existing dir, ignore it */
 		if(lsbuf.st_mode != entrymode) {
 			/* if filesystem perms are different than pkg perms, warn user */
-			mode_t mask = 07777;
+			mode_t mask = octal!"07777";
 			_alpm_log(handle, ALPM_LOG_WARNING, _("directory permissions differ on %s\n"
 					~ "filesystem: %o  package: %o\n"), filename.ptr, lsbuf.st_mode & mask,
 					entrymode & mask);
