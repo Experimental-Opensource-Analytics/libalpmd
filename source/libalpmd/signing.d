@@ -652,8 +652,7 @@ int _alpm_gpgme_checksig(alpm_handle_t* handle, const(char)* path, const(char)* 
 			_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed, unknown key\n");
 			gpg_err = GPG_ERR_NO_ERROR;
 			/* we dupe the fpr in this case since we have no key to point at */
-			STRDUP(result.key.fingerprint, gpgsig.fpr,
-					GOTO_ERR(handle, ALPM_ERR_MEMORY, gpg_error));
+			STRDUP(result.key.fingerprint, gpgsig.fpr);
 		} else {
 			mixin(CHECK_ERR!());
 			if(key.uids) {

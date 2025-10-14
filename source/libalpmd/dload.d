@@ -119,8 +119,7 @@ private FILE* create_tempfile(dload_payload* payload, const(char)* localpath)
 	free(payload.tempfile_name);
 	payload.tempfile_name = randpath;
 	free(payload.remote_name);
-	STRDUP(payload.remote_name, strrchr(randpath, '/') + 1,
-			fclose(fp); RET_ERR(payload.handle, ALPM_ERR_MEMORY, null));
+	STRDUP(payload.remote_name, strrchr(randpath, '/') + 1);
 
 	return fp;
 }
@@ -622,7 +621,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 		const(char)* realname = payload.destfile_name ? payload.destfile_name : payload.tempfile_name;
 		int len = void;
 
-		STRDUP(_effective_filename, effective_url, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		STRDUP(_effective_filename, effective_url);
 		effective_filename = get_filename(_effective_filename);
 		query = strrchr(effective_filename, '?');
 
@@ -1351,10 +1350,9 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 
 			ASSERT(url, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, err));
 			CALLOC(payload, 1, typeof(*payload).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, err));
-			STRDUP(payload.fileurl, url, FREE(payload); GOTO_ERR(handle, ALPM_ERR_MEMORY, err));
+			STRDUP(payload.fileurl, url);
 
-			STRDUP(payload.remote_name, get_filename(payload.fileurl),
-				GOTO_ERR(handle, ALPM_ERR_MEMORY, err));
+			STRDUP(payload.remote_name, get_filename(payload.fileurl));
 
 			c = strrchr(url, '/');
 			if(c != null &&  strstr(c, ".pkg") && payload.remote_name && strlen(payload.remote_name) > 0) {

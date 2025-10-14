@@ -833,10 +833,8 @@ private int download_files(alpm_handle_t* handle)
 			dload_payload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
-			STRDUP(payload.remote_name, pkg.filename, FREE(payload); GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
-			STRDUP(payload.filepath, pkg.filename,
-				_alpm_dload_payload_reset(payload); FREE(payload);
-				GOTO_ERR(handle, ALPM_ERR_MEMORY, finish));
+			STRDUP(payload.remote_name, pkg.filename);
+			STRDUP(payload.filepath, pkg.filename);
 			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, "");
 			payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, ".part");
 			if(!payload.destfile_name || !payload.tempfile_name) {

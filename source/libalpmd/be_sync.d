@@ -196,9 +196,7 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 		MALLOC(payload.filepath, len);
 		snprintf(payload.filepath, len, "%s%s", db.treename, dbext);
 
-		STRDUP(payload.remote_name, payload.filepath,
-			_alpm_dload_payload_reset(payload); FREE(payload);
-			GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
+		STRDUP(payload.remote_name, payload.filepath);
 		payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, "");
 		payload.tempfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, ".part");
 		if(!payload.destfile_name || !payload.tempfile_name) {
@@ -541,14 +539,14 @@ enum string READ_NEXT() = `do {
 
 enum string READ_AND_STORE(string f) = `do { 
 	` ~ READ_NEXT!() ~ `; 
-	STRDUP(` ~ f ~ `, line, goto error); 
+	STRDUP(` ~ f ~ `, line); 
 } while(0)`;
 
 enum string READ_AND_STORE_ALL(string f) = `do { 
 	char* linedup = void; 
 	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
 	if(_alpm_strip_newline(buf.line, buf.real_line_size) == 0) break; 
-	STRDUP(linedup, buf.line, goto error); 
+	STRDUP(linedup, buf.line); 
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, linedup); 
 } while(1) /* note the while(1) and not (0) */`;
 
@@ -682,7 +680,7 @@ private int sync_db_read(alpm_db_t* db, archive* archive, archive_entry* entry, 
 								(files_count ? (files_count + 1) * alpm_file_t.sizeof : 8 * alpm_file_t.sizeof))) {
 						goto error;
 					}
-					STRDUP(files[files_count].name, line, goto error);
+					STRDUP(files[files_count].name, line);
 					files_count++;
 				}
 				/* attempt to hand back any memory we don't need */

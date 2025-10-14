@@ -34,11 +34,11 @@ import log;
 import util;
 
 /* split a backup string "file\thash" into the relevant components */
-int _alpm_split_backup(const(char)* string, alpm_backup_t** backup)
+int _alpm_split_backup(const(char)* _string, alpm_backup_t** backup)
 {
 	char* str = void, ptr = void;
 
-	STRDUP(str, string, return -1);
+	STRDUP(str, _string);
 
 	/* tab delimiter */
 	ptr = str ? strchr(str, '\t') : null;
@@ -50,8 +50,8 @@ int _alpm_split_backup(const(char)* string, alpm_backup_t** backup)
 	*ptr = '\0';
 	ptr++;
 	/* now str points to the filename and ptr points to the hash */
-	STRDUP((*backup).name, str, FREE(str); return -1);
-	STRDUP((*backup).hash, ptr, FREE((*backup).name); FREE(str); return -1);
+	STRDUP((*backup).name, str);
+	STRDUP((*backup).hash, ptr);
 	FREE(str);
 	return 0;
 }
@@ -91,8 +91,8 @@ alpm_backup_t* _alpm_backup_dup(const(alpm_backup_t)* backup)
 	alpm_backup_t* newbackup = void;
 	CALLOC(newbackup, 1, alpm_backup_t.sizeof, return NULL);
 
-	STRDUP(newbackup.name, backup.name, goto error);
-	STRDUP(newbackup.hash, backup.hash, goto error);
+	STRDUP(newbackup.name, backup.name);
+	STRDUP(newbackup.hash, backup.hash);
 
 	return newbackup;
 

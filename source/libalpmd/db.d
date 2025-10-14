@@ -178,7 +178,7 @@ private char* sanitize_url(const(char)* url)
 	char* newurl = void;
 	size_t len = strlen(url);
 
-	STRDUP(newurl, url, return NULL);
+	STRDUP(newurl, url);
 	/* strip the trailing slash if one exists */
 	if(newurl[len - 1] == '/') {
 		newurl[len - 1] = '\0';
@@ -374,7 +374,7 @@ alpm_db_t* _alpm_db_new(const(char)* treename, int is_local)
 	alpm_db_t* db = void;
 
 	CALLOC(db, 1, alpm_db_t.sizeof, return NULL);
-	STRDUP(db.treename, treename, FREE(db); return null);
+	STRDUP(db.treename, treename);
 	if(is_local) {
 		db.status |= DB_STATUS_LOCAL;
 	} else {

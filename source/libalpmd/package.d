@@ -560,7 +560,7 @@ alpm_list_t * alpm_pkg_compute_optionalfor(alpm_pkg_t* pkg)
 
 alpm_file_t* _alpm_file_copy(alpm_file_t* dest, const(alpm_file_t)* src)
 {
-	STRDUP(dest.name, src.name, return NULL);
+	STRDUP(dest.name, src.name);
 	dest.size = src.size;
 	dest.mode = src.mode;
 
@@ -616,18 +616,18 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 	CALLOC(newpkg, 1, alpm_pkg_t.sizeof, goto cleanup);
 
 	newpkg.name_hash = pkg.name_hash;
-	STRDUP(newpkg.filename, pkg.filename, goto cleanup);
-	STRDUP(newpkg.base, pkg.base, goto cleanup);
-	STRDUP(newpkg.name, pkg.name, goto cleanup);
-	STRDUP(newpkg.version_, pkg.version_, goto cleanup);
-	STRDUP(newpkg.desc, pkg.desc, goto cleanup);
-	STRDUP(newpkg.url, pkg.url, goto cleanup);
+	STRDUP(newpkg.filename, pkg.filename);
+	STRDUP(newpkg.base, pkg.base);
+	STRDUP(newpkg.name, pkg.name);
+	STRDUP(newpkg.version_, pkg.version_);
+	STRDUP(newpkg.desc, pkg.desc);
+	STRDUP(newpkg.url, pkg.url);
 	newpkg.builddate = pkg.builddate;
 	newpkg.installdate = pkg.installdate;
-	STRDUP(newpkg.packager, pkg.packager, goto cleanup);
-	STRDUP(newpkg.md5sum, pkg.md5sum, goto cleanup);
-	STRDUP(newpkg.sha256sum, pkg.sha256sum, goto cleanup);
-	STRDUP(newpkg.arch, pkg.arch, goto cleanup);
+	STRDUP(newpkg.packager, pkg.packager);
+	STRDUP(newpkg.md5sum, pkg.md5sum);
+	STRDUP(newpkg.sha256sum, pkg.sha256sum);
+	STRDUP(newpkg.arch, pkg.arch);
 	newpkg.size = pkg.size;
 	newpkg.isize = pkg.isize;
 	newpkg.scriptlet = pkg.scriptlet;
@@ -662,7 +662,7 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 	newpkg.infolevel = pkg.infolevel;
 	newpkg.origin = pkg.origin;
 	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-		STRDUP(newpkg.origin_data.file, pkg.origin_data.file, goto cleanup);
+		STRDUP(newpkg.origin_data.file, pkg.origin_data.file);
 	} else {
 		newpkg.origin_data.db = pkg.origin_data.db;
 	}
@@ -693,7 +693,7 @@ alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(const(char)* string)
 
 	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof, return NULL);
 	STRNDUP(pd.name, string, sep - string, FREE(pd); return null);
-	STRDUP(pd.value, sep + 1, FREE(pd.name); FREE(pd); return null);
+	STRDUP(pd.value, sep + 1);
 
 	return pd;
 }

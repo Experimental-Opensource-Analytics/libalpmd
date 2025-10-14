@@ -72,6 +72,14 @@ void MALLOC(T)(T* ptr, size_t size) {
 	*ptr = malloc(size);
 }
 
+void STRDUP(ref char* str, char* _str) {
+	str = strndup(_str);
+} 
+
+void CHECK_HANDLE(T) (T t) {
+	assert(t !is null);
+}
+
 version (HAVE_STRSEP) {} else {
 /** Extracts tokens from a string.
  * Replaces strset which is not portable (missing on Solaris).
@@ -307,7 +315,7 @@ version (HAVE_STRUCT_STAT_ST_BLKSIZE) {
 error:
 	_alpm_archive_read_free(*archive);
 	*archive = null;
-	if(fd >= 0) {
+	if(fd >= 0) {, fclose(fp); return ALPM_ERR_MEMORY
 		close(fd);
 	}
 	RET_ERR(handle, error, -1);
@@ -385,7 +393,7 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 		/* If specific files were requested, skip entries that don't match. */
 		if(list) {
 			char* entry_prefix = null;
-			STRDUP(entry_prefix, entryname, ret = 1; goto cleanup);
+			STRDUP(entry_prefix, entryname);
 			char* p = strstr(entry_prefix,"/");
 			if(p) {
 				*(p + 1) = '\0';

@@ -36,7 +36,7 @@ alpm_group_t* _alpm_group_new(const(char)* name)
 	alpm_group_t* grp = void;
 
 	CALLOC(grp, 1, alpm_group_t.sizeof, return NULL);
-	STRDUP(grp.name, name, free(grp); return null);
+	STRDUP(grp.name, name);
 
 	return grp;
 }
