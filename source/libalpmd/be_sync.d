@@ -140,7 +140,7 @@ valid:
 	return 0;
 }
 
-int SYMEXPORT alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
+int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 	char* syncpath = void;
 	char* temporary_syncpath = void;
 	const(char)* dbext = handle.dbext;

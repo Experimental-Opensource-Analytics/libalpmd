@@ -32,11 +32,11 @@ import core.stdc.string;
 import alpm_list;
 
 /* check exported library symbols with: nm -C -D <lib> */
-enum SYMEXPORT = __attribute__((visibility("default")));
+enum  = __attribute__((visibility("default")));
 
 /* Allocation */
 
-void SYMEXPORT alpm_list_free(alpm_list_t* list)
+void  alpm_list_free(alpm_list_t* list)
 {
 	alpm_list_t* it = list;
 
@@ -47,7 +47,7 @@ void SYMEXPORT alpm_list_free(alpm_list_t* list)
 	}
 }
 
-void SYMEXPORT alpm_list_free_inner(alpm_list_t* list, alpm_list_fn_free fn)
+void  alpm_list_free_inner(alpm_list_t* list, alpm_list_fn_free fn)
 {
 	alpm_list_t* it = list;
 
@@ -64,13 +64,13 @@ void SYMEXPORT alpm_list_free_inner(alpm_list_t* list, alpm_list_fn_free fn)
 
 /* Mutators */
 
-alpm_list_t SYMEXPORT* alpm_list_add(alpm_list_t* list, void* data)
+alpm_list_t * alpm_list_add(alpm_list_t* list, void* data)
 {
 	alpm_list_append(&list, data);
 	return list;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_append(alpm_list_t** list, void* data)
+alpm_list_t * alpm_list_append(alpm_list_t** list, void* data)
 {
 	alpm_list_t* ptr = void;
 
@@ -96,7 +96,7 @@ alpm_list_t SYMEXPORT* alpm_list_append(alpm_list_t** list, void* data)
 	return ptr;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_append_strdup(alpm_list_t** list, const(char)* data)
+alpm_list_t * alpm_list_append_strdup(alpm_list_t** list, const(char)* data)
 {
 	alpm_list_t* ret = void;
 	char* dup = void;
@@ -108,7 +108,7 @@ alpm_list_t SYMEXPORT* alpm_list_append_strdup(alpm_list_t** list, const(char)* 
 	}
 }
 
-alpm_list_t SYMEXPORT* alpm_list_add_sorted(alpm_list_t* list, void* data, alpm_list_fn_cmp fn)
+alpm_list_t * alpm_list_add_sorted(alpm_list_t* list, void* data, alpm_list_fn_cmp fn)
 {
 	if(!fn || !list) {
 		return alpm_list_add(list, data);
@@ -150,7 +150,7 @@ alpm_list_t SYMEXPORT* alpm_list_add_sorted(alpm_list_t* list, void* data, alpm_
 	}
 }
 
-alpm_list_t SYMEXPORT* alpm_list_join(alpm_list_t* first, alpm_list_t* second)
+alpm_list_t * alpm_list_join(alpm_list_t* first, alpm_list_t* second)
 {
 	alpm_list_t* tmp = void;
 
@@ -172,7 +172,7 @@ alpm_list_t SYMEXPORT* alpm_list_join(alpm_list_t* first, alpm_list_t* second)
 	return first;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_mmerge(alpm_list_t* left, alpm_list_t* right, alpm_list_fn_cmp fn)
+alpm_list_t * alpm_list_mmerge(alpm_list_t* left, alpm_list_t* right, alpm_list_fn_cmp fn)
 {
 	alpm_list_t* newlist = void, lp = void, tail_ptr = void, left_tail_ptr = void, right_tail_ptr = void;
 
@@ -232,7 +232,7 @@ alpm_list_t SYMEXPORT* alpm_list_mmerge(alpm_list_t* left, alpm_list_t* right, a
 	return newlist;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_msort(alpm_list_t* list, size_t n, alpm_list_fn_cmp fn)
+alpm_list_t * alpm_list_msort(alpm_list_t* list, size_t n, alpm_list_fn_cmp fn)
 {
 	if(n > 1) {
 		size_t half = n / 2;
@@ -256,7 +256,7 @@ alpm_list_t SYMEXPORT* alpm_list_msort(alpm_list_t* list, size_t n, alpm_list_fn
 	return list;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_remove_item(alpm_list_t* haystack, alpm_list_t* item)
+alpm_list_t * alpm_list_remove_item(alpm_list_t* haystack, alpm_list_t* item)
 {
 	if(haystack == null || item == null) {
 		return haystack;
@@ -292,7 +292,7 @@ alpm_list_t SYMEXPORT* alpm_list_remove_item(alpm_list_t* haystack, alpm_list_t*
 	return haystack;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_remove(alpm_list_t* haystack, const(void)* needle, alpm_list_fn_cmp fn, void** data)
+alpm_list_t * alpm_list_remove(alpm_list_t* haystack, const(void)* needle, alpm_list_fn_cmp fn, void** data)
 {
 	alpm_list_t* i = haystack;
 
@@ -325,13 +325,13 @@ alpm_list_t SYMEXPORT* alpm_list_remove(alpm_list_t* haystack, const(void)* need
 	return haystack;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_remove_str(alpm_list_t* haystack, const(char)* needle, char** data)
+alpm_list_t * alpm_list_remove_str(alpm_list_t* haystack, const(char)* needle, char** data)
 {
 	return alpm_list_remove(haystack, cast(const(void)*)needle,
 			cast(alpm_list_fn_cmp)strcmp, cast(void**)data);
 }
 
-alpm_list_t SYMEXPORT* alpm_list_remove_dupes(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_remove_dupes(const(alpm_list_t)* list)
 {
 	const(alpm_list_t)* lp = list;
 	alpm_list_t* newlist = null;
@@ -347,7 +347,7 @@ alpm_list_t SYMEXPORT* alpm_list_remove_dupes(const(alpm_list_t)* list)
 	return newlist;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_strdup(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_strdup(const(alpm_list_t)* list)
 {
 	const(alpm_list_t)* lp = list;
 	alpm_list_t* newlist = null;
@@ -361,7 +361,7 @@ alpm_list_t SYMEXPORT* alpm_list_strdup(const(alpm_list_t)* list)
 	return newlist;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_copy(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_copy(const(alpm_list_t)* list)
 {
 	const(alpm_list_t)* lp = list;
 	alpm_list_t* newlist = null;
@@ -375,7 +375,7 @@ alpm_list_t SYMEXPORT* alpm_list_copy(const(alpm_list_t)* list)
 	return newlist;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_copy_data(const(alpm_list_t)* list, size_t size)
+alpm_list_t * alpm_list_copy_data(const(alpm_list_t)* list, size_t size)
 {
 	const(alpm_list_t)* lp = list;
 	alpm_list_t* newlist = null;
@@ -397,7 +397,7 @@ alpm_list_t SYMEXPORT* alpm_list_copy_data(const(alpm_list_t)* list, size_t size
 	return newlist;
 }
 
-alpm_list_t SYMEXPORT* alpm_list_reverse(alpm_list_t* list)
+alpm_list_t * alpm_list_reverse(alpm_list_t* list)
 {
 	const(alpm_list_t)* lp = void;
 	alpm_list_t* newlist = null, backup = void;
@@ -425,7 +425,7 @@ alpm_list_t SYMEXPORT* alpm_list_reverse(alpm_list_t* list)
 
 /* Accessors */
 
-alpm_list_t SYMEXPORT* alpm_list_nth(const(alpm_list_t)* list, size_t n)
+alpm_list_t * alpm_list_nth(const(alpm_list_t)* list, size_t n)
 {
 	const(alpm_list_t)* i = list;
 	while(n--) {
@@ -452,7 +452,7 @@ pragma(inline, true) alpm_list_t* alpm_list_previous(const(alpm_list_t)* list)
 	}
 }
 
-alpm_list_t SYMEXPORT* alpm_list_last(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_last(const(alpm_list_t)* list)
 {
 	if(list) {
 		return list.prev;
@@ -463,7 +463,7 @@ alpm_list_t SYMEXPORT* alpm_list_last(const(alpm_list_t)* list)
 
 /* Misc */
 
-size_t SYMEXPORT alpm_list_count(const(alpm_list_t)* list)
+size_t  alpm_list_count(const(alpm_list_t)* list)
 {
 	size_t i = 0;
 	const(alpm_list_t)* lp = list;
@@ -474,7 +474,7 @@ size_t SYMEXPORT alpm_list_count(const(alpm_list_t)* list)
 	return i;
 }
 
-void SYMEXPORT* alpm_list_find(const(alpm_list_t)* haystack, const(void)* needle, alpm_list_fn_cmp fn)
+void * alpm_list_find(const(alpm_list_t)* haystack, const(void)* needle, alpm_list_fn_cmp fn)
 {
 	const(alpm_list_t)* lp = haystack;
 	while(lp) {
@@ -492,18 +492,18 @@ private int ptr_cmp(const(void)* p, const(void)* q)
 	return (p != q);
 }
 
-void SYMEXPORT* alpm_list_find_ptr(const(alpm_list_t)* haystack, const(void)* needle)
+void * alpm_list_find_ptr(const(alpm_list_t)* haystack, const(void)* needle)
 {
 	return alpm_list_find(haystack, needle, &ptr_cmp);
 }
 
-char SYMEXPORT* alpm_list_find_str(const(alpm_list_t)* haystack, const(char)* needle)
+char * alpm_list_find_str(const(alpm_list_t)* haystack, const(char)* needle)
 {
 	return cast(char*)alpm_list_find(haystack, cast(const(void)*)needle,
 			cast(alpm_list_fn_cmp)strcmp);
 }
 
-int SYMEXPORT alpm_list_cmp_unsorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn)
+int  alpm_list_cmp_unsorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn)
 {
 	const(alpm_list_t)* l = left;
 	const(alpm_list_t)* r = right;
@@ -559,7 +559,7 @@ int SYMEXPORT alpm_list_cmp_unsorted(const(alpm_list_t)* left, const(alpm_list_t
 	return 1;
 }
 
-void SYMEXPORT alpm_list_diff_sorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn, alpm_list_t** onlyleft, alpm_list_t** onlyright)
+void  alpm_list_diff_sorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn, alpm_list_t** onlyleft, alpm_list_t** onlyright)
 {
 	const(alpm_list_t)* l = left;
 	const(alpm_list_t)* r = right;
@@ -601,7 +601,7 @@ void SYMEXPORT alpm_list_diff_sorted(const(alpm_list_t)* left, const(alpm_list_t
 }
 
 
-alpm_list_t SYMEXPORT* alpm_list_diff(const(alpm_list_t)* lhs, const(alpm_list_t)* rhs, alpm_list_fn_cmp fn)
+alpm_list_t * alpm_list_diff(const(alpm_list_t)* lhs, const(alpm_list_t)* rhs, alpm_list_fn_cmp fn)
 {
 	alpm_list_t* left = void, right = void;
 	alpm_list_t* ret = null;
@@ -618,7 +618,7 @@ alpm_list_t SYMEXPORT* alpm_list_diff(const(alpm_list_t)* lhs, const(alpm_list_t
 	return ret;
 }
 
-void SYMEXPORT* alpm_list_to_array(const(alpm_list_t)* list, size_t n, size_t size)
+void * alpm_list_to_array(const(alpm_list_t)* list, size_t n, size_t size)
 {
 	size_t i = void;
 	const(alpm_list_t)* item = void;

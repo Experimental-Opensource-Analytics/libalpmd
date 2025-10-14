@@ -38,7 +38,7 @@ import db;
 import handle;
 import trans;
 
-void SYMEXPORT alpm_dep_free(alpm_depend_t* dep)
+void  alpm_dep_free(alpm_depend_t* dep)
 {
 	ASSERT(dep != null, return);
 	FREE(dep.name);
@@ -64,7 +64,7 @@ error:
 	return null;
 }
 
-void SYMEXPORT alpm_depmissing_free(alpm_depmissing_t* miss)
+void  alpm_depmissing_free(alpm_depmissing_t* miss)
 {
 	ASSERT(miss != null, return);
 	alpm_dep_free(miss.depend);
@@ -285,7 +285,7 @@ private int no_dep_version(alpm_handle_t* handle)
 	return (handle.trans.flags & ALPM_TRANS_FLAG_NODEPVERSION);
 }
 
-alpm_pkg_t SYMEXPORT* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring)
+alpm_pkg_t * alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring)
 {
 	alpm_depend_t* dep = alpm_dep_from_string(depstring);
 	if(!dep) {
@@ -296,7 +296,7 @@ alpm_pkg_t SYMEXPORT* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstr
 	return pkg;
 }
 
-alpm_list_t SYMEXPORT* alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* rem, alpm_list_t* upgrade, int reversedeps)
+alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* rem, alpm_list_t* upgrade, int reversedeps)
 {
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* dblist = null, modified = null;
@@ -451,7 +451,7 @@ int _alpm_depcmp(alpm_pkg_t* pkg, alpm_depend_t* dep)
 		|| _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg));
 }
 
-alpm_depend_t SYMEXPORT* alpm_dep_from_string(const(char)* depstring)
+alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 {
 	alpm_depend_t* depend = void;
 	const(char)* ptr = void, version_ = void, desc = void;
@@ -742,7 +742,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 	return null;
 }
 
-alpm_pkg_t SYMEXPORT* alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs, const(char)* depstring)
+alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs, const(char)* depstring)
 {
 	alpm_depend_t* dep = void;
 	alpm_pkg_t* pkg = void;
@@ -853,7 +853,7 @@ int _alpm_resolvedeps(alpm_handle_t* handle, alpm_list_t* localpkgs, alpm_pkg_t*
 	return ret;
 }
 
-char SYMEXPORT* alpm_dep_compute_string(const(alpm_depend_t)* dep)
+char * alpm_dep_compute_string(const(alpm_depend_t)* dep)
 {
 	const(char)* name = void, opr = void, ver = void, desc_delim = void, desc = void;
 	char* str = void;

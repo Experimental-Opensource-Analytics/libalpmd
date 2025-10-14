@@ -218,7 +218,7 @@ cleanup:
 	return ret;
 }
 
-int SYMEXPORT alpm_pkg_vercmp(const(char)* a, const(char)* b)
+int  alpm_pkg_vercmp(const(char)* a, const(char)* b)
 {
 	char* full1 = void, full2 = void;
 	const(char)* epoch1 = void, ver1 = void, rel1 = void;

@@ -720,7 +720,7 @@ private int read_sigfile(const(char)* sigpath, ubyte** sig)
 	return st.st_size;
 }
 
-int SYMEXPORT alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int level, alpm_pkg_t** pkg)
+int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int level, alpm_pkg_t** pkg)
 {
 	int validation = 0;
 	char* sigpath = void;

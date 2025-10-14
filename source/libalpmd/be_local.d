@@ -1180,7 +1180,7 @@ int _alpm_local_db_remove(alpm_db_t* db, alpm_pkg_t* info)
 	return ret;
 }
 
-int SYMEXPORT alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
+int  alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
 {
 	ASSERT(pkg != null, return -1);
 	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB,

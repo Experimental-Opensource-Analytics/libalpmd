@@ -30,7 +30,7 @@ import util;
 import alpm;
 import handle;
 
-alpm_errno_t SYMEXPORT alpm_errno(alpm_handle_t* handle)
+alpm_errno_t  alpm_errno(alpm_handle_t* handle)
 {
 	return handle.pm_errno;
 }

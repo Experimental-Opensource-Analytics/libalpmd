@@ -43,7 +43,7 @@ import sandbox_fs;
 import sandbox_syscalls;
 import util;
 
-int SYMEXPORT alpm_sandbox_setup_child(alpm_handle_t* handle, const(char)* sandboxuser, const(char)* sandbox_path, bool restrict_syscalls)
+int  alpm_sandbox_setup_child(alpm_handle_t* handle, const(char)* sandboxuser, const(char)* sandbox_path, bool restrict_syscalls)
 {
 	const(passwd)* pw = null;
 

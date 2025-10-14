@@ -45,7 +45,7 @@ import alpm;
 import deps;
 import hook;
 
-int SYMEXPORT alpm_trans_init(alpm_handle_t* handle, int flags)
+int  alpm_trans_init(alpm_handle_t* handle, int flags)
 {
 	alpm_trans_t* trans = void;
 
@@ -109,7 +109,7 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 	return invalid;
 }
 
-int SYMEXPORT alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
+int  alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
 {
 	alpm_trans_t* trans = void;
 
@@ -167,7 +167,7 @@ int SYMEXPORT alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
 	return 0;
 }
 
-int SYMEXPORT alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
+int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 {
 	alpm_trans_t* trans = void;
 	alpm_event_any_t event = void;
@@ -247,7 +247,7 @@ int SYMEXPORT alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 	return 0;
 }
 
-int SYMEXPORT alpm_trans_interrupt(alpm_handle_t* handle)
+int  alpm_trans_interrupt(alpm_handle_t* handle)
 {
 	alpm_trans_t* trans = void;
 
@@ -264,7 +264,7 @@ int SYMEXPORT alpm_trans_interrupt(alpm_handle_t* handle)
 	return 0;
 }
 
-int SYMEXPORT alpm_trans_release(alpm_handle_t* handle)
+int  alpm_trans_release(alpm_handle_t* handle)
 {
 	alpm_trans_t* trans = void;
 
@@ -426,7 +426,7 @@ cleanup:
 	return retval;
 }
 
-int SYMEXPORT alpm_trans_get_flags(alpm_handle_t* handle)
+int  alpm_trans_get_flags(alpm_handle_t* handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle, return -1);
@@ -435,7 +435,7 @@ int SYMEXPORT alpm_trans_get_flags(alpm_handle_t* handle)
 	return handle.trans.flags;
 }
 
-alpm_list_t SYMEXPORT* alpm_trans_get_add(alpm_handle_t* handle)
+alpm_list_t * alpm_trans_get_add(alpm_handle_t* handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle, return NULL);
@@ -444,7 +444,7 @@ alpm_list_t SYMEXPORT* alpm_trans_get_add(alpm_handle_t* handle)
 	return handle.trans.add;
 }
 
-alpm_list_t SYMEXPORT* alpm_trans_get_remove(alpm_handle_t* handle)
+alpm_list_t * alpm_trans_get_remove(alpm_handle_t* handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle, return NULL);

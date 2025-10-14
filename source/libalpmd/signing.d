@@ -38,7 +38,7 @@ import log;
 import alpm;
 import handle;
 
-int SYMEXPORT alpm_decode_signature(const(char)* base64_data, ubyte** data, size_t* data_len)
+int  alpm_decode_signature(const(char)* base64_data, ubyte** data, size_t* data_len)
 {
 	size_t len = strlen(base64_data);
 	ubyte* usline = cast(ubyte*)base64_data;
@@ -966,7 +966,7 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 	return retry;
 }
 
-int SYMEXPORT alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
+int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 {
 	ASSERT(pkg != null, return -1);
 	ASSERT(siglist != null, RET_ERR(pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
@@ -976,7 +976,7 @@ int SYMEXPORT alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* sigl
 			pkg.base64_sig, siglist);
 }
 
-int SYMEXPORT alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
+int  alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
 {
 	ASSERT(db != null, return -1);
 	ASSERT(siglist != null, RET_ERR(db.handle, ALPM_ERR_WRONG_ARGS, -1));
@@ -985,7 +985,7 @@ int SYMEXPORT alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist
 	return _alpm_gpgme_checksig(db.handle, _alpm_db_path(db), null, siglist);
 }
 
-int SYMEXPORT alpm_siglist_cleanup(alpm_siglist_t* siglist)
+int  alpm_siglist_cleanup(alpm_siglist_t* siglist)
 {
 	ASSERT(siglist != null, return -1);
 	size_t num = void;
@@ -1062,7 +1062,7 @@ private int parse_subpacket(alpm_handle_t* handle, const(char)* identifier, cons
 		return 0;
 }
 
-int SYMEXPORT alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ubyte)* sig, const(size_t) len, alpm_list_t** keys)
+int  alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ubyte)* sig, const(size_t) len, alpm_list_t** keys)
 {
 	size_t pos = void, blen = void, hlen = void, ulen = void;
 	pos = 0;

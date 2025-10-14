@@ -45,7 +45,7 @@ private int _alpm_log_leader(FILE* f, const(char)* prefix)
 	return fprintf(f, "[%s] [%s] ", timestamp.ptr, prefix);
 }
 
-int SYMEXPORT alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...)
+int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...)
 {
 	int ret = 0;
 	va_list args = void;

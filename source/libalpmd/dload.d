@@ -1306,7 +1306,7 @@ private const(char)* url_basename(const(char)* url)
 	return filebase;
 }
 
-int SYMEXPORT alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_list_t** fetched)
+int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_list_t** fetched)
 {
 	alpm_siglevel_t siglevel = alpm_option_get_remote_file_siglevel(handle);
 	const(char)* cachedir = void;

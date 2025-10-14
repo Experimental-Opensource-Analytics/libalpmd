@@ -1131,7 +1131,7 @@ static if (HAVE_LIBSSL) {
 }
 } /* HAVE_LIBSSL || HAVE_LIBNETTLE */
 
-char SYMEXPORT* alpm_compute_md5sum(const(char)* filename)
+char * alpm_compute_md5sum(const(char)* filename)
 {
 	ubyte[16] output = void;
 
@@ -1144,7 +1144,7 @@ char SYMEXPORT* alpm_compute_md5sum(const(char)* filename)
 	return hex_representation(output.ptr, 16);
 }
 
-char SYMEXPORT* alpm_compute_sha256sum(const(char)* filename)
+char * alpm_compute_sha256sum(const(char)* filename)
 {
 	ubyte[32] output = void;
 

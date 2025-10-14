@@ -50,7 +50,7 @@ import db;
 import remove;
 import handle;
 
-int SYMEXPORT alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
+int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 {
 	const(char)* pkgname = void, pkgver = void;
 	alpm_trans_t* trans = void;

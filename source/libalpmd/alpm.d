@@ -40,7 +40,7 @@ import handle;
 import log;
 import util;
 
-alpm_handle_t SYMEXPORT* alpm_initialize(const(char)* root, const(char)* dbpath, alpm_errno_t* err)
+alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_errno_t* err)
 {
 	alpm_errno_t myerr = void;
 	const(char)* lf = "db.lck";
@@ -107,7 +107,7 @@ cleanup:
 }
 
 /* check current state and free all resources including storage locks */
-int SYMEXPORT alpm_release(alpm_handle_t* myhandle)
+int  alpm_release(alpm_handle_t* myhandle)
 {
 	CHECK_HANDLE(myhandle, return -1);
 	ASSERT(myhandle.trans == null, RET_ERR(myhandle, ALPM_ERR_TRANS_NOT_NULL, -1));
@@ -123,7 +123,7 @@ const(char)* alpm_version()
 	return LIB_VERSION;
 }
 
-int SYMEXPORT alpm_capabilities()
+int  alpm_capabilities()
 {
 	return 0
 #ifdef ENABLE_NLS

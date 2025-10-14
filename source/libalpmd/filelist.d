@@ -119,7 +119,7 @@ private int _alpm_files_cmp(const(void)* f1, const(void)* f2)
 	return strcmp(file1.name, file2.name);
 }
 
-alpm_file_t SYMEXPORT* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path)
+alpm_file_t * alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path)
 {
 	alpm_file_t key = void;
 

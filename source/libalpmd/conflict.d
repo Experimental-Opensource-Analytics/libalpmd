@@ -63,7 +63,7 @@ error:
 	return null;
 }
 
-void SYMEXPORT alpm_conflict_free(alpm_conflict_t* conflict)
+void  alpm_conflict_free(alpm_conflict_t* conflict)
 {
 	ASSERT(conflict != null, return);
 	_alpm_pkg_free(conflict.package1);
@@ -236,7 +236,7 @@ alpm_list_t* _alpm_outerconflicts(alpm_db_t* db, alpm_list_t* packages)
 	return baddeps;
 }
 
-alpm_list_t SYMEXPORT* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
+alpm_list_t * alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
 {
 	CHECK_HANDLE(handle, return NULL);
 	return _alpm_innerconflicts(handle, pkglist);
@@ -282,7 +282,7 @@ error:
 	RET_ERR(handle, ALPM_ERR_MEMORY, conflicts);
 }
 
-void SYMEXPORT alpm_fileconflict_free(alpm_fileconflict_t* conflict)
+void  alpm_fileconflict_free(alpm_fileconflict_t* conflict)
 {
 	ASSERT(conflict != null, return);
 	FREE(conflict.ctarget);

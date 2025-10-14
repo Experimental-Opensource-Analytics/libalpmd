@@ -56,7 +56,7 @@ struct keyinfo_t {
        char* keyid;
 }
 
-alpm_pkg_t SYMEXPORT* alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync)
+alpm_pkg_t * alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync)
 {
 	alpm_list_t* i = void;
 	alpm_pkg_t* spkg = null;
@@ -198,7 +198,7 @@ private alpm_list_t* check_replacers(alpm_handle_t* handle, alpm_pkg_t* lpkg, al
 	return replacers;
 }
 
-int SYMEXPORT alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
+int  alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 {
 	alpm_list_t* i = void, j = void;
 	alpm_trans_t* trans = void;
@@ -253,7 +253,7 @@ int SYMEXPORT alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 	return 0;
 }
 
-alpm_list_t SYMEXPORT* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name)
+alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name)
 {
 	alpm_list_t* i = void, j = void, pkgs = null, ignorelist = null;
 
@@ -686,7 +686,7 @@ cleanup:
 	return ret;
 }
 
-off_t SYMEXPORT alpm_pkg_download_size(alpm_pkg_t* newpkg)
+off_t  alpm_pkg_download_size(alpm_pkg_t* newpkg)
 {
 	if(!(newpkg.infolevel & INFRQ_DSIZE)) {
 		compute_download_size(newpkg);

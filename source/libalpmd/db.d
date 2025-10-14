@@ -40,7 +40,7 @@ import alpm;
 import package;
 import group;
 
-alpm_db_t SYMEXPORT* alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, int siglevel)
+alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, int siglevel)
 {
 	alpm_list_t* i = void;
 
@@ -77,7 +77,7 @@ void _alpm_db_unregister(alpm_db_t* db)
 	_alpm_db_free(db);
 }
 
-int SYMEXPORT alpm_unregister_all_syncdbs(alpm_handle_t* handle)
+int  alpm_unregister_all_syncdbs(alpm_handle_t* handle)
 {
 	alpm_list_t* i = void;
 	alpm_db_t* db = void;
@@ -97,7 +97,7 @@ int SYMEXPORT alpm_unregister_all_syncdbs(alpm_handle_t* handle)
 	return 0;
 }
 
-int SYMEXPORT alpm_db_unregister(alpm_db_t* db)
+int  alpm_db_unregister(alpm_db_t* db)
 {
 	int found = 0;
 	alpm_handle_t* handle = void;
@@ -133,13 +133,13 @@ int SYMEXPORT alpm_db_unregister(alpm_db_t* db)
 	return 0;
 }
 
-alpm_list_t SYMEXPORT* alpm_db_get_cache_servers(const(alpm_db_t)* db)
+alpm_list_t * alpm_db_get_cache_servers(const(alpm_db_t)* db)
 {
 	ASSERT(db != null, return NULL);
 	return db.cache_servers;
 }
 
-int SYMEXPORT alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
+int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 {
 	alpm_list_t* i = void;
 	ASSERT(db != null, return -1);
@@ -153,13 +153,13 @@ int SYMEXPORT alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_server
 	return 0;
 }
 
-alpm_list_t SYMEXPORT* alpm_db_get_servers(const(alpm_db_t)* db)
+alpm_list_t * alpm_db_get_servers(const(alpm_db_t)* db)
 {
 	ASSERT(db != null, return NULL);
 	return db.servers;
 }
 
-int SYMEXPORT alpm_db_set_servers(alpm_db_t* db, alpm_list_t* servers)
+int  alpm_db_set_servers(alpm_db_t* db, alpm_list_t* servers)
 {
 	alpm_list_t* i = void;
 	ASSERT(db != null, return -1);
@@ -186,7 +186,7 @@ private char* sanitize_url(const(char)* url)
 	return newurl;
 }
 
-int SYMEXPORT alpm_db_add_cache_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_add_cache_server(alpm_db_t* db, const(char)* url)
 {
 	char* newurl = void;
 
@@ -205,7 +205,7 @@ int SYMEXPORT alpm_db_add_cache_server(alpm_db_t* db, const(char)* url)
 	return 0;
 }
 
-int SYMEXPORT alpm_db_add_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_add_server(alpm_db_t* db, const(char)* url)
 {
 	char* newurl = void;
 
@@ -224,7 +224,7 @@ int SYMEXPORT alpm_db_add_server(alpm_db_t* db, const(char)* url)
 	return 0;
 }
 
-int SYMEXPORT alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url)
 {
 	char* newurl = void, vdata = null;
 	int ret = 1;
@@ -250,7 +250,7 @@ int SYMEXPORT alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url)
 	return ret;
 }
 
-int SYMEXPORT alpm_db_remove_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_remove_server(alpm_db_t* db, const(char)* url)
 {
 	char* newurl = void, vdata = null;
 	int ret = 1;
@@ -276,7 +276,7 @@ int SYMEXPORT alpm_db_remove_server(alpm_db_t* db, const(char)* url)
 	return ret;
 }
 
-alpm_handle_t SYMEXPORT* alpm_db_get_handle(alpm_db_t* db)
+alpm_handle_t * alpm_db_get_handle(alpm_db_t* db)
 {
 	ASSERT(db != null, return NULL);
 	return db.handle;
@@ -288,7 +288,7 @@ const(char)* alpm_db_get_name(const(alpm_db_t)* db)
 	return db.treename;
 }
 
-int SYMEXPORT alpm_db_get_siglevel(alpm_db_t* db)
+int  alpm_db_get_siglevel(alpm_db_t* db)
 {
 	ASSERT(db != null, return -1);
 	if(db.siglevel & ALPM_SIG_USE_DEFAULT) {
@@ -298,14 +298,14 @@ int SYMEXPORT alpm_db_get_siglevel(alpm_db_t* db)
 	}
 }
 
-int SYMEXPORT alpm_db_get_valid(alpm_db_t* db)
+int  alpm_db_get_valid(alpm_db_t* db)
 {
 	ASSERT(db != null, return -1);
 	db.handle.pm_errno = ALPM_ERR_OK;
 	return db.ops.validate(db);
 }
 
-alpm_pkg_t SYMEXPORT* alpm_db_get_pkg(alpm_db_t* db, const(char)* name)
+alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db, const(char)* name)
 {
 	alpm_pkg_t* pkg = void;
 	ASSERT(db != null, return NULL);
@@ -320,14 +320,14 @@ alpm_pkg_t SYMEXPORT* alpm_db_get_pkg(alpm_db_t* db, const(char)* name)
 	return pkg;
 }
 
-alpm_list_t SYMEXPORT* alpm_db_get_pkgcache(alpm_db_t* db)
+alpm_list_t * alpm_db_get_pkgcache(alpm_db_t* db)
 {
 	ASSERT(db != null, return NULL);
 	db.handle.pm_errno = ALPM_ERR_OK;
 	return _alpm_db_get_pkgcache(db);
 }
 
-alpm_group_t SYMEXPORT* alpm_db_get_group(alpm_db_t* db, const(char)* name)
+alpm_group_t * alpm_db_get_group(alpm_db_t* db, const(char)* name)
 {
 	ASSERT(db != null, return NULL);
 	db.handle.pm_errno = 0;
@@ -337,7 +337,7 @@ alpm_group_t SYMEXPORT* alpm_db_get_group(alpm_db_t* db, const(char)* name)
 	return _alpm_db_get_groupfromcache(db, name);
 }
 
-alpm_list_t SYMEXPORT* alpm_db_get_groupcache(alpm_db_t* db)
+alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 {
 	ASSERT(db != null, return NULL);
 	db.handle.pm_errno = ALPM_ERR_OK;
@@ -345,7 +345,7 @@ alpm_list_t SYMEXPORT* alpm_db_get_groupcache(alpm_db_t* db)
 	return _alpm_db_get_groupcache(db);
 }
 
-int SYMEXPORT alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** ret)
+int  alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** ret)
 {
 	ASSERT(db != null && ret != null && *ret == null,
 			RET_ERR(db.handle, ALPM_ERR_WRONG_ARGS, -1));
@@ -354,14 +354,14 @@ int SYMEXPORT alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_li
 	return _alpm_db_search(db, needles, ret);
 }
 
-int SYMEXPORT alpm_db_set_usage(alpm_db_t* db, int usage)
+int  alpm_db_set_usage(alpm_db_t* db, int usage)
 {
 	ASSERT(db != null, return -1);
 	db.usage = usage;
 	return 0;
 }
 
-int SYMEXPORT alpm_db_get_usage(alpm_db_t* db, int* usage)
+int  alpm_db_get_usage(alpm_db_t* db, int* usage)
 {
 	ASSERT(db != null, return -1);
 	ASSERT(usage != null, return -1);
