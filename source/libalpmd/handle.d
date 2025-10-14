@@ -184,193 +184,193 @@ int _alpm_handle_unlock(alpm_handle_t* handle)
 
 alpm_cb_log  alpm_option_get_logcb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.logcb;
 }
 
 void * alpm_option_get_logcb_ctx(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.logcb_ctx;
 }
 
 alpm_cb_download  alpm_option_get_dlcb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.dlcb;
 }
 
 void * alpm_option_get_dlcb_ctx(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.dlcb_ctx;
 }
 
 alpm_cb_fetch  alpm_option_get_fetchcb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.fetchcb;
 }
 
 void * alpm_option_get_fetchcb_ctx(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.fetchcb_ctx;
 }
 
 alpm_cb_event  alpm_option_get_eventcb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.eventcb;
 }
 
 void * alpm_option_get_eventcb_ctx(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.eventcb_ctx;
 }
 
 alpm_cb_question  alpm_option_get_questioncb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.questioncb;
 }
 
 void * alpm_option_get_questioncb_ctx(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.questioncb_ctx;
 }
 
 alpm_cb_progress  alpm_option_get_progresscb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.progresscb;
 }
 
 void * alpm_option_get_progresscb_ctx(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.progresscb_ctx;
 }
 
 const(char)* alpm_option_get_root(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.root;
 }
 
 const(char)* alpm_option_get_dbpath(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.dbpath;
 }
 
 alpm_list_t * alpm_option_get_hookdirs(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.hookdirs;
 }
 
 alpm_list_t * alpm_option_get_cachedirs(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.cachedirs;
 }
 
 const(char)* alpm_option_get_logfile(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.logfile;
 }
 
 const(char)* alpm_option_get_lockfile(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.lockfile;
 }
 
 const(char)* alpm_option_get_gpgdir(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.gpgdir;
 }
 
 const(char)* alpm_option_get_sandboxuser(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.sandboxuser;
 }
 
 int  alpm_option_get_usesyslog(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	return handle.usesyslog;
 }
 
 alpm_list_t * alpm_option_get_noupgrades(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.noupgrade;
 }
 
 alpm_list_t * alpm_option_get_noextracts(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.noextract;
 }
 
 alpm_list_t * alpm_option_get_ignorepkgs(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.ignorepkg;
 }
 
 alpm_list_t * alpm_option_get_ignoregroups(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.ignoregroup;
 }
 
 alpm_list_t * alpm_option_get_overwrite_files(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.overwrite_files;
 }
 
 alpm_list_t * alpm_option_get_assumeinstalled(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.assumeinstalled;
 }
 
 alpm_list_t * alpm_option_get_architectures(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.architectures;
 }
 
 int  alpm_option_get_checkspace(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	return handle.checkspace;
 }
 
 const(char)* alpm_option_get_dbext(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.dbext;
 }
 
 int  alpm_option_get_parallel_downloads(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	return handle.parallel_downloads;
 }
 
 int  alpm_option_set_logcb(alpm_handle_t* handle, alpm_cb_log cb, void* ctx)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.logcb = cb;
 	handle.logcb_ctx = ctx;
 	return 0;
@@ -378,7 +378,7 @@ int  alpm_option_set_logcb(alpm_handle_t* handle, alpm_cb_log cb, void* ctx)
 
 int  alpm_option_set_dlcb(alpm_handle_t* handle, alpm_cb_download cb, void* ctx)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.dlcb = cb;
 	handle.dlcb_ctx = ctx;
 	return 0;
@@ -386,7 +386,7 @@ int  alpm_option_set_dlcb(alpm_handle_t* handle, alpm_cb_download cb, void* ctx)
 
 int  alpm_option_set_fetchcb(alpm_handle_t* handle, alpm_cb_fetch cb, void* ctx)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.fetchcb = cb;
 	handle.fetchcb_ctx = ctx;
 	return 0;
@@ -394,7 +394,7 @@ int  alpm_option_set_fetchcb(alpm_handle_t* handle, alpm_cb_fetch cb, void* ctx)
 
 int  alpm_option_set_eventcb(alpm_handle_t* handle, alpm_cb_event cb, void* ctx)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.eventcb = cb;
 	handle.eventcb_ctx = ctx;
 	return 0;
@@ -402,7 +402,7 @@ int  alpm_option_set_eventcb(alpm_handle_t* handle, alpm_cb_event cb, void* ctx)
 
 int  alpm_option_set_questioncb(alpm_handle_t* handle, alpm_cb_question cb, void* ctx)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.questioncb = cb;
 	handle.questioncb_ctx = ctx;
 	return 0;
@@ -410,7 +410,7 @@ int  alpm_option_set_questioncb(alpm_handle_t* handle, alpm_cb_question cb, void
 
 int  alpm_option_set_progresscb(alpm_handle_t* handle, alpm_cb_progress cb, void* ctx)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.progresscb = cb;
 	handle.progresscb_ctx = ctx;
 	return 0;
@@ -466,7 +466,7 @@ int  alpm_option_add_hookdir(alpm_handle_t* handle, const(char)* hookdir)
 {
 	char* newhookdir = void;
 
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(hookdir != null);
 
 	newhookdir = canonicalize_path(hookdir);
@@ -481,7 +481,7 @@ int  alpm_option_add_hookdir(alpm_handle_t* handle, const(char)* hookdir)
 int  alpm_option_set_hookdirs(alpm_handle_t* handle, alpm_list_t* hookdirs)
 {
 	alpm_list_t* i = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.hookdirs) {
 		FREELIST(handle.hookdirs);
 	}
@@ -498,7 +498,7 @@ int  alpm_option_remove_hookdir(alpm_handle_t* handle, const(char)* hookdir)
 {
 	char* vdata = null;
 	char* newhookdir = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(hookdir != null);
 
 	newhookdir = canonicalize_path(hookdir);
@@ -518,7 +518,7 @@ int  alpm_option_add_cachedir(alpm_handle_t* handle, const(char)* cachedir)
 {
 	char* newcachedir = void;
 
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(cachedir != null);
 	/* don't stat the cachedir yet, as it may not even be needed. we can
 	 * fail later if it is needed and the path is invalid. */
@@ -535,7 +535,7 @@ int  alpm_option_add_cachedir(alpm_handle_t* handle, const(char)* cachedir)
 int  alpm_option_set_cachedirs(alpm_handle_t* handle, alpm_list_t* cachedirs)
 {
 	alpm_list_t* i = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.cachedirs) {
 		FREELIST(handle.cachedirs);
 	}
@@ -552,7 +552,7 @@ int  alpm_option_remove_cachedir(alpm_handle_t* handle, const(char)* cachedir)
 {
 	char* vdata = null;
 	char* newcachedir = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(cachedir != null);
 
 	newcachedir = canonicalize_path(cachedir);
@@ -572,7 +572,7 @@ int  alpm_option_set_logfile(alpm_handle_t* handle, const(char)* logfile)
 {
 	char* oldlogfile = handle.logfile;
 
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(!logfile) {
 		handle.pm_errno = ALPM_ERR_WRONG_ARGS;
 		return -1;
@@ -596,7 +596,7 @@ int  alpm_option_set_logfile(alpm_handle_t* handle, const(char)* logfile)
 int  alpm_option_set_gpgdir(alpm_handle_t* handle, const(char)* gpgdir)
 {
 	int err = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if((err = _alpm_set_directory_option(gpgdir, &(handle.gpgdir), 0))) {
 		RET_ERR(handle, err, -1);
 	}
@@ -606,7 +606,7 @@ int  alpm_option_set_gpgdir(alpm_handle_t* handle, const(char)* gpgdir)
 
 int  alpm_option_set_sandboxuser(alpm_handle_t* handle, const(char)* sandboxuser)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.sandboxuser) {
 		FREE(handle.sandboxuser);
 	}
@@ -619,7 +619,7 @@ int  alpm_option_set_sandboxuser(alpm_handle_t* handle, const(char)* sandboxuser
 
 int  alpm_option_set_usesyslog(alpm_handle_t* handle, int usesyslog)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.usesyslog = usesyslog;
 	return 0;
 }
@@ -627,7 +627,7 @@ int  alpm_option_set_usesyslog(alpm_handle_t* handle, int usesyslog)
 private int _alpm_option_strlist_add(alpm_handle_t* handle, alpm_list_t** list, const(char)* str)
 {
 	char* dup = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	STRDUP(dup, str);
 	*list = alpm_list_add(*list, dup);
 	return 0;
@@ -635,7 +635,7 @@ private int _alpm_option_strlist_add(alpm_handle_t* handle, alpm_list_t** list, 
 
 private int _alpm_option_strlist_set(alpm_handle_t* handle, alpm_list_t** list, alpm_list_t* newlist)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	FREELIST(*list);
 	*list = alpm_list_strdup(newlist);
 	return 0;
@@ -644,7 +644,7 @@ private int _alpm_option_strlist_set(alpm_handle_t* handle, alpm_list_t** list, 
 private int _alpm_option_strlist_rem(alpm_handle_t* handle, alpm_list_t** list, const(char)* str)
 {
 	char* vdata = null;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	*list = alpm_list_remove_str(*list, str, &vdata);
 	if(vdata != null) {
 		FREE(vdata);
@@ -741,7 +741,7 @@ int  alpm_option_remove_overwrite_file(alpm_handle_t* handle, const(char)* glob)
 int  alpm_option_add_assumeinstalled(alpm_handle_t* handle, const(alpm_depend_t)* dep)
 {
 	alpm_depend_t* depcpy = void;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(dep.mod == ALPM_DEP_MOD_EQ || dep.mod == ALPM_DEP_MOD_ANY);
 	ASSERT((depcpy = _alpm_dep_dup(dep)));
 
@@ -753,7 +753,7 @@ int  alpm_option_add_assumeinstalled(alpm_handle_t* handle, const(alpm_depend_t)
 
 int  alpm_option_set_assumeinstalled(alpm_handle_t* handle, alpm_list_t* deps)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.assumeinstalled) {
 		alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)alpm_dep_free);
 		alpm_list_free(handle.assumeinstalled);
@@ -794,7 +794,7 @@ private int assumeinstalled_cmp(const(void)* d1, const(void)* d2)
 int  alpm_option_remove_assumeinstalled(alpm_handle_t* handle, const(alpm_depend_t)* dep)
 {
 	alpm_depend_t* vdata = null;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 
 	handle.assumeinstalled = alpm_list_remove(handle.assumeinstalled, dep, &assumeinstalled_cmp, cast(void**)&vdata);
 	if(vdata != null) {
@@ -813,7 +813,7 @@ int  alpm_option_add_architecture(alpm_handle_t* handle, const(char)* arch)
 
 int  alpm_option_set_architectures(alpm_handle_t* handle, alpm_list_t* arches)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.architectures) FREELIST(handle.architectures);
 	handle.architectures = alpm_list_strdup(arches);
 	return 0;
@@ -822,7 +822,7 @@ int  alpm_option_set_architectures(alpm_handle_t* handle, alpm_list_t* arches)
 int  alpm_option_remove_architecture(alpm_handle_t* handle, const(char)* arch)
 {
 	char* vdata = null;
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.architectures = alpm_list_remove_str(handle.architectures, arch, &vdata);
 	if(vdata != null) {
 		FREE(vdata);
@@ -833,26 +833,26 @@ int  alpm_option_remove_architecture(alpm_handle_t* handle, const(char)* arch)
 
 alpm_db_t * alpm_get_localdb(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.db_local;
 }
 
 alpm_list_t * alpm_get_syncdbs(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return handle.dbs_sync;
 }
 
 int  alpm_option_set_checkspace(alpm_handle_t* handle, int checkspace)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.checkspace = checkspace;
 	return 0;
 }
 
 int  alpm_option_set_dbext(alpm_handle_t* handle, const(char)* dbext)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(dbext);
 
 	if(handle.dbext) {
@@ -867,7 +867,7 @@ int  alpm_option_set_dbext(alpm_handle_t* handle, const(char)* dbext)
 
 int  alpm_option_set_default_siglevel(alpm_handle_t* handle, int level)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(level == ALPM_SIG_USE_DEFAULT) {
 		RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1);
 	}
@@ -883,13 +883,13 @@ version (HAVE_LIBGPGME) {
 
 int  alpm_option_get_default_siglevel(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	return handle.siglevel;
 }
 
 int  alpm_option_set_local_file_siglevel(alpm_handle_t* handle, int level)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 version (HAVE_LIBGPGME) {
 	handle.localfilesiglevel = level;
 } else {
@@ -902,7 +902,7 @@ version (HAVE_LIBGPGME) {
 
 int  alpm_option_get_local_file_siglevel(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.localfilesiglevel & ALPM_SIG_USE_DEFAULT) {
 		return handle.siglevel;
 	} else {
@@ -912,7 +912,7 @@ int  alpm_option_get_local_file_siglevel(alpm_handle_t* handle)
 
 int  alpm_option_set_remote_file_siglevel(alpm_handle_t* handle, int level)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 version (HAVE_LIBGPGME) {
 	handle.remotefilesiglevel = level;
 } else {
@@ -925,7 +925,7 @@ version (HAVE_LIBGPGME) {
 
 int  alpm_option_get_remote_file_siglevel(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	if(handle.remotefilesiglevel & ALPM_SIG_USE_DEFAULT) {
 		return handle.siglevel;
 	} else {
@@ -935,20 +935,20 @@ int  alpm_option_get_remote_file_siglevel(alpm_handle_t* handle)
 
 int  alpm_option_get_disable_dl_timeout(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	return handle.disable_dl_timeout;
 }
 
 int  alpm_option_set_disable_dl_timeout(alpm_handle_t* handle, ushort disable_dl_timeout)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.disable_dl_timeout = disable_dl_timeout;
 	return 0;
 }
 
 int  alpm_option_set_parallel_downloads(alpm_handle_t* handle, uint num_streams)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(num_streams >= 1);
 	handle.parallel_downloads = num_streams;
 	return 0;
@@ -956,13 +956,13 @@ int  alpm_option_set_parallel_downloads(alpm_handle_t* handle, uint num_streams)
 
 int  alpm_option_get_disable_sandbox(alpm_handle_t* handle)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	return handle.disable_sandbox;
 }
 
 int  alpm_option_set_disable_sandbox(alpm_handle_t* handle, ushort disable_sandbox)
 {
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	handle.disable_sandbox = disable_sandbox;
 	return 0;
 }

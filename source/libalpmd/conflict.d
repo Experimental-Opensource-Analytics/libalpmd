@@ -238,7 +238,7 @@ alpm_list_t* _alpm_outerconflicts(alpm_db_t* db, alpm_list_t* packages)
 
 alpm_list_t * alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
 {
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	return _alpm_innerconflicts(handle, pkglist);
 }
 

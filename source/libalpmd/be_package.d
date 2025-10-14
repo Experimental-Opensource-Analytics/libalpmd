@@ -726,7 +726,7 @@ int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int l
 	char* sigpath = void;
 	alpm_pkg_t* pkg_temp = void;
 
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(pkg != null);
 
 	sigpath = _alpm_sigpath(handle, filename);

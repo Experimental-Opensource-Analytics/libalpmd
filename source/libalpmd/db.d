@@ -45,7 +45,7 @@ alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, i
 	alpm_list_t* i = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	ASSERT(treename != null && strlen(treename) != 0);
 	ASSERT(!strchr(treename, '/'));
 	/* Do not register a database if a transaction is on-going */
@@ -82,7 +82,7 @@ int  alpm_unregister_all_syncdbs(alpm_handle_t* handle)
 	alpm_db_t* db = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	/* Do not unregister a database if a transaction is on-going */
 	ASSERT(handle.trans == null);
 

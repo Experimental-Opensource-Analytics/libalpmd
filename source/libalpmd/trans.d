@@ -50,7 +50,7 @@ int  alpm_trans_init(alpm_handle_t* handle, int flags)
 	alpm_trans_t* trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(handle.trans == null);
 
 	/* lock db */
@@ -114,7 +114,7 @@ int  alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
 	alpm_trans_t* trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(data != null);
 
 	trans = handle.trans;
@@ -173,7 +173,7 @@ int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 	alpm_event_any_t event = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 
 	trans = handle.trans;
 
@@ -252,7 +252,7 @@ int  alpm_trans_interrupt(alpm_handle_t* handle)
 	alpm_trans_t* trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 
 	trans = handle.trans;
 	ASSERT(trans != null);
@@ -268,7 +268,7 @@ int  alpm_trans_release(alpm_handle_t* handle)
 	alpm_trans_t* trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 
 	trans = handle.trans;
 	ASSERT(trans != null);
@@ -428,7 +428,7 @@ cleanup:
 int  alpm_trans_get_flags(alpm_handle_t* handle)
 {
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(handle.trans != null);
 
 	return handle.trans.flags;
@@ -437,7 +437,7 @@ int  alpm_trans_get_flags(alpm_handle_t* handle)
 alpm_list_t * alpm_trans_get_add(alpm_handle_t* handle)
 {
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	ASSERT(handle.trans != null);
 
 	return handle.trans.add;
@@ -446,7 +446,7 @@ alpm_list_t * alpm_trans_get_add(alpm_handle_t* handle)
 alpm_list_t * alpm_trans_get_remove(alpm_handle_t* handle)
 {
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	ASSERT(handle.trans != null);
 
 	return handle.trans.remove;

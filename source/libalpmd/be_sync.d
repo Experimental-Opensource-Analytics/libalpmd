@@ -151,7 +151,7 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 	alpm_event_t event = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(dbs != null);
 	handle.pm_errno = ALPM_ERR_OK;
 

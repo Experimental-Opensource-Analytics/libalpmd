@@ -203,7 +203,7 @@ int  alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 	alpm_list_t* i = void, j = void;
 	alpm_trans_t* trans = void;
 
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	trans = handle.trans;
 	ASSERT(trans != null);
 	ASSERT(trans.state == STATE_INITIALIZED);

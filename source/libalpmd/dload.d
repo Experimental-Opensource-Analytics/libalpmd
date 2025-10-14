@@ -1311,7 +1311,7 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 	const(alpm_list_t)* i = void;
 	alpm_event_t event = void;
 
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(*fetched == null);
 
 	/* find a valid cache dir to download to */

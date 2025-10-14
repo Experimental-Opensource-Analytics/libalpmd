@@ -303,7 +303,7 @@ alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_l
 	alpm_list_t* baddeps = null;
 	int nodepversion = void;
 
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 
 	for(i = pkglist; i; i = i.next) {
 		alpm_pkg_t* pkg = i.data;
@@ -747,7 +747,7 @@ alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs, co
 	alpm_depend_t* dep = void;
 	alpm_pkg_t* pkg = void;
 
-	CHECK_HANDLE(handle, return NULL);
+	CHECK_HANDLE(handle);
 	ASSERT(dbs);
 
 	dep = alpm_dep_from_string(depstring);

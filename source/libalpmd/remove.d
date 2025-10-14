@@ -57,7 +57,7 @@ int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 	alpm_pkg_t* copy = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle, return -1);
+	CHECK_HANDLE(handle);
 	ASSERT(pkg != null);
 	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB,
 			RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
