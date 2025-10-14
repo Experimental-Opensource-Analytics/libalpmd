@@ -32,7 +32,7 @@ import core.stdc.string;
 import alpm_list;
 
 /* check exported library symbols with: nm -C -D <lib> */
-enum  = __attribute__((visibility("default")));
+// enum  = __attribute__((visibility("default")));
 
 /* Allocation */
 
