@@ -30,9 +30,9 @@ import sandbox_fs;
 import util;
 
 version (HAVE_LINUX_LANDLOCK_H) {
-import linux/landlock;
-import sys/prctl;
-import sys/syscall;
+	import core.sys.linux.sys.landlock;
+	import core.sys.linux.sys.prctl;
+	import core.sys.linux.sys;
 } /* HAVE_LINUX_LANDLOCK_H */
 
 version (HAVE_LINUX_LANDLOCK_H) {

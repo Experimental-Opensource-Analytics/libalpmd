@@ -27,24 +27,25 @@ private template HasVersion(string versionId) {
 import core.stdc.stdio;
 import core.stdc.errno;
 
-version (HAVE_MNTENT_H) {
-import mntent;
-}
-version (HAVE_SYS_MNTTAB_H) {
-import sys/mnttab;
-}
-version (HAVE_SYS_STATVFS_H) {
-import core.sys.posix.sys.statvfs;
-}
-version (HAVE_SYS_PARAM_H) {
-import sys/param;
-}
-version (HAVE_SYS_MOUNT_H) {
-import sys/mount;
-}
-version (HAVE_SYS_UCRED_H) {
-import sys/ucred;
-}
+// version (HAVE_MNTENT_H) {
+// import mntent;
+// }
+// version (HAVE_SYS_MNTTAB_H) {
+// import sys/mnttab;
+// }
+// version (HAVE_SYS_STATVFS_H) {
+// import core.sys.posix.sys.statvfs;
+// }
+// version (HAVE_SYS_PARAM_H) {
+// import sys/param;
+// }
+// version (HAVE_SYS_MOUNT_H) {
+// import sys/mount;
+// }
+// version (HAVE_SYS_UCRED_H) {
+// import sys/ucred;
+// import core.sys.freebsd.sys.
+// }
 version (HAVE_SYS_TYPES_H) {
 import core.sys.posix.sys.types;
 }

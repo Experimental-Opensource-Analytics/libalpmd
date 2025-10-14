@@ -30,7 +30,7 @@ import core.stdc.errno;
 import core.sys.posix.grp;
 import core.sys.posix.pwd;
 version (HAVE_SYS_PRCTL_H) {
-import sys/prctl;
+import core.sys.linux.sys.prctl;
 } /* HAVE_SYS_PRCTL_H */
 import core.sys.posix.sys.types;
 import core.sys.posix.unistd;
