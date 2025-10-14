@@ -40,7 +40,7 @@ import add;
 import alpm;
 import alpm_list;
 import handle;
-import libarchive-compat;
+import libalpmd.libarchive_compat;
 import trans;
 import util;
 import log;

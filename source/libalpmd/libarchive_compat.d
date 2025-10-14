@@ -1,4 +1,4 @@
-module libarchive-compat.h;
+module libalpmd.libarchive_compat;
 @nogc nothrow:
 extern(C): __gshared:
  

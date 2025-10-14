@@ -62,7 +62,7 @@ import nettle/sha2;
 /* libalpm */
 import util;
 import log;
-import libarchive-compat;
+import libalpmd.libarchive_compat;
 import alpm;
 import alpm_list;
 import handle;

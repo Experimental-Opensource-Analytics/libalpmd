@@ -36,7 +36,7 @@ import archive_entry;
 /* libalpm */
 import alpm_list;
 import alpm;
-import libarchive-compat;
+import libalpmd.libarchive_compat;
 import util;
 import log;
 import handle;
