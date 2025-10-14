@@ -27,7 +27,7 @@ import libalpmd.conf;
  */
 
 version (HAVE_LIBCURL) {
-import curl/curl;
+import etc.c.curl;
 }
 
 import core.stdc.errno;
