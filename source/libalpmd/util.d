@@ -80,6 +80,10 @@ void CHECK_HANDLE(T) (T t) {
 	assert(t !is null);
 }
 
+void ASSERT(bool exp) {
+	assert(exp);
+}
+
 version (HAVE_STRSEP) {} else {
 /** Extracts tokens from a string.
  * Replaces strset which is not portable (missing on Solaris).
@@ -965,9 +969,9 @@ char* _alpm_temporary_download_dir_setup(const(char)* dir, const(char)* user)
 {
 	const(passwd)* pw = null;
 
-	ASSERT(dir != null, return NULL);
+	ASSERT(dir != null);
 	if(user != null) {
-		ASSERT((pw = getpwnam(user)) != null, return NULL);
+		ASSERT((pw = getpwnam(user)) != null);
 	}
 
 	const(char)[16] template_ = "download-XXXXXX";
@@ -997,7 +1001,7 @@ char* _alpm_temporary_download_dir_setup(const(char)* dir, const(char)* user)
  */
 void _alpm_remove_temporary_download_dir(const(char)* dir)
 {
-	ASSERT(dir != null, return);
+	ASSERT(dir != null);
 	size_t dirlen = strlen(dir);
 	dirent* dp = null;
 	DIR* dirp = opendir(dir);
@@ -1147,7 +1151,7 @@ char * alpm_compute_md5sum(const(char)* filename)
 {
 	ubyte[16] output = void;
 
-	ASSERT(filename != null, return NULL);
+	ASSERT(filename != null);
 
 	if(md5_file(filename, output.ptr) > 0) {
 		return null;
@@ -1160,7 +1164,7 @@ char * alpm_compute_sha256sum(const(char)* filename)
 {
 	ubyte[32] output = void;
 
-	ASSERT(filename != null, return NULL);
+	ASSERT(filename != null);
 
 	if(sha256_file(filename, output.ptr) > 0) {
 		return null;

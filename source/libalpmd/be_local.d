@@ -1182,11 +1182,9 @@ int _alpm_local_db_remove(alpm_db_t* db, alpm_pkg_t* info)
 
 int  alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
 {
-	ASSERT(pkg != null, return -1);
-	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB,
-			RET_ERR(pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
-	ASSERT(pkg.origin_data.db == pkg.handle.db_local,
-			RET_ERR(pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(pkg != null);
+	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
+	ASSERT(pkg.origin_data.db == pkg.handle.db_local);
 
 	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);

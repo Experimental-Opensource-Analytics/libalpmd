@@ -81,16 +81,16 @@ private int finalize_download_file(const(char)* filename)
 {
 	stat st = void;
 	uid_t myuid = getuid();
-	ASSERT(filename != null, return -1);
-	ASSERT(stat(filename, &st) == 0, return -1);
+	ASSERT(filename != null);
+	ASSERT(stat(filename, &st) == 0);
 	if(st.st_size == 0) {
 		unlink(filename);
                 return 1;
 	}
 	if(myuid == 0) {
-		ASSERT(chown(filename, 0, 0) != -1, return -1);
+		ASSERT(chown(filename, 0, 0) != -1);
 	}
-	ASSERT(chmod(filename, ~cast(_getumask) & 0666) != -1, return -1);
+	ASSERT(chmod(filename, ~cast(_getumask) & 0666) != -1);
 	return 0;
 }
 
@@ -512,7 +512,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 	int ret = -1;
 
 	curlerr = curl_easy_getinfo(curl, CURLINFO_PRIVATE, &payload);
-	ASSERT(curlerr == CURLE_OK, RET_ERR(handle, ALPM_ERR_LIBCURL, -1));
+	ASSERT(curlerr == CURLE_OK);
 
 	curl_gethost(payload.fileurl, hostname.ptr, hostname.sizeof);
 	curlerr = msg.data.result;
@@ -756,14 +756,14 @@ private int curl_add_payload(alpm_handle_t* handle, CURLM* curlm, dload_payload*
 	payload.curl = curl;
 
 	if(payload.fileurl) {
-		ASSERT(!payload.servers, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
-		ASSERT(!payload.filepath, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
+		ASSERT(!payload.servers);
+		ASSERT(!payload.filepath);
 		payload.request_errors_ok = payload.errors_ok;
 	} else {
 		const(char)* server = payload_next_server(payload);
 
-		ASSERT(server, GOTO_ERR(handle, ALPM_ERR_SERVER_NONE, cleanup));
-		ASSERT(payload.filepath, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, cleanup));
+		ASSERT(server);
+		ASSERT(payload.filepath);
 
 		len = strlen(server) + strlen(payload.filepath) + 2;
 		MALLOC(payload.fileurl, len, GOTO_ERR(handle, ALPM_ERR_MEMORY, cleanup));
@@ -1076,8 +1076,8 @@ private int payload_download_fetchcb(dload_payload* payload, const(char)* server
 
 private int move_file(const(char)* filepath, const(char)* directory)
 {
-	ASSERT(filepath != null, return -1);
-	ASSERT(directory != null, return -1);
+	ASSERT(filepath != null);
+	ASSERT(directory != null);
 	int ret = finalize_download_file(filepath);
 	if(ret != 0) {
 		return ret;
@@ -1094,8 +1094,8 @@ private int move_file(const(char)* filepath, const(char)* directory)
 
 private int finalize_download_locations(alpm_list_t* payloads, const(char)* localpath)
 {
-	ASSERT(payloads != null, return -1);
-	ASSERT(localpath != null, return -1);
+	ASSERT(payloads != null);
+	ASSERT(localpath != null);
 	alpm_list_t* p = void;
 	stat st = void;
 	int returnvalue = 0;
@@ -1127,13 +1127,13 @@ private int finalize_download_locations(alpm_list_t* payloads, const(char)* loca
 
 			filename = payload.destfile_name ? payload.destfile_name : payload.tempfile_name;
 			sig_filename = _alpm_get_fullpath("", filename, ".sig");
-			ASSERT(sig_filename, RET_ERR(payload.handle, ALPM_ERR_MEMORY, -1));
+			ASSERT(sig_filename);
 			ret = move_file(sig_filename, localpath);
 			free(sig_filename);
 
 			if(ret == -1) {
 				sig_filename = _alpm_get_fullpath("", filename, ".sig.part");
-				ASSERT(sig_filename, RET_ERR(payload.handle, ALPM_ERR_MEMORY, -1));
+				ASSERT(sig_filename);
 				move_file(sig_filename, localpath);
 				free(sig_filename);
 			}
@@ -1145,10 +1145,10 @@ private int finalize_download_locations(alpm_list_t* payloads, const(char)* loca
 private void prepare_resumable_downloads(alpm_list_t* payloads, const(char)* localpath, const(char)* user)
 {
 	const(passwd)* pw = null;
-	ASSERT(payloads != null, return);
-	ASSERT(localpath != null, return);
+	ASSERT(payloads != null);
+	ASSERT(localpath != null);
 	if(user != null) {
-		ASSERT((pw = getpwnam(user)) != null, return);
+		ASSERT((pw = getpwnam(user)) != null);
 	}
 	alpm_list_t* p = void;
 	for(p = payloads; p; p = p.next) {
@@ -1177,7 +1177,7 @@ private void prepare_resumable_downloads(alpm_list_t* payloads, const(char)* loc
 			continue;
 		}
 		if(pw != null) {
-			ASSERT(chown(payload.tempfile_name, pw.pw_uid, pw.pw_gid), return);
+			ASSERT(chown(payload.tempfile_name, pw.pw_uid, pw.pw_gid));
 		}
 		FREE(src);
 	}
@@ -1312,12 +1312,12 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 	alpm_event_t event = void;
 
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(*fetched == null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(*fetched == null);
 
 	/* find a valid cache dir to download to */
 	cachedir = _alpm_filecache_setup(handle);
 	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, handle.sandboxuser);
-	ASSERT(temporary_cachedir != null, return -1);
+	ASSERT(temporary_cachedir != null);
 
 	for(i = urls; i; i = i.next) {
 		char* url = i.data;
@@ -1348,7 +1348,7 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 			dload_payload* payload = null;
 			char* c = void;
 
-			ASSERT(url, GOTO_ERR(handle, ALPM_ERR_WRONG_ARGS, err));
+			ASSERT(url);
 			CALLOC(payload, 1, typeof(*payload).sizeof, GOTO_ERR(handle, ALPM_ERR_MEMORY, err));
 			STRDUP(payload.fileurl, url);
 
@@ -1437,7 +1437,7 @@ err:
 
 void _alpm_dload_payload_reset(dload_payload* payload)
 {
-	ASSERT(payload, return);
+	ASSERT(payload);
 
 	if(payload.localf != null) {
 		fclose(payload.localf);

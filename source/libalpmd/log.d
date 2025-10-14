@@ -50,7 +50,7 @@ int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt
 	int ret = 0;
 	va_list args = void;
 
-	ASSERT(handle != null, return -1);
+	ASSERT(handle != null);
 
 	if(!(prefix && *prefix)) {
 		prefix = "UNKNOWN";

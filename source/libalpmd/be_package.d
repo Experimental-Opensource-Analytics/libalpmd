@@ -58,7 +58,7 @@ struct package_changelog {
  */
 private void* _package_changelog_open(alpm_pkg_t* pkg)
 {
-	ASSERT(pkg != null, return NULL);
+	ASSERT(pkg != null);
 
 	package_changelog* changelog = void;
 	archive* archive = void;
@@ -727,7 +727,7 @@ int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int l
 	alpm_pkg_t* pkg_temp = void;
 
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(pkg != null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(pkg != null);
 
 	sigpath = _alpm_sigpath(handle, filename);
 	if(sigpath && !_alpm_access(handle, null, sigpath, R_OK)) {

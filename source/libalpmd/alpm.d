@@ -87,7 +87,7 @@ version (HAVE_LIBCURL) {
 	myhandle.parallel_downloads = 1;
 
 	/* set default sandboxuser */
-	ASSERT((pw = getpwuid(0)) != null, myerr = errno; goto cleanup);
+	ASSERT((pw = getpwuid(0)) != null);
 	STRDUP(myhandle.sandboxuser, pw.pw_name);
 	
 version (ENABLE_NLS) {
@@ -110,7 +110,7 @@ cleanup:
 int  alpm_release(alpm_handle_t* myhandle)
 {
 	CHECK_HANDLE(myhandle, return -1);
-	ASSERT(myhandle.trans == null, RET_ERR(myhandle, ALPM_ERR_TRANS_NOT_NULL, -1));
+	ASSERT(myhandle.trans == null);
 
 	_alpm_handle_unlock(myhandle);
 	_alpm_handle_free(myhandle);

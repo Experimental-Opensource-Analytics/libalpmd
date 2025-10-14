@@ -967,8 +967,8 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 
 int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 {
-	ASSERT(pkg != null, return -1);
-	ASSERT(siglist != null, RET_ERR(pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(pkg != null);
+	ASSERT(siglist != null);
 	pkg.handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(pkg.handle, pkg.filename,
@@ -977,8 +977,8 @@ int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 
 int  alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
 {
-	ASSERT(db != null, return -1);
-	ASSERT(siglist != null, RET_ERR(db.handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(db != null);
+	ASSERT(siglist != null);
 	db.handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(db.handle, _alpm_db_path(db), null, siglist);
@@ -986,7 +986,7 @@ int  alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
 
 int  alpm_siglist_cleanup(alpm_siglist_t* siglist)
 {
-	ASSERT(siglist != null, return -1);
+	ASSERT(siglist != null);
 	size_t num = void;
 	for(num = 0; num < siglist.count; num++) {
 		alpm_sigresult_t* result = siglist.results + num;

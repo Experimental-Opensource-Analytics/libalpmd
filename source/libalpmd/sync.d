@@ -61,7 +61,7 @@ alpm_pkg_t * alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync)
 	alpm_list_t* i = void;
 	alpm_pkg_t* spkg = null;
 
-	ASSERT(pkg != null, return NULL);
+	ASSERT(pkg != null);
 	pkg.handle.pm_errno = ALPM_ERR_OK;
 
 	for(i = dbs_sync; !spkg && i; i = i.next) {
@@ -205,8 +205,8 @@ int  alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 
 	CHECK_HANDLE(handle, return -1);
 	trans = handle.trans;
-	ASSERT(trans != null, RET_ERR(handle, ALPM_ERR_TRANS_NULL, -1));
-	ASSERT(trans.state == STATE_INITIALIZED, RET_ERR(handle, ALPM_ERR_TRANS_NOT_INITIALIZED, -1));
+	ASSERT(trans != null);
+	ASSERT(trans.state == STATE_INITIALIZED);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "checking for package upgrades\n");
 	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
@@ -322,7 +322,7 @@ private int compute_download_size(alpm_pkg_t* newpkg)
 		return 0;
 	}
 
-	ASSERT(newpkg.filename != null, RET_ERR(handle, ALPM_ERR_PKG_INVALID_NAME, -1));
+	ASSERT(newpkg.filename != null);
 	fname = newpkg.filename;
 	fpath = _alpm_filecache_find(handle, fname);
 
@@ -740,7 +740,7 @@ private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 				return -1;
 			}
 
-			ASSERT(spkg.filename != null, RET_ERR(handle, ALPM_ERR_PKG_INVALID_NAME, -1));
+			ASSERT(spkg.filename != null);
 
 			need_download = spkg.download_size != 0 || !_alpm_filecache_exists(handle, spkg.filename);
 			/* even if the package file in the cache we need to check for

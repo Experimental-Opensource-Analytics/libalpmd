@@ -59,14 +59,12 @@ int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(pkg != null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
-	ASSERT(pkg.origin != ALPM_PKG_FROM_LOCALDB,
-			RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
-	ASSERT(handle == pkg.handle, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(pkg != null);
+	ASSERT(pkg.origin != ALPM_PKG_FROM_LOCALDB);
+	ASSERT(handle == pkg.handle);
 	trans = handle.trans;
-	ASSERT(trans != null, RET_ERR(handle, ALPM_ERR_TRANS_NULL, -1));
-	ASSERT(trans.state == STATE_INITIALIZED,
-			RET_ERR(handle, ALPM_ERR_TRANS_NOT_INITIALIZED, -1));
+	ASSERT(trans != null);
+	ASSERT(trans.state == STATE_INITIALIZED);
 
 	pkgname = pkg.name;
 	pkgver = pkg.version_;
@@ -428,7 +426,7 @@ private int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t 
 	int fd = void, cwdfd = void;
 	stat buf = void;
 
-	ASSERT(trans != null, return -1);
+	ASSERT(trans != null);
 
 	/* see if this is an upgrade. if so, remove the old package first */
 	if(_alpm_db_get_pkgfromcache(db, newpkg.name) && (oldpkg = newpkg.oldpkg)) {

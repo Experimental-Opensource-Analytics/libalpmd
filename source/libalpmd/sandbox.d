@@ -47,9 +47,9 @@ int  alpm_sandbox_setup_child(alpm_handle_t* handle, const(char)* sandboxuser, c
 {
 	const(passwd)* pw = null;
 
-	ASSERT(sandboxuser != null, return -1);
-	ASSERT(getuid() == 0, return -1);
-	ASSERT((pw = getpwnam(sandboxuser)), return -1);
+	ASSERT(sandboxuser != null);
+	ASSERT(getuid() == 0);
+	ASSERT((pw = getpwnam(sandboxuser)));
 	if(sandbox_path != null && !handle.disable_sandbox) {
 		_alpm_sandbox_fs_restrict_writes_to(handle, sandbox_path);
 	}
@@ -60,9 +60,9 @@ static if (HasVersion!"HAVE_SYS_PRCTL_H" && HasVersion!"PR_SET_NO_NEW_PRIVS") {
 	if(restrict_syscalls && !handle.disable_sandbox) {
 		_alpm_sandbox_syscalls_filter(handle);
 	}
-	ASSERT(setgid(pw.pw_gid) == 0, return -1);
-	ASSERT(setgroups(0, null) == 0, return -1);
-	ASSERT(setuid(pw.pw_uid) == 0, return -1);
+	ASSERT(setgid(pw.pw_gid) == 0);
+	ASSERT(setgroups(0, null) == 0);
+	ASSERT(setuid(pw.pw_uid) == 0);
 
 	return 0;
 }
@@ -76,7 +76,7 @@ private int read_from_pipe(int fd, void* buf, size_t count)
 {
 	size_t nread = 0;
 
-	ASSERT(count > 0, return -1);
+	ASSERT(count > 0);
 
 	while(nread < count) {
 		ssize_t r = read(fd, cast(char*)buf + nread, count-nread);
@@ -100,7 +100,7 @@ private int write_to_pipe(int fd, const(void)* buf, size_t count)
 {
 	size_t nwrite = 0;
 
-	ASSERT(count > 0, return -1);
+	ASSERT(count > 0);
 
 	while(nwrite < count) {
 		ssize_t r = write(fd, cast(char*)buf + nwrite, count-nwrite);
@@ -158,8 +158,8 @@ void _alpm_sandbox_cb_dl(void* ctx, const(char)* filename, alpm_download_event_t
 		return;
 	}
 
-	ASSERT(filename != null, return);
-	ASSERT(event == ALPM_DOWNLOAD_INIT || event == ALPM_DOWNLOAD_PROGRESS || event == ALPM_DOWNLOAD_RETRY || event == ALPM_DOWNLOAD_COMPLETED, return);
+	ASSERT(filename != null);
+	ASSERT(event == ALPM_DOWNLOAD_INIT || event == ALPM_DOWNLOAD_PROGRESS || event == ALPM_DOWNLOAD_RETRY || event == ALPM_DOWNLOAD_COMPLETED);
 
 	filename_len = strlen(filename);
 
@@ -189,13 +189,13 @@ bool _alpm_sandbox_process_cb_log(alpm_handle_t* handle, int callback_pipe) {
 	char* string = null;
 	int string_size = 0;
 
-	ASSERT(read_from_pipe(callback_pipe, &level, level.sizeof) != -1, return false);
-	ASSERT(read_from_pipe(callback_pipe, &string_size, string_size.sizeof) != -1, return false);
-	ASSERT(string_size > 0 && cast(size_t)string_size < SIZE_MAX, return false);
+	ASSERT(read_from_pipe(callback_pipe, &level, level.sizeof) != -1);
+	ASSERT(read_from_pipe(callback_pipe, &string_size, string_size.sizeof) != -1);
+	ASSERT(string_size > 0 && cast(size_t)string_size < SIZE_MAX);
 
 	MALLOC(string, cast(size_t)string_size + 1);
 
-	ASSERT(read_from_pipe(callback_pipe, string, string_size) != -1, FREE(string); return false);
+	ASSERT(read_from_pipe(callback_pipe, string, string_size) != -1);
 	string[string_size] = '\0';
 
 	_alpm_log(handle, level, "%s", string);
@@ -214,35 +214,35 @@ bool _alpm_sandbox_process_cb_download(alpm_handle_t* handle, int callback_pipe)
 		alpm_download_event_completed_t completed = void;
 	}_Cb_data cb_data = void;
 
-	ASSERT(read_from_pipe(callback_pipe, &type, type.sizeof) != -1, return false);
+	ASSERT(read_from_pipe(callback_pipe, &type, type.sizeof) != -1);
 
 	switch (type) {
 		case ALPM_DOWNLOAD_INIT:
 			cb_data_size = alpm_download_event_init_t.sizeof;
-			ASSERT(read_from_pipe(callback_pipe, &cb_data.init, cb_data_size) != -1, return false);
+			ASSERT(read_from_pipe(callback_pipe, &cb_data.init, cb_data_size) != -1);
 			break;
 		case ALPM_DOWNLOAD_PROGRESS:
 			cb_data_size = alpm_download_event_progress_t.sizeof;
-			ASSERT(read_from_pipe(callback_pipe, &cb_data.progress, cb_data_size) != -1, return false);
+			ASSERT(read_from_pipe(callback_pipe, &cb_data.progress, cb_data_size) != -1);
 			break;
 		case ALPM_DOWNLOAD_RETRY:
 			cb_data_size = alpm_download_event_retry_t.sizeof;
-			ASSERT(read_from_pipe(callback_pipe, &cb_data.retry, cb_data_size) != -1, return false);
+			ASSERT(read_from_pipe(callback_pipe, &cb_data.retry, cb_data_size) != -1);
 			break;
 		case ALPM_DOWNLOAD_COMPLETED:
 			cb_data_size = alpm_download_event_completed_t.sizeof;
-			ASSERT(read_from_pipe(callback_pipe, &cb_data.completed, cb_data_size) != -1, return false);
+			ASSERT(read_from_pipe(callback_pipe, &cb_data.completed, cb_data_size) != -1);
 			break;
 		default:
 			return false;
 	}
 
-	ASSERT(read_from_pipe(callback_pipe, &filename_size, filename_size.sizeof) != -1, return false);{}
-	ASSERT(filename_size < PATH_MAX, return false);
+	ASSERT(read_from_pipe(callback_pipe, &filename_size, filename_size.sizeof) != -1);{}
+	ASSERT(filename_size < PATH_MAX);
 
 	MALLOC(filename, filename_size + 1);
 
-	ASSERT(read_from_pipe(callback_pipe, filename, filename_size) != -1, FREE(filename); return false);
+	ASSERT(read_from_pipe(callback_pipe, filename, filename_size) != -1);
 	filename[filename_size] = '\0';
 
 	if(handle.dlcb) {

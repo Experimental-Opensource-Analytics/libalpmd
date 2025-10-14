@@ -122,8 +122,8 @@ int _alpm_handle_lock(alpm_handle_t* handle)
 {
 	char* dir = void, ptr = void;
 
-	ASSERT(handle.lockfile != null, return -1);
-	ASSERT(handle.lockfd < 0, return 0);
+	ASSERT(handle.lockfile != null);
+	ASSERT(handle.lockfd < 0);
 
 	/* create the dir of the lockfile first */
 	STRDUP(dir, handle.lockfile);
@@ -146,9 +146,9 @@ int _alpm_handle_lock(alpm_handle_t* handle)
 
 int  alpm_unlock(alpm_handle_t* handle)
 {
-	ASSERT(handle != null, return -1);
-	ASSERT(handle.lockfile != null, return 0);
-	ASSERT(handle.lockfd >= 0, return 0);
+	ASSERT(handle != null);
+	ASSERT(handle.lockfile != null);
+	ASSERT(handle.lockfd >= 0);
 
 	close(handle.lockfd);
 	handle.lockfd = -1;
@@ -467,7 +467,7 @@ int  alpm_option_add_hookdir(alpm_handle_t* handle, const(char)* hookdir)
 	char* newhookdir = void;
 
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(hookdir != null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(hookdir != null);
 
 	newhookdir = canonicalize_path(hookdir);
 	if(!newhookdir) {
@@ -499,7 +499,7 @@ int  alpm_option_remove_hookdir(alpm_handle_t* handle, const(char)* hookdir)
 	char* vdata = null;
 	char* newhookdir = void;
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(hookdir != null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(hookdir != null);
 
 	newhookdir = canonicalize_path(hookdir);
 	if(!newhookdir) {
@@ -519,7 +519,7 @@ int  alpm_option_add_cachedir(alpm_handle_t* handle, const(char)* cachedir)
 	char* newcachedir = void;
 
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(cachedir != null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(cachedir != null);
 	/* don't stat the cachedir yet, as it may not even be needed. we can
 	 * fail later if it is needed and the path is invalid. */
 
@@ -553,7 +553,7 @@ int  alpm_option_remove_cachedir(alpm_handle_t* handle, const(char)* cachedir)
 	char* vdata = null;
 	char* newcachedir = void;
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(cachedir != null, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(cachedir != null);
 
 	newcachedir = canonicalize_path(cachedir);
 	if(!newcachedir) {
@@ -742,9 +742,8 @@ int  alpm_option_add_assumeinstalled(alpm_handle_t* handle, const(alpm_depend_t)
 {
 	alpm_depend_t* depcpy = void;
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(dep.mod == ALPM_DEP_MOD_EQ || dep.mod == ALPM_DEP_MOD_ANY,
-			RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
-	ASSERT((depcpy = _alpm_dep_dup(dep)), RET_ERR(handle, ALPM_ERR_MEMORY, -1));
+	ASSERT(dep.mod == ALPM_DEP_MOD_EQ || dep.mod == ALPM_DEP_MOD_ANY);
+	ASSERT((depcpy = _alpm_dep_dup(dep)));
 
 	/* fill in name_hash in case dep was built by hand */
 	depcpy.name_hash = _alpm_hash_sdbm(dep.name);
@@ -854,7 +853,7 @@ int  alpm_option_set_checkspace(alpm_handle_t* handle, int checkspace)
 int  alpm_option_set_dbext(alpm_handle_t* handle, const(char)* dbext)
 {
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(dbext, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(dbext);
 
 	if(handle.dbext) {
 		FREE(handle.dbext);
@@ -950,7 +949,7 @@ int  alpm_option_set_disable_dl_timeout(alpm_handle_t* handle, ushort disable_dl
 int  alpm_option_set_parallel_downloads(alpm_handle_t* handle, uint num_streams)
 {
 	CHECK_HANDLE(handle, return -1);
-	ASSERT(num_streams >= 1, RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	ASSERT(num_streams >= 1);
 	handle.parallel_downloads = num_streams;
 	return 0;
 }
