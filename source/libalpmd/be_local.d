@@ -429,7 +429,7 @@ private int local_db_add_version(alpm_db_t* db, const(char)* dbpath)
 
 private int local_db_create(alpm_db_t* db, const(char)* dbpath)
 {
-	if(mkdir(dbpath, 0755) != 0) {
+	if(mkdir(dbpath, octal!"0755") != 0) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR, _("could not create directory %s: %s\n"),
 				dbpath, strerror(errno));
 		RET_ERR(db.handle, ALPM_ERR_DB_CREATE, -1);
@@ -942,7 +942,7 @@ int _alpm_local_db_prepare(alpm_db_t* db, alpm_pkg_t* info)
 	oldmask = umask(0000);
 	pkgpath = _alpm_local_db_pkgpath(db, info, null);
 
-	if((retval = mkdir(pkgpath, 0755)) != 0) {
+	if((retval = mkdir(pkgpath, octal!"0755")) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR, _("could not create directory %s: %s\n"),
 				pkgpath, strerror(errno));
 	}
@@ -982,7 +982,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 	}
 
 	/* make sure we have a sane umask */
-	oldmask = umask(0022);
+	oldmask = umask(octal!"0022");
 
 	/* DESC */
 	if(inforeq & INFRQ_DESC) {
