@@ -1,0 +1,12 @@
+{
+	"authors": [
+		"Roman Vlasov"
+	],
+	"copyright": "Copyright © 2025, Roman Vlasov",
+	"dependencies": {
+		"derelict-libarchive": "~>1.0.1"
+	},
+	"description": "Port of libalpm to D language",
+	"license": "MIT",
+	"name": "libalpmd"
+}
