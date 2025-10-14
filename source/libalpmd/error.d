@@ -22,7 +22,7 @@ extern(C): __gshared:
  */
 
 version (HAVE_LIBCURL) {
-import curl/curl;
+import etc.c.curl;
 }
 
 /* libalpm */
