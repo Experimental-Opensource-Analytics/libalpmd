@@ -1,6 +1,8 @@
 module alpm.c;
 @nogc nothrow:
 extern(C): __gshared:
+
+import libalpmd.conf;
 /*
  *  alpm.c
  *
