@@ -35,7 +35,7 @@ import core.stdc.limits;
 /* libalpm */
 import trans;
 import alpm_list;
-import package;
+import libalpmd._package;
 import util;
 import log;
 import handle;

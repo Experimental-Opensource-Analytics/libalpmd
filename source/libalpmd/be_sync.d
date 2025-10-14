@@ -39,7 +39,7 @@ import log;
 import libalpmd.libarchive_compat;
 import alpm;
 import alpm_list;
-import package;
+import libalpmd._package;
 import handle;
 import deps;
 import dload;

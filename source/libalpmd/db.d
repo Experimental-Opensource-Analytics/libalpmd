@@ -37,7 +37,7 @@ import log;
 import util;
 import handle;
 import alpm;
-import package;
+import libalpmd._package;
 import group;
 
 alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, int siglevel)

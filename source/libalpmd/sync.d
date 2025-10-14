@@ -37,7 +37,7 @@ import core.stdc.limits;
 import sync;
 import alpm_list;
 import log;
-import package;
+import libalpmd._package;
 import db;
 import deps;
 import conflict;

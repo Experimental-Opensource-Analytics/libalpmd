@@ -1,4 +1,4 @@
-module package.c;
+module libalpmd._package;
 @nogc nothrow:
 extern(C): __gshared:
 import core.stdc.config: c_long, c_ulong;
@@ -31,7 +31,7 @@ import core.stdc.string;
 import core.sys.posix.sys.types;
 
 /* libalpm */
-import package;
+import libalpmd._package;
 import alpm_list;
 import log;
 import util;

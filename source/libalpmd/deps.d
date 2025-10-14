@@ -33,7 +33,7 @@ import alpm_list;
 import util;
 import log;
 import graph;
-import package;
+import libalpmd._package;
 import db;
 import handle;
 import trans;

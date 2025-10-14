@@ -43,7 +43,7 @@ import log;
 import util;
 import alpm;
 import handle;
-import package;
+import libalpmd._package;
 import deps;
 import filelist;
 

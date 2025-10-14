@@ -40,7 +40,7 @@ import libalpmd.libarchive_compat;
 import util;
 import log;
 import handle;
-import package;
+import libalpmd._package;
 import deps;
 import filelist;
 import util;

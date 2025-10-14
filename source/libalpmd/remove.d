@@ -44,7 +44,7 @@ import trans;
 import util;
 import log;
 import backup;
-import package;
+import libalpmd._package;
 import db;
 import deps;
 import handle;
