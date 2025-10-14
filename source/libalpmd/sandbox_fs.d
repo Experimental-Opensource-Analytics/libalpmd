@@ -1,4 +1,4 @@
-module sandbox_fs.c;
+module libalpmd.sandbox_fs;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -24,10 +24,12 @@ import core.sys.posix.fcntl;
 import core.stdc.stddef;
 import core.sys.posix.unistd;
 
-import config;
-import log;
-import sandbox_fs;
-import util;
+// import libalpmd.config;
+import libalpmd.log;
+import libalpmd.sandbox_fs;
+import libalpmd.util;
+import libalpmd.handle;
+
 
 version (HAVE_LINUX_LANDLOCK_H) {
 	import core.sys.linux.sys.landlock;

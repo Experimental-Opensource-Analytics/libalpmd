@@ -1,4 +1,4 @@
-module graph.c;
+module libalpmd.graph;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -19,10 +19,33 @@ extern(C): __gshared:
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import core.sys.posix.sys.types;
 
-import graph;
-import util;
-import log;
+import libalpmd.graph;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.alpm_list;
+
+enum _alpm_graph_vertex_state {
+	ALPM_GRAPH_STATE_UNPROCESSED,
+	ALPM_GRAPH_STATE_PROCESSING,
+	ALPM_GRAPH_STATE_PROCESSED
+}
+alias ALPM_GRAPH_STATE_UNPROCESSED = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_UNPROCESSED;
+alias ALPM_GRAPH_STATE_PROCESSING = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_PROCESSING;
+alias ALPM_GRAPH_STATE_PROCESSED = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_PROCESSED;
+
+
+struct alpm_graph_t {
+	void* data;
+	_alpm_graph_t* parent; /* where did we come from? */
+	alpm_list_t* children;
+	alpm_list_t* iterator; /* used for DFS without recursion */
+	off_t weight; /* weight of the node */
+	_alpm_graph_vertex_state state;
+}
+
+alias _alpm_graph_t = alpm_graph_t;
 
 alpm_graph_t* _alpm_graph_new()
 {

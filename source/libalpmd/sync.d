@@ -1,4 +1,4 @@
-module sync.c;
+module libalpmd.sync;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -25,7 +25,7 @@ extern(C): __gshared:
  */
 
 import core.sys.posix.sys.types; /* off_t */
-import stdbool;
+// import stdbool;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 import core.stdc.string;
@@ -34,22 +34,22 @@ import core.sys.posix.unistd;
 import core.stdc.limits;
 
 /* libalpm */
-import sync;
-import alpm_list;
-import log;
+import libalpmd.sync;
+import libalpmd.alpm_list;
+import libalpmd.log;
 import libalpmd._package;
-import db;
-import deps;
-import conflict;
-import trans;
-import add;
-import util;
-import handle;
-import alpm;
-import dload;
-import remove;
-import diskspace;
-import signing;
+import libalpmd.db;
+import libalpmd.deps;
+import libalpmd.conflict;
+import libalpmd.trans;
+import libalpmd.add;
+import libalpmd.util;
+import libalpmd.handle;
+import libalpmd.alpm;
+import libalpmd.dload;
+import libalpmd.remove;
+import libalpmd.diskspace;
+import libalpmd.signing;
 
 struct keyinfo_t {
        char* uid;
@@ -1014,7 +1014,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 
 		if(!v.path) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("%s: could not find package in cache\n"), v.pkg.name);
+					("%s: could not find package in cache\n"), v.pkg.name);
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
 		}
 
@@ -1046,21 +1046,21 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 			switch(v.error) {
 				case ALPM_ERR_PKG_MISSING_SIG:
 					_alpm_log(handle, ALPM_LOG_ERROR,
-							_("%s: missing required signature\n"), v.pkg.name);
+							("%s: missing required signature\n"), v.pkg.name);
 					break;
 				case ALPM_ERR_PKG_INVALID_SIG:
 					_alpm_process_siglist(handle, v.pkg.name, v.siglist,
 							v.siglevel & ALPM_SIG_PACKAGE_OPTIONAL,
 							v.siglevel & ALPM_SIG_PACKAGE_MARGINAL_OK,
 							v.siglevel & ALPM_SIG_PACKAGE_UNKNOWN_OK);
-					__attribute__((fallthrough)){}
+					// __attribute__((fallthrough)){}
 				case ALPM_ERR_PKG_INVALID_CHECKSUM:
 					prompt_to_delete(handle, v.path, v.error);
 					break;
 				case ALPM_ERR_PKG_NOT_FOUND:
 				case ALPM_ERR_BADPERMS:
 				case ALPM_ERR_PKG_OPEN:
-					_alpm_log(handle, ALPM_LOG_ERROR, _("failed to read file %s: %s\n"), v.path, alpm_strerror(v.error));
+					_alpm_log(handle, ALPM_LOG_ERROR, ("failed to read file %s: %s\n"), v.path, alpm_strerror(v.error));
 					break;
 				default:
 					/* ignore */

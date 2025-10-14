@@ -1,4 +1,4 @@
-module error.c;
+module libalpmd.error;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -26,9 +26,9 @@ import etc.c.curl;
 }
 
 /* libalpm */
-import util;
-import alpm;
-import handle;
+import libalpmd.util;
+import libalpmd.alpm;
+import libalpmd.handle;
 
 alpm_errno_t  alpm_errno(alpm_handle_t* handle)
 {

@@ -32,12 +32,121 @@ import core.sys.posix.sys.types;
 
 /* libalpm */
 import libalpmd._package;
-import alpm_list;
-import log;
-import util;
-import db;
-import handle;
-import deps;
+import libalpmd.alpm_list;
+import libalpmd.log;
+import libalpmd.util;
+// import libalpmd.db;
+import libalpmd.handle;
+import libalpmd.deps;
+import libalpmd.alpm;
+import derelict.libarchive;
+
+
+struct pkg_operations {
+	const(char)* function(alpm_pkg_t*) get_base;
+	const(char)* function(alpm_pkg_t*) get_desc;
+	const(char)* function(alpm_pkg_t*) get_url;
+	alpm_time_t function(alpm_pkg_t*) get_builddate;
+	alpm_time_t function(alpm_pkg_t*) get_installdate;
+	const(char)* function(alpm_pkg_t*) get_packager;
+	const(char)* function(alpm_pkg_t*) get_arch;
+	off_t function(alpm_pkg_t*) get_isize;
+	alpm_pkgreason_t function(alpm_pkg_t*) get_reason;
+	int function(alpm_pkg_t*) get_validation;
+	int function(alpm_pkg_t*) has_scriptlet;
+
+	alpm_list_t* function(alpm_pkg_t*) get_licenses;
+	alpm_list_t* function(alpm_pkg_t*) get_groups;
+	alpm_list_t* function(alpm_pkg_t*) get_depends;
+	alpm_list_t* function(alpm_pkg_t*) get_optdepends;
+	alpm_list_t* function(alpm_pkg_t*) get_checkdepends;
+	alpm_list_t* function(alpm_pkg_t*) get_makedepends;
+	alpm_list_t* function(alpm_pkg_t*) get_conflicts;
+	alpm_list_t* function(alpm_pkg_t*) get_provides;
+	alpm_list_t* function(alpm_pkg_t*) get_replaces;
+	alpm_filelist_t* function(alpm_pkg_t*) get_files;
+	alpm_list_t* function(alpm_pkg_t*) get_backup;
+
+	alpm_list_t* function(alpm_pkg_t*) get_xdata;
+
+	void* function(alpm_pkg_t*) changelog_open;
+	size_t function(void*, size_t, const(alpm_pkg_t)*, void*) changelog_read;
+	int function(const(alpm_pkg_t)*, void*) changelog_close;
+
+	archive* function(alpm_pkg_t*) mtree_open;
+	int function(const(alpm_pkg_t)*, archive*, archive_entry**) mtree_next;
+	int function(const(alpm_pkg_t)*, archive*) mtree_close;
+
+	int function(alpm_pkg_t*) force_load;
+}
+
+/** The standard package operations struct. get fields directly from the
+ * struct itself with no abstraction layer or any type of lazy loading.
+ * The actual definition is in package.c so it can have access to the
+ * default accessor functions which are defined there.
+ */
+extern const(pkg_operations) default_pkg_ops;
+
+struct _alpm_pkg_t {
+	c_ulong name_hash;
+	char* filename;
+	char* base;
+	char* name;
+	char* version_;
+	char* desc;
+	char* url;
+	char* packager;
+	char* md5sum;
+	char* sha256sum;
+	char* base64_sig;
+	char* arch;
+
+	alpm_time_t builddate;
+	alpm_time_t installdate;
+
+	off_t size;
+	off_t isize;
+	off_t download_size;
+
+	alpm_handle_t* handle;
+
+	alpm_list_t* licenses;
+	alpm_list_t* replaces;
+	alpm_list_t* groups;
+	alpm_list_t* backup;
+	alpm_list_t* depends;
+	alpm_list_t* optdepends;
+	alpm_list_t* checkdepends;
+	alpm_list_t* makedepends;
+	alpm_list_t* conflicts;
+	alpm_list_t* provides;
+	alpm_list_t* removes; /* in transaction targets only */
+	alpm_pkg_t* oldpkg; /* in transaction targets only */
+
+	const(pkg_operations)* ops;
+
+	alpm_filelist_t files;
+
+	/* origin == PKG_FROM_FILE, use pkg->origin_data.file
+	 * origin == PKG_FROM_*DB, use pkg->origin_data.db */
+	union _Origin_data {
+		alpm_db_t* db;
+		char* file;
+	}_Origin_data origin_data;
+
+	alpm_pkgfrom_t origin;
+	alpm_pkgreason_t reason;
+	int scriptlet;
+
+	alpm_list_t* xdata;
+
+	/* Bitfield from alpm_dbinfrq_t */
+	int infolevel;
+	/* Bitfield from alpm_pkgvalidation_t */
+	int validation;
+}
+
+alias alpm_pkg_t = _alpm_pkg_t;
 
 int  alpm_pkg_free(alpm_pkg_t* pkg)
 {
@@ -110,6 +219,8 @@ private void* _pkg_changelog_open(alpm_pkg_t* pkg)
 	return null;
 }
 
+alias UNUSED = void;
+
 private size_t _pkg_changelog_read(void* ptr, size_t UNUSED, const(alpm_pkg_t)* pkg, UNUSED* fp)
 {
 	return 0;
@@ -140,42 +251,6 @@ private int _pkg_force_load(alpm_pkg_t* pkg) { return 0; }
 /** The standard package operations struct. Get fields directly from the
  * struct itself with no abstraction layer or any type of lazy loading.
  */
-const(pkg_operations) default_pkg_ops = {
-	get_base: _pkg_get_base,
-	get_desc: _pkg_get_desc,
-	get_url: _pkg_get_url,
-	get_builddate: _pkg_get_builddate,
-	get_installdate: _pkg_get_installdate,
-	get_packager: _pkg_get_packager,
-	get_arch: _pkg_get_arch,
-	get_isize: _pkg_get_isize,
-	get_reason: _pkg_get_reason,
-	get_validation: _pkg_get_validation,
-	has_scriptlet: _pkg_has_scriptlet,
-
-	get_licenses: _pkg_get_licenses,
-	get_groups: _pkg_get_groups,
-	get_depends: _pkg_get_depends,
-	get_optdepends: _pkg_get_optdepends,
-	get_checkdepends: _pkg_get_checkdepends,
-	get_makedepends: _pkg_get_makedepends,
-	get_conflicts: _pkg_get_conflicts,
-	get_provides: _pkg_get_provides,
-	get_replaces: _pkg_get_replaces,
-	get_files: _pkg_get_files,
-	get_backup: _pkg_get_backup,
-	get_xdata: _pkg_get_xdata,
-
-	changelog_open: _pkg_changelog_open,
-	changelog_read: _pkg_changelog_read,
-	changelog_close: _pkg_changelog_close,
-
-	mtree_open: _pkg_mtree_open,
-	mtree_next: _pkg_mtree_next,
-	mtree_close: _pkg_mtree_close,
-
-	force_load: _pkg_force_load,
-};
 
 /* Public functions for getting package information. These functions
  * delegate the hard work to the function callbacks attached to each
@@ -692,7 +767,7 @@ alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(const(char)* string)
 	}
 
 	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof);
-	STRNDUP(pd.name, string, sep - string, FREE(pd); return null);
+	STRNDUP(pd.name, string, sep - string);
 	STRDUP(pd.value, sep + 1);
 
 	return pd;

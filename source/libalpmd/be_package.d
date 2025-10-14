@@ -1,4 +1,4 @@
-module be_package.c;
+module libalpmd.be_package;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -30,20 +30,21 @@ import core.sys.posix.fcntl;
 import core.stdc.limits;
 
 /* libarchive */
-import archive;
-import archive_entry;
+import derelict.libarchive;
+// import archive;
+// import archive_entry;
 
 /* libalpm */
-import alpm_list;
-import alpm;
+import libalpmd.alpm_list;
+import libalpmd.alpm;
 import libalpmd.libarchive_compat;
-import util;
-import log;
-import handle;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.handle;
 import libalpmd._package;
-import deps;
-import filelist;
-import util;
+import libalpmd.deps;
+import libalpmd.filelist;
+import libalpmd.util;
 
 struct package_changelog {
 	archive* archive;

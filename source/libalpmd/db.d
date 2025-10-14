@@ -1,4 +1,4 @@
-module db.c;
+module libalpmd.db;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -28,19 +28,19 @@ extern(C): __gshared:
 import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.string;
-import regex;
+import core.stdc.stddef;
 
 /* libalpm */
-import db;
-import alpm_list;
-import log;
-import util;
-import handle;
-import alpm;
+// import libalpmd.db;
+import libalpmd.alpm_list;
+import libalpmd.log;
+import libalpmd.util;
+import libalpmd.handle;
+import libalpmd.alpm;
 import libalpmd._package;
-import group;
+import libalpmd.group;
+import libalpmd.pkghash;
 
-/* Database entries */
 enum alpm_dbinfrq_t {
 	INFRQ_BASE = (1 << 0),
 	INFRQ_DESC = (1 << 1),
@@ -81,6 +81,7 @@ alias DB_STATUS_PKGCACHE = _alpm_dbstatus_t.DB_STATUS_PKGCACHE;
 alias DB_STATUS_GRPCACHE = _alpm_dbstatus_t.DB_STATUS_GRPCACHE;
 
 
+
 struct db_operations {
 	int function(alpm_db_t*) validate;
 	int function(alpm_db_t*) populate;
@@ -107,6 +108,8 @@ struct _alpm_db_t {
 	/* alpm_db_usage_t */
 	int usage;
 }
+
+alias alpm_db_t = _alpm_db_t;
 
 alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, int siglevel)
 {

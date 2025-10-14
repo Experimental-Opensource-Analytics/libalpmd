@@ -1,4 +1,4 @@
-module base64.c;
+module libalpmd.base64;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -37,7 +37,7 @@ extern(C): __gshared:
 
 import core.stdc.stdint;
 
-import base64;
+import std.base64;
 
 version (none) {
 private const(ubyte)[64] base64_enc_map = [

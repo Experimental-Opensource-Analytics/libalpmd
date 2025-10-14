@@ -1,4 +1,4 @@
-module hook.c;
+module libalpmd.hook;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -25,12 +25,14 @@ import core.stdc.errno;
 import core.stdc.limits;
 import core.stdc.string;
 
-import handle;
-import hook;
-import ini;
-import log;
-import trans;
-import util;
+import libalpmd.handle;
+import libalpmd.hook;
+// import libalpmd.ini;
+import libalpmd.log;
+import libalpmd.trans;
+import libalpmd.util;
+import libalpmd.alpm_list;
+
 
 enum _alpm_hook_op_t {
 	ALPM_HOOK_OP_INSTALL = (1 << 0),
@@ -160,8 +162,9 @@ private int _alpm_hook_parse_cb(const(char)* file, int line, const(char)* sectio
 	alpm_handle_t* handle = ctx.handle;
 	_alpm_hook_t* hook = ctx.hook;
 
-enum string error(...) = `_alpm_log(handle, ALPM_LOG_ERROR, __VA_ARGS__); return 1;`;
-enum string warning(...) = `_alpm_log(handle, ALPM_LOG_WARNING, __VA_ARGS__);`;
+	
+// enum string error(...) = `_alpm_log(handle, ALPM_LOG_ERROR, __VA_ARGS__); return 1;`;
+// enum string warning(...) = `_alpm_log(handle, ALPM_LOG_WARNING, __VA_ARGS__);`;
 
 	if(!section && !key) {
 		mixin(error!(`_("error while reading hook %s: %s\n")`, `file`, `strerror(errno)`));

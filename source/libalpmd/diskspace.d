@@ -1,4 +1,4 @@
-module diskspace.c;
+module libalpmd.diskspace;
 @nogc nothrow:
 extern(C): __gshared:
 
@@ -51,12 +51,56 @@ import core.sys.posix.sys.types;
 }
 
 /* libalpm */
-import diskspace;
-import alpm_list;
-import util;
-import log;
-import trans;
-import handle;
+import libalpmd.diskspace;
+import libalpmd.alpm_list;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.trans;
+import libalpmd.handle;
+import libalpmd._package;
+
+
+version (HAVE_SYS_MOUNT_H) {
+public import core.stdc.stddef;
+}
+version (HAVE_SYS_STATVFS_H) {
+public import core.sys.posix.sys.statvfs;
+}
+version (HAVE_SYS_TYPES_H) {
+public import core.sys.posix.sys.types;
+}
+public import core.sys.posix.sys.types;
+
+enum mount_used_level {
+	USED_REMOVE = 1,
+	USED_INSTALL = (1 << 1),
+}
+alias USED_REMOVE = mount_used_level.USED_REMOVE;
+alias USED_INSTALL = mount_used_level.USED_INSTALL;
+
+
+enum mount_fsinfo {
+	MOUNT_FSINFO_UNLOADED = 0,
+	MOUNT_FSINFO_LOADED,
+	MOUNT_FSINFO_FAIL,
+}
+alias MOUNT_FSINFO_UNLOADED = mount_fsinfo.MOUNT_FSINFO_UNLOADED;
+alias MOUNT_FSINFO_LOADED = mount_fsinfo.MOUNT_FSINFO_LOADED;
+alias MOUNT_FSINFO_FAIL = mount_fsinfo.MOUNT_FSINFO_FAIL;
+
+
+struct alpm_mountpoint_t {
+	/* mount point information */
+	char* mount_dir;
+	size_t mount_dir_len;
+	/* storage for additional disk usage calculations */
+	blkcnt_t blocks_needed;
+	blkcnt_t max_blocks_needed;
+	mount_used_level used;
+	int read_only;
+	mount_fsinfo fsinfo_loaded;
+	FSSTATSTYPE fsp;
+}
 
 private int mount_point_cmp(const(void)* p1, const(void)* p2)
 {

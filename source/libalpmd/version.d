@@ -1,4 +1,4 @@
-module version.c;
+module libalpmd._version;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -22,7 +22,7 @@ import core.stdc.string;
 import core.stdc.ctype;
 
 /* libalpm */
-import util;
+import libalpmd.util;
 
 /**
  * Some functions in this file have been adopted from the rpm source, notably

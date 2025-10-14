@@ -1,4 +1,4 @@
-module remove.c;
+module libalpmd.remove;
 @nogc nothrow:
 extern(C): __gshared:
 import core.stdc.config: c_long, c_ulong;
@@ -31,24 +31,24 @@ import core.stdc.errno;
 import core.stdc.string;
 import core.stdc.limits;
 import core.sys.posix.dirent;
-import regex;
+// import regex;
 import core.sys.posix.unistd;
 import core.sys.posix.sys.stat;
 import core.sys.posix.sys.types;
 
 /* libalpm */
-import remove;
-import alpm_list;
-import alpm;
-import trans;
-import util;
-import log;
-import backup;
+import libalpmd.remove;
+import libalpmd.alpm_list;
+import libalpmd.alpm;
+import libalpmd.trans;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.backup;
 import libalpmd._package;
-import db;
-import deps;
-import handle;
-import filelist;
+import libalpmd.db;
+import libalpmd.deps;
+import libalpmd.handle;
+import libalpmd.filelist;
 
 int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 {

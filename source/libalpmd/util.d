@@ -1,4 +1,4 @@
-module util.c;
+module libalpmd.util;
 @nogc nothrow:
 extern(C): __gshared:
 
@@ -41,15 +41,14 @@ import core.sys.posix.sys.wait;
 import core.sys.posix.sys.socket;
 import core.sys.posix.sys.types;
 import core.sys.posix.fcntl;
-import fnmatch;
+// import core.sys.posix.;
 import core.sys.posix.poll;
 import core.sys.posix.pwd;
 import core.stdc.signal;
 // public import openss;
 
 /* libarchive */
-import archive;
-import archive_entry;
+import derelict.libarchive;
 
 // version (HAVE_LIBSSL) {
 // import openssl/evp;
@@ -61,13 +60,13 @@ import archive_entry;
 // }
 
 /* libalpm */
-import util;
-import log;
+import libalpmd.util;
+import libalpmd.log;
 import libalpmd.libarchive_compat;
-import alpm;
-import alpm_list;
-import handle;
-import trans;
+import libalpmd.alpm;
+import libalpmd.alpm_list;
+import libalpmd.handle;
+import libalpmd.trans;
 
 void MALLOC(T)(T* ptr, size_t size) {
 	*ptr = malloc(size);
@@ -77,7 +76,20 @@ void CALLOC(T, L)(ref T t, L l, size_t size) {
 	t = calloc(l, size);
 }
 
-void STRDUP(ref char* str, char* _str) {
+void REALLOC(T, L)(ref T t, L l, size_t size) {
+	void* np = realloc(t, size);
+	if(np !is null) {
+		t = np;
+	}  
+	assert(0, "ERROR");
+	// t = calloc(l, size);
+}
+
+void STRDUP(ref char* str, char* _str, size_t l) {
+	str = strdup(_str, l);
+} 
+
+void STRNDUP(ref char* str, char* _str) {
 	str = strndup(_str);
 } 
 
@@ -126,7 +138,7 @@ char* strsep(char** str, const(char)* delims)
 
 int _alpm_makepath(const(char)* path)
 {
-	return _alpm_makepath_mode(path, 0755);
+	return _alpm_makepath_mode(path, octal!"0755");
 }
 
 /** Creates a directory, including parents if needed, similar to 'mkdir -p'.
@@ -140,7 +152,7 @@ int _alpm_makepath_mode(const(char)* path, mode_t mode)
 	mode_t oldmask = void;
 	int ret = 0;
 
-	STRDUP(str, path, return 1);
+	STRDUP(str, path);
 
 	oldmask = umask(0000);
 
@@ -324,7 +336,7 @@ version (HAVE_STRUCT_STAT_ST_BLKSIZE) {
 error:
 	_alpm_archive_read_free(*archive);
 	*archive = null;
-	if(fd >= 0) {, fclose(fp); return ALPM_ERR_MEMORY
+	if(fd >= 0) {
 		close(fd);
 	}
 	RET_ERR(handle, error, -1);
@@ -372,7 +384,7 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 		return 1;
 	}
 
-	oldmask = umask(0022);
+	oldmask = umask(octal!"0022");
 
 	/* save the cwd so we can restore it later */
 	OPEN(cwdfd, ".", O_RDONLY | O_CLOEXEC);
@@ -422,9 +434,9 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 
 		mode = archive_entry_mode(entry);
 		if(S_ISREG(mode)) {
-			archive_entry_set_perm(entry, 0644);
+			archive_entry_set_perm(entry, octal!"0644");
 		} else if(S_ISDIR(mode)) {
-			archive_entry_set_perm(entry, 0755);
+			archive_entry_set_perm(entry, octal!"0755");
 		}
 
 		/* Extract the archive entry. */
@@ -502,12 +514,12 @@ ssize_t _alpm_files_in_directory(alpm_handle_t* handle, const(char)* path, int f
 
 private int should_retry(int errnum)
 {
-	return errnum == EAGAIN
-/* EAGAIN may be the same value as EWOULDBLOCK (POSIX.1) - prevent GCC warning */
-static if (EAGAIN != EWOULDBLOCK
-	|| errnum == EWOULDBLOCK) {
-}
-	|| errnum == EINTR;
+// 	return errnum == EAGAIN
+// /* EAGAIN may be the same value as EWOULDBLOCK (POSIX.1) - prevent GCC warning */
+// static if (EAGAIN != EWOULDBLOCK
+// 	|| errnum == EWOULDBLOCK) {
+// }
+// 	|| errnum == EINTR;
 }
 
 private int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit, _alpm_cb_io out_cb, void* cb_ctx)
@@ -605,13 +617,11 @@ void _alpm_reset_signals()
 		SIGABRT, SIGALRM, SIGBUS, SIGCHLD, SIGCONT, SIGFPE, SIGHUP, SIGILL,
 		SIGINT, SIGKILL, SIGPIPE, SIGQUIT, SIGSEGV, SIGSTOP, SIGTERM, SIGTSTP,
 		SIGTTIN, SIGTTOU, SIGUSR1, SIGUSR2, SIGPROF, SIGSYS, SIGTRAP, SIGURG,
-		SIGVTALRM, SIGXCPU, SIGXFSZ,
-#if defined(SIGPOLL)
-		/* Not available on FreeBSD et al. */
-		SIGPOLL,
-#endif
-		0
+		SIGVTALRM, SIGXCPU, SIGXFSZ, 0, 0
 	];
+	version(SIGPOLL) {
+		signals[28] = SIGPOLL;
+	}
 	sigaction def = { sa_handler: SIG_DFL };
 	sigemptyset(&def.sa_mask);
 	for(i = signals; *i; i++) {
@@ -711,7 +721,7 @@ enum TAIL = 0;
 		setenv("SHLVL", "1", 0);
 		/* bash sources $BASH_ENV when run non-interactively */
 		unsetenv("BASH_ENV");
-		umask(0022);
+		umask(octal!"0022");
 		_alpm_reset_signals();
 		_alpm_handle_free(handle);
 		execv(cmd, argv);
@@ -1309,7 +1319,7 @@ cleanup:
 	{
 		int ret = b.ret;
 		FREE(b.line);
-		*b = struct archive_read_buffer(0);
+		*b = archive_read_buffer(0);
 		return ret;
 	}
 }
@@ -1357,14 +1367,14 @@ int _alpm_splitname(const(char)* target, char** name, char** version_, c_ulong* 
 		}
 		/* version actually points to the dash, so need to increment 1 and account
 		 * for potential end character */
-		STRNDUP(*version_, pkgver + 1, end - pkgver - 1, return -1);
+		STRNDUP(*version_, pkgver + 1, end - pkgver - 1);
 	}
 
 	if(name) {
 		if(*name) {
 			FREE(*name);
 		}
-		STRNDUP(*name, target, pkgver - target, return -1);
+		STRNDUP(*name, target, pkgver - target);
 		if(name_hash) {
 			*name_hash = _alpm_hash_sdbm(*name);
 		}
@@ -1559,7 +1569,7 @@ int _alpm_fnmatch(const(void)* pattern, const(void)* string)
  */
 void* _alpm_realloc(void** data, size_t* current, const(size_t) required)
 {
-	REALLOC(*data, required, return NULL);
+	REALLOC(*data, required);
 
 	if (*current < required) {
 		/* ensure all new memory is zeroed out, in both the initial

@@ -1,4 +1,4 @@
-module log.c;
+module libalpmd.log;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -28,10 +28,10 @@ import core.sys.posix.syslog;
 import core.stdc.time;
 
 /* libalpm */
-import log;
-import handle;
-import util;
-import alpm;
+import libalpmd.log;
+import libalpmd.handle;
+import libalpmd.util;
+import libalpmd.alpm;
 
 private int _alpm_log_leader(FILE* f, const(char)* prefix)
 {
@@ -61,7 +61,7 @@ int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt
 		int fd = void;
 		do {
 			fd = open(handle.logfile, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC,
-					0644);
+					octal!"0644");
 		} while(fd == -1 && errno == EINTR);
 		/* if we couldn't open it, we have an issue */
 		if(fd < 0 || (handle.logstream = fdopen(fd, "a")) == null) {

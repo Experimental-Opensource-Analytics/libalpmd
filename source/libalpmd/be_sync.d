@@ -1,4 +1,4 @@
-module be_sync.c;
+module libalpmd.be_sync;
 @nogc nothrow:
 extern(C): __gshared:
 import core.stdc.config: c_long, c_ulong;
@@ -30,20 +30,21 @@ import core.stdc.limits;
 import core.sys.posix.unistd;
 
 /* libarchive */
-import archive;
-import archive_entry;
+import derelict.libarchive;
+// import archive;
+// import archive_entry;
 
 /* libalpm */
-import util;
-import log;
+import libalpmd.util;
+import libalpmd.log;
 import libalpmd.libarchive_compat;
-import alpm;
-import alpm_list;
+import libalpmd.alpm;
+import libalpmd.alpm_list;
 import libalpmd._package;
-import handle;
-import deps;
-import dload;
-import filelist;
+import libalpmd.handle;
+import libalpmd.deps;
+import libalpmd.dload;
+import libalpmd.filelist;
 
 private char* get_sync_dir(alpm_handle_t* handle)
 {

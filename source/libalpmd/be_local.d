@@ -1,4 +1,4 @@
-module be_local.c;
+module libalpmd.be_local;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -32,20 +32,21 @@ import core.sys.posix.dirent;
 import core.stdc.limits; /* PATH_MAX */
 
 /* libarchive */
-import archive;
-import archive_entry;
+import derelict.libarchive;
+// import archive;
+// import archive_entry;
 
 /* libalpm */
-import db;
-import alpm_list;
+import libalpmd.db;
+import libalpmd.alpm_list;
 import libalpmd.libarchive_compat;
-import log;
-import util;
-import alpm;
-import handle;
+import libalpmd.log;
+import libalpmd.util;
+import libalpmd.alpm;
+import libalpmd.handle;
 import libalpmd._package;
-import deps;
-import filelist;
+import libalpmd.deps;
+import libalpmd.filelist;
 
 /* local database format version */
 size_t ALPM_LOCAL_DB_VERSION = 9;
@@ -332,39 +333,39 @@ private int _cache_force_load(alpm_pkg_t* pkg)
  * logic.
  */
 private const(pkg_operations) local_pkg_ops = {
-	get_base: _cache_get_base,
-	get_desc: _cache_get_desc,
-	get_url: _cache_get_url,
-	get_builddate: _cache_get_builddate,
-	get_installdate: _cache_get_installdate,
-	get_packager: _cache_get_packager,
-	get_arch: _cache_get_arch,
-	get_isize: _cache_get_isize,
-	get_reason: _cache_get_reason,
-	get_validation: _cache_get_validation,
-	has_scriptlet: _cache_has_scriptlet,
-	get_licenses: _cache_get_licenses,
-	get_groups: _cache_get_groups,
-	get_depends: _cache_get_depends,
-	get_optdepends: _cache_get_optdepends,
-	get_makedepends: _cache_get_makedepends,
-	get_checkdepends: _cache_get_checkdepends,
-	get_conflicts: _cache_get_conflicts,
-	get_provides: _cache_get_provides,
-	get_replaces: _cache_get_replaces,
-	get_files: _cache_get_files,
-	get_backup: _cache_get_backup,
-	get_xdata: _cache_get_xdata,
+	get_base: &_cache_get_base,
+	get_desc: &_cache_get_desc,
+	get_url: &_cache_get_url,
+	get_builddate: &_cache_get_builddate,
+	get_installdate: &_cache_get_installdate,
+	get_packager: &_cache_get_packager,
+	get_arch: &_cache_get_arch,
+	get_isize: &_cache_get_isize,
+	get_reason: &_cache_get_reason,
+	get_validation: &_cache_get_validation,
+	has_scriptlet: &_cache_has_scriptlet,
+	get_licenses: &_cache_get_licenses,
+	get_groups: &_cache_get_groups,
+	get_depends: &_cache_get_depends,
+	get_optdepends: &_cache_get_optdepends,
+	get_makedepends: &_cache_get_makedepends,
+	get_checkdepends: &_cache_get_checkdepends,
+	get_conflicts: &_cache_get_conflicts,
+	get_provides: &_cache_get_provides,
+	get_replaces: &_cache_get_replaces,
+	get_files: &_cache_get_files,
+	get_backup: &_cache_get_backup,
+	get_xdata: &_cache_get_xdata,
 
-	changelog_open: _cache_changelog_open,
-	changelog_read: _cache_changelog_read,
-	changelog_close: _cache_changelog_close,
+	changelog_open: &_cache_changelog_open,
+	changelog_read: &_cache_changelog_read,
+	changelog_close: &_cache_changelog_close,
 
-	mtree_open: _cache_mtree_open,
-	mtree_next: _cache_mtree_next,
-	mtree_close: _cache_mtree_close,
+	mtree_open: &_cache_mtree_open,
+	mtree_next: &_cache_mtree_next,
+	mtree_close: &_cache_mtree_close,
 
-	force_load: _cache_force_load,
+	force_load: &_cache_force_load,
 };
 
 private int checkdbdir(alpm_db_t* db)

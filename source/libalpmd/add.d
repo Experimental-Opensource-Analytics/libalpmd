@@ -1,4 +1,4 @@
-module add.c;
+module libalpmd.add;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -32,23 +32,24 @@ import core.sys.posix.unistd;
 import core.stdc.stdint; /* int64_t */
 
 /* libarchive */
-import archive;
-import archive_entry;
+import derelict.libarchive;
+// import archive;
+// import archive_entry;
 
 /* libalpm */
-import add;
-import alpm;
-import alpm_list;
-import handle;
+import libalpmd.add;
+import libalpmd.alpm;
+import libalpmd.alpm_list;
+import libalpmd.handle;
 import libalpmd.libarchive_compat;
-import trans;
-import util;
-import log;
-import backup;
+import libalpmd.trans;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.backup;
 import libalpmd._package;
-import db;
-import remove;
-import handle;
+import libalpmd.db;
+import libalpmd.remove;
+import libalpmd.handle;
 
 int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 {

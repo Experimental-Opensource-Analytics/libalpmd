@@ -1,4 +1,4 @@
-module dload.c;
+module libalpmd.dload;
 @nogc nothrow:
 extern(C): __gshared:
 import core.stdc.config: c_long, c_ulong;
@@ -22,7 +22,7 @@ import core.stdc.config: c_long, c_ulong;
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import stdbool;
+// import stdbool;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 import core.stdc.errno;
@@ -50,13 +50,52 @@ import etc.c.curl;
 }
 
 /* libalpm */
-import dload;
-import alpm_list;
-import alpm;
-import log;
-import util;
-import handle;
-import sandbox;
+import libalpmd.dload;
+import libalpmd.alpm_list;
+import libalpmd.alpm;
+import libalpmd.log;
+import libalpmd.util;
+import libalpmd.handle;
+import libalpmd.sandbox;
+
+struct dload_payload {
+	alpm_handle_t* handle;
+	const(char)* tempfile_openmode;
+	/* name of the remote file */
+	char* remote_name;
+	/* temporary file name, to which the payload is downloaded */
+	char* tempfile_name;
+	/* name to which the downloaded file will be renamed */
+	char* destfile_name;
+	/* client has to provide either
+	 *  1) fileurl - full URL to the file
+	 *  2) pair of (servers, filepath), in this case ALPM iterates over the
+	 *     server list and tries to download "$server/$filepath"
+	 */
+	char* fileurl;
+	char* filepath; /* download URL path */
+	alpm_list_t* cache_servers;
+	alpm_list_t* servers;
+	c_long respcode;
+	/* the mtime of the existing version of this file, if there is one */
+	c_long mtime_existing_file;
+	off_t initial_size;
+	off_t max_size;
+	off_t prevprogress;
+	int force;
+	int allow_resume;
+	int errors_ok;
+	int unlink_on_fail;
+	int download_signature; /* specifies if an accompanion *.sig file need to be downloaded*/
+	int signature_optional; /* *.sig file is optional */
+version (HAVE_LIBCURL) {
+	CURL* curl;
+	char[CURL_ERROR_SIZE] error_buffer = 0;
+	int signature; /* specifies if this payload is for a signature file */
+	int request_errors_ok; /* per-request errors-ok */
+}
+	FILE* localf; /* temp download file */
+}
 
 
 private const(char)* get_filename(const(char)* url)
@@ -91,7 +130,7 @@ private int finalize_download_file(const(char)* filename)
 	if(myuid == 0) {
 		ASSERT(chown(filename, 0, 0) != -1);
 	}
-	ASSERT(chmod(filename, ~cast(_getumask) & 0666) != -1);
+	ASSERT(chmod(filename, ~cast(_getumask) & octal!"0666") != -1);
 	return 0;
 }
 

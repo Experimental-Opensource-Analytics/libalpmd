@@ -1,4 +1,4 @@
-module deps.c;
+module libalpmd.deps;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -28,15 +28,17 @@ import core.stdc.stdio;
 import core.stdc.string;
 
 /* libalpm */
-import deps;
-import alpm_list;
-import util;
-import log;
-import graph;
+import libalpmd.deps;
+import libalpmd.alpm_list;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.graph;
 import libalpmd._package;
-import db;
-import handle;
-import trans;
+import libalpmd.db;
+import libalpmd.handle;
+import libalpmd.trans;
+import libalpmd.alpm;
+
 
 void  alpm_dep_free(alpm_depend_t* dep)
 {

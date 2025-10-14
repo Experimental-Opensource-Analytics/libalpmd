@@ -1,4 +1,4 @@
-module filelist.c;
+module libalpmd.filelist;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -25,8 +25,12 @@ import core.stdc.string;
 import core.sys.posix.sys.stat;
 
 /* libalpm */
-import filelist;
-import util;
+import libalpmd.filelist;
+import libalpmd.util;
+import libalpmd.alpm_list;
+import libalpmd.alpm;
+
+
 
 /* Returns the difference of the provided two lists of files.
  * Pre-condition: both lists are sorted!

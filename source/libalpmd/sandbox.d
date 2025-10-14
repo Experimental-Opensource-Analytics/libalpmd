@@ -1,4 +1,4 @@
-module sandbox.c;
+module libalpmd.sandbox;
 @nogc nothrow:
 extern(C): __gshared:
 
@@ -24,7 +24,7 @@ private template HasVersion(string versionId) {
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import config;
+// import libalpmd.config;
 
 import core.stdc.errno;
 import core.sys.posix.grp;
@@ -35,13 +35,14 @@ import core.sys.linux.sys.prctl;
 import core.sys.posix.sys.types;
 import core.sys.posix.unistd;
 import core.stdc.limits;
+import core.stdc.stdarg;
 
-import alpm;
-import log;
-import sandbox;
-import sandbox_fs;
-import sandbox_syscalls;
-import util;
+import libalpmd.alpm;
+import libalpmd.log;
+import libalpmd.sandbox;
+import libalpmd.sandbox_fs;
+import libalpmd.sandbox_syscalls;
+import libalpmd.util;
 
 int  alpm_sandbox_setup_child(alpm_handle_t* handle, const(char)* sandboxuser, const(char)* sandbox_path, bool restrict_syscalls)
 {

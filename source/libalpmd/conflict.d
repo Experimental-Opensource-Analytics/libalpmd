@@ -1,4 +1,4 @@
-module conflict.c;
+module libalpmd.conflict;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -33,15 +33,15 @@ import core.sys.posix.sys.stat;
 import core.sys.posix.dirent;
 
 /* libalpm */
-import conflict;
-import alpm_list;
-import alpm;
-import handle;
-import trans;
-import util;
-import log;
-import deps;
-import filelist;
+import libalpmd.conflict;
+import libalpmd.alpm_list;
+import libalpmd.alpm;
+import libalpmd.handle;
+import libalpmd.trans;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.deps;
+import libalpmd.filelist;
 
 /**
  * @brief Creates a new conflict.

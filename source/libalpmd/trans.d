@@ -1,4 +1,4 @@
-module trans.c;
+module libalpmd.trans;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -33,17 +33,17 @@ import core.stdc.errno;
 import core.stdc.limits;
 
 /* libalpm */
-import trans;
-import alpm_list;
+import libalpmd.trans;
+import libalpmd.alpm_list;
 import libalpmd._package;
-import util;
-import log;
-import handle;
-import remove;
-import sync;
-import alpm;
-import deps;
-import hook;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.handle;
+import libalpmd.remove;
+import libalpmd.sync;
+import libalpmd.alpm;
+import libalpmd.deps;
+import libalpmd.hook;
 
 int  alpm_trans_init(alpm_handle_t* handle, int flags)
 {
@@ -363,7 +363,7 @@ int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)
 	MALLOC(tmpdir, len);
 	snprintf(tmpdir, len, "%stmp/", handle.root);
 	if(access(tmpdir, F_OK) != 0) {
-		_alpm_makepath_mode(tmpdir, 01777);
+		_alpm_makepath_mode(tmpdir, octal!"01777");
 	}
 	snprintf(tmpdir, len, "%stmp/alpm_XXXXXX", handle.root);
 	if(mkdtemp(tmpdir) == null) {

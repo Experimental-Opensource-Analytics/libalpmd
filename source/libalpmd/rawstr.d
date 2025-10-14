@@ -1,4 +1,4 @@
-module rawstr.c;
+module libalpmd.rawstr;
 @nogc nothrow:
 extern(C): __gshared:
 /***************************************************************************
@@ -30,7 +30,7 @@ extern(C): __gshared:
 
 import core.stdc.stdlib;
 
-import util;
+import libalpmd.util;
 
 /* Portable, consistent toupper (remember EBCDIC). Do not use toupper() because
 	 its behavior is altered by the current locale. */

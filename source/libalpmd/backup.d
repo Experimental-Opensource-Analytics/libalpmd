@@ -1,4 +1,4 @@
-module backup.c;
+module libalpmd.backup;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -28,10 +28,13 @@ import core.stdc.stdlib;
 import core.stdc.string;
 
 /* libalpm */
-import backup;
-import alpm_list;
-import log;
-import util;
+import libalpmd.backup;
+import libalpmd.alpm_list;
+import libalpmd.log;
+import libalpmd.util;
+import libalpmd.alpm;
+import libalpmd._package;
+
 
 /* split a backup string "file\thash" into the relevant components */
 int _alpm_split_backup(const(char)* _string, alpm_backup_t** backup)

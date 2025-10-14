@@ -1,4 +1,4 @@
-module sandbox_syscalls.c;
+module libalpmd.sandbox_syscalls;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -22,10 +22,12 @@ extern(C): __gshared:
 import core.stdc.errno;
 import core.stdc.stddef;
 
-import config;
-import log;
-import sandbox_syscalls;
-import util;
+// import config;
+import libalpmd.log;
+import libalpmd.sandbox_syscalls;
+import libalpmd.util;
+import libalpmd.handle;
+
 
 version (HAVE_LIBSECCOMP) {
 import seccomp;

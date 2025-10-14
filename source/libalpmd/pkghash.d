@@ -1,4 +1,4 @@
-module pkghash.c;
+module libalpmd.pkghash;
 @nogc nothrow:
 extern(C): __gshared:
 import core.stdc.config: c_long, c_ulong;
@@ -23,8 +23,12 @@ import core.stdc.config: c_long, c_ulong;
 
 import core.stdc.errno;
 
-import pkghash;
-import util;
+import libalpmd.pkghash;
+import libalpmd.util;
+import libalpmd._package;
+import libalpmd.alpm_list;
+
+
 
 /* List of primes for possible sizes of hash tables.
  *
@@ -32,6 +36,22 @@ import util;
  * more than an order of magnitude greater than the number of packages
  * in any Linux distribution, and well under UINT_MAX.
  */
+
+struct _alpm_pkghash_t {
+	/** data held by the hash table */
+	alpm_list_t** hash_table;
+	/** head node of the hash table data in normal list format */
+	alpm_list_t* list;
+	/** number of buckets in hash table */
+	uint buckets;
+	/** number of entries in hash table */
+	uint entries;
+	/** max number of entries before a resize is needed */
+	uint limit;
+}
+
+alias alpm_pkghash_t = _alpm_pkghash_t;
+
 private const(uint)[145] prime_list = [
 	11u, 13u, 17u, 19u, 23u, 29u, 31u, 37u, 41u, 43u, 47u,
 	53u, 59u, 61u, 67u, 71u, 73u, 79u, 83u, 89u, 97u, 103u,

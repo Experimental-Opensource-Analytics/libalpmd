@@ -1,4 +1,4 @@
-module alpm_list.c;
+module libalpmd.alpm_list;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -29,12 +29,26 @@ import core.stdc.string;
  */
 
 /* libalpm */
-import alpm_list;
+import libalpmd.alpm_list;
 
 /* check exported library symbols with: nm -C -D <lib> */
 // enum  = __attribute__((visibility("default")));
 
 /* Allocation */
+
+struct alpm_list_t {
+	/** data held by the list node */
+	void* data;
+	/** pointer to the previous node */
+	_alpm_list_t* prev;
+	/** pointer to the next node */
+	_alpm_list_t* next;
+}
+
+alias alpm_list_fn_free = void function(void* item);
+
+/** item comparison callback */
+alias alpm_list_fn_cmp = int function(const(void)*, const(void)*);
 
 void  alpm_list_free(alpm_list_t* list)
 {

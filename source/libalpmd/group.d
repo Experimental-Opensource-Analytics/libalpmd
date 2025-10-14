@@ -1,4 +1,4 @@
-module group.c;
+module libalpmd.group;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -25,11 +25,11 @@ import core.stdc.stdlib;
 import core.stdc.string;
 
 /* libalpm */
-import group;
-import alpm_list;
-import util;
-import log;
-import alpm;
+import libalpmd.group;
+import libalpmd.alpm_list;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.alpm;
 
 alpm_group_t* _alpm_group_new(const(char)* name)
 {

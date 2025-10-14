@@ -1,4 +1,4 @@
-module signing.c;
+module libalpmd.signing;
 @nogc nothrow:
 extern(C): __gshared:
 /*
@@ -30,13 +30,15 @@ import gpgme;
 }
 
 /* libalpm */
-import signing;
+import libalpmd.signing;
 import libalpmd._package;
-import base64;
-import util;
-import log;
-import alpm;
-import handle;
+import libalpmd.base64;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.alpm;
+import libalpmd.handle;
+import libalpmd.alpm_list;
+
 
 int  alpm_decode_signature(const(char)* base64_data, ubyte** data, size_t* data_len)
 {
@@ -455,7 +457,7 @@ private int email_from_uid(const(char)* uid, char** email)
        }
 
        if(start && end) {
-               STRNDUP(*email, start+1, end-start-1, return -1);
+               STRNDUP(*email, start+1, end-start-1);
                return 0;
        } else {
                *email = null;
@@ -485,7 +487,7 @@ int _alpm_key_import(alpm_handle_t* handle, const(char)* uid, const(char)* fpr)
 
 	alpm_question_import_key_t question = {
 				type: ALPM_QUESTION_IMPORT_KEY,
-				import: 0,
+				_import: 0,
 				uid: uid,
 				fingerprint: fpr
 			};
