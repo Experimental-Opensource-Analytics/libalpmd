@@ -125,15 +125,16 @@ const(char)* alpm_version()
 
 int  alpm_capabilities()
 {
-	return 0
-#ifdef ENABLE_NLS
-		| ALPM_CAPABILITY_NLS
+	int capabilities = 0;
+version(ENABLE_NLS) {
+		capabilities |= ALPM_CAPABILITY_NLS;
+}
 //! #endif
 version (HAVE_LIBCURL) {
-		| ALPM_CAPABILITY_DOWNLOADER
+		capabilities |= ALPM_CAPABILITY_DOWNLOADER;
 }
 version (HAVE_LIBGPGME) {
-		| ALPM_CAPABILITY_SIGNATURES
-#endif
-		| 0;}
+		capabilities |= ALPM_CAPABILITY_SIGNATURES;
+}
+		return capabilities;
 }
