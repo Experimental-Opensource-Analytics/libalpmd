@@ -68,7 +68,7 @@ alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_err
 	myhandle.hookdirs = alpm_list_add(null, hookdir);
 
 	/* set default database extension */
-	STRDUP(myhandle.dbext, ".db", goto nomem);
+	STRDUP(myhandle.dbext, ".db");
 
 	lockfilelen = strlen(myhandle.dbpath) + strlen(lf) + 1;
 	MALLOC(myhandle.lockfile, lockfilelen);

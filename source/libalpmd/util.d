@@ -45,19 +45,20 @@ import fnmatch;
 import core.sys.posix.poll;
 import core.sys.posix.pwd;
 import core.stdc.signal;
+// public import openss;
 
 /* libarchive */
 import archive;
 import archive_entry;
 
-version (HAVE_LIBSSL) {
-import openssl/evp;
-}
+// version (HAVE_LIBSSL) {
+// import openssl/evp;
+// }
 
-version (HAVE_LIBNETTLE) {
-import nettle/md5;
-import nettle/sha2;
-}
+// version (HAVE_LIBNETTLE) {
+// import nettle/md5;
+// import nettle/sha2;
+// }
 
 /* libalpm */
 import util;
