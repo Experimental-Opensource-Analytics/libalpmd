@@ -1450,5 +1450,5 @@ void _alpm_dload_payload_reset(dload_payload* payload)
 	FREE(payload.destfile_name);
 	FREE(payload.fileurl);
 	FREE(payload.filepath);
-	*payload = struct dload_payload(0);
+	*payload = dload_payload(0);
 }
