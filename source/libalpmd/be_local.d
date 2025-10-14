@@ -895,7 +895,7 @@ nomem:
 			} else if(strcmp(line.ptr, "%BACKUP%") == 0) {
 				while(safe_fgets(line.ptr, line.sizeof, fp) && _alpm_strip_newline(line.ptr, 0)) {
 					alpm_backup_t* backup = void;
-					CALLOC(backup, 1, alpm_backup_t.sizeof;
+					CALLOC(backup, 1, alpm_backup_t.sizeof);
 					if(_alpm_split_backup(line.ptr, &backup)) {
 						FREE(backup);
 						goto error;

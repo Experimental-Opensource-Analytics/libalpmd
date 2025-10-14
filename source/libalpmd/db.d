@@ -40,6 +40,74 @@ import alpm;
 import libalpmd._package;
 import group;
 
+/* Database entries */
+enum alpm_dbinfrq_t {
+	INFRQ_BASE = (1 << 0),
+	INFRQ_DESC = (1 << 1),
+	INFRQ_FILES = (1 << 2),
+	INFRQ_SCRIPTLET = (1 << 3),
+	INFRQ_DSIZE = (1 << 4),
+	/* ALL should be info stored in the package or database */
+	INFRQ_ALL = INFRQ_BASE | INFRQ_DESC | INFRQ_FILES |
+		INFRQ_SCRIPTLET | INFRQ_DSIZE,
+	INFRQ_ERROR = (1 << 30)
+}
+alias INFRQ_BASE = alpm_dbinfrq_t.INFRQ_BASE;
+alias INFRQ_DESC = alpm_dbinfrq_t.INFRQ_DESC;
+alias INFRQ_FILES = alpm_dbinfrq_t.INFRQ_FILES;
+alias INFRQ_SCRIPTLET = alpm_dbinfrq_t.INFRQ_SCRIPTLET;
+alias INFRQ_DSIZE = alpm_dbinfrq_t.INFRQ_DSIZE;
+alias INFRQ_ALL = alpm_dbinfrq_t.INFRQ_ALL;
+alias INFRQ_ERROR = alpm_dbinfrq_t.INFRQ_ERROR;
+
+
+/** Database status. Bitflags. */
+enum _alpm_dbstatus_t {
+	DB_STATUS_VALID = (1 << 0),
+	DB_STATUS_INVALID = (1 << 1),
+	DB_STATUS_EXISTS = (1 << 2),
+	DB_STATUS_MISSING = (1 << 3),
+
+	DB_STATUS_LOCAL = (1 << 10),
+	DB_STATUS_PKGCACHE = (1 << 11),
+	DB_STATUS_GRPCACHE = (1 << 12)
+}
+alias DB_STATUS_VALID = _alpm_dbstatus_t.DB_STATUS_VALID;
+alias DB_STATUS_INVALID = _alpm_dbstatus_t.DB_STATUS_INVALID;
+alias DB_STATUS_EXISTS = _alpm_dbstatus_t.DB_STATUS_EXISTS;
+alias DB_STATUS_MISSING = _alpm_dbstatus_t.DB_STATUS_MISSING;
+alias DB_STATUS_LOCAL = _alpm_dbstatus_t.DB_STATUS_LOCAL;
+alias DB_STATUS_PKGCACHE = _alpm_dbstatus_t.DB_STATUS_PKGCACHE;
+alias DB_STATUS_GRPCACHE = _alpm_dbstatus_t.DB_STATUS_GRPCACHE;
+
+
+struct db_operations {
+	int function(alpm_db_t*) validate;
+	int function(alpm_db_t*) populate;
+	void function(alpm_db_t*) unregister;
+}
+
+/* Database */
+struct _alpm_db_t {
+	alpm_handle_t* handle;
+	char* treename;
+	/* do not access directly, use _alpm_db_path(db) for lazy access */
+	char* _path;
+	alpm_pkghash_t* pkgcache;
+	alpm_list_t* grpcache;
+	alpm_list_t* cache_servers;
+	alpm_list_t* servers;
+	const(db_operations)* ops;
+
+	/* bitfields for validity, local, loaded caches, etc. */
+	/* From _alpm_dbstatus_t */
+	int status;
+	/* alpm_siglevel_t */
+	int siglevel;
+	/* alpm_db_usage_t */
+	int usage;
+}
+
 alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, int siglevel)
 {
 	alpm_list_t* i = void;
