@@ -59,9 +59,11 @@ error:
 }
 
 version (HAVE_LIBGPGME) {
-enum string CHECK_ERR(string void) = `do { 
-		if(gpg_err_code(gpg_err) != GPG_ERR_NO_ERROR) { goto gpg_error; } 
-	} while(0)`;
+void CHECK_ERR(E)(E gpg_err) { 
+	if(gpg_err_code(gpg_err) != GPG_ERR_NO_ERROR) {
+		assert(false);
+	} 
+} 
 
 /**
  * Return a statically allocated validity string based on the GPGME validity
