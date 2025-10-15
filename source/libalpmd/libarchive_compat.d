@@ -22,6 +22,7 @@ extern(C): __gshared:
  */
 
 public import core.stdc.stdint;
+import derelict.libarchive;
 
 pragma(inline, true) private int _alpm_archive_read_free(archive* archive)
 {

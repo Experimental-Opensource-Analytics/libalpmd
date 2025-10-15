@@ -1,5 +1,5 @@
 module libalpmd._package;
-@nogc nothrow:
+nothrow:
 extern(C): __gshared:
 import core.stdc.config: c_long, c_ulong;
 /*
@@ -40,7 +40,6 @@ import libalpmd.handle;
 import libalpmd.deps;
 import libalpmd.alpm;
 import derelict.libarchive;
-
 
 struct pkg_operations {
 	const(char)* function(alpm_pkg_t*) get_base;

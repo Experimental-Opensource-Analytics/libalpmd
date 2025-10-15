@@ -45,6 +45,35 @@ import libalpmd.alpm;
 import libalpmd.deps;
 import libalpmd.hook;
 
+enum alpm_transstate_t {
+	STATE_IDLE = 0,
+	STATE_INITIALIZED,
+	STATE_PREPARED,
+	STATE_DOWNLOADING,
+	STATE_COMMITTING,
+	STATE_COMMITTED,
+	STATE_INTERRUPTED
+}
+alias STATE_IDLE = alpm_transstate_t.STATE_IDLE;
+alias STATE_INITIALIZED = alpm_transstate_t.STATE_INITIALIZED;
+alias STATE_PREPARED = alpm_transstate_t.STATE_PREPARED;
+alias STATE_DOWNLOADING = alpm_transstate_t.STATE_DOWNLOADING;
+alias STATE_COMMITTING = alpm_transstate_t.STATE_COMMITTING;
+alias STATE_COMMITTED = alpm_transstate_t.STATE_COMMITTED;
+alias STATE_INTERRUPTED = alpm_transstate_t.STATE_INTERRUPTED;
+
+
+/* Transaction */
+struct alpm_trans_t {
+	/* bitfield of alpm_transflag_t flags */
+	int flags;
+	alpm_transstate_t state;
+	alpm_list_t* unresolvable;  /* list of (alpm_pkg_t *) */
+	alpm_list_t* add;           /* list of (alpm_pkg_t *) */
+	alpm_list_t* remove;        /* list of (alpm_pkg_t *) */
+	alpm_list_t* skip_remove;   /* list of (char *) */
+}
+
 int  alpm_trans_init(alpm_handle_t* handle, int flags)
 {
 	alpm_trans_t* trans = void;

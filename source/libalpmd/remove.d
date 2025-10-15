@@ -281,7 +281,7 @@ int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
  * @return 0 if @a directory is not a mountpoint or on error, 1 if @a directory
  * is a mountpoint
  */
-private int dir_is_mountpoint(alpm_handle_t* handle, const(char)* directory, const(stat)* stbuf)
+private int dir_is_mountpoint(alpm_handle_t* handle, const(char)* directory, const(stat_t)* stbuf)
 {
 	char[PATH_MAX] parent_dir = void;
 	stat parent_stbuf = void;

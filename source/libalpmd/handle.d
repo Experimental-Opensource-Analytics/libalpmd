@@ -40,6 +40,7 @@ import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.alpm;
 import libalpmd.deps;
+import core.stdc.stdio;
 
 struct _alpm_handle_t {
 	/* internal usage */

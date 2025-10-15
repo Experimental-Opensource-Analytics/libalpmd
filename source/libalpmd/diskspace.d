@@ -58,6 +58,9 @@ import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.handle;
 import libalpmd._package;
+import core.sys.posix.sys.statvfs;
+
+alias FSSTATSTYPE = statvfs_t;
 
 
 version (HAVE_SYS_MOUNT_H) {

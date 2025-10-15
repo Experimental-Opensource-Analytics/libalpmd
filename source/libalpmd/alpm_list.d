@@ -36,7 +36,7 @@ import libalpmd.alpm_list;
 
 /* Allocation */
 
-struct alpm_list_t {
+struct _alpm_list_t {
 	/** data held by the list node */
 	void* data;
 	/** pointer to the previous node */
@@ -44,6 +44,8 @@ struct alpm_list_t {
 	/** pointer to the next node */
 	_alpm_list_t* next;
 }
+
+alias alpm_list_t = _alpm_list_t;  
 
 alias alpm_list_fn_free = void function(void* item);
 

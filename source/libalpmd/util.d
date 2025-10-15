@@ -67,6 +67,21 @@ import libalpmd.alpm;
 import libalpmd.alpm_list;
 import libalpmd.handle;
 import libalpmd.trans;
+import derelict.libarchive;
+
+struct archive_read_buffer {
+	char* line;
+	char* line_offset;
+	size_t line_size;
+	size_t max_line_size;
+	size_t real_line_size;
+
+	char* block;
+	char* block_offset;
+	size_t block_size;
+
+	int ret;
+}
 
 void MALLOC(T)(T* ptr, size_t size) {
 	*ptr = malloc(size);
@@ -293,7 +308,7 @@ size_t _alpm_strip_newline(char* str, size_t len)
  * @param error error code to set on failure to open archive
  * @return -1 on failure, >=0 file descriptor on success
  */
-int _alpm_open_archive(alpm_handle_t* handle, const(char)* path, stat* buf, archive** archive, alpm_errno_t error)
+int _alpm_open_archive(alpm_handle_t* handle, const(char)* path, stat_t* buf, archive** archive, alpm_errno_t error)
 {
 	int fd = void;
 	size_t bufsize = ALPM_BUFFER_SIZE;
@@ -550,6 +565,9 @@ private int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf
 
 	return 0;
 }
+
+alias _alpm_cb_io = ssize_t function(void* buf, ssize_t len, void* ctx);
+
 
 private void _alpm_chroot_process_output(alpm_handle_t* handle, const(char)* line)
 {

@@ -45,9 +45,10 @@ import libalpmd._package;
 import libalpmd.deps;
 import libalpmd.filelist;
 import libalpmd.util;
+import derelict.libarchive;
 
 struct package_changelog {
-	archive* archive;
+	archive* _archive;
 	int fd;
 }
 

@@ -45,6 +45,8 @@ import libalpmd.handle;
 import libalpmd.deps;
 import libalpmd.dload;
 import libalpmd.filelist;
+import libalpmd.db;
+
 
 private char* get_sync_dir(alpm_handle_t* handle)
 {
@@ -384,7 +386,7 @@ private alpm_pkg_t* load_pkg_for_entry(alpm_db_t* db, const(char)* entryname, co
  * entries varies considerably. Adding signatures nearly doubles the size of a
  * single entry. These  current values are heavily influenced by Arch Linux;
  * databases with a single signature per package. */
-private size_t estimate_package_count(stat* st, archive* archive)
+private size_t estimate_package_count(stat_t* st, archive* archive)
 {
 	int per_package = void;
 
@@ -729,9 +731,9 @@ error:
 }
 
 db_operations sync_db_ops = {
-	validate: sync_db_validate,
-	populate: sync_db_populate,
-	unregister: _alpm_db_unregister,
+	validate: &sync_db_validate,
+	populate: &sync_db_populate,
+	unregister: &_alpm_db_unregister,
 };
 
 alpm_db_t* _alpm_db_register_sync(alpm_handle_t* handle, const(char)* treename, int level)

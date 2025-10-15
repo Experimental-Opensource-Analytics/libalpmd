@@ -67,7 +67,7 @@ enum string LAZY_LOAD(string info) = `
  * initialized.
  */
 
-private const(char)* _cache_get_base(alpm_pkg_t* pkg)
+const(char)* _cache_get_base(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.base;
@@ -127,7 +127,7 @@ private int _cache_get_validation(alpm_pkg_t* pkg)
 	return pkg.validation;
 }
 
-private alpm_list_t* _cache_get_licenses(alpm_pkg_t* pkg)
+alpm_list_t* _cache_get_licenses(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.licenses;
@@ -1204,9 +1204,9 @@ int  alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
 }
 
 private const(db_operations) local_db_ops = {
-	validate: local_db_validate,
-	populate: local_db_populate,
-	unregister: _alpm_db_unregister,
+	validate: &local_db_validate,
+	populate: &local_db_populate,
+	unregister: &_alpm_db_unregister,
 };
 
 alpm_db_t* _alpm_db_register_local(alpm_handle_t* handle)

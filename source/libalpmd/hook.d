@@ -32,6 +32,7 @@ import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.util;
 import libalpmd.alpm_list;
+import libalpmd.alpm;
 
 
 enum _alpm_hook_op_t {

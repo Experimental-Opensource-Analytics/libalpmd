@@ -598,7 +598,7 @@ alias alpm_pkg_t = _alpm_pkg_t;
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
-alias alpm_time_t = long;
+// alias alpm_time_t = long;
 
 
 
