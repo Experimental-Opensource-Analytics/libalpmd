@@ -1,6 +1,6 @@
 module libalpmd.log;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+ 
 /*
  *  log.c
  *
@@ -32,6 +32,8 @@ import libalpmd.log;
 import libalpmd.handle;
 import libalpmd.util;
 import libalpmd.alpm;
+
+enum ALPM_CALLER_PREFIX = "ALPM";
 
 private int _alpm_log_leader(FILE* f, const(char)* prefix)
 {

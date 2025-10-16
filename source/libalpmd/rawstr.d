@@ -1,6 +1,6 @@
 module libalpmd.rawstr;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |

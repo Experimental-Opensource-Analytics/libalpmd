@@ -1,6 +1,6 @@
 module libalpmd.filelist;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  filelist.c
  *

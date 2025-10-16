@@ -1,6 +1,6 @@
 module libalpmd.sync;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  sync.c
  *

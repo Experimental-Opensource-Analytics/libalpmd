@@ -1,6 +1,6 @@
 module libalpmd.pkghash;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 import core.stdc.config: c_long, c_ulong;
 /*
  *  pkghash.c

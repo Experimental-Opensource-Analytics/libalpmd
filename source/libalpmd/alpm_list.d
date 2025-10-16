@@ -1,6 +1,6 @@
 module libalpmd.alpm_list;
-@nogc nothrow:
-extern(C): __gshared:
+// @nogc  
+//    
 /*
  *  alpm_list.c
  *
@@ -45,6 +45,12 @@ struct _alpm_list_t {
 	_alpm_list_t* next;
 }
 
+void FREELIST(T)(T p) {
+	 alpm_list_free_inner(p, cast(alpm_list_fn_free)&free);
+	 alpm_list_free(p);
+	  p = null; 
+}
+
 alias alpm_list_t = _alpm_list_t;  
 
 alias alpm_list_fn_free = void function(void* item);
@@ -86,7 +92,7 @@ alpm_list_t * alpm_list_add(alpm_list_t* list, void* data)
 	return list;
 }
 
-alpm_list_t * alpm_list_append(alpm_list_t** list, void* data)
+alpm_list_t * alpm_list_append(alpm_list_t** list, const void* data)
 {
 	alpm_list_t* ptr = void;
 
@@ -95,7 +101,7 @@ alpm_list_t * alpm_list_append(alpm_list_t** list, void* data)
 		return null;
 	}
 
-	ptr.data = data;
+	ptr.data = cast(void*)data;
 	ptr.next = null;
 
 	/* Special case: the input list is empty */
@@ -116,7 +122,7 @@ alpm_list_t * alpm_list_append_strdup(alpm_list_t** list, const(char)* data)
 {
 	alpm_list_t* ret = void;
 	char* dup = void;
-	if((dup = strdup(data)) && (ret = alpm_list_append(list, dup))) {
+	if(cast(bool)(dup = strdup(data)) && cast(bool)(ret = alpm_list_append(list, dup))) {
 		return ret;
 	} else {
 		free(dup);
@@ -344,12 +350,12 @@ alpm_list_t * alpm_list_remove(alpm_list_t* haystack, const(void)* needle, alpm_
 alpm_list_t * alpm_list_remove_str(alpm_list_t* haystack, const(char)* needle, char** data)
 {
 	return alpm_list_remove(haystack, cast(const(void)*)needle,
-			cast(alpm_list_fn_cmp)strcmp, cast(void**)data);
+			cast(alpm_list_fn_cmp)&strcmp, cast(void**)data);
 }
 
-alpm_list_t * alpm_list_remove_dupes(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_remove_dupes(alpm_list_t* list)
 {
-	const(alpm_list_t)* lp = list;
+	alpm_list_t* lp = list;
 	alpm_list_t* newlist = null;
 	while(lp) {
 		if(!alpm_list_find_ptr(newlist, lp.data)) {
@@ -368,7 +374,7 @@ alpm_list_t * alpm_list_strdup(const(alpm_list_t)* list)
 	const(alpm_list_t)* lp = list;
 	alpm_list_t* newlist = null;
 	while(lp) {
-		if(alpm_list_append_strdup(&newlist, lp.data) == null) {
+		if(alpm_list_append_strdup(&newlist, cast(const char*)lp.data) == null) {
 			FREELIST(newlist);
 			return null;
 		}
@@ -450,7 +456,7 @@ alpm_list_t * alpm_list_nth(const(alpm_list_t)* list, size_t n)
 	return cast(alpm_list_t*)i;
 }
 
-pragma(inline, true) alpm_list_t* alpm_list_next(const(alpm_list_t)* node)
+pragma(inline, true) alpm_list_t* alpm_list_next(alpm_list_t* node)
 {
 	if(node) {
 		return node.next;
@@ -459,7 +465,7 @@ pragma(inline, true) alpm_list_t* alpm_list_next(const(alpm_list_t)* node)
 	}
 }
 
-pragma(inline, true) alpm_list_t* alpm_list_previous(const(alpm_list_t)* list)
+pragma(inline, true) alpm_list_t* alpm_list_previous(alpm_list_t* list)
 {
 	if(list && list.prev.next) {
 		return list.prev;
@@ -468,7 +474,7 @@ pragma(inline, true) alpm_list_t* alpm_list_previous(const(alpm_list_t)* list)
 	}
 }
 
-alpm_list_t * alpm_list_last(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_last(alpm_list_t* list)
 {
 	if(list) {
 		return list.prev;
@@ -490,9 +496,9 @@ size_t  alpm_list_count(const(alpm_list_t)* list)
 	return i;
 }
 
-void * alpm_list_find(const(alpm_list_t)* haystack, const(void)* needle, alpm_list_fn_cmp fn)
+void * alpm_list_find(alpm_list_t* haystack, void* needle, alpm_list_fn_cmp fn)
 {
-	const(alpm_list_t)* lp = haystack;
+	alpm_list_t* lp = haystack;
 	while(lp) {
 		if(lp.data && fn(lp.data, needle) == 0) {
 			return lp.data;
@@ -508,15 +514,15 @@ private int ptr_cmp(const(void)* p, const(void)* q)
 	return (p != q);
 }
 
-void * alpm_list_find_ptr(const(alpm_list_t)* haystack, const(void)* needle)
+void * alpm_list_find_ptr(alpm_list_t* haystack, void* needle)
 {
 	return alpm_list_find(haystack, needle, &ptr_cmp);
 }
 
-char * alpm_list_find_str(const(alpm_list_t)* haystack, const(char)* needle)
+char * alpm_list_find_str(alpm_list_t* haystack, char* needle)
 {
 	return cast(char*)alpm_list_find(haystack, cast(const(void)*)needle,
-			cast(alpm_list_fn_cmp)strcmp);
+			cast(alpm_list_fn_cmp)&strcmp);
 }
 
 int  alpm_list_cmp_unsorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn)
@@ -575,10 +581,10 @@ int  alpm_list_cmp_unsorted(const(alpm_list_t)* left, const(alpm_list_t)* right,
 	return 1;
 }
 
-void  alpm_list_diff_sorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn, alpm_list_t** onlyleft, alpm_list_t** onlyright)
+void  alpm_list_diff_sorted(alpm_list_t* left, alpm_list_t* right, alpm_list_fn_cmp fn, alpm_list_t** onlyleft, alpm_list_t** onlyright)
 {
-	const(alpm_list_t)* l = left;
-	const(alpm_list_t)* r = right;
+	alpm_list_t* l = left;
+	alpm_list_t* r = right;
 
 	if(!onlyleft && !onlyright) {
 		return;

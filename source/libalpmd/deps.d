@@ -1,6 +1,6 @@
 module libalpmd.deps;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  deps.c
  *
@@ -40,8 +40,9 @@ import libalpmd.trans;
 import libalpmd.alpm;
 
 
-void  alpm_dep_free(alpm_depend_t* dep)
+void  alpm_dep_free(void* _dep)
 {
+	auto dep = cast(alpm_depend_t*) _dep;
 	ASSERT(dep != null);
 	FREE(dep.name);
 	FREE(dep.version_);

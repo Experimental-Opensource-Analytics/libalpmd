@@ -1,6 +1,6 @@
 module libalpmd.diskspace;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 
 private template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");

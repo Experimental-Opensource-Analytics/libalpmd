@@ -1,6 +1,6 @@
 module libalpmd._version;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  Copyright (c) 2006-2025 Pacman Development Team <pacman-dev@lists.archlinux.org>
  *

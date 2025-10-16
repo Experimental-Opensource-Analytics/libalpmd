@@ -1,6 +1,8 @@
 module libalpmd.util;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+ 
+
+import core.sys.posix.unistd;
 
 private template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -83,12 +85,16 @@ struct archive_read_buffer {
 	int ret;
 }
 
-void MALLOC(T)(T* ptr, size_t size) {
-	*ptr = malloc(size);
+auto MALLOC(T)(T* ptr, size_t size) {
+	ptr = cast(T*)malloc(size);
 }
 
 void CALLOC(T, L)(ref T t, L l, size_t size) {
-	t = calloc(l, size);
+	t = cast(T)calloc(l, size);
+}
+
+void FREE(T)(T* t) {
+	t = null;
 }
 
 void REALLOC(T, L)(ref T t, L l, size_t size) {
@@ -104,7 +110,7 @@ void STRDUP(ref char* str, char* _str, size_t l) {
 	str = strdup(_str, l);
 } 
 
-void STRNDUP(ref char* str, char* _str) {
+void STRNDUP(ref char* str, const char* _str) {
 	str = strndup(_str);
 } 
 
@@ -112,8 +118,32 @@ void CHECK_HANDLE(T) (T t) {
 	assert(t !is null);
 }
 
-void ASSERT(bool exp) {
+void ASSERT(bool exp, ...) {
+	if(_arguments.length > 2) {
+		auto fn = _arguments[1];
+
+		fn();
+	}
+	
 	assert(exp);
+}
+
+version (BUFSIZ) {
+enum ALPM_BUFFER_SIZE = BUFSIZ;
+} else {
+enum ALPM_BUFFER_SIZE = 8192;
+}
+
+noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
+	_alpm_log(handle, ALPM_LOG_DEBUG, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
+	(handle).pm_errno = (err);
+	assert(0, "ERROR BY GOTO_ERROR");
+}
+
+noreturn RET_ERR(H, E)(H handle, E err, int i) {
+	_alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
+	(handle).pm_errno = (err);
+	assert(0, "ERROR BY RET_ERROR");
 }
 
 version (HAVE_STRSEP) {} else {
@@ -1570,9 +1600,9 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns, const(char)* string)
  * @return 0 if string matches pattern, non-zero if they don't match and on
  * error
  */
-int _alpm_fnmatch(const(void)* pattern, const(void)* string)
+int _alpm_fnmatch(char* pattern, string _string)
 {
-	return fnmatch(pattern, string, 0);
+	return fnmatch(pattern, _string, 0);
 }
 
 /** Think of this as realloc with error handling. If realloc fails NULL will be

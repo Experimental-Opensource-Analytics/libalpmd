@@ -1,6 +1,6 @@
 module libalpmd.group;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  group.c
  *

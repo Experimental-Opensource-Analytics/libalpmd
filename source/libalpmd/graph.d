@@ -1,6 +1,6 @@
 module libalpmd.graph;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  graph.c - helpful graph structure and setup/teardown methods
  *

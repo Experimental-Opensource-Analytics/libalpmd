@@ -1,6 +1,4 @@
 module libalpmd.be_local;
-@nogc nothrow:
-extern(C): __gshared:
 /*
  *  be_local.c : backend for the local database
  *
@@ -47,6 +45,10 @@ import libalpmd.handle;
 import libalpmd._package;
 import libalpmd.deps;
 import libalpmd.filelist;
+import libalpmd.libarchive_compat;
+import std.conv;
+
+
 
 /* local database format version */
 size_t ALPM_LOCAL_DB_VERSION = 9;
@@ -58,7 +60,7 @@ enum string LAZY_LOAD(string info) = `
 		if(!(pkg.infolevel & ` ~ info ~ `)) { 
 			local_db_read(pkg, ` ~ info ~ `); 
 		} 
-	} while(0)`;
+	} while(0);`;
 
 
 /* Cache-specific accessor functions. These implementations allow for lazy
@@ -217,7 +219,7 @@ private void* _cache_changelog_open(alpm_pkg_t* pkg)
 	char* clfile = _alpm_local_db_pkgpath(db, pkg, "changelog");
 	FILE* f = fopen(clfile, "r");
 	free(clfile);
-	return f;
+	return cast(void*)f;
 }
 
 /**
@@ -264,17 +266,17 @@ private archive* _cache_mtree_open(alpm_pkg_t* pkg)
 	}
 
 	if((mtree = archive_read_new()) == null) {
-		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, error);
+		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
 	_alpm_archive_read_support_filter_all(mtree);
 	archive_read_support_format_mtree(mtree);
 
 	if(_alpm_archive_read_open_file(mtree, mtfile, ALPM_BUFFER_SIZE)) {
-		_alpm_log(pkg.handle, ALPM_LOG_ERROR, _("error while reading file %s: %s\n"),
+		_alpm_log(pkg.handle, ALPM_LOG_ERROR, ("error while reading file %s: %s\n"),
 					mtfile, archive_error_string(mtree));
 		_alpm_archive_read_free(mtree);
-		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, error);
+		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
 	free(mtfile);
@@ -370,7 +372,7 @@ private const(pkg_operations) local_pkg_ops = {
 
 private int checkdbdir(alpm_db_t* db)
 {
-	stat buf = void;
+	stat_t buf = void;
 	const(char)* path = _alpm_db_path(db);
 
 	if(stat(path, &buf) != 0) {
@@ -380,7 +382,7 @@ private int checkdbdir(alpm_db_t* db)
 			RET_ERR(db.handle, ALPM_ERR_SYSTEM, -1);
 		}
 	} else if(!S_ISDIR(buf.st_mode)) {
-		_alpm_log(db.handle, ALPM_LOG_WARNING, _("removing invalid database: %s\n"), path);
+		_alpm_log(db.handle, ALPM_LOG_WARNING, ("removing invalid database: %s\n"), path);
 		if(unlink(path) != 0 || _alpm_makepath(path) != 0) {
 			RET_ERR(db.handle, ALPM_ERR_SYSTEM, -1);
 		}
@@ -397,9 +399,9 @@ version (HAVE_STRUCT_DIRENT_D_TYPE) {
 }
 	{
 		char[PATH_MAX] buffer = void;
-		stat sbuf = void;
+		stat_t sbuf = void;
 
-		snprintf(buffer.ptr, PATH_MAX, "%s/%s", path, entry.d_name);
+		snprintf(buffer.ptr, PATH_MAX, "%s/%s", path, entry.d_name.ptr);
 
 		if(!stat(buffer.ptr, &sbuf)) {
 			return S_ISDIR(sbuf.st_mode);
@@ -431,7 +433,7 @@ private int local_db_add_version(alpm_db_t* db, const(char)* dbpath)
 private int local_db_create(alpm_db_t* db, const(char)* dbpath)
 {
 	if(mkdir(dbpath, octal!"0755") != 0) {
-		_alpm_log(db.handle, ALPM_LOG_ERROR, _("could not create directory %s: %s\n"),
+		_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not create directory %s: %s\n"),
 				dbpath, strerror(errno));
 		RET_ERR(db.handle, ALPM_ERR_DB_CREATE, -1);
 	}

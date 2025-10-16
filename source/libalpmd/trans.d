@@ -1,6 +1,6 @@
 module libalpmd.trans;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  trans.c
  *

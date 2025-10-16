@@ -1,6 +1,6 @@
 module libalpmd.error;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  error.c
  *

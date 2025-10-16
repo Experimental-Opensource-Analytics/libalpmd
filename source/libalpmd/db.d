@@ -1,6 +1,4 @@
 module libalpmd.db;
-@nogc nothrow:
-extern(C): __gshared:
 /*
  *  db.c
  *

@@ -1,6 +1,6 @@
 module libalpmd.be_package;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  be_package.c : backend for packages
  *

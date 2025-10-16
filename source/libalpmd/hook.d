@@ -1,6 +1,6 @@
 module libalpmd.hook;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  hook.c
  *

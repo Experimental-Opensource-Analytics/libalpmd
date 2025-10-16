@@ -1,6 +1,5 @@
 module libalpmd.be_sync;
-@nogc nothrow:
-extern(C): __gshared:
+
 import core.stdc.config: c_long, c_ulong;
 /*
  *  be_sync.c : backend for sync databases

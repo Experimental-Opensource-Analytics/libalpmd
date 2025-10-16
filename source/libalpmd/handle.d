@@ -1,6 +1,6 @@
 module libalpmd.handle;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  handle.c
  *

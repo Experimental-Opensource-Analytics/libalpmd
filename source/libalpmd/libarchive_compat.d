@@ -1,6 +1,6 @@
 module libalpmd.libarchive_compat;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
  
 /*
  * libarchive-compat.h
@@ -24,27 +24,27 @@ extern(C): __gshared:
 public import core.stdc.stdint;
 import derelict.libarchive;
 
-pragma(inline, true) private int _alpm_archive_read_free(archive* archive)
+pragma(inline, true) int _alpm_archive_read_free(archive* archive)
 {
 	return archive_read_free(archive);
 }
 
-pragma(inline, true) private long _alpm_archive_compressed_ftell(archive* archive)
+pragma(inline, true) long _alpm_archive_compressed_ftell(archive* archive)
 {
 	return archive_filter_bytes(archive, -1);
 }
 
-pragma(inline, true) private int _alpm_archive_read_open_file(archive* archive, const(char)* filename, size_t block_size)
+pragma(inline, true) int _alpm_archive_read_open_file(archive* archive, const(char)* filename, size_t block_size)
 {
 	return archive_read_open_filename(archive, filename, block_size);
 }
 
-pragma(inline, true) private int _alpm_archive_filter_code(archive* archive)
+pragma(inline, true) int _alpm_archive_filter_code(archive* archive)
 {
 	return archive_filter_code(archive, 0);
 }
 
-pragma(inline, true) private int _alpm_archive_read_support_filter_all(archive* archive)
+pragma(inline, true) int _alpm_archive_read_support_filter_all(archive* archive)
 {
 	return archive_read_support_filter_all(archive);
 }

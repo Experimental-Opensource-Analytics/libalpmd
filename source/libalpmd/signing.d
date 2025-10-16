@@ -1,6 +1,6 @@
 module libalpmd.signing;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  signing.c
  *

@@ -1,6 +1,6 @@
 module libalpmd.backup;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  backup.c
  *
@@ -53,8 +53,8 @@ int _alpm_split_backup(const(char)* _string, alpm_backup_t** backup)
 	*ptr = '\0';
 	ptr++;
 	/* now str points to the filename and ptr points to the hash */
-	STRDUP((*backup).name, str);
-	STRDUP((*backup).hash, ptr);
+	STRNDUP((*backup).name, str);
+	STRNDUP((*backup).hash, ptr);
 	FREE(str);
 	return 0;
 }
@@ -64,14 +64,14 @@ int _alpm_split_backup(const(char)* _string, alpm_backup_t** backup)
  */
 alpm_backup_t* _alpm_needbackup(const(char)* file, alpm_pkg_t* pkg)
 {
-	const(alpm_list_t)* lp = void;
+	alpm_list_t* lp = void;
 
 	if(file == null || pkg == null) {
 		return null;
 	}
 
 	for(lp = alpm_pkg_get_backup(pkg); lp; lp = lp.next) {
-		alpm_backup_t* backup = lp.data;
+		alpm_backup_t* backup = cast(alpm_backup_t*)lp.data;
 
 		if(strcmp(file, backup.name) == 0) {
 			return backup;
@@ -89,13 +89,13 @@ void _alpm_backup_free(alpm_backup_t* backup)
 	FREE(backup);
 }
 
-alpm_backup_t* _alpm_backup_dup(const(alpm_backup_t)* backup)
+alpm_backup_t* _alpm_backup_dup(alpm_backup_t* backup)
 {
 	alpm_backup_t* newbackup = void;
 	CALLOC(newbackup, 1, alpm_backup_t.sizeof);
 
-	STRDUP(newbackup.name, backup.name);
-	STRDUP(newbackup.hash, backup.hash);
+	STRNDUP(newbackup.name, backup.name);
+	STRNDUP(newbackup.hash, backup.hash);
 
 	return newbackup;
 

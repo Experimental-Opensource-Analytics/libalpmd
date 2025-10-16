@@ -1,6 +1,6 @@
 module libalpmd.base64;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  RFC 1521 base64 encoding/decoding
  *
@@ -38,6 +38,9 @@ extern(C): __gshared:
 import core.stdc.stdint;
 
 import std.base64;
+
+enum POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL =               -0x0010;
+enum POLARSSL_ERR_BASE64_INVALID_CHARACTER =              -0x0012;
 
 version (none) {
 private const(ubyte)[64] base64_enc_map = [

@@ -1,6 +1,6 @@
 module libalpmd.sandbox_fs;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  sandbox_fs.c
  *

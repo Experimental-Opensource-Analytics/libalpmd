@@ -1,6 +1,6 @@
 module libalpmd.conflict;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  conflict.c
  *

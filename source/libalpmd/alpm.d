@@ -1,11 +1,15 @@
 module libalpmd.alpm;
-@nogc nothrow:
-extern(C): __gshared:
+ 
+   
 
 import libalpmd.conf;
 import core.stdc.config: c_long, c_ulong;
 import core.stdc.stdarg;
 import derelict.libarchive;
+import core.stdc.string;
+import core.stdc.stdio;
+import libalpmd.be_local;
+
 /*
  *  alpm.c
  *
@@ -706,15 +710,6 @@ int alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist);
  * @return 0 on success, -1 on error
  */
 int alpm_siglist_cleanup(alpm_siglist_t* siglist);
-
-/**
- * Decode a loaded signature in base64 form.
- * @param base64_data the signature to attempt to decode
- * @param data the decoded data; must be freed by the caller
- * @param data_len the length of the returned data
- * @return 0 on success, -1 on failure to properly decode
- */
-int alpm_decode_signature(const(char)* base64_data, ubyte** data, size_t* data_len);
 
 /**
  * Extract the Issuer Key ID from a signature
@@ -1709,7 +1704,7 @@ alias alpm_cb_log = void function(void* ctx, alpm_loglevel_t level, const(char)*
  * @param fmt output format
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...);
+// int alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...);
 
 /* End of libalpm_log */
 /** @} */
@@ -2844,7 +2839,7 @@ alpm_filelist_t* alpm_pkg_get_files(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to a list of alpm_backup_t objects
  */
-alpm_list_t* alpm_pkg_get_backup(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_backup(alpm_pkg_t* pkg);
 
 /** Returns the database containing pkg.
  * Returns a pointer to the alpm_db_t structure the package is
@@ -2852,7 +2847,7 @@ alpm_list_t* alpm_pkg_get_backup(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a pointer to the DB containing pkg, or NULL.
  */
-alpm_db_t* alpm_pkg_get_db(alpm_pkg_t* pkg);
+// alpm_db_t* alpm_pkg_get_db(alpm_pkg_t* pkg);
 
 /** Returns the base64 encoded package signature.
  * @param pkg a pointer to package
@@ -3157,7 +3152,7 @@ alpm_pkg_t* alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync);
  * @param filename name of the file
  * @return the checksum on success, NULL on error
  */
-char* alpm_compute_md5sum(const(char)* filename);
+// char* alpm_compute_md5sum(const(char)* filename);
 
 /** Get the sha256 sum of file.
  * @param filename name of the file
@@ -3340,10 +3335,10 @@ alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_err
 	if(myhandle == null) {
 		goto nomem;
 	}
-	if((myerr = _alpm_set_directory_option(root, &(myhandle.root), 1))) {
+	if(cast(bool)(myerr = _alpm_set_directory_option(root, &(myhandle.root), 1))) {
 		goto cleanup;
 	}
-	if((myerr = _alpm_set_directory_option(dbpath, &(myhandle.dbpath), 1))) {
+	if(cast(bool)(myerr = _alpm_set_directory_option(dbpath, &(myhandle.dbpath), 1))) {
 		goto cleanup;
 	}
 
@@ -3356,7 +3351,7 @@ alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_err
 	myhandle.hookdirs = alpm_list_add(null, hookdir);
 
 	/* set default database extension */
-	STRDUP(myhandle.dbext, ".db");
+	STRNDUP(myhandle.dbext, cast(char*)".db");
 
 	lockfilelen = strlen(myhandle.dbpath) + strlen(lf) + 1;
 	MALLOC(myhandle.lockfile, lockfilelen);
@@ -3376,7 +3371,7 @@ version (HAVE_LIBCURL) {
 
 	/* set default sandboxuser */
 	ASSERT((pw = getpwuid(0)) != null);
-	STRDUP(myhandle.sandboxuser, pw.pw_name);
+	STRNDUP(myhandle.sandboxuser, pw.pw_name);
 	
 version (ENABLE_NLS) {
 	bindtextdomain("libalpm", LOCALEDIR);
@@ -3408,7 +3403,7 @@ int  alpm_release(alpm_handle_t* myhandle)
 
 const(char)* alpm_version()
 {
-	return LIB_VERSION;
+	return "todo: fix it";
 }
 
 int  alpm_capabilities()

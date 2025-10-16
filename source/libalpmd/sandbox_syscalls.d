@@ -1,6 +1,6 @@
 module libalpmd.sandbox_syscalls;
-@nogc nothrow:
-extern(C): __gshared:
+@nogc  
+   
 /*
  *  sandbox_syscalls.c
  *
