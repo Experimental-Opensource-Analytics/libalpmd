@@ -111,7 +111,7 @@ private int remove_prepare_cascade(alpm_handle_t* handle, alpm_list_t* lp)
 				}
 			} else {
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("could not find %s in database -- skipping\n"), miss.target);
+						("could not find %s in database -- skipping\n"), miss.target);
 			}
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)alpm_depmissing_free);
@@ -146,7 +146,7 @@ private void remove_prepare_keep_needed(alpm_handle_t* handle, alpm_list_t* lp)
 					&vpkg);
 			pkg = cast(alpm_pkg_t*) vpkg;
 			if(pkg) {
-				_alpm_log(handle, ALPM_LOG_WARNING, _("removing %s from target list\n"),
+				_alpm_log(handle, ALPM_LOG_WARNING, ("removing %s from target list\n"),
 						pkg.name);
 				_alpm_pkg_free(pkg);
 			}
@@ -337,7 +337,7 @@ private int can_remove_file(alpm_handle_t* handle, const(alpm_file_t)* file)
 		if(errno != EACCES && errno != ETXTBSY && _alpm_access(handle, null, filepath.ptr, F_OK) == 0) {
 			/* only return failure if the file ACTUALLY exists and we can't write to
 			 * it - ignore "chmod -w" simple permission failures */
-			_alpm_log(handle, ALPM_LOG_ERROR, _("cannot remove file '%s': %s\n"),
+			_alpm_log(handle, ALPM_LOG_ERROR, ("cannot remove file '%s': %s\n"),
 					filepath.ptr, strerror(errno));
 			return 0;
 		}
@@ -377,7 +377,7 @@ private void shift_pacsave(alpm_handle_t* handle, const(char)* file)
 
 	dir = opendir(dirname);
 	if(dir == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not open directory: %s: %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not open directory: %s: %s\n"),
 							dirname, strerror(errno));
 		goto cleanup;
 	}
@@ -402,7 +402,7 @@ private void shift_pacsave(alpm_handle_t* handle, const(char)* file)
 		if(snprintf(oldfile.ptr, PATH_MAX, "%s.pacsave.%lu", file, i-1) >= PATH_MAX
 				|| snprintf(newfile.ptr, PATH_MAX, "%s.pacsave.%lu", file, i) >= PATH_MAX) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("could not backup %s due to PATH_MAX overflow\n"), file);
+					("could not backup %s due to PATH_MAX overflow\n"), file);
 			goto cleanup;
 		}
 		rename(oldfile.ptr, newfile.ptr);
@@ -411,7 +411,7 @@ private void shift_pacsave(alpm_handle_t* handle, const(char)* file)
 	if(snprintf(oldfile.ptr, PATH_MAX, "%s.pacsave", file) >= PATH_MAX
 			|| snprintf(newfile.ptr, PATH_MAX, "%s.1", oldfile.ptr) >= PATH_MAX) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("could not backup %s due to PATH_MAX overflow\n"), file);
+				("could not backup %s due to PATH_MAX overflow\n"), file);
 		goto cleanup;
 	}
 	if(stat(oldfile.ptr, &st) == 0) {
@@ -548,7 +548,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 					shift_pacsave(handle, file.ptr);
 					snprintf(newpath, len, "%s.pacsave", file.ptr);
 					if(rename(file.ptr, newpath)) {
-						_alpm_log(handle, ALPM_LOG_ERROR, _("could not rename %s to %s (%s)\n"),
+						_alpm_log(handle, ALPM_LOG_ERROR, ("could not rename %s to %s (%s)\n"),
 								file.ptr, newpath, strerror(errno));
 						alpm_logaction(handle, ALPM_CALLER_PREFIX,
 								"error: could not rename %s to %s (%s)\n",
@@ -568,7 +568,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 		_alpm_log(handle, ALPM_LOG_DEBUG, "unlinking %s\n", file.ptr);
 
 		if(unlink(file.ptr) == -1) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("cannot remove %s (%s)\n"),
+			_alpm_log(handle, ALPM_LOG_ERROR, ("cannot remove %s (%s)\n"),
 					file.ptr, strerror(errno));
 			alpm_logaction(handle, ALPM_CALLER_PREFIX,
 					"error: cannot remove %s (%s)\n", file.ptr, strerror(errno));
@@ -736,12 +736,12 @@ int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_
 	/* remove the package from the database */
 	_alpm_log(handle, ALPM_LOG_DEBUG, "removing database entry '%s'\n", pkgname);
 	if(_alpm_local_db_remove(handle.db_local, oldpkg) == -1) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not remove database entry %s-%s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not remove database entry %s-%s\n"),
 				pkgname, pkgver);
 	}
 	/* remove the package from the cache */
 	if(_alpm_db_remove_pkgfromcache(handle.db_local, oldpkg) == -1) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not remove entry '%s' from cache\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not remove entry '%s' from cache\n"),
 				pkgname);
 	}
 

@@ -32,7 +32,7 @@ import core.stdc.string;
 import libalpmd.alpm_list;
 
 /* check exported library symbols with: nm -C -D <lib> */
-// enum  = __attribute__((visibility("default")));
+// enum  = __attribute_((visibility("default")));
 
 /* Allocation */
 
@@ -314,7 +314,7 @@ alpm_list_t * alpm_list_remove_item(alpm_list_t* haystack, alpm_list_t* item)
 	return haystack;
 }
 
-alpm_list_t * alpm_list_remove(alpm_list_t* haystack, const(void)* needle, alpm_list_fn_cmp fn, void** data)
+alpm_list_t * alpm_list_remove(alpm_list_t* haystack, void* needle, alpm_list_fn_cmp fn, void** data)
 {
 	alpm_list_t* i = haystack;
 
@@ -347,7 +347,7 @@ alpm_list_t * alpm_list_remove(alpm_list_t* haystack, const(void)* needle, alpm_
 	return haystack;
 }
 
-alpm_list_t * alpm_list_remove_str(alpm_list_t* haystack, const(char)* needle, char** data)
+alpm_list_t * alpm_list_remove_str(alpm_list_t* haystack, char* needle, char** data)
 {
 	return alpm_list_remove(haystack, cast(const(void)*)needle,
 			cast(alpm_list_fn_cmp)&strcmp, cast(void**)data);
@@ -521,7 +521,7 @@ void * alpm_list_find_ptr(alpm_list_t* haystack, void* needle)
 
 char * alpm_list_find_str(alpm_list_t* haystack, char* needle)
 {
-	return cast(char*)alpm_list_find(haystack, cast(const(void)*)needle,
+	return cast(char*)alpm_list_find(haystack, cast(void*)needle,
 			cast(alpm_list_fn_cmp)&strcmp);
 }
 
@@ -623,7 +623,7 @@ void  alpm_list_diff_sorted(alpm_list_t* left, alpm_list_t* right, alpm_list_fn_
 }
 
 
-alpm_list_t * alpm_list_diff(const(alpm_list_t)* lhs, const(alpm_list_t)* rhs, alpm_list_fn_cmp fn)
+alpm_list_t * alpm_list_diff(alpm_list_t* lhs, alpm_list_t* rhs, alpm_list_fn_cmp fn)
 {
 	alpm_list_t* left = void, right = void;
 	alpm_list_t* ret = null;

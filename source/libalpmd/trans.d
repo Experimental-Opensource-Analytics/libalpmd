@@ -348,7 +348,7 @@ private int grep(const(char)* fn, const(char)* needle)
 	}
 	while(!feof(fp)) {
 		char[1024] line = void;
-		if(safe_fgets(line.ptr, line.sizeof, fp) == null) {
+		if( fgets(line.ptr, line.sizeof, fp) == null) {
 			continue;
 		}
 		if((ptr = strchr(line.ptr, '#')) != null) {
@@ -396,7 +396,7 @@ int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)
 	}
 	snprintf(tmpdir, len, "%stmp/alpm_XXXXXX", handle.root);
 	if(mkdtemp(tmpdir) == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not create temp directory\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not create temp directory\n"));
 		free(tmpdir);
 		return 1;
 	}
@@ -411,7 +411,7 @@ int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)
 		}
 	} else {
 		if(_alpm_copyfile(filepath, scriptfn)) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("could not copy tempfile to %s (%s)\n"), scriptfn, strerror(errno));
+			_alpm_log(handle, ALPM_LOG_ERROR, ("could not copy tempfile to %s (%s)\n"), scriptfn, strerror(errno));
 			retval = 1;
 		}
 	}
@@ -442,11 +442,11 @@ int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)
 cleanup:
 	if(scriptfn && unlink(scriptfn)) {
 		_alpm_log(handle, ALPM_LOG_WARNING,
-				_("could not remove %s\n"), scriptfn);
+				("could not remove %s\n"), scriptfn);
 	}
 	if(rmdir(tmpdir)) {
 		_alpm_log(handle, ALPM_LOG_WARNING,
-				_("could not remove tmpdir %s\n"), tmpdir);
+				("could not remove tmpdir %s\n"), tmpdir);
 	}
 
 	free(scriptfn);

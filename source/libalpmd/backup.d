@@ -41,7 +41,7 @@ int _alpm_split_backup(const(char)* _string, alpm_backup_t** backup)
 {
 	char* str = void, ptr = void;
 
-	STRDUP(str, _string);
+	STRNDUP(str, _string);
 
 	/* tab delimiter */
 	ptr = str ? strchr(str, '\t') : null;

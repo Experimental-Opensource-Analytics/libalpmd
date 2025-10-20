@@ -165,7 +165,7 @@ private int init_gpgme(alpm_handle_t* handle)
 		handle.pm_errno = ALPM_ERR_NOT_A_FILE;
 		_alpm_log(handle, ALPM_LOG_DEBUG, "Signature verification will fail!\n");
 		_alpm_log(handle, ALPM_LOG_WARNING,
-				_("Public keyring not found; have you run '%s'?\n"),
+				("Public keyring not found; have you run '%s'?\n"),
 				"pacman-key --init");
 	}
 
@@ -201,7 +201,7 @@ version (LC_MESSAGES) {
 	return 0;
 
 gpg_error:
-	_alpm_log(handle, ALPM_LOG_ERROR, _("GPGME error: %s\n"), gpgme_strerror(gpg_err));
+	_alpm_log(handle, ALPM_LOG_ERROR, ("GPGME error: %s\n"), gpgme_strerror(gpg_err));
 	RET_ERR(handle, ALPM_ERR_GPGME, -1);
 }
 
@@ -282,7 +282,7 @@ private int key_import_wkd(alpm_handle_t* handle, const(char)* email, const(char
 	gpg_err = gpgme_set_keylist_mode(ctx, mode);
 	mixin(CHECK_ERR!());
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, _("looking up key %s using WKD\n"), email);
+	_alpm_log(handle, ALPM_LOG_DEBUG, ("looking up key %s using WKD\n"), email);
 	gpg_err = gpgme_get_key(ctx, email, &key, 0);
 	if(gpg_err_code(gpg_err) == GPG_ERR_NO_ERROR) {
 		/* check if correct key was imported via WKD */
@@ -296,7 +296,7 @@ private int key_import_wkd(alpm_handle_t* handle, const(char)* email, const(char
 
 gpg_error:
 	if(ret != 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("gpg error: %s\n"), gpgme_strerror(gpg_err));
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("gpg error: %s\n"), gpgme_strerror(gpg_err));
 	}
 	gpgme_release(ctx);
 	return ret;
@@ -407,7 +407,7 @@ private int key_import_keyserver(alpm_handle_t* handle, alpm_pgpkey_t* key)
 
 	if(_alpm_access(handle, handle.gpgdir, "pubring.gpg", W_OK)) {
 		/* no chance of import succeeding if pubring isn't writable */
-		_alpm_log(handle, ALPM_LOG_ERROR, _("keyring is not writable\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("keyring is not writable\n"));
 		return -1;
 	}
 
@@ -480,7 +480,7 @@ int _alpm_key_import(alpm_handle_t* handle, const(char)* uid, const(char)* fpr)
 
 	if(_alpm_access(handle, handle.gpgdir, "pubring.gpg", W_OK)) {
 		/* no chance of import succeeding if pubring isn't writable */
-		_alpm_log(handle, ALPM_LOG_ERROR, _("keyring is not writable\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("keyring is not writable\n"));
 		return -1;
 	}
 
@@ -504,16 +504,16 @@ int _alpm_key_import(alpm_handle_t* handle, const(char)* uid, const(char)* fpr)
 		if(ret != 0) {
 			if(key_search_keyserver(handle, fpr, &fetch_key) == 1) {
 				_alpm_log(handle, ALPM_LOG_DEBUG,
-						_("key \"%s\" on keyserver\n"), fetch_key.uid);
+						("key \"%s\" on keyserver\n"), fetch_key.uid);
 				if(key_import_keyserver(handle, &fetch_key) == 0) {
 					ret = 0;
 				} else {
 					_alpm_log(handle, ALPM_LOG_ERROR,
-							_("key \"%s\" could not be imported\n"), fpr);
+							("key \"%s\" could not be imported\n"), fpr);
 				}
 			} else {
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("key \"%s\" could not be looked up remotely\n"), fpr);
+						("key \"%s\" could not be looked up remotely\n"), fpr);
 			}
 		}
 	}
@@ -737,7 +737,7 @@ error:
 	FREE(sigpath);
 	FREE(decoded_sigdata);
 	if(gpg_err_code(gpg_err) != GPG_ERR_NO_ERROR) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("GPGME error: %s\n"), gpgme_strerror(gpg_err));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("GPGME error: %s\n"), gpgme_strerror(gpg_err));
 		RET_ERR(handle, ALPM_ERR_GPGME, -1);
 	}
 	return ret;
@@ -890,7 +890,7 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 
 	if(!optional && siglist.count == 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("%s: missing required signature\n"), identifier);
+				("%s: missing required signature\n"), identifier);
 	}
 
 	for(i = 0; i < siglist.count; i++) {
@@ -904,7 +904,7 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 					case ALPM_SIGVALIDITY_MARGINAL:
 						if(!marginal) {
 							_alpm_log(handle, ALPM_LOG_ERROR,
-									_("%s: signature from \"%s\" is marginal trust\n"),
+									("%s: signature from \"%s\" is marginal trust\n"),
 									identifier, name);
 							/* QUESTION(handle, ALPM_QUESTION_EDIT_KEY_TRUST, &result->key, NULL, NULL, &answer); */
 						}
@@ -912,21 +912,21 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 					case ALPM_SIGVALIDITY_UNKNOWN:
 						if(!unknown) {
 							_alpm_log(handle, ALPM_LOG_ERROR,
-									_("%s: signature from \"%s\" is unknown trust\n"),
+									("%s: signature from \"%s\" is unknown trust\n"),
 									identifier, name);
 							/* QUESTION(handle, ALPM_QUESTION_EDIT_KEY_TRUST, &result->key, NULL, NULL, &answer); */
 						}
 						break;
 					case ALPM_SIGVALIDITY_NEVER:
 						_alpm_log(handle, ALPM_LOG_ERROR,
-								_("%s: signature from \"%s\" should never be trusted\n"),
+								("%s: signature from \"%s\" should never be trusted\n"),
 								identifier, name);
 						break;
 				default: break;}
 				break;
 			case ALPM_SIGSTATUS_KEY_EXPIRED:
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("%s: signature from \"%s\" is expired\n"),
+						("%s: signature from \"%s\" is expired\n"),
 						identifier, name);
 
 				if(_alpm_key_import(handle, result.key.uid, result.key.fingerprint) == 0) {
@@ -941,7 +941,7 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 					break;
 				}
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("%s: key \"%s\" is unknown\n"), identifier, name);
+						("%s: key \"%s\" is unknown\n"), identifier, name);
 
 				if(_alpm_key_import(handle, result.key.uid, result.key.fingerprint) == 0) {
 					retry = 1;
@@ -950,15 +950,15 @@ int _alpm_process_siglist(alpm_handle_t* handle, const(char)* identifier, alpm_s
 				break;
 			case ALPM_SIGSTATUS_KEY_DISABLED:
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("%s: key \"%s\" is disabled\n"), identifier, name);
+						("%s: key \"%s\" is disabled\n"), identifier, name);
 				break;
 			case ALPM_SIGSTATUS_SIG_EXPIRED:
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("%s: signature from \"%s\" is expired\n"), identifier, name);
+						("%s: signature from \"%s\" is expired\n"), identifier, name);
 				break;
 			case ALPM_SIGSTATUS_INVALID:
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("%s: signature from \"%s\" is invalid\n"),
+						("%s: signature from \"%s\" is invalid\n"),
 						identifier, name);
 				break;
 		default: break;}
@@ -1013,7 +1013,7 @@ private size_t length_check(size_t length, size_t position, size_t a, alpm_handl
 {
 	if( a == 0 || position > length || length - position <= a) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("%s: signature format error\n"), identifier);
+				("%s: signature format error\n"), identifier);
 		return -1;
 	} else {
 		return 0;
@@ -1071,7 +1071,7 @@ int  alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ub
 	while(pos < len) {
 		if(!(sig[pos] & 0x80)) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("%s: signature format error\n"), identifier);
+					("%s: signature format error\n"), identifier);
 			return -1;
 		}
 
@@ -1103,7 +1103,7 @@ int  alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ub
 			} else {
 				/* partial body length not supported */
 				_alpm_log(handle, ALPM_LOG_ERROR,
-					_("%s: unsupported signature format\n"), identifier);
+					("%s: unsupported signature format\n"), identifier);
 				return -1;
 			}
 		} else {
@@ -1136,7 +1136,7 @@ int  alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ub
 				case 3:
 					/* partial body length not supported */
 					_alpm_log(handle, ALPM_LOG_ERROR,
-						_("%s: unsupported signature format\n"), identifier);
+						("%s: unsupported signature format\n"), identifier);
 					return -1;
 			default: break;}
 		}
@@ -1147,13 +1147,13 @@ int  alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ub
 		if(sig[pos] != 4) {
 			/* only support version 4 signature packet format */
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("%s: unsupported signature format\n"), identifier);
+					("%s: unsupported signature format\n"), identifier);
 			return -1;
 		}
 		if(sig[pos + 1] != 0x00) {
 			/* not a signature of a binary document */
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("%s: signature format error\n"), identifier);
+					("%s: signature format error\n"), identifier);
 			return -1;
 		}
 		pos = pos + 4;

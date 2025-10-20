@@ -23,11 +23,15 @@ module libalpmd.be_package;
 
 import core.stdc.stdlib;
 import core.stdc.string;
+import libalpmd.signing;
+import core.sys.posix.unistd;
 import core.stdc.errno;
 import core.sys.posix.sys.types;
 import core.sys.posix.sys.stat;
 import core.sys.posix.fcntl;
 import core.stdc.limits;
+import core.stdc.stdio;;
+
 
 /* libarchive */
 import derelict.libarchive;
@@ -46,6 +50,7 @@ import libalpmd.deps;
 import libalpmd.filelist;
 import libalpmd.util;
 import derelict.libarchive;
+import libalpmd.db;
 
 struct package_changelog {
 	archive* _archive;
@@ -63,36 +68,36 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
 	ASSERT(pkg != null);
 
 	package_changelog* changelog = void;
-	archive* archive = void;
+	archive* _archive = void;
 	archive_entry* entry = void;
 	const(char)* pkgfile = pkg.origin_data.file;
-	stat buf = void;
+	stat_t buf = void;
 	int fd = void;
 
 	fd = _alpm_open_archive(pkg.handle, pkgfile, &buf,
-			&archive, ALPM_ERR_PKG_OPEN);
+			&_archive, ALPM_ERR_PKG_OPEN);
 	if(fd < 0) {
 		return null;
 	}
 
-	while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
+	while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
 		const(char)* entry_name = archive_entry_pathname(entry);
 
 		if(strcmp(entry_name, ".CHANGELOG") == 0) {
 			changelog = cast(package_changelog*) malloc(package_changelog.sizeof);
 			if(!changelog) {
 				pkg.handle.pm_errno = ALPM_ERR_MEMORY;
-				_alpm_archive_read_free(archive);
+				_alpm_archive_read_free(_archive);
 				close(fd);
 				return null;
 			}
-			changelog.archive = archive;
+			changelog._archive = _archive;
 			changelog.fd = fd;
 			return changelog;
 		}
 	}
 	/* we didn't find a changelog */
-	_alpm_archive_read_free(archive);
+	_alpm_archive_read_free(_archive);
 	close(fd);
 	errno = ENOENT;
 
@@ -108,10 +113,10 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
  * @param fp a 'file stream' to the package changelog
  * @return the number of characters read, or 0 if there is no more data
  */
-private size_t _package_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)* pkg, void* fp)
+private size_t _package_changelog_read(void* ptr, size_t size, alpm_pkg_t* pkg, void* fp)
 {
-	package_changelog* changelog = fp;
-	ssize_t sret = archive_read_data(changelog.archive, ptr, size);
+	package_changelog* changelog = cast(package_changelog*)fp;
+	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
 		RET_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, 0);
@@ -130,8 +135,8 @@ private size_t _package_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)
 private int _package_changelog_close(const(alpm_pkg_t)* pkg, void* fp)
 {
 	int ret = void;
-	package_changelog* changelog = fp;
-	ret = _alpm_archive_read_free(changelog.archive);
+	package_changelog* changelog = cast(package_changelog*)fp;
+	ret = _alpm_archive_read_free(changelog._archive);
 	close(changelog.fd);
 	free(changelog);
 	return ret;
@@ -147,9 +152,9 @@ private const(pkg_operations)* get_file_pkg_ops()
 	static int file_pkg_ops_initialized = 0;
 	if(!file_pkg_ops_initialized) {
 		file_pkg_ops = default_pkg_ops;
-		file_pkg_ops.changelog_open  = _package_changelog_open;
-		file_pkg_ops.changelog_read  = _package_changelog_read;
-		file_pkg_ops.changelog_close = _package_changelog_close;
+		file_pkg_ops.changelog_open  = &_package_changelog_open;
+		file_pkg_ops.changelog_read  = &_package_changelog_read;
+		file_pkg_ops.changelog_close = &_package_changelog_close;
 		file_pkg_ops_initialized = 1;
 	}
 	return &file_pkg_ops;
@@ -167,7 +172,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 	char* ptr = null;
 	char* key = null;
 	int ret = void, linenum = 0;
-	archive_read_buffer buf = {0};
+	archive_read_buffer buf;
 
 	/* 512K for a line length seems reasonable */
 	buf.max_line_size = 512 * 1024;
@@ -183,8 +188,8 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 		}
 		/* line is always in this format: "key = value"
 		 * we can be sure the " = " exists, so look for that */
-		ptr = memchr(key, ' ', len);
-		if(!ptr || cast(size_t)(ptr - key + 2) > len || memcmp(ptr, " = ", 3) != 0) {
+		ptr = cast(char*)memchr(key, ' ', len);
+		if(!ptr || cast(size_t)(ptr - key + 2) > len || memcmp(cast(void*)ptr, " = ".ptr, 3) != 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"%s: syntax error in description file line %d\n",
 					newpkg.name ? newpkg.name : "error", linenum);
@@ -193,32 +198,32 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 			*ptr = '\0';
 			ptr += 3;
 			if(strcmp(key, "pkgname") == 0) {
-				STRDUP(newpkg.name, ptr);
+				STRNDUP(newpkg.name, ptr);
 				newpkg.name_hash = _alpm_hash_sdbm(newpkg.name);
 			} else if(strcmp(key, "pkgbase") == 0) {
-				STRDUP(newpkg.base, ptr);
+				STRNDUP(newpkg.base, ptr);
 			} else if(strcmp(key, "pkgver") == 0) {
-				STRDUP(newpkg.version_, ptr);
+				STRNDUP(newpkg.version_, ptr);
 			} else if(strcmp(key, "basever") == 0) {
 				/* not used atm */
 			} else if(strcmp(key, "pkgdesc") == 0) {
-				STRDUP(newpkg.desc, ptr);
+				STRNDUP(newpkg.desc, ptr);
 			} else if(strcmp(key, "group") == 0) {
 				char* tmp = null;
-				STRDUP(tmp, ptr);
+				STRNDUP(tmp, ptr);
 				newpkg.groups = alpm_list_add(newpkg.groups, tmp);
 			} else if(strcmp(key, "url") == 0) {
-				STRDUP(newpkg.url, ptr);
+				STRNDUP(newpkg.url, ptr);
 			} else if(strcmp(key, "license") == 0) {
 				char* tmp = null;
-				STRDUP(tmp, ptr);
+				STRNDUP(tmp, ptr);
 				newpkg.licenses = alpm_list_add(newpkg.licenses, tmp);
 			} else if(strcmp(key, "builddate") == 0) {
 				newpkg.builddate = _alpm_parsedate(ptr);
 			} else if(strcmp(key, "packager") == 0) {
-				STRDUP(newpkg.packager, ptr);
+				STRNDUP(newpkg.packager, ptr);
 			} else if(strcmp(key, "arch") == 0) {
-				STRDUP(newpkg.arch, ptr);
+				STRNDUP(newpkg.arch, ptr);
 			} else if(strcmp(key, "size") == 0) {
 				/* size in the raw package is uncompressed (installed) size */
 				newpkg.isize = _alpm_strtoofft(ptr);
@@ -246,7 +251,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 			} else if(strcmp(key, "backup") == 0) {
 				alpm_backup_t* backup = void;
 				CALLOC(backup, 1, alpm_backup_t.sizeof);
-				STRDUP(backup.name, ptr);
+				STRNDUP(backup.name, ptr);
 				newpkg.backup = alpm_list_add(newpkg.backup, backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				alpm_pkg_xdata_t* pd = _alpm_pkg_parse_xdata(ptr);
@@ -256,7 +261,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 				}
 			} else {
 				const(char)* pkgname = newpkg.name ? newpkg.name : "error";
-				_alpm_log(handle, ALPM_LOG_WARNING, _("%s: unknown key '%s' in package description\n"), pkgname, key);
+				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in package description\n"), pkgname, key);
 				_alpm_log(handle, ALPM_LOG_DEBUG, "%s: unknown key '%s' in description file line %d\n",
 									pkgname, key, linenum);
 			}
@@ -425,7 +430,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
 		newpath[pathlen + 1] = '\0';
 		current_file.name = newpath;
 	} else {
-		STRDUP(current_file.name, path);
+		STRNDUP(current_file.name, path);
 	}
 	current_file.size = archive_entry_size(entry);
 	current_file.mode = archive_entry_mode(entry);
@@ -445,7 +450,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
  * @param archive archive containing the mtree
  * @return 0 on success, <0 on error
  */
-private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, archive* archive)
+private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, archive* _archive)
 {
 	int ret = 0;
 	size_t i = void;
@@ -463,7 +468,7 @@ private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, ar
 	/* create a new archive to parse the mtree and load it from archive into memory */
 	/* TODO: split this into a function */
 	if((mtree = archive_read_new()) == null) {
-		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, error);
+		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
 	_alpm_archive_read_support_filter_all(mtree);
@@ -477,12 +482,12 @@ private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, ar
 			goto error;
 		}
 
-		size = archive_read_data(archive, mtree_data + mtree_cursize, ALPM_BUFFER_SIZE);
+		size = archive_read_data(_archive, mtree_data + mtree_cursize, ALPM_BUFFER_SIZE);
 
 		if(size < 0) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, _("error while reading package %s: %s\n"),
-					pkg.filename, archive_error_string(archive));
-			GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, error);
+			_alpm_log(handle, ALPM_LOG_DEBUG, ("error while reading package %s: %s\n"),
+					pkg.filename, archive_error_string(_archive));
+			GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 		}
 		if(size == 0) {
 			break;
@@ -493,9 +498,9 @@ private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, ar
 
 	if(archive_read_open_memory(mtree, mtree_data, mtree_cursize)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
-				_("error while reading mtree of package %s: %s\n"),
+				("error while reading mtree of package %s: %s\n"),
 				pkg.filename, archive_error_string(mtree));
-		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, error);
+		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
 	while((ret = archive_read_next_header(mtree, &mtree_entry)) == ARCHIVE_OK) {
@@ -516,9 +521,9 @@ private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, ar
 	}
 
 	if(ret != ARCHIVE_EOF && ret != ARCHIVE_OK) { /* An error occurred */
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("error while reading mtree of package %s: %s\n"),
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("error while reading mtree of package %s: %s\n"),
 				pkg.filename, archive_error_string(mtree));
-		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, error);
+		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
 	/* throw away any files we loaded directly from the archive */
@@ -561,11 +566,11 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 	archive* archive = void;
 	archive_entry* entry = void;
 	alpm_pkg_t* newpkg = void;
-	stat st = void;
+	stat_t st = void;
 	size_t files_size = 0;
 
 	if(pkgfile == null || strlen(pkgfile) == 0) {
-		RET_ERR(handle, ALPM_ERR_WRONG_ARGS, null);
+		RET_ERR(handle, ALPM_ERR_WRONG_ARGS, 0);
 	}
 
 	fd = _alpm_open_archive(handle, pkgfile, &st, &archive, ALPM_ERR_PKG_OPEN);
@@ -582,9 +587,9 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 
 	newpkg = _alpm_pkg_new();
 	if(newpkg == null) {
-		GOTO_ERR(handle, ALPM_ERR_MEMORY, error);
+		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}
-	STRDUP(newpkg.filename, pkgfile);
+	STRNDUP(newpkg.filename, pkgfile);
 	newpkg.size = st.st_size;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "starting package load for %s\n", pkgfile);
@@ -598,20 +603,20 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 		if(strcmp(entry_name, ".PKGINFO") == 0) {
 			/* parse the info file */
 			if(parse_descfile(handle, archive, newpkg) != 0) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("could not parse package description file in %s\n"),
+				_alpm_log(handle, ALPM_LOG_ERROR, ("could not parse package description file in %s\n"),
 						pkgfile);
 				goto pkg_invalid;
 			}
 			if(newpkg.name == null || strlen(newpkg.name) == 0) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("missing package name in %s\n"), pkgfile);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package name in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
 			if(newpkg.version_ == null || strlen(newpkg.version_) == 0) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("missing package version in %s\n"), pkgfile);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package version in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
 			if(strchr(newpkg.version_, '-') == null) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("invalid package version in %s\n"), pkgfile);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("invalid package version in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
 			config = 1;
@@ -632,9 +637,9 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 		}
 
 		if(archive_read_data_skip(archive)) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("error while reading package %s: %s\n"),
+			_alpm_log(handle, ALPM_LOG_ERROR, ("error while reading package %s: %s\n"),
 					pkgfile, archive_error_string(archive));
-			GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, error);
+			GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 		}
 
 		/* if we are not doing a full read, see if we have all we need */
@@ -644,19 +649,19 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 	}
 
 	if(ret != ARCHIVE_EOF && ret != ARCHIVE_OK) { /* An error occurred */
-		_alpm_log(handle, ALPM_LOG_ERROR, _("error while reading package %s: %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("error while reading package %s: %s\n"),
 				pkgfile, archive_error_string(archive));
-		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, error);
+		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
 	if(!config) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("missing package metadata in %s\n"), pkgfile);
+		_alpm_log(handle, ALPM_LOG_ERROR, ("missing package metadata in %s\n"), pkgfile);
 		goto pkg_invalid;
 	}
 
 	/* internal fields for package struct */
 	newpkg.origin = ALPM_PKG_FROM_FILE;
-	STRDUP(newpkg.origin_data.file, pkgfile);
+	STRNDUP(newpkg.origin_data.file, pkgfile);
 	newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
 	newpkg.infolevel = INFRQ_BASE | INFRQ_DESC | INFRQ_SCRIPTLET;
@@ -665,7 +670,7 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 	if(full) {
 		if(newpkg.files.files) {
 			/* attempt to hand back any memory we don't need */
-			REALLOC(newpkg.files.files, ((alpm_file_t) * newpkg.files.count).sizeof, cast(void)0);
+			REALLOC(newpkg.files.files, (alpm_file_t.sizeof * newpkg.files.count), 0);
 			/* "checking for conflicts" requires a sorted list, ensure that here */
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"sorting package filelist for %s\n", pkgfile);
@@ -698,7 +703,7 @@ enum MAX_SIGFILE_SIZE = 16384;
 
 private int read_sigfile(const(char)* sigpath, ubyte** sig)
 {
-	stat st = void;
+	stat_t st = void;
 	FILE* fp = void;
 
 	if((fp = fopen(sigpath, "rb")) == null) {
@@ -719,7 +724,7 @@ private int read_sigfile(const(char)* sigpath, ubyte** sig)
 	}
 
 	fclose(fp);
-	return st.st_size;
+	return cast(int)st.st_size;
 }
 
 int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int level, alpm_pkg_t** pkg)
@@ -741,7 +746,7 @@ int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int l
 
 			if(len == -1) {
 				_alpm_log(handle, ALPM_LOG_ERROR,
-					_("failed to read signature file: %s\n"), sigpath);
+					("failed to read signature file: %s\n"), sigpath);
 				free(sigpath);
 				return -1;
 			}
@@ -749,7 +754,7 @@ int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int l
 			if(alpm_extract_keyid(handle, filename, sig, len, &keys) == 0) {
 				alpm_list_t* k = void;
 				for(k = keys; k; k = k.next) {
-					char* key = k.data;
+					char* key = cast(char*)k.data;
 					if(_alpm_key_in_keychain(handle, key) == 0) {
 						pkg_temp = _alpm_pkg_load_internal(handle, filename, full);
 						if(_alpm_key_import(handle, null, key) == -1) {
@@ -764,7 +769,7 @@ int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int l
 			free(sig);
 
 			if(fail) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("required key missing from keyring\n"));
+				_alpm_log(handle, ALPM_LOG_ERROR, ("required key missing from keyring\n"));
 				free(sigpath);
 				return -1;
 			}

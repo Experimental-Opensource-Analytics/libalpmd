@@ -184,14 +184,14 @@ private void _alpm_warn_dep_cycle(alpm_handle_t* handle, alpm_list_t* targets, a
 	} else {
 		alpm_pkg_t* ancestorpkg = ancestor.data;
 		alpm_pkg_t* childpkg = vertex.data;
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("dependency cycle detected:\n"));
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("dependency cycle detected:\n"));
 		if(reverse) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
-					_("%s will be removed after its %s dependency\n"),
+					("%s will be removed after its %s dependency\n"),
 					ancestorpkg.name, childpkg.name);
 		} else {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
-					_("%s will be installed before its %s dependency\n"),
+					("%s will be installed before its %s dependency\n"),
 					ancestorpkg.name, childpkg.name);
 		}
 	}
@@ -660,7 +660,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 				if(prompt) {
 					QUESTION(handle, &question);
 				} else {
-					_alpm_log(handle, ALPM_LOG_WARNING, _("ignoring package %s-%s\n"),
+					_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
 							pkg.name, pkg.version_);
 				}
 				if(!question.install) {
@@ -691,7 +691,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 					if(prompt) {
 						QUESTION(handle, &question);
 					} else {
-						_alpm_log(handle, ALPM_LOG_WARNING, _("ignoring package %s-%s\n"),
+						_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
 								pkg.name, pkg.version_);
 					}
 					if(!question.install) {
@@ -833,7 +833,7 @@ int _alpm_resolvedeps(alpm_handle_t* handle, alpm_list_t* localpkgs, alpm_pkg_t*
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
 			char* missdepstring = alpm_dep_compute_string(missdep);
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("cannot resolve \"%s\", a dependency of \"%s\"\n"),
+					("cannot resolve \"%s\", a dependency of \"%s\"\n"),
 					missdepstring, pkg.name);
 			free(missdepstring);
 			if(data) {

@@ -40,128 +40,128 @@ const(char)* alpm_strerror(alpm_errno_t err)
 	switch(err) {
 		/* System */
 		case ALPM_ERR_MEMORY:
-			return _("out of memory!");
+			return ("out of memory!");
 		case ALPM_ERR_SYSTEM:
-			return _("unexpected system error");
+			return ("unexpected system error");
 		case ALPM_ERR_BADPERMS:
-			return _("permission denied");
+			return ("permission denied");
 		case ALPM_ERR_NOT_A_FILE:
-			return _("could not find or read file");
+			return ("could not find or read file");
 		case ALPM_ERR_NOT_A_DIR:
-			return _("could not find or read directory");
+			return ("could not find or read directory");
 		case ALPM_ERR_WRONG_ARGS:
-			return _("wrong or NULL argument passed");
+			return ("wrong or NULL argument passed");
 		case ALPM_ERR_DISK_SPACE:
-			return _("not enough free disk space");
+			return ("not enough free disk space");
 		/* Interface */
 		case ALPM_ERR_HANDLE_NULL:
-			return _("library not initialized");
+			return ("library not initialized");
 		case ALPM_ERR_HANDLE_NOT_NULL:
-			return _("library already initialized");
+			return ("library already initialized");
 		case ALPM_ERR_HANDLE_LOCK:
-			return _("unable to lock database");
+			return ("unable to lock database");
 		/* Databases */
 		case ALPM_ERR_DB_OPEN:
-			return _("could not open database");
+			return ("could not open database");
 		case ALPM_ERR_DB_CREATE:
-			return _("could not create database");
+			return ("could not create database");
 		case ALPM_ERR_DB_NULL:
-			return _("database not initialized");
+			return ("database not initialized");
 		case ALPM_ERR_DB_NOT_NULL:
-			return _("database already registered");
+			return ("database already registered");
 		case ALPM_ERR_DB_NOT_FOUND:
-			return _("could not find database");
+			return ("could not find database");
 		case ALPM_ERR_DB_INVALID:
-			return _("invalid or corrupted database");
+			return ("invalid or corrupted database");
 		case ALPM_ERR_DB_INVALID_SIG:
-			return _("invalid or corrupted database (PGP signature)");
+			return ("invalid or corrupted database (PGP signature)");
 		case ALPM_ERR_DB_VERSION:
-			return _("database is incorrect version");
+			return ("database is incorrect version");
 		case ALPM_ERR_DB_WRITE:
-			return _("could not update database");
+			return ("could not update database");
 		case ALPM_ERR_DB_REMOVE:
-			return _("could not remove database entry");
+			return ("could not remove database entry");
 		/* Servers */
 		case ALPM_ERR_SERVER_BAD_URL:
-			return _("invalid url for server");
+			return ("invalid url for server");
 		case ALPM_ERR_SERVER_NONE:
-			return _("no servers configured for repository");
+			return ("no servers configured for repository");
 		/* Transactions */
 		case ALPM_ERR_TRANS_NOT_NULL:
-			return _("transaction already initialized");
+			return ("transaction already initialized");
 		case ALPM_ERR_TRANS_NULL:
-			return _("transaction not initialized");
+			return ("transaction not initialized");
 		case ALPM_ERR_TRANS_DUP_TARGET:
-			return _("duplicate target");
+			return ("duplicate target");
 		case ALPM_ERR_TRANS_DUP_FILENAME:
-			return _("duplicate filename");
+			return ("duplicate filename");
 		case ALPM_ERR_TRANS_NOT_INITIALIZED:
-			return _("transaction not initialized");
+			return ("transaction not initialized");
 		case ALPM_ERR_TRANS_NOT_PREPARED:
-			return _("transaction not prepared");
+			return ("transaction not prepared");
 		case ALPM_ERR_TRANS_ABORT:
-			return _("transaction aborted");
+			return ("transaction aborted");
 		case ALPM_ERR_TRANS_TYPE:
-			return _("operation not compatible with the transaction type");
+			return ("operation not compatible with the transaction type");
 		case ALPM_ERR_TRANS_NOT_LOCKED:
-			return _("transaction commit attempt when database is not locked");
+			return ("transaction commit attempt when database is not locked");
 		case ALPM_ERR_TRANS_HOOK_FAILED:
-			return _("failed to run transaction hooks");
+			return ("failed to run transaction hooks");
 		/* Packages */
 		case ALPM_ERR_PKG_NOT_FOUND:
-			return _("could not find or read package");
+			return ("could not find or read package");
 		case ALPM_ERR_PKG_IGNORED:
-			return _("operation cancelled due to ignorepkg");
+			return ("operation cancelled due to ignorepkg");
 		case ALPM_ERR_PKG_INVALID:
-			return _("invalid or corrupted package");
+			return ("invalid or corrupted package");
 		case ALPM_ERR_PKG_INVALID_CHECKSUM:
-			return _("invalid or corrupted package (checksum)");
+			return ("invalid or corrupted package (checksum)");
 		case ALPM_ERR_PKG_INVALID_SIG:
-			return _("invalid or corrupted package (PGP signature)");
+			return ("invalid or corrupted package (PGP signature)");
 		case ALPM_ERR_PKG_MISSING_SIG:
-			return _("package missing required signature");
+			return ("package missing required signature");
 		case ALPM_ERR_PKG_OPEN:
-			return _("cannot open package file");
+			return ("cannot open package file");
 		case ALPM_ERR_PKG_CANT_REMOVE:
-			return _("cannot remove all files for package");
+			return ("cannot remove all files for package");
 		case ALPM_ERR_PKG_INVALID_NAME:
-			return _("package filename is not valid");
+			return ("package filename is not valid");
 		case ALPM_ERR_PKG_INVALID_ARCH:
-			return _("package architecture is not valid");
+			return ("package architecture is not valid");
 		/* Signatures */
 		case ALPM_ERR_SIG_MISSING:
-			return _("missing PGP signature");
+			return ("missing PGP signature");
 		case ALPM_ERR_SIG_INVALID:
-			return _("invalid PGP signature");
+			return ("invalid PGP signature");
 		/* Dependencies */
 		case ALPM_ERR_UNSATISFIED_DEPS:
-			return _("could not satisfy dependencies");
+			return ("could not satisfy dependencies");
 		case ALPM_ERR_CONFLICTING_DEPS:
-			return _("conflicting dependencies");
+			return ("conflicting dependencies");
 		case ALPM_ERR_FILE_CONFLICTS:
-			return _("conflicting files");
+			return ("conflicting files");
 		/* Miscellaneous */
 		case ALPM_ERR_RETRIEVE:
-			return _("failed to retrieve some files");
+			return ("failed to retrieve some files");
 		case ALPM_ERR_INVALID_REGEX:
-			return _("invalid regular expression");
+			return ("invalid regular expression");
 		/* Errors from external libraries- our own wrapper error */
 		case ALPM_ERR_LIBARCHIVE:
 			/* it would be nice to use archive_error_string() here, but that
 			 * requires the archive struct, so we can't. Just use a generic
 			 * error string instead. */
-			return _("libarchive error");
+			return ("libarchive error");
 		case ALPM_ERR_LIBCURL:
-			return _("download library error");
+			return ("download library error");
 		case ALPM_ERR_GPGME:
-			return _("gpgme error");
+			return ("gpgme error");
 		case ALPM_ERR_EXTERNAL_DOWNLOAD:
-			return _("error invoking external downloader");
+			return ("error invoking external downloader");
 		/* Missing compile-time features */
 		case ALPM_ERR_MISSING_CAPABILITY_SIGNATURES:
-				return _("compiled without signature support");
+				return ("compiled without signature support");
 		/* Unknown error! */
 		default:
-			return _("unexpected error");
+			return ("unexpected error");
 	}
 }

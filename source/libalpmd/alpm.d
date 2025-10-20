@@ -97,7 +97,7 @@ struct alpm_backup_t {
  * @param path the path to search for in the package
  * @return a pointer to the matching file or NULL if not found
  */
-alpm_file_t* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
+// alpm_file_t* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
 
 /* End of libalpm_files */
 /** @} */
@@ -614,7 +614,7 @@ alias alpm_pkg_t = _alpm_pkg_t;
  * @param path the path to search for in the package
  * @return a pointer to the matching file or NULL if not found
  */
-alpm_file_t* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
+// alpm_file_t* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
 
 /* End of libalpm_files */
 /** @} */
@@ -721,7 +721,7 @@ int alpm_siglist_cleanup(alpm_siglist_t* siglist);
  * @param keys a pointer to storage for key IDs
  * @return 0 on success, -1 on error
  */
-int alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ubyte)* sig, const(size_t) len, alpm_list_t** keys);
+// int alpm_extract_keyid(alpm_handle_t* handle, const(char)* identifier, const(ubyte)* sig, const(size_t) len, alpm_list_t** keys);
 
 /* End of libalpm_sig */
 
@@ -778,14 +778,14 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
  * @param dep a dependency info structure
  * @return a formatted string, e.g. "glibc>=2.12"
  */
-char* alpm_dep_compute_string(const(alpm_depend_t)* dep);
+// char* alpm_dep_compute_string(const(alpm_depend_t)* dep);
 
 /** Return a newly allocated dependency information parsed from a string
  *\link alpm_dep_free should be used to free the dependency \endlink
  * @param depstring a formatted string, e.g. "glibc=2.12"
  * @return a dependency info structure
  */
-alpm_depend_t* alpm_dep_from_string(const(char)* depstring);
+// alpm_depend_t* alpm_dep_from_string(const(char)* depstring);
 
 /** Free a dependency info structure
  * @param dep struct to free
@@ -1474,7 +1474,7 @@ const(char)* alpm_db_get_name(const(alpm_db_t)* db);
  * @param db pointer to the package database
  * @return the signature verification level
  */
-int alpm_db_get_siglevel(alpm_db_t* db);
+// int alpm_db_get_siglevel(alpm_db_t* db);
 
 /** Check the validity of a database.
  * This is most useful for sync databases and verifying signature status.
@@ -1561,7 +1561,7 @@ int alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url);
  * alpm_list_t *dbs = alpm_get_syncdbs(config->handle);
  * ret = alpm_db_update(config->handle, dbs, force);
  * if(ret < 0) {
- *     pm_printf(ALPM_LOG_ERROR, _("failed to synchronize all databases (%s)\n"),
+ *     pm_printf(ALPM_LOG_ERROR, ("failed to synchronize all databases (%s)\n"),
  *         alpm_strerror(alpm_errno(config->handle)));
  * }
  * @endcode
@@ -1591,7 +1591,7 @@ alpm_pkg_t* alpm_db_get_pkg(alpm_db_t* db, const(char)* name);
  * @param db pointer to the package database to get the package from
  * @return the list of packages on success, NULL on error
  */
-alpm_list_t* alpm_db_get_pkgcache(alpm_db_t* db);
+// alpm_list_t* alpm_db_get_pkgcache(alpm_db_t* db);
 
 /** Get a group entry from a package database.
  * Looking up a group is O(1) and will be significantly faster than
@@ -2599,7 +2599,7 @@ int alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_list
  * @param needle the package name
  * @return a pointer to the package if found or NULL
  */
-alpm_pkg_t* alpm_pkg_find(alpm_list_t* haystack, const(char)* needle);
+// alpm_pkg_t* alpm_pkg_find(alpm_list_t* haystack, const(char)* needle);
 
 /** Free a package.
  * Only packages loaded with \link alpm_pkg_load \endlink can be freed.
@@ -2770,7 +2770,7 @@ off_t alpm_pkg_get_isize(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return an enum member giving the install reason.
  */
-alpm_pkgreason_t alpm_pkg_get_reason(alpm_pkg_t* pkg);
+// alpm_pkgreason_t alpm_pkg_get_reason(alpm_pkg_t* pkg);
 
 /** Returns the list of package licenses.
  * @param pkg a pointer to package
@@ -2812,7 +2812,7 @@ alpm_list_t* alpm_pkg_get_makedepends(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_conflicts(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_conflicts(alpm_pkg_t* pkg);
 
 /** Returns the list of packages provided by pkg.
  * @param pkg a pointer to package
@@ -2833,7 +2833,7 @@ alpm_list_t* alpm_pkg_get_replaces(alpm_pkg_t* pkg);
  * @return a pointer to a filelist object containing a count and an array of
  * package file objects
  */
-alpm_filelist_t* alpm_pkg_get_files(alpm_pkg_t* pkg);
+// alpm_filelist_t* alpm_pkg_get_files(alpm_pkg_t* pkg);
 
 /** Returns the list of files backed up when installing pkg.
  * @param pkg a pointer to package
@@ -3255,14 +3255,14 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
  * @param dep a dependency info structure
  * @return a formatted string, e.g. "glibc>=2.12"
  */
-char* alpm_dep_compute_string(const(alpm_depend_t)* dep);
+// char* alpm_dep_compute_string(const(alpm_depend_t)* dep);
 
 /** Return a newly allocated dependency information parsed from a string
  *\link alpm_dep_free should be used to free the dependency \endlink
  * @param depstring a formatted string, e.g. "glibc=2.12"
  * @return a dependency info structure
  */
-alpm_depend_t* alpm_dep_from_string(const(char)* depstring);
+// alpm_depend_t* alpm_dep_from_string(const(char)* depstring);
 
 /** Free a dependency info structure
  * @param dep struct to free

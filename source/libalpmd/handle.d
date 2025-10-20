@@ -42,6 +42,23 @@ import libalpmd.alpm;
 import libalpmd.deps;
 import core.stdc.stdio;
 
+void EVENT(h, e)(h handle, e event) { 
+	if(h.eventcb) { 
+		h.eventcb(h.eventcb_ctx, cast(alpm_event_t*) event);
+	}
+} 
+// #define QUESTION(h, q) \
+// do { \
+// 	if((h)->questioncb) { \
+// 		(h)->questioncb((h)->questioncb_ctx, (alpm_question_t *) (q)); \
+// 	} \
+// } while(0)
+void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
+	if((h).progresscb) {
+		(h).progresscb((h).progresscb_ctx, e, p.ptr, per, n, r);
+	}
+}
+
 struct _alpm_handle_t {
 	/* internal usage */
 	alpm_db_t* db_local;    /* local db pointer */
@@ -239,13 +256,13 @@ int _alpm_handle_unlock(alpm_handle_t* handle)
 	if(alpm_unlock(handle) != 0) {
 		if(errno == ENOENT) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("lock file missing %s\n"), handle.lockfile);
+					("lock file missing %s\n"), handle.lockfile);
 			alpm_logaction(handle, ALPM_CALLER_PREFIX,
 					"warning: lock file missing %s\n", handle.lockfile);
 			return 0;
 		} else {
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("could not remove lock file %s\n"), handle.lockfile);
+					("could not remove lock file %s\n"), handle.lockfile);
 			alpm_logaction(handle, ALPM_CALLER_PREFIX,
 					"warning: could not remove lock file %s\n", handle.lockfile);
 			return -1;
@@ -490,7 +507,7 @@ int  alpm_option_set_progresscb(alpm_handle_t* handle, alpm_cb_progress cb, void
 	return 0;
 }
 
-private char* canonicalize_path(const(char)* path)
+char* canonicalize_path(const(char)* path)
 {
 	char* new_path = void;
 	size_t len = void;
@@ -698,7 +715,7 @@ int  alpm_option_set_usesyslog(alpm_handle_t* handle, int usesyslog)
 	return 0;
 }
 
-private int _alpm_option_strlist_add(alpm_handle_t* handle, alpm_list_t** list, const(char)* str)
+int _alpm_option_strlist_add(alpm_handle_t* handle, alpm_list_t** list, const(char)* str)
 {
 	char* dup = void;
 	CHECK_HANDLE(handle);
@@ -707,7 +724,7 @@ private int _alpm_option_strlist_add(alpm_handle_t* handle, alpm_list_t** list, 
 	return 0;
 }
 
-private int _alpm_option_strlist_set(alpm_handle_t* handle, alpm_list_t** list, alpm_list_t* newlist)
+int _alpm_option_strlist_set(alpm_handle_t* handle, alpm_list_t** list, alpm_list_t* newlist)
 {
 	CHECK_HANDLE(handle);
 	FREELIST(*list);
@@ -715,7 +732,7 @@ private int _alpm_option_strlist_set(alpm_handle_t* handle, alpm_list_t** list, 
 	return 0;
 }
 
-private int _alpm_option_strlist_rem(alpm_handle_t* handle, alpm_list_t** list, const(char)* str)
+int _alpm_option_strlist_rem(alpm_handle_t* handle, alpm_list_t** list, const(char)* str)
 {
 	char* vdata = null;
 	CHECK_HANDLE(handle);
@@ -842,7 +859,7 @@ int  alpm_option_set_assumeinstalled(alpm_handle_t* handle, alpm_list_t* deps)
 	return 0;
 }
 
-private int assumeinstalled_cmp(const(void)* d1, const(void)* d2)
+int assumeinstalled_cmp(const(void)* d1, const(void)* d2)
 {
 	const(alpm_depend_t)* dep1 = d1;
 	const(alpm_depend_t)* dep2 = d2;

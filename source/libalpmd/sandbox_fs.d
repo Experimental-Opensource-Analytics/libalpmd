@@ -113,25 +113,25 @@ version (HAVE_LINUX_LANDLOCK_H) {
 	abi = landlock_create_ruleset(null, 0, LANDLOCK_CREATE_RULESET_VERSION);
 	if(abi < 0) {
 		/* landlock is not supported/enabled in the kernel */
-		_alpm_log(handle, ALPM_LOG_ERROR, _("restricting filesystem access failed because landlock is not supported by the kernel!\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("restricting filesystem access failed because landlock is not supported by the kernel!\n"));
 		return true;
 	}
 version (LANDLOCK_ACCESS_FS_REFER) {
 	if(abi < 2) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("landlock ABI < 2, LANDLOCK_ACCESS_FS_REFER is not supported\n"));
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("landlock ABI < 2, LANDLOCK_ACCESS_FS_REFER is not supported\n"));
 		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_REFER;
 	}
 } /* LANDLOCK_ACCESS_FS_REFER */
 version (LANDLOCK_ACCESS_FS_TRUNCATE) {
 	if(abi < 3) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("landlock ABI < 3, LANDLOCK_ACCESS_FS_TRUNCATE is not supported\n"));
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("landlock ABI < 3, LANDLOCK_ACCESS_FS_TRUNCATE is not supported\n"));
 		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
 	}
 } /* LANDLOCK_ACCESS_FS_TRUNCATE */
 
 	ruleset_fd = landlock_create_ruleset(&ruleset_attr, ruleset_attr.sizeof, 0);
 	if(ruleset_fd < 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("restricting filesystem access failed because the landlock ruleset could not be created!\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("restricting filesystem access failed because the landlock ruleset could not be created!\n"));
 		return false;
 	}
 
@@ -140,7 +140,7 @@ version (LANDLOCK_ACCESS_FS_TRUNCATE) {
 	path_beneath.allowed_access = _LANDLOCK_ACCESS_FS_READ;
 
 	if(landlock_add_rule(ruleset_fd, LANDLOCK_RULE_PATH_BENEATH, &path_beneath, 0) != 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("restricting filesystem access failed because the landlock rule for / could not be added!\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("restricting filesystem access failed because the landlock rule for / could not be added!\n"));
 		close(path_beneath.parent_fd);
 		close(ruleset_fd);
 		return false;
@@ -157,18 +157,18 @@ version (LANDLOCK_ACCESS_FS_TRUNCATE) {
 
 	if(landlock_add_rule(ruleset_fd, LANDLOCK_RULE_PATH_BENEATH, &path_beneath, 0) == 0) {
 		if(landlock_restrict_self(ruleset_fd, 0)) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("restricting filesystem access failed because the landlock ruleset could not be applied!\n"));
+			_alpm_log(handle, ALPM_LOG_ERROR, ("restricting filesystem access failed because the landlock ruleset could not be applied!\n"));
 			result = errno;
 		}
 	} else {
 		result = errno;
-		_alpm_log(handle, ALPM_LOG_ERROR, _("restricting filesystem access failed because the landlock rule for the temporary download directory could not be added!\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("restricting filesystem access failed because the landlock rule for the temporary download directory could not be added!\n"));
 	}
 
 	close(path_beneath.parent_fd);
 	close(ruleset_fd);
 	if(result == 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("filesystem access has been restricted to %s, landlock ABI is %d\n"), path, abi);
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("filesystem access has been restricted to %s, landlock ABI is %d\n"), path, abi);
 		return true;
         }
 	return false;

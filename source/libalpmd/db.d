@@ -38,6 +38,8 @@ import libalpmd.alpm;
 import libalpmd._package;
 import libalpmd.group;
 import libalpmd.pkghash;
+import libalpmd.be_sync;
+
 
 enum alpm_dbinfrq_t {
 	INFRQ_BASE = (1 << 0),
@@ -125,7 +127,7 @@ alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, i
 		RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
 	}
 	for(i = handle.dbs_sync; i; i = i.next) {
-		alpm_db_t* d = i.data;
+		alpm_db_t* d = cast(alpm_db_t*)i.data;
 		if(strcmp(treename, d.treename) == 0) {
 			RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
 		}
@@ -157,7 +159,7 @@ int  alpm_unregister_all_syncdbs(alpm_handle_t* handle)
 
 	/* unregister all sync dbs */
 	for(i = handle.dbs_sync; i; i = i.next) {
-		db = i.data;
+		db = cast(alpm_db_t*)i.data;
 		db.ops.unregister(db);
 		i.data = null;
 	}
@@ -187,7 +189,7 @@ int  alpm_db_unregister(alpm_db_t* db)
 		 */
 		void* data = void;
 		handle.dbs_sync = alpm_list_remove(handle.dbs_sync,
-				db, _alpm_db_cmp, &data);
+				db, &_alpm_db_cmp, &data);
 		if(data) {
 			found = 1;
 		}
@@ -201,7 +203,7 @@ int  alpm_db_unregister(alpm_db_t* db)
 	return 0;
 }
 
-alpm_list_t * alpm_db_get_cache_servers(const(alpm_db_t)* db)
+alpm_list_t * alpm_db_get_cache_servers(alpm_db_t* db)
 {
 	ASSERT(db != null);
 	return db.cache_servers;
@@ -213,7 +215,7 @@ int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 	ASSERT(db != null);
 	FREELIST(db.cache_servers);
 	for(i = cache_servers; i; i = i.next) {
-		char* url = i.data;
+		char* url = cast(char*)i.data;
 		if(alpm_db_add_cache_server(db, url) != 0) {
 			return -1;
 		}
@@ -221,7 +223,7 @@ int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 	return 0;
 }
 
-alpm_list_t * alpm_db_get_servers(const(alpm_db_t)* db)
+alpm_list_t * alpm_db_get_servers(alpm_db_t* db)
 {
 	ASSERT(db != null);
 	return db.servers;
@@ -233,7 +235,7 @@ int  alpm_db_set_servers(alpm_db_t* db, alpm_list_t* servers)
 	ASSERT(db != null);
 	FREELIST(db.servers);
 	for(i = servers; i; i = i.next) {
-		char* url = i.data;
+		char* url = cast(char*)i.data;
 		if(alpm_db_add_server(db, url) != 0) {
 			return -1;
 		}
@@ -246,7 +248,7 @@ private char* sanitize_url(const(char)* url)
 	char* newurl = void;
 	size_t len = strlen(url);
 
-	STRDUP(newurl, url);
+	STRNDUP(newurl, url);
 	/* strip the trailing slash if one exists */
 	if(newurl[len - 1] == '/') {
 		newurl[len - 1] = '\0';
@@ -397,7 +399,7 @@ alpm_list_t * alpm_db_get_pkgcache(alpm_db_t* db)
 alpm_group_t * alpm_db_get_group(alpm_db_t* db, const(char)* name)
 {
 	ASSERT(db != null);
-	db.handle.pm_errno = 0;
+	db.handle.pm_errno = alpm_errno_t.init;
 	ASSERT(name != null && strlen(name) != 0);
 
 	return _alpm_db_get_groupfromcache(db, name);
@@ -439,7 +441,7 @@ alpm_db_t* _alpm_db_new(const(char)* treename, int is_local)
 	alpm_db_t* db = void;
 
 	CALLOC(db, 1, alpm_db_t.sizeof);
-	STRDUP(db.treename, treename);
+	STRNDUP(db.treename, treename);
 	if(is_local) {
 		db.status |= DB_STATUS_LOCAL;
 	} else {
@@ -476,7 +478,7 @@ const(char)* _alpm_db_path(alpm_db_t* db)
 
 		dbpath = db.handle.dbpath;
 		if(!dbpath) {
-			_alpm_log(db.handle, ALPM_LOG_ERROR, _("database path is undefined\n"));
+			_alpm_log(db.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
 			RET_ERR(db.handle, ALPM_ERR_DB_OPEN, null);
 		}
 
@@ -500,8 +502,8 @@ const(char)* _alpm_db_path(alpm_db_t* db)
 
 int _alpm_db_cmp(const(void)* d1, const(void)* d2)
 {
-	const(alpm_db_t)* db1 = d1;
-	const(alpm_db_t)* db2 = d2;
+	const(alpm_db_t)* db1 = cast(alpm_db_t*)d1;
+	const(alpm_db_t)* db2 = cast(alpm_db_t*)d2;
 	return strcmp(db1.treename, db2.treename);
 }
 
@@ -524,7 +526,7 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 			continue;
 		}
 		*ret = null;
-		targ = i.data;
+		targ = cast(char*)i.data;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
 
 		if(regcomp(&reg, targ, REG_EXTENDED | REG_NOSUB | REG_ICASE | REG_NEWLINE) != 0) {
@@ -535,7 +537,7 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 		}
 
 		for(j = cast(const(alpm_list_t)*) list; j; j = j.next) {
-			alpm_pkg_t* pkg = j.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)j.data;
 			const(char)* matched = null;
 			const(char)* name = pkg.name;
 			const(char)* desc = alpm_pkg_get_desc(pkg);

@@ -151,7 +151,7 @@ private FILE* create_tempfile(dload_payload* payload, const(char)* localpath)
 		unlink(randpath);
 		close(fd);
 		_alpm_log(payload.handle, ALPM_LOG_ERROR,
-				_("failed to create temporary file for download\n"));
+				("failed to create temporary file for download\n"));
 		free(randpath);
 		return null;
 	}
@@ -240,7 +240,7 @@ private void server_soft_error(alpm_handle_t* handle, const(char)* server)
 
 		if(should_skip_server(handle, server.ptr)) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("too many errors from %s, skipping for the remainder of this transaction\n"),
+					("too many errors from %s, skipping for the remainder of this transaction\n"),
 					h.server);
 		}
 	}
@@ -257,7 +257,7 @@ private void server_hard_error(alpm_handle_t* handle, const(char)* server)
 			h.errors = -1;
 
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("fatal error from %s, skipping for the remainder of this transaction\n"),
+					("fatal error from %s, skipping for the remainder of this transaction\n"),
 					h.server);
 		}
 	}
@@ -351,7 +351,7 @@ private int curl_gethost(const(char)* url, char* buffer, size_t buf_len)
 	char* p = void, q = void;
 
 	if(strncmp(url, "file://", 7) == 0) {
-		p = _("disk");
+		p = ("disk");
 		hostlen = strlen(p);
 	} else {
 		p = strstr(url, "//");
@@ -572,7 +572,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 					snprintf(payload.error_buffer, typeof(payload.error_buffer).sizeof,
 							"The requested URL returned error: %ld", payload.respcode);
 					_alpm_log(handle, ALPM_LOG_ERROR,
-							_("failed retrieving file '%s' from %s : %s\n"),
+							("failed retrieving file '%s' from %s : %s\n"),
 							payload.remote_name, hostname.ptr, payload.error_buffer);
 					server_soft_error(handle, payload.fileurl);
 				}
@@ -602,7 +602,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 				payload.unlink_on_fail = 1;
 				handle.pm_errno = ALPM_ERR_LIBCURL;
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("failed retrieving file '%s' from %s : expected download size exceeded\n"),
+						("failed retrieving file '%s' from %s : expected download size exceeded\n"),
 						payload.remote_name, hostname.ptr);
 				server_soft_error(handle, payload.fileurl);
 			}
@@ -610,7 +610,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 		case CURLE_COULDNT_RESOLVE_HOST:
 			handle.pm_errno = ALPM_ERR_SERVER_BAD_URL;
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("failed retrieving file '%s' from %s : %s\n"),
+					("failed retrieving file '%s' from %s : %s\n"),
 					payload.remote_name, hostname.ptr, payload.error_buffer);
 			server_hard_error(handle, payload.fileurl);
 			if(curl_retry_next_server(curlm, curl, payload) == 0) {
@@ -623,7 +623,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 			if(!payload.request_errors_ok) {
 				handle.pm_errno = ALPM_ERR_LIBCURL;
 				_alpm_log(handle, ALPM_LOG_ERROR,
-						_("failed retrieving file '%s' from %s : %s\n"),
+						("failed retrieving file '%s' from %s : %s\n"),
 						payload.remote_name, hostname.ptr, payload.error_buffer);
 				server_soft_error(handle, payload.fileurl);
 			} else {
@@ -722,7 +722,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 	 * as actually being transferred during curl_easy_perform() */
 	if(remote_size != -1 && bytes_dl != -1 &&
 			bytes_dl != remote_size) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("%s appears to be truncated: %jd/%jd bytes\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("%s appears to be truncated: %jd/%jd bytes\n"),
 				payload.remote_name, cast(intmax_t)bytes_dl, cast(intmax_t)remote_size);
 		GOTO_ERR(handle, ALPM_ERR_RETRIEVE, cleanup);
 	}
@@ -744,7 +744,7 @@ cleanup:
 	if(ret == 0) {
 		if(payload.destfile_name) {
 			if(rename(payload.tempfile_name, payload.destfile_name)) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("could not rename %s to %s (%s)\n"),
+				_alpm_log(handle, ALPM_LOG_ERROR, ("could not rename %s to %s (%s)\n"),
 						payload.tempfile_name, payload.destfile_name, strerror(errno));
 				ret = -1;
 			}
@@ -812,7 +812,7 @@ private int curl_add_payload(alpm_handle_t* handle, CURLM* curlm, dload_payload*
 
 	payload.tempfile_openmode = "wb";
 	if(curl_gethost(payload.fileurl, hostname.ptr, hostname.sizeof) != 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("url '%s' is invalid\n"), payload.fileurl);
+		_alpm_log(handle, ALPM_LOG_ERROR, ("url '%s' is invalid\n"), payload.fileurl);
 		GOTO_ERR(handle, ALPM_ERR_SERVER_BAD_URL, cleanup);
 	}
 
@@ -828,7 +828,7 @@ private int curl_add_payload(alpm_handle_t* handle, CURLM* curlm, dload_payload*
 		payload.localf = fopen(payload.tempfile_name, payload.tempfile_openmode);
 		if(payload.localf == null) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("could not open file %s: %s\n"),
+					("could not open file %s: %s\n"),
 					payload.tempfile_name, strerror(errno));
 			GOTO_ERR(handle, ALPM_ERR_RETRIEVE, cleanup);
 		}
@@ -899,7 +899,7 @@ private int curl_download_internal(alpm_handle_t* handle, alpm_list_t* payloads)
 				/* The payload failed to start. Do not start any new downloads.
 				 * Wait until all active downloads complete.
 				 */
-				_alpm_log(handle, ALPM_LOG_ERROR, _("failed to setup a download payload for %s\n"), payload.remote_name);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("failed to setup a download payload for %s\n"), payload.remote_name);
 				p = null;
 				err = -1;
 			}
@@ -911,7 +911,7 @@ private int curl_download_internal(alpm_handle_t* handle, alpm_list_t* payloads)
 		}
 
 		if(mc != CURLM_OK) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("curl returned error %d from transfer\n"), mc);
+			_alpm_log(handle, ALPM_LOG_ERROR, ("curl returned error %d from transfer\n"), mc);
 			p = null;
 			err = -1;
 		}
@@ -934,7 +934,7 @@ private int curl_download_internal(alpm_handle_t* handle, alpm_list_t* payloads)
 					updated = 1;
 				}
 			} else {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("curl transfer error: %d\n"), msg.msg);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("curl transfer error: %d\n"), msg.msg);
 			}
 		}
 	}
@@ -992,12 +992,12 @@ private int curl_download_internal_sandboxed(alpm_handle_t* handle, alpm_list_t*
 		ret = chdir(localpath);
 		if(ret != 0) {
 			handle.pm_errno = ALPM_ERR_NOT_A_DIR;
-			_alpm_log(handle, ALPM_LOG_ERROR, _("could not chdir to download directory %s\n"), localpath);
+			_alpm_log(handle, ALPM_LOG_ERROR, ("could not chdir to download directory %s\n"), localpath);
 			ret = -1;
 		} else {
 			ret = alpm_sandbox_setup_child(handle, handle.sandboxuser, localpath, true);
 			if (ret != 0) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("switching to sandbox user '%s' failed!\n"), handle.sandboxuser);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("switching to sandbox user '%s' failed!\n"), handle.sandboxuser);
 				_Exit(2);
 			}
 
@@ -1154,7 +1154,7 @@ private int finalize_download_locations(alpm_list_t* payloads, const(char)* loca
 
 			if(ret == -1) {
 				if(payload.mtime_existing_file == 0) {
-					_alpm_log(payload.handle, ALPM_LOG_ERROR, _("could not move %s into %s (%s)\n"),
+					_alpm_log(payload.handle, ALPM_LOG_ERROR, ("could not move %s into %s (%s)\n"),
 							filename, localpath, strerror(errno));
 					returnvalue = -1;
 				}
@@ -1431,7 +1431,7 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 		event.pkg_retrieve.total_size = 0;
 		EVENT(handle, &event);
 		if(_alpm_download(handle, payloads, cachedir, temporary_cachedir) == -1) {
-			_alpm_log(handle, ALPM_LOG_WARNING, _("failed to retrieve some files\n"));
+			_alpm_log(handle, ALPM_LOG_WARNING, ("failed to retrieve some files\n"));
 			event.type = ALPM_EVENT_PKG_RETRIEVE_FAILED;
 			EVENT(handle, &event);
 			GOTO_ERR(handle, ALPM_ERR_RETRIEVE, err);
@@ -1454,7 +1454,7 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_lis
 			if(filepath) {
 				alpm_list_append(fetched, filepath);
 			} else {
-				_alpm_log(handle, ALPM_LOG_WARNING, _("download completed successfully but no file in the cache\n"));
+				_alpm_log(handle, ALPM_LOG_WARNING, ("download completed successfully but no file in the cache\n"));
 				GOTO_ERR(handle, ALPM_ERR_RETRIEVE, err);
 			}
 		}

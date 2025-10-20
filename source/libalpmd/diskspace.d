@@ -130,7 +130,7 @@ version (HAVE_GETMNTENT) {
 	/* grab the filesystem usage */
 	if(statvfs(mountpoint.mount_dir, &(mountpoint.fsp)) != 0) {
 		_alpm_log(handle, ALPM_LOG_WARNING,
-				_("could not get filesystem information for %s: %s\n"),
+				("could not get filesystem information for %s: %s\n"),
 				mountpoint.mount_dir, strerror(errno));
 		mountpoint.fsinfo_loaded = MOUNT_FSINFO_FAIL;
 		return -1;
@@ -160,7 +160,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 	fp = setmntent(MOUNTED, "r");
 
 	if(fp == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not open file: %s: %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not open file: %s: %s\n"),
 				MOUNTED, strerror(errno));
 		return null;
 	}
@@ -187,7 +187,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 	fp = fopen("/etc/mnttab", "r");
 
 	if(fp == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not open file %s: %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
 				"/etc/mnttab", strerror(errno));
 		return null;
 	}
@@ -206,7 +206,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 	/* -1 == EOF */
 	if(ret != -1) {
 		_alpm_log(handle, ALPM_LOG_WARNING,
-				_("could not get filesystem information\n"));
+				("could not get filesystem information\n"));
 	}
 
 	fclose(fp);
@@ -219,7 +219,7 @@ static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 
 	if(entries < 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("could not get filesystem information\n"));
+				("could not get filesystem information\n"));
 		return null;
 	}
 
@@ -304,7 +304,7 @@ private int calculate_removed_size(alpm_handle_t* handle, const(alpm_list_t)* mo
 		if(llstat(path.ptr, &st) == -1) {
 			if(alpm_option_match_noextract(handle, filename)) {
 				_alpm_log(handle, ALPM_LOG_WARNING,
-						_("could not get file information for %s\n"), filename);
+						("could not get file information for %s\n"), filename);
 			}
 			continue;
 		}
@@ -318,7 +318,7 @@ private int calculate_removed_size(alpm_handle_t* handle, const(alpm_list_t)* mo
 		mp = match_mount_point(mount_points, path.ptr);
 		if(mp == null) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("could not determine mount point for file %s\n"), filename);
+					("could not determine mount point for file %s\n"), filename);
 			continue;
 		}
 
@@ -376,7 +376,7 @@ private int calculate_installed_size(alpm_handle_t* handle, const(alpm_list_t)* 
 		mp = match_mount_point(mount_points, path.ptr);
 		if(mp == null) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					_("could not determine mount point for file %s\n"), filename);
+					("could not determine mount point for file %s\n"), filename);
 			continue;
 		}
 
@@ -415,7 +415,7 @@ private int check_mountpoint(alpm_handle_t* handle, alpm_mountpoint_t* mp)
 			cast(uintmax_t)cushion, cast(uintmax_t)mp.fsp.f_bavail);
 	if(needed >= 0 && cast(fsblkcnt_t)needed > mp.fsp.f_bavail) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("Partition %s too full: %jd blocks needed, %ju blocks free\n"),
+				("Partition %s too full: %jd blocks needed, %ju blocks free\n"),
 				mp.mount_dir, cast(intmax_t)needed, cast(uintmax_t)mp.fsp.f_bavail);
 		return 1;
 	}
@@ -439,13 +439,13 @@ int _alpm_check_downloadspace(alpm_handle_t* handle, const(char)* cachedir, size
 
 	mount_points = mount_point_list(handle);
 	if(mount_points == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not determine filesystem mount points\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine filesystem mount points\n"));
 		return -1;
 	}
 
 	cachedir_mp = match_mount_point(mount_points, cachedir);
 	if(cachedir_mp == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not determine cachedir mount point %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine cachedir mount point %s\n"),
 				cachedir);
 		error = 1;
 		goto finish;
@@ -493,12 +493,12 @@ int _alpm_check_diskspace(alpm_handle_t* handle)
 	numtargs = alpm_list_count(trans.add);
 	mount_points = mount_point_list(handle);
 	if(mount_points == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not determine filesystem mount points\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine filesystem mount points\n"));
 		return -1;
 	}
 	root_mp = match_mount_point(mount_points, handle.root);
 	if(root_mp == null) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not determine root mount point %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine root mount point %s\n"),
 				handle.root);
 		error = 1;
 		goto finish;
@@ -546,7 +546,7 @@ int _alpm_check_diskspace(alpm_handle_t* handle)
 	for(i = mount_points; i; i = i.next) {
 		alpm_mountpoint_t* data = i.data;
 		if(data.used && data.read_only) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("Partition %s is mounted read only\n"),
+			_alpm_log(handle, ALPM_LOG_ERROR, ("Partition %s is mounted read only\n"),
 					data.mount_dir);
 			error = 1;
 		} else if(data.used & USED_INSTALL && check_mountpoint(handle, data)) {

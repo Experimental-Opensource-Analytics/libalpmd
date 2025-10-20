@@ -148,7 +148,7 @@ version (HAVE_LIBSECCOMP) {
 		int syscall = seccomp_syscall_resolve_name(denied_syscalls[idx]);
 		if(syscall != __NR_SCMP_ERROR) {
 			if(seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EPERM), syscall, 0) != 0) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("error restricting syscall %s via seccomp!\n"), denied_syscalls[idx]);
+				_alpm_log(handle, ALPM_LOG_ERROR, ("error restricting syscall %s via seccomp!\n"), denied_syscalls[idx]);
 			}
 			else {
 				restrictedSyscallsCount++;
@@ -158,10 +158,10 @@ version (HAVE_LIBSECCOMP) {
 
 	if(seccomp_load(ctx) != 0) {
 		ret = errno;
-		_alpm_log(handle, ALPM_LOG_ERROR, _("error restricting syscalls via seccomp: %d!\n"), ret);
+		_alpm_log(handle, ALPM_LOG_ERROR, ("error restricting syscalls via seccomp: %d!\n"), ret);
 	}
 	else {
-		_alpm_log(handle, ALPM_LOG_DEBUG, _("successfully restricted %d syscalls via seccomp\n"), restrictedSyscallsCount);
+		_alpm_log(handle, ALPM_LOG_DEBUG, ("successfully restricted %d syscalls via seccomp\n"), restrictedSyscallsCount);
 	}
 
 	seccomp_release(ctx);

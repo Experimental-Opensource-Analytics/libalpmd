@@ -75,7 +75,7 @@ struct pkg_operations {
 	alpm_list_t* function(alpm_pkg_t*) get_xdata;
 
 	void* function(alpm_pkg_t*) changelog_open;
-	size_t function(void*, size_t, const(alpm_pkg_t)*, void*) changelog_read;
+	size_t function(void*, size_t, alpm_pkg_t*, void*) changelog_read;
 	int function(const(alpm_pkg_t)*, void*) changelog_close;
 
 	archive* function(alpm_pkg_t*) mtree_open;
@@ -233,7 +233,7 @@ size_t _pkg_changelog_read(void* ptr, size_t UNUSED, const(alpm_pkg_t)* pkg, UNU
 
 int _pkg_changelog_close(const(alpm_pkg_t)* pkg, void* fp)
 {
-	return ;
+	return 0;
 }
 
 archive* _pkg_mtree_open(alpm_pkg_t* pkg)
@@ -763,16 +763,16 @@ void free_deplist(alpm_list_t* deps)
 	alpm_list_free(deps);
 }
 
-alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(char* string)
+alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(char* _string)
 {
 	alpm_pkg_xdata_t* pd = void;
 	char* sep = void;
-	if(string == null || (sep = strchr(string, '=')) == null) {
+	if(_string == null || (sep = strchr(_string, '=')) == null) {
 		return null;
 	}
 
 	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof);
-	STRDUP(pd.name, string, sep - string);
+	STRDUP(pd.name, _string, sep - _string);
 	STRNDUP(pd.value, sep + 1);
 
 	return pd;

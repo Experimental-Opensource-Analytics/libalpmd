@@ -100,7 +100,7 @@ void FREE(T)(T* t) {
 void REALLOC(T, L)(ref T t, L l, size_t size) {
 	void* np = realloc(t, size);
 	if(np !is null) {
-		t = np;
+		t = cast(T)np;
 	}  
 	assert(0, "ERROR");
 	// t = calloc(l, size);
@@ -135,14 +135,14 @@ enum ALPM_BUFFER_SIZE = 8192;
 }
 
 noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
-	_alpm_log(handle, ALPM_LOG_DEBUG, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
+	// _alpm_log(handle, ALPM_LOG_DEBUG, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
 	(handle).pm_errno = (err);
 	assert(0, "ERROR BY GOTO_ERROR");
 }
 
-noreturn RET_ERR(H, E)(H handle, E err, int i) {
-	_alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
-	(handle).pm_errno = (err);
+noreturn RET_ERR(H = alpm_handle_t*, E)(H handle, E err, ...) {
+	// _alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
+	handle.pm_errno = (err);
 	assert(0, "ERROR BY RET_ERROR");
 }
 
@@ -355,13 +355,13 @@ int _alpm_open_archive(alpm_handle_t* handle, const(char)* path, stat_t* buf, ar
 	OPEN(fd, path, O_RDONLY | O_CLOEXEC);
 	if(fd < 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("could not open file %s: %s\n"), path, strerror(errno));
+				("could not open file %s: %s\n"), path, strerror(errno));
 		goto error;
 	}
 
 	if(fstat(fd, buf) != 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("could not stat file %s: %s\n"), path, strerror(errno));
+				("could not stat file %s: %s\n"), path, strerror(errno));
 		goto error;
 	}
 version (HAVE_STRUCT_STAT_ST_BLKSIZE) {
@@ -371,7 +371,7 @@ version (HAVE_STRUCT_STAT_ST_BLKSIZE) {
 }
 
 	if(archive_read_open_fd(*archive, fd, bufsize) != ARCHIVE_OK) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not open file %s: %s\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
 				path, archive_error_string(*archive));
 		goto error;
 	}
@@ -434,12 +434,12 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 	/* save the cwd so we can restore it later */
 	OPEN(cwdfd, ".", O_RDONLY | O_CLOEXEC);
 	if(cwdfd < 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not get current working directory\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not get current working directory\n"));
 	}
 
 	/* just in case our cwd was removed in the upgrade operation */
 	if(chdir(prefix) != 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not change directory to %s (%s)\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not change directory to %s (%s)\n"),
 				prefix, strerror(errno));
 		ret = 1;
 		goto cleanup;
@@ -488,10 +488,10 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 		int readret = archive_read_extract(archive, entry, 0);
 		if(readret == ARCHIVE_WARN) {
 			/* operation succeeded but a non-critical error was encountered */
-			_alpm_log(handle, ALPM_LOG_WARNING, _("warning given when extracting %s (%s)\n"),
+			_alpm_log(handle, ALPM_LOG_WARNING, ("warning given when extracting %s (%s)\n"),
 					entryname, archive_error_string(archive));
 		} else if(readret != ARCHIVE_OK) {
-			_alpm_log(handle, ALPM_LOG_ERROR, _("could not extract %s (%s)\n"),
+			_alpm_log(handle, ALPM_LOG_ERROR, ("could not extract %s (%s)\n"),
 					entryname, archive_error_string(archive));
 			ret = 1;
 			goto cleanup;
@@ -509,7 +509,7 @@ cleanup:
 	if(cwdfd >= 0) {
 		if(fchdir(cwdfd) != 0) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("could not restore working directory (%s)\n"), strerror(errno));
+					("could not restore working directory (%s)\n"), strerror(errno));
 		}
 		close(cwdfd);
 	}
@@ -589,7 +589,7 @@ private int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf
 		/* nothing written, try again later */
 	} else {
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("unable to write to pipe (%s)\n"), strerror(errno));
+				("unable to write to pipe (%s)\n"), strerror(errno));
 		return -1;
 	}
 
@@ -650,7 +650,7 @@ private int _alpm_chroot_read_from_child(alpm_handle_t* handle, int fd, char* bu
 			_alpm_chroot_process_output(handle, buf);
 		}
 		_alpm_log(handle, ALPM_LOG_ERROR,
-				_("unable to read from pipe (%s)\n"), strerror(errno));
+				("unable to read from pipe (%s)\n"), strerror(errno));
 		return -1;
 	}
 	return 0;
@@ -698,12 +698,12 @@ enum TAIL = 0;
 	/* save the cwd so we can restore it later */
 	OPEN(cwdfd, ".", O_RDONLY | O_CLOEXEC);
 	if(cwdfd < 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not get current working directory\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not get current working directory\n"));
 	}
 
 	/* just in case our cwd was removed in the upgrade operation */
 	if(chdir(handle.root) != 0) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not change directory to %s (%s)\n"),
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not change directory to %s (%s)\n"),
 				handle.root, strerror(errno));
 		goto cleanup;
 	}
@@ -715,13 +715,13 @@ enum TAIL = 0;
 	fflush(null);
 
 	if(socketpair(AF_UNIX, SOCK_STREAM, 0, child2parent_pipefd.ptr) == -1) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not create pipe (%s)\n"), strerror(errno));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not create pipe (%s)\n"), strerror(errno));
 		retval = 1;
 		goto cleanup;
 	}
 
 	if(socketpair(AF_UNIX, SOCK_STREAM, 0, parent2child_pipefd.ptr) == -1) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not create pipe (%s)\n"), strerror(errno));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not create pipe (%s)\n"), strerror(errno));
 		retval = 1;
 		goto cleanup;
 	}
@@ -729,7 +729,7 @@ enum TAIL = 0;
 	/* fork- parent and child each have separate code blocks below */
 	pid = fork();
 	if(pid == -1) {
-		_alpm_log(handle, ALPM_LOG_ERROR, _("could not fork a new process (%s)\n"), strerror(errno));
+		_alpm_log(handle, ALPM_LOG_ERROR, ("could not fork a new process (%s)\n"), strerror(errno));
 		retval = 1;
 		goto cleanup;
 	}
@@ -754,11 +754,11 @@ enum TAIL = 0;
 		/* don't chroot() to "/": this allows running with less caps when the
 		 * caller puts us in the right root */
 		if(strcmp(handle.root, "/") != 0 && chroot(handle.root) != 0) {
-			fprintf(stderr, _("could not change the root directory (%s)\n"), strerror(errno));
+			fprintf(stderr, ("could not change the root directory (%s)\n"), strerror(errno));
 			exit(1);
 		}
 		if(chdir("/") != 0) {
-			fprintf(stderr, _("could not change directory to %s (%s)\n"),
+			fprintf(stderr, ("could not change directory to %s (%s)\n"),
 					"/", strerror(errno));
 			exit(1);
 		}
@@ -774,7 +774,7 @@ enum TAIL = 0;
 		_alpm_handle_free(handle);
 		execv(cmd, argv);
 		/* execv only returns if there was an error */
-		fprintf(stderr, _("call to execv failed (%s)\n"), strerror(errno));
+		fprintf(stderr, ("call to execv failed (%s)\n"), strerror(errno));
 		exit(1);
 	} else {
 		/* this code runs for the parent only (wait on the child) */
@@ -849,7 +849,7 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 
 		while(waitpid(pid, &status, 0) == -1) {
 			if(errno != EINTR) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("call to waitpid failed (%s)\n"), strerror(errno));
+				_alpm_log(handle, ALPM_LOG_ERROR, ("call to waitpid failed (%s)\n"), strerror(errno));
 				retval = 1;
 				goto cleanup;
 			}
@@ -859,16 +859,16 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 		if(WIFEXITED(status)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "call to waitpid succeeded\n");
 			if(WEXITSTATUS(status) != 0) {
-				_alpm_log(handle, ALPM_LOG_ERROR, _("command failed to execute correctly\n"));
+				_alpm_log(handle, ALPM_LOG_ERROR, ("command failed to execute correctly\n"));
 				retval = 1;
 			}
 		} else if(WIFSIGNALED(status) != 0) {
 			char* signal_description = strsignal(WTERMSIG(status));
 			/* strsignal can return NULL on some (non-Linux) platforms */
 			if(signal_description == null) {
-				signal_description = _("Unknown signal");
+				signal_description = ("Unknown signal");
 			}
-			_alpm_log(handle, ALPM_LOG_ERROR, _("command terminated by signal %d: %s\n"),
+			_alpm_log(handle, ALPM_LOG_ERROR, ("command terminated by signal %d: %s\n"),
 						WTERMSIG(status), signal_description);
 			retval = 1;
 		}
@@ -878,7 +878,7 @@ cleanup:
 	if(cwdfd >= 0) {
 		if(fchdir(cwdfd) != 0) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					_("could not restore working directory (%s)\n"), strerror(errno));
+					("could not restore working directory (%s)\n"), strerror(errno));
 		}
 		close(cwdfd);
 	}
@@ -986,7 +986,7 @@ const(char)* _alpm_filecache_setup(alpm_handle_t* handle)
 		cachedir = i.data;
 		if(stat(cachedir, &buf) != 0) {
 			/* cache directory does not exist.... try creating it */
-			_alpm_log(handle, ALPM_LOG_WARNING, _("no %s cache exists, creating...\n"),
+			_alpm_log(handle, ALPM_LOG_WARNING, ("no %s cache exists, creating...\n"),
 					cachedir);
 			if(_alpm_makepath(cachedir) == 0) {
 				_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
@@ -1017,7 +1017,7 @@ const(char)* _alpm_filecache_setup(alpm_handle_t* handle)
 	cachedir = handle.cachedirs.prev.data;
 	_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
 	_alpm_log(handle, ALPM_LOG_WARNING,
-			_("couldn't find or create package cache, using %s instead\n"), cachedir);
+			("couldn't find or create package cache, using %s instead\n"), cachedir);
 	return cachedir;
 }
 

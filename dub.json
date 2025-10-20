@@ -5,7 +5,8 @@
 	"copyright": "Copyright © 2025, Roman Vlasov",
 	"dependencies": {
 		"derelict-libarchive": "~>1.0.1",
-		"openssl": "~>3.4.0"
+		"openssl": "~>3.4.0",
+		"ae" : "*"
 	},
 	"description": "Port of libalpm to D language",
 	"license": "MIT",
