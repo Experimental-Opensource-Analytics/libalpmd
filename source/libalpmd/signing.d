@@ -971,7 +971,7 @@ int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 {
 	ASSERT(pkg != null);
 	ASSERT(siglist != null);
-	pkg.handle.pm_errno = ALPM_ERR_OK;
+	cast(alpm_handle_t*)pkg.handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(pkg.handle, pkg.filename,
 			pkg.base64_sig, siglist);

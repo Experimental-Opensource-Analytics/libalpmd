@@ -276,7 +276,7 @@ int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
  *
  * @param handle context handle
  * @param directory path to test, must be absolute and include trailing '/'
- * @param stbuf stat result for @a directory, may be NULL
+ * @param stbuf stat_t result for @a directory, may be NULL
  *
  * @return 0 if @a directory is not a mountpoint or on error, 1 if @a directory
  * is a mountpoint
@@ -284,11 +284,11 @@ int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
 private int dir_is_mountpoint(alpm_handle_t* handle, const(char)* directory, const(stat_t)* stbuf)
 {
 	char[PATH_MAX] parent_dir = void;
-	stat parent_stbuf = void;
+	stat_t parent_stbuf = void;
 	dev_t dir_st_dev = void;
 
 	if(stbuf == null) {
-		stat dir_stbuf = void;
+		stat_t dir_stbuf = void;
 		if(stat(directory, &dir_stbuf) < 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"failed to stat directory %s: %s\n",
@@ -350,7 +350,7 @@ private void shift_pacsave(alpm_handle_t* handle, const(char)* file)
 {
 	DIR* dir = null;
 	dirent* ent = void;
-	stat st = void;
+	stat_t st = void;
 	regex_t reg = void;
 
 	const(char)* basename = void;
@@ -442,7 +442,7 @@ cleanup:
  */
 private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, const(alpm_file_t)* fileobj, int nosave)
 {
-	stat buf = void;
+	stat_t buf = void;
 	char[PATH_MAX] file = void;
 	int file_len = void;
 

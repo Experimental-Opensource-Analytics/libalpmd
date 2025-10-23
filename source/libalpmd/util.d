@@ -106,9 +106,9 @@ void REALLOC(T, L)(ref T t, L l, size_t size) {
 	// t = calloc(l, size);
 }
 
-void STRDUP(ref char* str, char* _str, size_t l) {
+void STRDUP(ref char* str, const(char)* _str, size_t l) {
 	str = strdup(_str, l);
-} 
+}
 
 void STRNDUP(ref char* str, const char* _str) {
 	str = strndup(_str);
@@ -241,7 +241,7 @@ int _alpm_copyfile(const(char)* src, const(char)* dest)
 	char* buf = void;
 	int in_ = void, out_ = void, ret = 1;
 	ssize_t nread = void;
-	stat st = void;
+	stat_t st = void;
 
 	MALLOC(buf, cast(size_t)ALPM_BUFFER_SIZE);
 
@@ -421,7 +421,7 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 	mode_t oldmask = void;
 	archive* archive = void;
 	archive_entry* entry = void;
-	stat buf = void;
+	stat_t buf = void;
 	int fd = void, cwdfd = void;
 
 	fd = _alpm_open_archive(handle, path, &buf, &archive, ALPM_ERR_PKG_OPEN);
@@ -932,7 +932,7 @@ char* _alpm_filecache_find(alpm_handle_t* handle, const(char)* filename)
 	char[PATH_MAX] path = void;
 	char* retpath = void;
 	alpm_list_t* i = void;
-	stat buf = void;
+	stat_t buf = void;
 
 	/* Loop through the cache dirs until we find a matching file */
 	for(i = handle.cachedirs; i; i = i.next) {
@@ -976,7 +976,7 @@ int _alpm_filecache_exists(alpm_handle_t* handle, const(char)* filename)
  */
 const(char)* _alpm_filecache_setup(alpm_handle_t* handle)
 {
-	stat buf = void;
+	stat_t buf = void;
 	alpm_list_t* i = void;
 	char* cachedir = void;
 	const(char)* tmpdir = void;
@@ -1600,7 +1600,7 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns, const(char)* string)
  * @return 0 if string matches pattern, non-zero if they don't match and on
  * error
  */
-int _alpm_fnmatch(char* pattern, string _string)
+int _alpm_fnmatch(char* pattern, char* _string)
 {
 	return fnmatch(pattern, _string, 0);
 }
@@ -1677,7 +1677,7 @@ void _alpm_alloc_fail(size_t size)
  */
 alpm_errno_t _alpm_read_file(const(char)* filepath, ubyte** data, size_t* data_len)
 {
-	stat st = void;
+	stat_t st = void;
 	FILE* fp = void;
 
 	if((fp = fopen(filepath, "rb")) == null) {

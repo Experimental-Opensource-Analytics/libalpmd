@@ -86,7 +86,7 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
 		if(strcmp(entry_name, ".CHANGELOG") == 0) {
 			changelog = cast(package_changelog*) malloc(package_changelog.sizeof);
 			if(!changelog) {
-				pkg.handle.pm_errno = ALPM_ERR_MEMORY;
+				(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_MEMORY;
 				_alpm_archive_read_free(_archive);
 				close(fd);
 				return null;
@@ -113,13 +113,13 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
  * @param fp a 'file stream' to the package changelog
  * @return the number of characters read, or 0 if there is no more data
  */
-private size_t _package_changelog_read(void* ptr, size_t size, alpm_pkg_t* pkg, void* fp)
+private size_t _package_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)* pkg, void* fp)
 {
 	package_changelog* changelog = cast(package_changelog*)fp;
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
-		RET_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, 0);
+		RET_ERR(cast(alpm_handle_t*)pkg.handle, ALPM_ERR_LIBARCHIVE, 0);
 	} else {
 		return cast(size_t)sret;
 	}

@@ -26,8 +26,7 @@ import core.stdc.limits;
 import core.stdc.string;
 
 import libalpmd.handle;
-import libalpmd.hook;
-// import libalpmd.ini;
+import libalpmd.ini;
 import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.util;
@@ -164,13 +163,36 @@ private int _alpm_hook_parse_cb(const(char)* file, int line, const(char)* sectio
 	_alpm_hook_t* hook = ctx.hook;
 
 	
-// enum string error(...) = `_alpm_log(handle, ALPM_LOG_ERROR, __VA_ARGS__); return 1;`;
-// enum string warning(...) = `_alpm_log(handle, ALPM_LOG_WARNING, __VA_ARGS__);`;
+auto error = (string fmt, string arg1, int arg2, string arg3 = null, string arg4 = null, string arg5 = null) {
+		if (arg3 !is null && arg4 !is null && arg5 !is null) {
+			_alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2, arg3, arg4, arg5);
+		} else if (arg3 !is null && arg4 !is null) {
+			_alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2, arg3, arg4);
+		} else if (arg3 !is null) {
+			_alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2, arg3);
+		} else {
+			_alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2);
+		}
+		return 1;
+	};
+	
+	auto warning = (string fmt, string arg1, int arg2, string arg3 = null, string arg4 = null, string arg5 = null) {
+		if (arg3 !is null && arg4 !is null && arg5 !is null) {
+			_alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2, arg3, arg4, arg5);
+		} else if (arg3 !is null && arg4 !is null) {
+			_alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2, arg3, arg4);
+		} else if (arg3 !is null) {
+			_alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2, arg3);
+		} else {
+			_alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2);
+		}
+		return 0;
+	};
 
 	if(!section && !key) {
-		mixin(error!(`("error while reading hook %s: %s\n")`, `file`, `strerror(errno)`));
+		return error("error while reading hook %s: %s\n", file, line, strerror(errno));
 	} else if(!section) {
-		mixin(error!(`("hook %s line %d: invalid option %s\n")`, `file`, `line`, `key`));
+		return error("hook %s line %d: invalid option %s\n", file, line, key);
 	} else if(!key) {
 		/* beginning a new section */
 		if(strcmp(section, "Trigger") == 0) {
@@ -180,7 +202,7 @@ private int _alpm_hook_parse_cb(const(char)* file, int line, const(char)* sectio
 		} else if(strcmp(section, "Action") == 0) {
 			/* no special processing required */
 		} else {
-			mixin(error!(`("hook %s line %d: invalid section %s\n")`, `file`, `line`, `section`));
+			return error("hook %s line %d: invalid section %s\n", file, line, section);
 		}
 	} else if(strcmp(section, "Trigger") == 0) {
 		_alpm_trigger_t* t = hook.triggers.prev.data;
@@ -192,11 +214,11 @@ private int _alpm_hook_parse_cb(const(char)* file, int line, const(char)* sectio
 			} else if(strcmp(value, "Remove") == 0) {
 				t.op |= ALPM_HOOK_OP_REMOVE;
 			} else {
-				mixin(error!(`("hook %s line %d: invalid value %s\n")`, `file`, `line`, `value`));
+				return error("hook %s line %d: invalid value %s\n", file, line, value);
 			}
 		} else if(strcmp(key, "Type") == 0) {
 			if(t.type != 0) {
-				mixin(warning!(`("hook %s line %d: overwriting previous definition of %s\n")`, `file`, `line`, `"Type"`));
+				warning("hook %s line %d: overwriting previous definition of %s\n", file, line, "Type");
 			}
 			if(strcmp(value, "Package") == 0) {
 				t.type = ALPM_HOOK_TYPE_PACKAGE;
@@ -207,30 +229,30 @@ private int _alpm_hook_parse_cb(const(char)* file, int line, const(char)* sectio
 			} else if(strcmp(value, "Path") == 0) {
 				t.type = ALPM_HOOK_TYPE_PATH;
 			} else {
-				mixin(error!(`("hook %s line %d: invalid value %s\n")`, `file`, `line`, `value`));
+				return error("hook %s line %d: invalid value %s\n", file, line, value);
 			}
 		} else if(strcmp(key, "Target") == 0) {
 			char* val;
 			STRDUP(val, value);
 			t.targets = alpm_list_add(t.targets, val);
 		} else {
-			mixin(error!(`("hook %s line %d: invalid option %s\n")`, `file`, `line`, `key`));
+			return error("hook %s line %d: invalid option %s\n", file, line, key);
 		}
 	} else if(strcmp(section, "Action") == 0) {
 		if(strcmp(key, "When") == 0) {
 			if(hook.when != 0) {
-				mixin(warning!(`("hook %s line %d: overwriting previous definition of %s\n")`, `file`, `line`, `"When"`));
+				warning("hook %s line %d: overwriting previous definition of %s\n", file, line, "When");
 			}
 			if(strcmp(value, "PreTransaction") == 0) {
 				hook.when = ALPM_HOOK_PRE_TRANSACTION;
 			} else if(strcmp(value, "PostTransaction") == 0) {
 				hook.when = ALPM_HOOK_POST_TRANSACTION;
 			} else {
-				mixin(error!(`("hook %s line %d: invalid value %s\n")`, `file`, `line`, `value`));
+				return error("hook %s line %d: invalid value %s\n", file, line, value);
 			}
 		} else if(strcmp(key, "Description") == 0) {
 			if(hook.desc != null) {
-				mixin(warning!(`("hook %s line %d: overwriting previous definition of %s\n")`, `file`, `line`, `"Description"`));
+				warning("hook %s line %d: overwriting previous definition of %s\n", file, line, "Description");
 				FREE(hook.desc);
 			}
 			STRDUP(hook.desc, value);
@@ -244,19 +266,18 @@ private int _alpm_hook_parse_cb(const(char)* file, int line, const(char)* sectio
 			hook.needs_targets = 1;
 		} else if(strcmp(key, "Exec") == 0) {
 			if(hook.cmd != null) {
-				mixin(warning!(`("hook %s line %d: overwriting previous definition of %s\n")`, `file`, `line`, `"Exec"`));
+				warning("hook %s line %d: overwriting previous definition of %s\n", file, line, "Exec");
 				wordsplit_free(hook.cmd);
 			}
 			if((hook.cmd = wordsplit(value)) == null) {
 				if(errno == EINVAL) {
-					mixin(error!(`("hook %s line %d: invalid value %s\n")`, `file`, `line`, `value`));
+					return error("hook %s line %d: invalid value %s\n", file, line, value);
 				} else {
-					mixin(error!(`("hook %s line %d: unable to set option (%s)\n")`,
-							`file`, `line`, `strerror(errno)`));
+					return error("hook %s line %d: unable to set option (%s)\n", file, line, strerror(errno));
 				}
 			}
 		} else {
-			mixin(error!(`("hook %s line %d: invalid option %s\n")`, `file`, `line`, `key`));
+			return error("hook %s line %d: invalid option %s\n", file, line, key);
 		}
 	}
 
@@ -568,7 +589,7 @@ int _alpm_hook_run(alpm_handle_t* handle, alpm_hook_when_t when)
 
 		while((errno = 0, entry = readdir(d))) {
 			_alpm_hook_cb_ctx ctx = { handle, null };
-			stat buf = void;
+			stat_t buf = void;
 			size_t name_len = void;
 
 			if(strcmp(entry.d_name, ".") == 0 || strcmp(entry.d_name, "..") == 0) {

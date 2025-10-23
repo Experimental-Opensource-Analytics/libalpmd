@@ -525,7 +525,7 @@ char* canonicalize_path(const(char)* path)
 
 alpm_errno_t _alpm_set_directory_option(const(char)* value, char** storage, int must_exist)
 {
-	stat st = void;
+	stat_t st = void;
 	char[PATH_MAX] real_ = void;
 	const(char)* path = void;
 

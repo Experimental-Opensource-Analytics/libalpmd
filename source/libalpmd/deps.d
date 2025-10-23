@@ -56,9 +56,9 @@ private alpm_depmissing_t* depmiss_new(const(char)* target, alpm_depend_t* dep, 
 
 	CALLOC(miss, 1, alpm_depmissing_t.sizeof);
 
-	STRDUP(miss.target, target);
+	STRDUP(miss.target, target, strlen(target));
 	miss.depend = _alpm_dep_dup(dep);
-	STRDUP(miss.causingpkg, causingpkg);
+	STRDUP(miss.causingpkg, causingpkg, strlen(causingpkg));
 
 	return miss;
 
@@ -81,7 +81,7 @@ private int _alpm_pkg_depends_on(alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_pkg_get_depends(pkg1); i; i = i.next) {
-		if(_alpm_depcmp(pkg2, i.data)) {
+		if(_alpm_depcmp(pkg2, cast(alpm_pkg_t*)i.data)) {
 			return 1;
 		}
 	}
@@ -93,7 +93,7 @@ private alpm_pkg_t* find_dep_satisfier(alpm_list_t* pkgs, alpm_depend_t* dep)
 	alpm_list_t* i = void;
 
 	for(i = pkgs; i; i = i.next) {
-		alpm_pkg_t* pkg = i.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 		if(_alpm_depcmp(pkg, dep)) {
 			return pkg;
 		}
@@ -111,11 +111,11 @@ private alpm_list_t* dep_graph_init(alpm_handle_t* handle, alpm_list_t* targets,
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* vertices = null;
 	alpm_list_t* localpkgs = alpm_list_diff(
-			alpm_db_get_pkgcache(handle.db_local), targets, _alpm_pkg_cmp);
+			alpm_db_get_pkgcache(handle.db_local), targets, &_alpm_pkg_cmp);
 
 	if(ignore) {
 		alpm_list_t* oldlocal = localpkgs;
-		localpkgs = alpm_list_diff(oldlocal, ignore, _alpm_pkg_cmp);
+		localpkgs = alpm_list_diff(oldlocal, ignore, &_alpm_pkg_cmp);
 		alpm_list_free(oldlocal);
 	}
 
@@ -129,11 +129,11 @@ private alpm_list_t* dep_graph_init(alpm_handle_t* handle, alpm_list_t* targets,
 	/* We compute the edges */
 	for(i = vertices; i; i = i.next) {
 		alpm_graph_t* vertex_i = i.data;
-		alpm_pkg_t* p_i = vertex_i.data;
+		alpm_pkg_t* p_i = cast(alpm_pkg_t*)vertex_i.data;
 		/* TODO this should be somehow combined with alpm_checkdeps */
 		for(j = vertices; j; j = j.next) {
 			alpm_graph_t* vertex_j = j.data;
-			alpm_pkg_t* p_j = vertex_j.data;
+			alpm_pkg_t* p_j = cast(alpm_pkg_t*)vertex_j.data;
 			if(_alpm_pkg_depends_on(p_i, p_j)) {
 				vertex_i.children =
 					alpm_list_add(vertex_i.children, vertex_j);
@@ -145,7 +145,7 @@ private alpm_list_t* dep_graph_init(alpm_handle_t* handle, alpm_list_t* targets,
 		j = localpkgs;
 		while(j) {
 			alpm_list_t* next = j.next;
-			if(_alpm_pkg_depends_on(p_i, j.data)) {
+			if(_alpm_pkg_depends_on(p_i, cast(alpm_pkg_t*)j.data)) {
 				alpm_graph_t* vertex_j = _alpm_graph_new();
 				vertex_j.data = cast(void*)j.data;
 				vertices = alpm_list_add(vertices, vertex_j);
@@ -182,8 +182,8 @@ private void _alpm_warn_dep_cycle(alpm_handle_t* handle, alpm_list_t* targets, a
 		/* no transaction package in our ancestry or the package has
 		 * a circular dependency with itself, not a problem */
 	} else {
-		alpm_pkg_t* ancestorpkg = ancestor.data;
-		alpm_pkg_t* childpkg = vertex.data;
+		alpm_pkg_t* ancestorpkg = cast(alpm_pkg_t*)ancestor.data;
+		alpm_pkg_t* childpkg = cast(alpm_pkg_t*)vertex.data;
 		_alpm_log(handle, ALPM_LOG_DEBUG, ("dependency cycle detected:\n"));
 		if(reverse) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -229,13 +229,13 @@ alpm_list_t* _alpm_sortbydeps(alpm_handle_t* handle, alpm_list_t* targets, alpm_
 	vertices = dep_graph_init(handle, targets, ignore);
 
 	i = vertices;
-	vertex = vertices.data;
+	vertex = cast(alpm_graph_t*)vertices.data;
 	while(i) {
 		/* mark that we touched the vertex */
 		vertex.state = ALPM_GRAPH_STATE_PROCESSING;
 		int switched_to_child = 0;
 		while(vertex.iterator && !switched_to_child) {
-			alpm_graph_t* nextchild = vertex.iterator.data;
+			alpm_graph_t* nextchild = cast(alpm_graph_t*)vertex.iterator.data;
 			vertex.iterator = vertex.iterator.next;
 			if(nextchild.state == ALPM_GRAPH_STATE_UNPROCESSED) {
 				switched_to_child = 1;
@@ -255,7 +255,7 @@ alpm_list_t* _alpm_sortbydeps(alpm_handle_t* handle, alpm_list_t* targets, alpm_
 			if(!vertex) {
 				/* top level vertex reached, move to the next unprocessed vertex */
 				for(i = i.next; i; i = i.next) {
-					vertex = i.data;
+					vertex = cast(alpm_graph_t*)i.data;
 					if(vertex.state == ALPM_GRAPH_STATE_UNPROCESSED) {
 						break;
 					}
@@ -274,7 +274,7 @@ alpm_list_t* _alpm_sortbydeps(alpm_handle_t* handle, alpm_list_t* targets, alpm_
 		newtargs = tmptargs;
 	}
 
-	alpm_list_free_inner(vertices, _alpm_graph_free);
+	alpm_list_free_inner(vertices, &_alpm_graph_free);
 	alpm_list_free(vertices);
 
 	return newtargs;
@@ -309,7 +309,7 @@ alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_l
 	CHECK_HANDLE(handle);
 
 	for(i = pkglist; i; i = i.next) {
-		alpm_pkg_t* pkg = i.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 		if(alpm_pkg_find(rem, pkg.name) || alpm_pkg_find(upgrade, pkg.name)) {
 			modified = alpm_list_add(modified, pkg);
 		} else {
@@ -321,12 +321,12 @@ alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_l
 
 	/* look for unsatisfied dependencies of the upgrade list */
 	for(i = upgrade; i; i = i.next) {
-		alpm_pkg_t* tp = i.data;
+		alpm_pkg_t* tp = cast(alpm_pkg_t*)i.data;
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: package %s-%s\n",
 				tp.name, tp.version_);
 
 		for(j = alpm_pkg_get_depends(tp); j; j = j.next) {
-			alpm_depend_t* depend = j.data;
+			alpm_depend_t* depend = cast(alpm_depend_t*)j.data;
 			alpm_depmod_t orig_mod = depend.mod;
 			if(nodepversion) {
 				depend.mod = ALPM_DEP_MOD_ANY;
@@ -354,9 +354,9 @@ alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_l
 		/* reversedeps handles the backwards dependencies, ie,
 		 * the packages listed in the requiredby field. */
 		for(i = dblist; i; i = i.next) {
-			alpm_pkg_t* lp = i.data;
+			alpm_pkg_t* lp = cast(alpm_pkg_t*)i.data;
 			for(j = alpm_pkg_get_depends(lp); j; j = j.next) {
-				alpm_depend_t* depend = j.data;
+				alpm_depend_t* depend = cast(alpm_depend_t*)j.data;
 				alpm_depmod_t orig_mod = depend.mod;
 				if(nodepversion) {
 					depend.mod = ALPM_DEP_MOD_ANY;
@@ -431,7 +431,7 @@ int _alpm_depcmp_provides(alpm_depend_t* dep, alpm_list_t* provisions)
 
 	/* check provisions, name and version if available */
 	for(i = provisions; i && !satisfy; i = i.next) {
-		alpm_depend_t* provision = i.data;
+		alpm_depend_t* provision = cast(alpm_depend_t*)i.data;
 
 		if(dep.mod == ALPM_DEP_MOD_ANY) {
 			/* any version will satisfy the requirement */
@@ -468,7 +468,7 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 
 	/* Note the extra space in ": " to avoid matching the epoch */
 	if((desc = strstr(depstring, ": ")) != null) {
-		STRDUP(depend.desc, desc + 2);
+		STRDUP(depend.desc, desc + 2, strlen(desc + 2));
 		deplen = desc - depstring;
 	} else {
 		/* no description- point desc at NULL at end of string for later use */
@@ -479,7 +479,7 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 
 	/* Find a version comparator if one exists. If it does, set the type and
 	 * increment the ptr accordingly so we can copy the right strings. */
-	if((ptr = memchr(depstring, '<', deplen))) {
+	if(cast(bool)(ptr = cast(const(char*))memchr(depstring, '<', deplen))) {
 		if(ptr[1] == '=') {
 			depend.mod = ALPM_DEP_MOD_LE;
 			version_ = ptr + 2;
@@ -487,7 +487,7 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 			depend.mod = ALPM_DEP_MOD_LT;
 			version_ = ptr + 1;
 		}
-	} else if((ptr = memchr(depstring, '>', deplen))) {
+	} else if(cast(bool)(ptr = cast(const(char*))memchr(depstring, '>', deplen))) {
 		if(ptr[1] == '=') {
 			depend.mod = ALPM_DEP_MOD_GE;
 			version_ = ptr + 2;
@@ -495,7 +495,7 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 			depend.mod = ALPM_DEP_MOD_GT;
 			version_ = ptr + 1;
 		}
-	} else if((ptr = memchr(depstring, '=', deplen))) {
+	} else if(cast(bool)(ptr = cast(const(char*))memchr(depstring, '=', deplen))) {
 		/* Note: we must do =,<,> checks after <=, >= checks */
 		depend.mod = ALPM_DEP_MOD_EQ;
 		version_ = ptr + 1;
@@ -508,10 +508,10 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 	}
 
 	/* copy the right parts to the right places */
-	STRNDUP(depend.name, depstring, ptr - depstring);
+	STRDUP(depend.name, depstring, ptr - depstring);
 	depend.name_hash = _alpm_hash_sdbm(depend.name);
 	if(version_) {
-		STRNDUP(depend.version_, version_, desc - version_);
+		STRDUP(depend.version_, version_, desc - version_);
 	}
 
 	return depend;
@@ -526,9 +526,9 @@ alpm_depend_t* _alpm_dep_dup(const(alpm_depend_t)* dep)
 	alpm_depend_t* newdep = void;
 	CALLOC(newdep, 1, alpm_depend_t.sizeof);
 
-	STRDUP(newdep.name, dep.name);
-	STRDUP(newdep.version_, dep.version_);
-	STRDUP(newdep.desc, dep.desc);
+	STRDUP(newdep.name, dep.name, strlen(dep.name));
+	STRDUP(newdep.version_, dep.version_, strlen(dep.version_));
+	STRDUP(newdep.desc, dep.desc, strlen(dep.desc));
 	newdep.name_hash = dep.name_hash;
 	newdep.mod = dep.mod;
 
@@ -552,7 +552,7 @@ private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, alpm_pkg
 		return;
 	}
 	for(i = *from; i; i = next) {
-		alpm_pkg_t* deppkg = i.data;
+		alpm_pkg_t* deppkg = cast(alpm_pkg_t*)i.data;
 		next = i.next;
 		if((explicit || alpm_pkg_get_reason(deppkg) == ALPM_PKG_REASON_DEPEND)
 				&& _alpm_pkg_depends_on(pkg, deppkg)) {
@@ -584,26 +584,26 @@ int _alpm_recursedeps(alpm_db_t* db, alpm_list_t** targs, int include_explicit)
 
 	keep = alpm_list_copy(_alpm_db_get_pkgcache(db));
 	for(i = *targs; i; i = i.next) {
-		keep = alpm_list_remove(keep, i.data, _alpm_pkg_cmp, null);
+		keep = alpm_list_remove(keep, i.data, &_alpm_pkg_cmp, null);
 	}
 
 	/* recursively select all dependencies for removal */
 	for(i = *targs; i; i = i.next) {
-		_alpm_select_depends(&keep, &rem, i.data, include_explicit);
+		_alpm_select_depends(&keep, &rem, cast(alpm_pkg_t*)i.data, include_explicit);
 	}
 	for(i = rem; i; i = i.next) {
-		_alpm_select_depends(&keep, &rem, i.data, include_explicit);
+		_alpm_select_depends(&keep, &rem, cast(alpm_pkg_t*)i.data, include_explicit);
 	}
 
 	/* recursively select any still needed packages to keep */
 	for(i = keep; i && rem; i = i.next) {
-		_alpm_select_depends(&rem, &keep, i.data, 1);
+		_alpm_select_depends(&rem, &keep, cast(alpm_pkg_t*)i.data, 1);
 	}
 	alpm_list_free(keep);
 
 	/* copy selected packages into the target list */
 	for(i = rem; i; i = i.next) {
-		alpm_pkg_t* pkg = i.data, copy = null;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data, copy = null;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"adding '%s' to the targets\n", pkg.name);
 		if(_alpm_pkg_dup(pkg, &copy)) {
@@ -642,7 +642,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 	/* 1. literals */
 	for(i = dbs; i; i = i.next) {
 		alpm_pkg_t* pkg = void;
-		alpm_db_t* db = i.data;
+		alpm_db_t* db = cast(alpm_db_t*)i.data;
 
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
@@ -673,12 +673,12 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 	}
 	/* 2. satisfiers (skip literals here) */
 	for(i = dbs; i; i = i.next) {
-		alpm_db_t* db = i.data;
+		alpm_db_t* db = cast(alpm_db_t*)i.data;
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
 		}
 		for(j = _alpm_db_get_pkgcache(db); j; j = j.next) {
-			alpm_pkg_t* pkg = j.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)j.data;
 			if((pkg.name_hash != dep.name_hash || strcmp(pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg))
 					&& !alpm_pkg_find(excluding, pkg.name)) {
@@ -714,7 +714,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 		}
 	}
 
-	count = alpm_list_count(providers);
+	count = cast(int)alpm_list_count(providers);
 	if(count >= 1) {
 		alpm_question_select_provider_t question = {
 			type: ALPM_QUESTION_SELECT_PROVIDER,
@@ -729,7 +729,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 		}
 		if(question.use_index >= 0 && question.use_index < count) {
 			alpm_list_t* nth = alpm_list_nth(providers, question.use_index);
-			alpm_pkg_t* pkg = nth.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)nth.data;
 			alpm_list_free(providers);
 			return pkg;
 		}
@@ -751,10 +751,10 @@ alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs, co
 	alpm_pkg_t* pkg = void;
 
 	CHECK_HANDLE(handle);
-	ASSERT(dbs);
+	ASSERT(dbs !is null);
 
 	dep = alpm_dep_from_string(depstring);
-	ASSERT(dep);
+	ASSERT(dep !is null);
 	pkg = resolvedep(handle, dep, dbs, null, 1);
 	alpm_dep_free(dep);
 	return pkg;
@@ -807,7 +807,7 @@ int _alpm_resolvedeps(alpm_handle_t* handle, alpm_list_t* localpkgs, alpm_pkg_t*
 	targ = null;
 
 	for(j = deps; j; j = j.next) {
-		alpm_depmissing_t* miss = j.data;
+		alpm_depmissing_t* miss = cast(alpm_depmissing_t*)j.data;
 		alpm_depend_t* missdep = miss.depend;
 		/* check if one of the packages in the [*packages] list already satisfies
 		 * this dependency */

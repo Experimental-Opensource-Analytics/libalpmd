@@ -62,7 +62,7 @@ alpm_pkg_t * alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync)
 	alpm_pkg_t* spkg = null;
 
 	ASSERT(pkg != null);
-	pkg.handle.pm_errno = ALPM_ERR_OK;
+	cast(alpm_handle_t*)pkg.handle.pm_errno = ALPM_ERR_OK;
 
 	for(i = dbs_sync; !spkg && i; i = i.next) {
 		alpm_db_t* db = i.data;
@@ -337,7 +337,7 @@ private int compute_download_size(alpm_pkg_t* newpkg)
 	snprintf(fnamepart, fnamepartlen, "%s.part", fname);
 	fpath = _alpm_filecache_find(handle, fnamepart);
 	if(fpath) {
-		stat st = void;
+		stat_t st = void;
 		if(stat(fpath, &st) == 0) {
 			/* subtract the size of the .part file */
 			_alpm_log(handle, ALPM_LOG_DEBUG, "using (package - .part) size\n");
@@ -450,7 +450,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				   transaction. The packages will be removed from the actual
 				   transaction when the transaction packages are replaced with a
 				   dependency-reordered list below */
-				handle.pm_errno = ALPM_ERR_OK;
+				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_OK;
 				if(data) {
 					alpm_list_free_inner(*data,
 							cast(alpm_list_fn_free)alpm_depmissing_free);
@@ -473,7 +473,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				alpm_pkg_t* pkg2 = j.data;
 				if(strcmp(pkg1.filename, pkg2.filename) == 0) {
 					ret = -1;
-					handle.pm_errno = ALPM_ERR_TRANS_DUP_FILENAME;
+					(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_TRANS_DUP_FILENAME;
 					_alpm_log(handle, ALPM_LOG_ERROR, ("packages %s and %s have the same filename: %s\n"),
 						pkg1.name, pkg2.name, pkg1.filename);
 				}
@@ -544,7 +544,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				sync = sync2;
 			} else {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("unresolvable package conflicts detected\n"));
-				handle.pm_errno = ALPM_ERR_CONFLICTING_DEPS;
+				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
 					alpm_conflict_t* newconflict = _alpm_conflict_dup(conflict);
@@ -616,7 +616,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				sync.removes = alpm_list_add(sync.removes, local);
 			} else { /* abort */
 				_alpm_log(handle, ALPM_LOG_ERROR, ("unresolvable package conflicts detected\n"));
-				handle.pm_errno = ALPM_ERR_CONFLICTING_DEPS;
+				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
 					alpm_conflict_t* newconflict = _alpm_conflict_dup(conflict);
@@ -656,7 +656,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.db_local),
 				trans.remove, trans.add, 1);
 		if(deps) {
-			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
+			(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
 			ret = -1;
 			if(data) {
 				*data = deps;
@@ -734,7 +734,7 @@ private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(spkg));
 
 			if(!repo.servers) {
-				handle.pm_errno = ALPM_ERR_SERVER_NONE;
+				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_SERVER_NONE;
 				_alpm_log(handle, ALPM_LOG_ERROR, "%s: %s\n",
 						alpm_strerror(handle.pm_errno), repo.treename);
 				return -1;
@@ -1073,7 +1073,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 		}
 		alpm_list_free(errors);
 
-		if(handle.pm_errno == ALPM_ERR_OK) {
+		if((cast(alpm_handle_t*)handle).pm_errno == ALPM_ERR_OK) {
 			RET_ERR(handle, ALPM_ERR_PKG_INVALID, -1);
 		}
 		return -1;
@@ -1152,7 +1152,7 @@ private int load_packages(alpm_handle_t* handle, alpm_list_t** data, size_t tota
 {
 	size_t current = 0, current_bytes = 0;
 	int errors = 0;
-	alpm_list_t* i = void, delete = null;
+	alpm_list_t* i = void, delete_list = null;
 	alpm_event_t event = void;
 
 	/* load packages from disk now that they are known-valid */
@@ -1175,7 +1175,7 @@ private int load_packages(alpm_handle_t* handle, alpm_list_t** data, size_t tota
 		filepath = _alpm_filecache_find(handle, spkg.filename);
 
 		if(!filepath) {
-			FREELIST(delete);
+			FREELIST(delete_list);
 			_alpm_log(handle, ALPM_LOG_ERROR,
 					("%s: could not find package in cache\n"), spkg.name);
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
@@ -1196,7 +1196,7 @@ private int load_packages(alpm_handle_t* handle, alpm_list_t** data, size_t tota
 		if(error != 0) {
 			errors++;
 			*data = alpm_list_add(*data, strdup(spkg.filename));
-			delete = alpm_list_add(delete, filepath);
+			delete_list = alpm_list_add(delete_list, filepath);
 			_alpm_pkg_free(pkgfile);
 			continue;
 		}
@@ -1220,12 +1220,12 @@ private int load_packages(alpm_handle_t* handle, alpm_list_t** data, size_t tota
 	EVENT(handle, &event);
 
 	if(errors) {
-		for(i = delete; i; i = i.next) {
+		for(i = delete_list; i; i = i.next) {
 			prompt_to_delete(handle, i.data, ALPM_ERR_PKG_INVALID);
 		}
-		FREELIST(delete);
+		FREELIST(delete_list);
 
-		if(handle.pm_errno == ALPM_ERR_OK) {
+		if((cast(alpm_handle_t*)handle).pm_errno == ALPM_ERR_OK) {
 			RET_ERR(handle, ALPM_ERR_PKG_INVALID, -1);
 		}
 		return -1;

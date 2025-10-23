@@ -35,6 +35,7 @@ import core.sys.posix.sys.stat;
 import core.sys.posix.sys.wait;
 import core.stdc.signal;
 import core.sys.posix.dirent;
+import core.sys.posix.stdio;
 import core.sys.posix.pwd;
 import etc.c.curl;
 
@@ -119,7 +120,7 @@ private mode_t _getumask()
 
 private int finalize_download_file(const(char)* filename)
 {
-	stat st = void;
+	stat_t st = void;
 	uid_t myuid = getuid();
 	ASSERT(filename != null);
 	ASSERT(stat(filename, &st) == 0);
@@ -159,7 +160,7 @@ private FILE* create_tempfile(dload_payload* payload, const(char)* localpath)
 	free(payload.tempfile_name);
 	payload.tempfile_name = randpath;
 	free(payload.remote_name);
-	STRDUP(payload.remote_name, strrchr(randpath, '/') + 1);
+	STRNDUP(payload.remote_name, strrchr(randpath, '/') + 1);
 
 	return fp;
 }
@@ -416,7 +417,7 @@ private void curl_set_handle_opts(CURL* curl, dload_payload* payload)
 {
 	alpm_handle_t* handle = payload.handle;
 	const(char)* useragent = getenv("HTTP_USER_AGENT");
-	stat st = void;
+	stat_t st = void;
 
 	/* the curl_easy handle is initialized with the alpm handle, so we only need
 	 * to reset the handle's parameters for each time it's used. */
@@ -480,7 +481,7 @@ private int curl_retry_next_server(CURLM* curlm, CURL* curl, dload_payload* payl
 {
 	const(char)* server = null;
 	size_t len = void;
-	stat st = void;
+	stat_t st = void;
 	alpm_handle_t* handle = payload.handle;
 
 	if((server = payload_next_server(payload)) == null) {
@@ -547,7 +548,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 	curl_off_t remote_size = void;
 	curl_off_t bytes_dl = 0;
 	c_long remote_time = -1;
-	stat st = void;
+	stat_t st = void;
 	char[HOSTNAME_SIZE] hostname = void;
 	int ret = -1;
 
@@ -1104,9 +1105,9 @@ private int payload_download_fetchcb(dload_payload* payload, const(char)* server
 	char* fileurl = void;
 	alpm_handle_t* handle = payload.handle;
 
-	size_t len = strlen(server.ptr) + strlen(payload.filepath) + 2;
+	size_t len = strlen(server) + strlen(payload.filepath) + 2;
 	MALLOC(fileurl, len);
-	snprintf(fileurl, len, "%s/%s", server.ptr, payload.filepath);
+	snprintf(fileurl, len, "%s/%s", server, payload.filepath);
 
 	ret = handle.fetchcb(handle.fetchcb_ctx, fileurl, localpath, payload.force);
 	free(fileurl);
@@ -1137,7 +1138,7 @@ private int finalize_download_locations(alpm_list_t* payloads, const(char)* loca
 	ASSERT(payloads != null);
 	ASSERT(localpath != null);
 	alpm_list_t* p = void;
-	stat st = void;
+	stat_t st = void;
 	int returnvalue = 0;
 	for(p = payloads; p; p = p.next) {
 		dload_payload* payload = p.data;
@@ -1196,7 +1197,7 @@ private void prepare_resumable_downloads(alpm_list_t* payloads, const(char)* loc
 		if(payload.destfile_name) {
 			const(char)* destfilename = mbasename(payload.destfile_name);
 			char* dest = _alpm_get_fullpath(localpath, destfilename, "");
-			stat deststat = void;
+			stat_t deststat = void;
 			if(stat(dest, &deststat) == 0 && deststat.st_size != 0) {
 				payload.mtime_existing_file = deststat.st_mtime;
 			}
@@ -1207,7 +1208,7 @@ private void prepare_resumable_downloads(alpm_list_t* payloads, const(char)* loc
 		}
 		const(char)* filename = mbasename(payload.tempfile_name);
 		char* src = _alpm_get_fullpath(localpath, filename, "");
-		stat st = void;
+		stat_t st = void;
 		if(stat(src, &st) != 0 || st.st_size == 0) {
 			FREE(src);
 			continue;

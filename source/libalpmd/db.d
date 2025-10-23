@@ -27,6 +27,7 @@ import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.string;
 import core.stdc.stddef;
+import std.regex;
 
 /* libalpm */
 // import libalpmd.db;
@@ -203,7 +204,7 @@ int  alpm_db_unregister(alpm_db_t* db)
 	return 0;
 }
 
-alpm_list_t * alpm_db_get_cache_servers(alpm_db_t* db)
+const(alpm_list_t)* alpm_db_get_cache_servers(const(alpm_db_t)* db)
 {
 	ASSERT(db != null);
 	return db.cache_servers;
@@ -223,7 +224,7 @@ int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 	return 0;
 }
 
-alpm_list_t * alpm_db_get_servers(alpm_db_t* db)
+const(alpm_list_t)* alpm_db_get_servers(const(alpm_db_t)* db)
 {
 	ASSERT(db != null);
 	return db.servers;
@@ -262,7 +263,7 @@ int  alpm_db_add_cache_server(alpm_db_t* db, const(char)* url)
 
 	/* Sanity checks */
 	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -281,7 +282,7 @@ int  alpm_db_add_server(alpm_db_t* db, const(char)* url)
 
 	/* Sanity checks */
 	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -301,7 +302,7 @@ int  alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url)
 
 	/* Sanity checks */
 	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -327,7 +328,7 @@ int  alpm_db_remove_server(alpm_db_t* db, const(char)* url)
 
 	/* Sanity checks */
 	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -370,17 +371,17 @@ int  alpm_db_get_siglevel(alpm_db_t* db)
 
 int  alpm_db_get_valid(alpm_db_t* db)
 {
-	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
-	return db.ops.validate(db);
+ASSERT(db != null);
+(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+return db.ops.validate(db);
 }
 
 alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db, const(char)* name)
 {
-	alpm_pkg_t* pkg = void;
-	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
-	ASSERT(name != null && strlen(name) != 0);
+alpm_pkg_t* pkg = void;
+ASSERT(db != null);
+(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+ASSERT(name != null && strlen(name) != 0);
 
 	pkg = _alpm_db_get_pkgfromcache(db, name);
 	if(!pkg) {
@@ -392,14 +393,14 @@ alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db, const(char)* name)
 alpm_list_t * alpm_db_get_pkgcache(alpm_db_t* db)
 {
 	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	return _alpm_db_get_pkgcache(db);
 }
 
 alpm_group_t * alpm_db_get_group(alpm_db_t* db, const(char)* name)
 {
 	ASSERT(db != null);
-	db.handle.pm_errno = alpm_errno_t.init;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	ASSERT(name != null && strlen(name) != 0);
 
 	return _alpm_db_get_groupfromcache(db, name);
@@ -408,7 +409,7 @@ alpm_group_t * alpm_db_get_group(alpm_db_t* db, const(char)* name)
 alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 {
 	ASSERT(db != null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 
 	return _alpm_db_get_groupcache(db);
 }
@@ -416,7 +417,7 @@ alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 int  alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** ret)
 {
 	ASSERT(db != null && ret != null && *ret == null);
-	db.handle.pm_errno = ALPM_ERR_OK;
+	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 
 	return _alpm_db_search(db, needles, ret);
 }
@@ -520,7 +521,6 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 
 	for(i = needles; i; i = i.next) {
 		char* targ = void;
-		regex_t reg = void;
 
 		if(i.data == null) {
 			continue;
@@ -529,25 +529,18 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 		targ = cast(char*)i.data;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
 
-		if(regcomp(&reg, targ, REG_EXTENDED | REG_NOSUB | REG_ICASE | REG_NEWLINE) != 0) {
-			db.handle.pm_errno = ALPM_ERR_INVALID_REGEX;
-			alpm_list_free(list);
-			alpm_list_free(*ret);
-			return -1;
-		}
-
 		for(j = cast(const(alpm_list_t)*) list; j; j = j.next) {
 			alpm_pkg_t* pkg = cast(alpm_pkg_t*)j.data;
 			const(char)* matched = null;
 			const(char)* name = pkg.name;
 			const(char)* desc = alpm_pkg_get_desc(pkg);
 
-			/* check name as regex AND as plain text */
-			if(name && (regexec(&reg, name, 0, 0, 0) == 0 || strstr(name, targ))) {
+			/* check name as plain text */
+			if(name && strstr(name, targ)) {
 				matched = name;
 			}
 			/* check desc */
-			else if(desc && regexec(&reg, desc, 0, 0, 0) == 0) {
+			else if(desc && strstr(desc, targ)) {
 				matched = desc;
 			}
 			/* TODO: should we be doing this, and should we print something
@@ -555,8 +548,8 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 			if(!matched) {
 				/* check provides */
 				for(k = alpm_pkg_get_provides(pkg); k; k = k.next) {
-					alpm_depend_t* provide = k.data;
-					if(regexec(&reg, provide.name, 0, 0, 0) == 0) {
+					alpm_depend_t* provide = cast(alpm_depend_t*)k.data;
+					if(strstr(provide.name, targ)) {
 						matched = provide.name;
 						break;
 					}
@@ -565,8 +558,9 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 			if(!matched) {
 				/* check groups */
 				for(k = alpm_pkg_get_groups(pkg); k; k = k.next) {
-					if(regexec(&reg, k.data, 0, 0, 0) == 0) {
-						matched = k.data;
+					const(char)* group = cast(const(char*))k.data;
+					if(strstr(group, targ)) {
+						matched = group;
 						break;
 					}
 				}
@@ -584,7 +578,6 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 		 * next needle. This allows for AND-based package searching. */
 		alpm_list_free(list);
 		list = *ret;
-		regfree(&reg);
 	}
 
 	return 0;
@@ -621,7 +614,7 @@ private void free_groupcache(alpm_db_t* db)
 			"freeing group cache for repository '%s'\n", db.treename);
 
 	for(lg = db.grpcache; lg; lg = lg.next) {
-		_alpm_group_free(lg.data);
+		_alpm_group_free(cast(alpm_group_t*)lg.data);
 		lg.data = null;
 	}
 	FREELIST(db.grpcache);
@@ -638,7 +631,7 @@ void _alpm_db_free_pkgcache(alpm_db_t* db)
 			"freeing package cache for repository '%s'\n", db.treename);
 
 	alpm_list_free_inner(db.pkgcache.list,
-			cast(alpm_list_fn_free)_alpm_pkg_free);
+			cast(alpm_list_fn_free)&_alpm_pkg_free);
 	_alpm_pkghash_free(db.pkgcache);
 	db.pkgcache = null;
 	db.status &= ~DB_STATUS_PKGCACHE;
@@ -766,17 +759,17 @@ private int load_grpcache(alpm_db_t* db)
 
 	for(lp = _alpm_db_get_pkgcache(db); lp; lp = lp.next) {
 		const(alpm_list_t)* i = void;
-		alpm_pkg_t* pkg = lp.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)lp.data;
 
 		for(i = alpm_pkg_get_groups(pkg); i; i = i.next) {
-			const(char)* grpname = i.data;
+			const(char)* grpname = cast(const(char*))i.data;
 			alpm_list_t* j = void;
 			alpm_group_t* grp = null;
 			int found = 0;
 
 			/* first look through the group cache for a group with this name */
 			for(j = db.grpcache; j; j = j.next) {
-				grp = j.data;
+				grp = cast(alpm_group_t*)j.data;
 
 				if(strcmp(grp.name, grpname) == 0
 						&& !alpm_list_find_ptr(grp.packages, pkg)) {

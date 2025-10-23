@@ -26,7 +26,18 @@ private template HasVersion(string versionId) {
 
 import core.stdc.stdio;
 import core.stdc.errno;
+import core.sys.posix.unistd;
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.errno;
+import core.stdc.string;
+import core.stdc.stdint; /* intmax_t */
+// import core.sys.posix.dirent;
+import core.sys.posix.dirent;
+import core.sys.posix.sys.stat;
+import ae.sys.file;
 
+import core.stdc.string;
 // version (HAVE_MNTENT_H) {
 // import mntent;
 // }
@@ -46,6 +57,8 @@ import core.stdc.errno;
 // import sys/ucred;
 // import core.sys.freebsd.sys.
 // }
+enum PATH_MAX = 255;
+
 version (HAVE_SYS_TYPES_H) {
 import core.sys.posix.sys.types;
 }
@@ -59,6 +72,17 @@ import libalpmd.trans;
 import libalpmd.handle;
 import libalpmd._package;
 import core.sys.posix.sys.statvfs;
+import libalpmd.filelist;import core.sys.posix.unistd;
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.errno;
+import core.stdc.string;
+import core.stdc.stdint; /* intmax_t */
+// import core.sys.posix.dirent;
+import core.sys.posix.dirent;
+import core.sys.posix.sys.stat;
+import ae.sys.file;
+import libalpmd.alpm;
 
 alias FSSTATSTYPE = statvfs_t;
 
@@ -107,8 +131,8 @@ struct alpm_mountpoint_t {
 
 private int mount_point_cmp(const(void)* p1, const(void)* p2)
 {
-	const(alpm_mountpoint_t)* mp1 = p1;
-	const(alpm_mountpoint_t)* mp2 = p2;
+	const(alpm_mountpoint_t)* mp1 = cast(alpm_mountpoint_t*)p1;
+	const(alpm_mountpoint_t)* mp2 = cast(alpm_mountpoint_t*)p2;
 	/* the negation will sort all mountpoints before their parent */
 	return -strcmp(mp1.mount_dir, mp2.mount_dir);
 }
@@ -118,7 +142,7 @@ private void mount_point_list_free(alpm_list_t* mount_points)
 	alpm_list_t* i = void;
 
 	for(i = mount_points; i; i = i.next) {
-		alpm_mountpoint_t* data = i.data;
+		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)i.data;
 		FREE(data.mount_dir);
 	}
 	FREELIST(mount_points);
@@ -248,7 +272,7 @@ static if (HasVersion!"HAVE_GETMNTINFO_STATVFS" && HasVersion!"HAVE_STRUCT_STATV
 	mount_points = alpm_list_msort(mount_points, alpm_list_count(mount_points),
 			&mount_point_cmp);
 	for(ptr = mount_points; ptr != null; ptr = ptr.next) {
-		mp = ptr.data;
+		mp = cast(alpm_mountpoint_t*)ptr.data;
 		_alpm_log(handle, ALPM_LOG_DEBUG, "discovered mountpoint: %s\n", mp.mount_dir);
 	}
 	return mount_points;
@@ -259,7 +283,7 @@ private alpm_mountpoint_t* match_mount_point(const(alpm_list_t)* mount_points, c
 	const(alpm_list_t)* mp = void;
 
 	for(mp = mount_points; mp != null; mp = mp.next) {
-		alpm_mountpoint_t* data = mp.data;
+		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)mp.data;
 
 		/* first, check if the prefix matches */
 		if(strncmp(data.mount_dir, real_path, data.mount_dir_len) == 0) {
@@ -294,14 +318,14 @@ private int calculate_removed_size(alpm_handle_t* handle, const(alpm_list_t)* mo
 	for(i = 0; i < filelist.count; i++) {
 		const(alpm_file_t)* file = filelist.files + i;
 		alpm_mountpoint_t* mp = void;
-		stat st = void;
+		stat_t st = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t remove_size = void;
 		const(char)* filename = file.name;
 
 		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root, filename);
 
-		if(llstat(path.ptr, &st) == -1) {
+		if(lstat(path.ptr, &st) == -1) {
 			if(alpm_option_match_noextract(handle, filename)) {
 				_alpm_log(handle, ALPM_LOG_WARNING,
 						("could not get file information for %s\n"), filename);
@@ -322,7 +346,7 @@ private int calculate_removed_size(alpm_handle_t* handle, const(alpm_list_t)* mo
 			continue;
 		}
 
-		/* don't check a mount that we know we can't stat */
+		/* don't check a mount that we know we can't stat_t */
 		if(mp && mp.fsinfo_loaded == MOUNT_FSINFO_FAIL) {
 			continue;
 		}
@@ -380,7 +404,7 @@ private int calculate_installed_size(alpm_handle_t* handle, const(alpm_list_t)* 
 			continue;
 		}
 
-		/* don't check a mount that we know we can't stat */
+		/* don't check a mount that we know we can't stat_t */
 		if(mp && mp.fsinfo_loaded == MOUNT_FSINFO_FAIL) {
 			continue;
 		}
@@ -433,8 +457,8 @@ int _alpm_check_downloadspace(alpm_handle_t* handle, const(char)* cachedir, size
 	/* resolve the cachedir path to ensure we check the right mountpoint. We
 	 * handle failures silently, and continue to use the possibly unresolved
 	 * path. */
-	if(realpath(cachedir, resolved_cachedir.ptr) != null) {
-		cachedir = resolved_cachedir;
+	if(realPath(cachedir, resolved_cachedir.ptr) != null) {
+		cachedir = resolved_cachedir.ptr;
 	}
 
 	mount_points = mount_point_list(handle);
@@ -509,11 +533,11 @@ int _alpm_check_diskspace(alpm_handle_t* handle)
 		numtargs += replaces;
 		for(targ = trans.remove; targ; targ = targ.next, current++) {
 			alpm_pkg_t* local_pkg = void;
-			int percent = (current * 100) / numtargs;
+			int percent = cast(int)((current * 100) / numtargs);
 			PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
 					numtargs, current);
 
-			local_pkg = targ.data;
+			local_pkg = cast(alpm_pkg_t*)targ.data;
 			calculate_removed_size(handle, mount_points, local_pkg);
 		}
 	}
@@ -533,7 +557,7 @@ int _alpm_check_diskspace(alpm_handle_t* handle)
 		calculate_installed_size(handle, mount_points, pkg);
 
 		for(i = mount_points; i; i = i.next) {
-			alpm_mountpoint_t* data = i.data;
+			alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)i.data;
 			if(data.blocks_needed > data.max_blocks_needed) {
 				data.max_blocks_needed = data.blocks_needed;
 			}
@@ -544,7 +568,7 @@ int _alpm_check_diskspace(alpm_handle_t* handle)
 			numtargs, current);
 
 	for(i = mount_points; i; i = i.next) {
-		alpm_mountpoint_t* data = i.data;
+		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)i.data;
 		if(data.used && data.read_only) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("Partition %s is mounted read only\n"),
 					data.mount_dir);

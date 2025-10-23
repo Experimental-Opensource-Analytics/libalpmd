@@ -2182,7 +2182,7 @@ int alpm_option_remove_noextract(alpm_handle_t* handle, const(char)* path);
  * @return 0 is the path matches a glob, negative if there is no match and
  * positive is the  match was inverted
  */
-int alpm_option_match_noextract(alpm_handle_t* handle, const(char)* path);
+// int alpm_option_match_noextract(alpm_handle_t* handle, const(char)* path);
 /* End of noextract accessors */
 /** @} */
 
@@ -2654,7 +2654,7 @@ alpm_list_t* alpm_pkg_compute_optionalfor(alpm_pkg_t* pkg);
  * @param pkg the package to test
  * @return 1 if the package should be ignored, 0 otherwise
  */
-int alpm_pkg_should_ignore(alpm_handle_t* handle, alpm_pkg_t* pkg);
+// int alpm_pkg_should_ignore(alpm_handle_t* handle, alpm_pkg_t* pkg);
 
 /** @name Package Property Accessors
  * Any pointer returned by these functions points to internal structures
@@ -2707,7 +2707,7 @@ alpm_pkgfrom_t alpm_pkg_get_origin(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_desc(alpm_pkg_t* pkg);
+// const(char)* alpm_pkg_get_desc(alpm_pkg_t* pkg);
 
 /** Returns the package URL.
  * @param pkg a pointer to package
@@ -2782,13 +2782,13 @@ alpm_list_t* alpm_pkg_get_licenses(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a pointer to an internal list of strings.
  */
-alpm_list_t* alpm_pkg_get_groups(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_groups(alpm_pkg_t* pkg);
 
 /** Returns the list of package dependencies as alpm_depend_t.
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_depends(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_depends(alpm_pkg_t* pkg);
 
 /** Returns the list of package optional dependencies.
  * @param pkg a pointer to package
@@ -2818,7 +2818,7 @@ alpm_list_t* alpm_pkg_get_makedepends(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_provides(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_provides(alpm_pkg_t* pkg);
 
 /** Returns the list of packages to be replaced by pkg.
  * @param pkg a pointer to package

@@ -349,7 +349,7 @@ alpm_list_t * alpm_list_remove(alpm_list_t* haystack, void* needle, alpm_list_fn
 
 alpm_list_t * alpm_list_remove_str(alpm_list_t* haystack, char* needle, char** data)
 {
-	return alpm_list_remove(haystack, cast(const(void)*)needle,
+	return alpm_list_remove(haystack, cast(void*)needle,
 			cast(alpm_list_fn_cmp)&strcmp, cast(void**)data);
 }
 
