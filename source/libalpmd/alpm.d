@@ -778,7 +778,7 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
  * @param dep a dependency info structure
  * @return a formatted string, e.g. "glibc>=2.12"
  */
-// char* alpm_dep_compute_string(const(alpm_depend_t)* dep);
+// char* alpm_dep_compute_string(alpm_depend_t* dep);
 
 /** Return a newly allocated dependency information parsed from a string
  *\link alpm_dep_free should be used to free the dependency \endlink
@@ -790,7 +790,7 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
 /** Free a dependency info structure
  * @param dep struct to free
  */
-void alpm_dep_free(alpm_depend_t* dep);
+// void alpm_dep_free(alpm_depend_t* dep);
 
 /** Free a fileconflict and its members.
  * @param conflict the fileconflict to free
@@ -1466,7 +1466,7 @@ alpm_handle_t* alpm_db_get_handle(alpm_db_t* db);
  * @param db pointer to the package database
  * @return the name of the package database, NULL on error
  */
-const(char)* alpm_db_get_name(const(alpm_db_t)* db);
+const(char)* alpm_db_get_name( alpm_db_t*db);
 
 /** Get the signature verification level for a database.
  * Will return the default verification level if this database is set up
@@ -1492,7 +1492,7 @@ int alpm_db_get_valid(alpm_db_t* db);
  * @param db pointer to the database to get the servers from
  * @return a char* list of servers
  */
-alpm_list_t* alpm_db_get_servers(const(alpm_db_t)* db);
+alpm_list_t* alpm_db_get_servers( alpm_db_t*db);
 
 /** Sets the list of servers for the database to use.
  * @param db the database to set the servers. The list will be duped and
@@ -1520,7 +1520,7 @@ int alpm_db_remove_server(alpm_db_t* db, const(char)* url);
  * @param db pointer to the database to get the servers from
  * @return a char* list of servers
  */
-alpm_list_t* alpm_db_get_cache_servers(const(alpm_db_t)* db);
+alpm_list_t* alpm_db_get_cache_servers( alpm_db_t*db);
 
 /** Sets the list of cache servers for the database to use.
  * @param db the database to set the servers. The list will be duped and
@@ -1615,7 +1615,7 @@ alpm_list_t* alpm_db_get_groupcache(alpm_db_t* db);
  * regular expressions - must point to an empty (NULL) alpm_list_t *.
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** ret);
+int alpm_db_search(alpm_db_t* db, alpm_list_t* needles, alpm_list_t** ret);
 
 /** The usage level of a database. */
 enum alpm_db_usage_t {
@@ -1689,7 +1689,7 @@ alias ALPM_LOG_FUNCTION = alpm_loglevel_t.ALPM_LOG_FUNCTION;
 /** The callback type for logging.
  *
  * libalpm will call this function whenever something is to be logged.
- * many libalpm will produce log output. Additionally any calls to \link alpm_logaction
+ * many libalpm will produce log output. Additionally any calls to \link //alpm_logaction
  * \endlink will also call this callback.
  * @param ctx user-provided context
  * @param level the currently set loglevel
@@ -1704,7 +1704,7 @@ alias alpm_cb_log = void function(void* ctx, alpm_loglevel_t level, const(char)*
  * @param fmt output format
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-// int alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...);
+// int //alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...);
 
 /* End of libalpm_log */
 /** @} */
@@ -2286,7 +2286,7 @@ alpm_list_t* alpm_option_get_assumeinstalled(alpm_handle_t* handle);
  * @param dep the dependency to add
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_option_add_assumeinstalled(alpm_handle_t* handle, const(alpm_depend_t)* dep);
+int alpm_option_add_assumeinstalled(alpm_handle_t* handle, alpm_depend_t* dep);
 
 /** Sets the list of dependencies that are assumed to be met
  * @param handle the context handle
@@ -2301,7 +2301,7 @@ int alpm_option_set_assumeinstalled(alpm_handle_t* handle, alpm_list_t* deps);
  * @param dep the dep to remove
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_option_remove_assumeinstalled(alpm_handle_t* handle, const(alpm_depend_t)* dep);
+int alpm_option_remove_assumeinstalled(alpm_handle_t* handle, alpm_depend_t* dep);
 /* End of assunmeinstalled accessors */
 /** @} */
 
@@ -2427,7 +2427,7 @@ int alpm_option_set_local_file_siglevel(alpm_handle_t* handle, int level);
  * @param handle the context handle
  * @return a \link alpm_siglevel_t \endlink bitfield of the siglevel
  */
-int alpm_option_get_remote_file_siglevel(alpm_handle_t* handle);
+// int alpm_option_get_remote_file_siglevel(alpm_handle_t* handle);
 
 /** Set the remote file siglevel.
  * @param handle the context handle
@@ -2592,7 +2592,7 @@ int alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int le
  *    (*fetched === NULL) and the callee fills the list with data.
  * @return 0 on success or -1 on failure
  */
-int alpm_fetch_pkgurl(alpm_handle_t* handle, const(alpm_list_t)* urls, alpm_list_t** fetched);
+int alpm_fetch_pkgurl(alpm_handle_t* handle, alpm_list_t* urls, alpm_list_t** fetched);
 
 /** Find a package in a list by name.
  * @param haystack a list of alpm_pkg_t
@@ -2776,7 +2776,7 @@ off_t alpm_pkg_get_isize(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a pointer to an internal list of strings.
  */
-alpm_list_t* alpm_pkg_get_licenses(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_licenses(alpm_pkg_t* pkg);
 
 /** Returns the list of package groups.
  * @param pkg a pointer to package
@@ -2794,7 +2794,7 @@ alpm_list_t* alpm_pkg_get_licenses(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_optdepends(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_optdepends(alpm_pkg_t* pkg);
 
 /** Returns a list of package check dependencies
  * @param pkg a pointer to package
@@ -2927,14 +2927,14 @@ void* alpm_pkg_changelog_open(alpm_pkg_t* pkg);
  * @return the number of characters read, or 0 if there is no more data or an
  * error occurred.
  */
-size_t alpm_pkg_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)* pkg, void* fp);
+size_t alpm_pkg_changelog_read(void* ptr, size_t size, alpm_pkg_t* pkg, void* fp);
 
 /** Close a package changelog for reading.
  * @param pkg the package to close the changelog of (either file or db)
  * @param fp the 'file stream' to the package changelog to close
  * @return 0 on success, -1 on error
  */
-int alpm_pkg_changelog_close(const(alpm_pkg_t)* pkg, void* fp);
+int alpm_pkg_changelog_close(alpm_pkg_t* pkg, void* fp);
 
 /* End of changelog accessors */
 /** @} */
@@ -2957,13 +2957,13 @@ archive* alpm_pkg_mtree_open(alpm_pkg_t* pkg);
  * @param entry an archive_entry to store the entry header information
  * @return 0 on success, 1 if end of archive is reached, -1 otherwise.
  */
-int alpm_pkg_mtree_next(const(alpm_pkg_t)* pkg, archive* archive, archive_entry** entry);
+int alpm_pkg_mtree_next(alpm_pkg_t* pkg, archive* archive, archive_entry** entry);
 
 /** Close a package mtree file.
  * @param pkg the local package to close the mtree of
  * @param archive the archive to close
  */
-int alpm_pkg_mtree_close(const(alpm_pkg_t)* pkg, archive* archive);
+int alpm_pkg_mtree_close(alpm_pkg_t* pkg, archive* archive);
 
 /* End of mtree accessors */
 /** @} */
@@ -3255,7 +3255,7 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
  * @param dep a dependency info structure
  * @return a formatted string, e.g. "glibc>=2.12"
  */
-// char* alpm_dep_compute_string(const(alpm_depend_t)* dep);
+// char* alpm_dep_compute_string(alpm_depend_t* dep);
 
 /** Return a newly allocated dependency information parsed from a string
  *\link alpm_dep_free should be used to free the dependency \endlink
@@ -3267,7 +3267,7 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
 /** Free a dependency info structure
  * @param dep struct to free
  */
-void alpm_dep_free(alpm_depend_t* dep);
+// void alpm_dep_free(alpm_depend_t* dep);
 
 /** Free a fileconflict and its members.
  * @param conflict the fileconflict to free
@@ -3323,7 +3323,7 @@ void alpm_conflict_free(alpm_conflict_t* conflict);
 /* End of libalpm_cb */
 /** @} */
 
-alpm_handle_t * alpm_initialize(const(char)* root, const(char)* dbpath, alpm_errno_t* err)
+alpm_handle_t * alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 {
 	alpm_errno_t myerr = void;
 	const(char)* lf = "db.lck";
@@ -3371,7 +3371,7 @@ version (HAVE_LIBCURL) {
 
 	/* set default sandboxuser */
 	ASSERT((pw = getpwuid(0)) != null);
-	STRNDUP(myhandle.sandboxuser, pw.pw_name);
+	STRNDUP(myhandle.sandboxuser, cast(char*)pw.pw_name);
 	
 version (ENABLE_NLS) {
 	bindtextdomain("libalpm", LOCALEDIR);

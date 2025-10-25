@@ -39,21 +39,21 @@ version (HAVE_LINUX_LANDLOCK_H) {
 
 version (HAVE_LINUX_LANDLOCK_H) {
 version (landlock_create_ruleset) {} else {
-pragma(inline, true) private int landlock_create_ruleset(const(landlock_ruleset_attr*) attr, const(size_t) size, const(uint) flags)
+pragma(inline, true) private int landlock_create_ruleset( landlock_ruleset_attr* attr,  size_t size,  uint flags)
 {
 	return syscall(__NR_landlock_create_ruleset, attr, size, flags);
 }
 } /* landlock_create_ruleset */
 
 version (landlock_add_rule) {} else {
-pragma(inline, true) private int landlock_add_rule(const(int) ruleset_fd, const(landlock_rule_type) rule_type, const(void*) rule_attr, const(uint) flags)
+pragma(inline, true) private int landlock_add_rule( int ruleset_fd,  landlock_rule_type rule_type,  void* rule_attr,  uint flags)
 {
 	return syscall(__NR_landlock_add_rule, ruleset_fd, rule_type, rule_attr, flags);
 }
 } /* landlock_add_rule */
 
 version (landlock_restrict_self) {} else {
-pragma(inline, true) private int landlock_restrict_self(const(int) ruleset_fd, const(uint) flags)
+pragma(inline, true) private int landlock_restrict_self( int ruleset_fd, uint flags)
 {
 	return syscall(__NR_landlock_restrict_self, ruleset_fd, flags);
 }
@@ -89,7 +89,7 @@ enum _LANDLOCK_ACCESS_FS_TRUNCATE = 0;
 
 } /* HAVE_LINUX_LANDLOCK_H */
 
-bool _alpm_sandbox_fs_restrict_writes_to(alpm_handle_t* handle, const(char)* path)
+bool _alpm_sandbox_fs_restrict_writes_to(alpm_handle_t* handle,   char*path)
 {
 	ASSERT(handle != null);
 	ASSERT(path != null);

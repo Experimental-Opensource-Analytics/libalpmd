@@ -52,6 +52,8 @@ import libalpmd.deps;
 import libalpmd.filelist;
 import libalpmd.libarchive_compat;
 import std.conv;
+import std.string;
+
 import libalpmd.pkghash;
 import libalpmd.backup;
 
@@ -77,19 +79,19 @@ enum string LAZY_LOAD(string info) = `
  * initialized.
  */
 
-const(char)* _cache_get_base(alpm_pkg_t* pkg)
+  char*_cache_get_base(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.base;
 }
 
-private const(char)* _cache_get_desc(alpm_pkg_t* pkg)
+private   char*_cache_get_desc(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.desc;
 }
 
-private const(char)* _cache_get_url(alpm_pkg_t* pkg)
+private   char*_cache_get_url(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.url;
@@ -107,13 +109,13 @@ private alpm_time_t _cache_get_installdate(alpm_pkg_t* pkg)
 	return pkg.installdate;
 }
 
-private const(char)* _cache_get_packager(alpm_pkg_t* pkg)
+private   char*_cache_get_packager(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.packager;
 }
 
-private const(char)* _cache_get_arch(alpm_pkg_t* pkg)
+private   char*_cache_get_arch(alpm_pkg_t* pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.arch;
@@ -224,7 +226,7 @@ private alpm_list_t* _cache_get_xdata(alpm_pkg_t* pkg)
 private void* _cache_changelog_open(alpm_pkg_t* pkg)
 {
 	alpm_db_t* db = alpm_pkg_get_db(pkg);
-	char* clfile = _alpm_local_db_pkgpath(db, pkg, "changelog");
+	char* clfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"changelog");
 	FILE* f = fopen(clfile, "r");
 	free(clfile);
 	return cast(void*)f;
@@ -239,7 +241,7 @@ private void* _cache_changelog_open(alpm_pkg_t* pkg)
  * @param fp a 'file stream' to the package changelog
  * @return the number of characters read, or 0 if there is no more data
  */
-private size_t _cache_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)* pkg, void* fp)
+private size_t _cache_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg, void* fp)
 {
 	return fread(ptr, 1, size, cast(FILE*)fp);
 }
@@ -251,7 +253,7 @@ private size_t _cache_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)* 
  * @param fp a 'file stream' to the package changelog
  * @return whether closing the package changelog stream was successful
  */
-private int _cache_changelog_close(const(alpm_pkg_t)* pkg, void* fp)
+private int _cache_changelog_close( alpm_pkg_t* pkg, void* fp)
 {
 	return fclose(cast(FILE*)fp);
 }
@@ -266,7 +268,7 @@ private archive* _cache_mtree_open(alpm_pkg_t* pkg)
 	archive* mtree = void;
 
 	alpm_db_t* db = alpm_pkg_get_db(pkg);
-	char* mtfile = _alpm_local_db_pkgpath(db, pkg, "mtree");
+	char* mtfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"mtree");
 
 	if(access(mtfile, F_OK) != 0) {
 		/* there is no mtree file for this package */
@@ -281,7 +283,7 @@ private archive* _cache_mtree_open(alpm_pkg_t* pkg)
 	archive_read_support_format_mtree(mtree);
 
 	if(_alpm_archive_read_open_file(mtree, mtfile, ALPM_BUFFER_SIZE)) {
-		_alpm_log(pkg.handle, ALPM_LOG_ERROR, ("error while reading file %s: %s\n"),
+		_alpm_log(pkg.handle, ALPM_LOG_ERROR, "error while reading file %s: %s\n",
 					mtfile, archive_error_string(mtree));
 		_alpm_archive_read_free(mtree);
 		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, "error");
@@ -302,7 +304,7 @@ error:
  * @param entry an archive_entry to store the entry header information
  * @return 0 on success, 1 if end of archive is reached, -1 otherwise.
  */
-private int _cache_mtree_next(const(alpm_pkg_t)* pkg, archive* mtree, archive_entry** entry)
+private int _cache_mtree_next( alpm_pkg_t* pkg, archive* mtree, archive_entry** entry)
 {
 	int ret = void;
 	ret = archive_read_next_header(mtree, entry);
@@ -327,7 +329,7 @@ private int _cache_mtree_next(const(alpm_pkg_t)* pkg, archive* mtree, archive_en
  * @param mtree the archive structure use for reading from the mtree file
  * @return whether closing the package changelog stream was successful
  */
-private int _cache_mtree_close(const(alpm_pkg_t)* pkg, archive* mtree)
+private int _cache_mtree_close( alpm_pkg_t* pkg, archive* mtree)
 {
 	return _alpm_archive_read_free(mtree);
 }
@@ -342,7 +344,7 @@ private int _cache_force_load(alpm_pkg_t* pkg)
  * lazy accessor methods that handle any backend loading and caching
  * logic.
  */
-private const(pkg_operations) local_pkg_ops = {
+private const (pkg_operations) local_pkg_ops = {
 	get_base: &_cache_get_base,
 	get_desc: &_cache_get_desc,
 	get_url: &_cache_get_url,
@@ -381,7 +383,7 @@ private const(pkg_operations) local_pkg_ops = {
 private int checkdbdir(alpm_db_t* db)
 {
 	stat_t buf = void;
-	const(char)* path = _alpm_db_path(db);
+	  char*path = _alpm_db_path(db);
 
 	if(stat(path, &buf) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
@@ -398,7 +400,7 @@ private int checkdbdir(alpm_db_t* db)
 	return 0;
 }
 
-private int is_dir(const(char)* path, dirent* entry)
+private int is_dir(  char*path, dirent* entry)
 {
 version (HAVE_STRUCT_DIRENT_D_TYPE) {
 	if(entry.d_type != DT_UNKNOWN) {
@@ -419,7 +421,7 @@ version (HAVE_STRUCT_DIRENT_D_TYPE) {
 	return 0;
 }
 
-private int local_db_add_version(alpm_db_t* db, const(char)* dbpath)
+private int local_db_add_version(alpm_db_t* db,   char*dbpath)
 {
 	char[PATH_MAX] dbverpath = void;
 	FILE* dbverfile = void;
@@ -438,7 +440,7 @@ private int local_db_add_version(alpm_db_t* db, const(char)* dbpath)
 	return 0;
 }
 
-private int local_db_create(alpm_db_t* db, const(char)* dbpath)
+private int local_db_create(alpm_db_t* db,   char*dbpath)
 {
 	if(mkdir(dbpath, octal!"0755") != 0) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not create directory %s: %s\n"),
@@ -455,7 +457,7 @@ private int local_db_create(alpm_db_t* db, const(char)* dbpath)
 private int local_db_validate(alpm_db_t* db)
 {
 	dirent* ent = null;
-	const(char)* dbpath = void;
+	  char*dbpath = void;
 	DIR* dbdir = void;
 	char[PATH_MAX] dbverpath = void;
 	FILE* dbverfile = void;
@@ -502,7 +504,7 @@ private int local_db_validate(alpm_db_t* db)
 	if((dbverfile = fopen(dbverpath.ptr, "r")) == null) {
 		/* create dbverfile if local database is empty - otherwise version error */
 		while((ent = readdir(dbdir)) != null) {
-			const(char)* name = ent.d_name.ptr;
+			  char*name = ent.d_name.ptr;
 			if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 				continue;
 			} else {
@@ -547,7 +549,7 @@ private int local_db_populate(alpm_db_t* db)
 	size_t count = 0;
 	stat_t buf = void;
 	dirent* ent = null;
-	const(char)* dbpath = void;
+	  char*dbpath = void;
 	DIR* dbdir = void;
 
 	if(db.status & DB_STATUS_INVALID) {
@@ -597,7 +599,7 @@ private int local_db_populate(alpm_db_t* db)
 	}
 
 	while((ent = readdir(dbdir)) != null) {
-		const(char)* name = ent.d_name.ptr;
+		  char*name = ent.d_name.ptr;
 
 		alpm_pkg_t* pkg = void;
 
@@ -665,7 +667,7 @@ private int local_db_populate(alpm_db_t* db)
 	return 0;
 }
 
-private alpm_pkgreason_t _read_pkgreason(alpm_handle_t* handle, const(char)* pkgname, const(char)* line) {
+private alpm_pkgreason_t _read_pkgreason(alpm_handle_t* handle,   char*pkgname,   char*line) {
 	if(strcmp(line, "0") == 0) {
 		return ALPM_PKG_REASON_EXPLICIT;
 	} else if(strcmp(line, "1") == 0) {
@@ -677,11 +679,11 @@ private alpm_pkgreason_t _read_pkgreason(alpm_handle_t* handle, const(char)* pkg
 }
 
 /* Note: the return value must be freed by the caller */
-char* _alpm_local_db_pkgpath(alpm_db_t* db, alpm_pkg_t* info, const(char)* filename)
+char* _alpm_local_db_pkgpath(alpm_db_t* db, alpm_pkg_t* info,   char*filename)
 {
 	size_t len = void;
 	char* pkgpath = void;
-	const(char)* dbpath = void;
+	  char*dbpath = void;
 
 	dbpath = _alpm_db_path(db);
 	len = strlen(dbpath) + strlen(info.name) + strlen(info.version_) + 3;
@@ -803,18 +805,18 @@ private int local_db_read(alpm_pkg_t* info, int inforeq)
 				mixin(READ_AND_STORE_ALL!(`v`));
 				for(i = v; i; i = alpm_list_next(i))
 				{
-					if(strcmp(cast(const char*)i.data, "none") == 0) {
+					if(strcmp(cast(  char*)i.data, "none") == 0) {
 						info.validation |= ALPM_PKG_VALIDATION_NONE;
-					} else if(strcmp(cast(const char*)i.data, "md5") == 0) {
+					} else if(strcmp(cast(  char*)i.data, "md5") == 0) {
 						info.validation |= ALPM_PKG_VALIDATION_MD5SUM;
-					} else if(strcmp(cast(const char*)i.data, "sha256") == 0) {
+					} else if(strcmp(cast(  char*)i.data, "sha256") == 0) {
 						info.validation |= ALPM_PKG_VALIDATION_SHA256SUM;
-					} else if(strcmp(cast(const char*)i.data, "pgp") == 0) {
+					} else if(strcmp(cast(  char*)i.data, "pgp") == 0) {
 						info.validation |= ALPM_PKG_VALIDATION_SIGNATURE;
 					} else {
 						_alpm_log(db.handle, ALPM_LOG_WARNING,
 								("unknown validation type for package %s: %s\n"),
-								info.name, cast(const(char)*)i.data);
+								info.name, cast(char*)i.data);
 					}
 				}
 				FREELIST(v);
@@ -861,7 +863,7 @@ private int local_db_read(alpm_pkg_t* info, int inforeq)
 
 	/* FILES */
 	if(inforeq & INFRQ_FILES && !(info.infolevel & INFRQ_FILES)) {
-		char* path = _alpm_local_db_pkgpath(db, info, "files");
+		char* path = _alpm_local_db_pkgpath(db, info, cast(char*)"files");
 		if(!path || (fp = fopen(path, "r")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"), path, strerror(errno));
 			free(path);
@@ -922,7 +924,7 @@ nomem:
 
 	/* INSTALL */
 	if(inforeq & INFRQ_SCRIPTLET && !(info.infolevel & INFRQ_SCRIPTLET)) {
-		char* path = _alpm_local_db_pkgpath(db, info, "install");
+		char* path = _alpm_local_db_pkgpath(db, info, cast(char*)"install");
 		if(access(path, F_OK) == 0) {
 			info.scriptlet = 1;
 		}
@@ -964,7 +966,7 @@ int _alpm_local_db_prepare(alpm_db_t* db, alpm_pkg_t* info)
 	return retval;
 }
 
-private void write_deps(FILE* fp, const(char)* header, alpm_list_t* deplist)
+private void write_deps(FILE* fp,   char*header, alpm_list_t* deplist)
 {
 	alpm_list_t* lp = void;
 	if(!deplist) {
@@ -1001,7 +1003,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s DESC information back to db\n",
 				info.name, info.version_);
-		path = _alpm_local_db_pkgpath(db, info, "desc");
+		path = _alpm_local_db_pkgpath(db, info, "desc".to!(char*));
 		if(!path || (fp = fopen(path, "w")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
 					path, strerror(errno));
@@ -1052,7 +1054,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		if(info.groups) {
 			fputs("%GROUPS%\n", fp);
 			for(lp = info.groups; lp; lp = lp.next) {
-				fputs(cast(const char*)lp.data, fp);
+				fputs(cast(  char*)lp.data, fp);
 				fputc('\n', fp);
 			}
 			fputc('\n', fp);
@@ -1060,7 +1062,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		if(info.licenses) {
 			fputs("%LICENSE%\n", fp);
 			for(lp = info.licenses; lp; lp = lp.next) {
-				fputs(cast(const char*)lp.data, fp);
+				fputs(cast(  char*)lp.data, fp);
 				fputc('\n', fp);
 			}
 			fputc('\n', fp);
@@ -1082,11 +1084,11 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 			fputc('\n', fp);
 		}
 
-		write_deps(fp, "%REPLACES%", info.replaces);
-		write_deps(fp, "%DEPENDS%", info.depends);
-		write_deps(fp, "%OPTDEPENDS%", info.optdepends);
-		write_deps(fp, "%CONFLICTS%", info.conflicts);
-		write_deps(fp, "%PROVIDES%", info.provides);
+		write_deps(fp, "%REPLACES%".to!(char*), info.replaces);
+		write_deps(fp, "%DEPENDS%".to!(char*), info.depends);
+		write_deps(fp, "%OPTDEPENDS%".to!(char*), info.optdepends);
+		write_deps(fp, "%CONFLICTS%".to!(char*), info.conflicts);
+		write_deps(fp, "%PROVIDES%".to!(char*), info.provides);
 
 		if(info.xdata) {
 			fputs("%XDATA%\n", fp);
@@ -1107,7 +1109,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s FILES information back to db\n",
 				info.name, info.version_);
-		path = _alpm_local_db_pkgpath(db, info, "files");
+		path = _alpm_local_db_pkgpath(db, info, "files".to!(char*));
 		if(!path || (fp = fopen(path, "w")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
 					path, strerror(errno));
@@ -1120,7 +1122,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 			size_t i = void;
 			fputs("%FILES%\n", fp);
 			for(i = 0; i < info.files.count; i++) {
-				const(alpm_file_t)* file = info.files.files + i;
+				alpm_file_t* file = info.files.files + i;
 				fputs(file.name, fp);
 				fputc('\n', fp);
 			}
@@ -1129,7 +1131,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		if(info.backup) {
 			fputs("%BACKUP%\n", fp);
 			for(lp = info.backup; lp; lp = lp.next) {
-				const(alpm_backup_t)* backup = cast(const(alpm_backup_t)*)lp.data;
+				 alpm_backup_t* backup = cast( alpm_backup_t*)lp.data;
 				fprintf(fp, "%s\t%s\n", backup.name, backup.hash);
 			}
 			fputc('\n', fp);
@@ -1213,7 +1215,7 @@ int  alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
 	return 0;
 }
 
-private const(db_operations) local_db_ops = {
+private  const(db_operations) local_db_ops = {
 	validate: &local_db_validate,
 	populate: &local_db_populate,
 	unregister: &_alpm_db_unregister,
@@ -1225,7 +1227,7 @@ alpm_db_t* _alpm_db_register_local(alpm_handle_t* handle)
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "registering local database\n");
 
-	db = _alpm_db_new("local", 1);
+	db = _alpm_db_new("local".to!(char*), 1);
 	if(db == null) {
 		handle.pm_errno = ALPM_ERR_DB_CREATE;
 		return null;

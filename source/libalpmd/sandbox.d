@@ -44,9 +44,9 @@ import libalpmd.sandbox_fs;
 import libalpmd.sandbox_syscalls;
 import libalpmd.util;
 
-int  alpm_sandbox_setup_child(alpm_handle_t* handle, const(char)* sandboxuser, const(char)* sandbox_path, bool restrict_syscalls)
+int  alpm_sandbox_setup_child(alpm_handle_t* handle,   char*sandboxuser,   char*sandbox_path, bool restrict_syscalls)
 {
-	const(passwd)* pw = null;
+	 (passwd)* pw = null;
 
 	ASSERT(sandboxuser != null);
 	ASSERT(getuid() == 0);
@@ -97,7 +97,7 @@ private int read_from_pipe(int fd, void* buf, size_t count)
 	return 0;
 }
 
-private int write_to_pipe(int fd, const(void)* buf, size_t count)
+private int write_to_pipe(int fd,  void* buf, size_t count)
 {
 	size_t nwrite = 0;
 
@@ -117,7 +117,7 @@ private int write_to_pipe(int fd, const(void)* buf, size_t count)
 	return 0;
 }
 
-void _alpm_sandbox_cb_log(void* ctx, alpm_loglevel_t level, const(char)* fmt, va_list args)
+void _alpm_sandbox_cb_log(void* ctx, alpm_loglevel_t level,   char*fmt, va_list args)
 {
 	_alpm_sandbox_callback_t type = ALPM_SANDBOX_CB_LOG;
 	_alpm_sandbox_callback_context* context = ctx;
@@ -149,7 +149,7 @@ void _alpm_sandbox_cb_log(void* ctx, alpm_loglevel_t level, const(char)* fmt, va
 	FREE(string);
 }
 
-void _alpm_sandbox_cb_dl(void* ctx, const(char)* filename, alpm_download_event_type_t event, void* data)
+void _alpm_sandbox_cb_dl(void* ctx,   char*filename, alpm_download_event_type_t event, void* data)
 {
 	_alpm_sandbox_callback_t type = ALPM_SANDBOX_CB_DOWNLOAD;
 	_alpm_sandbox_callback_context* context = ctx;

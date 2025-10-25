@@ -253,7 +253,7 @@ int  alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 	return 0;
 }
 
-alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name)
+alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 {
 	alpm_list_t* i = void, j = void, pkgs = null, ignorelist = null;
 
@@ -309,7 +309,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name)
  */
 private int compute_download_size(alpm_pkg_t* newpkg)
 {
-	const(char)* fname = void;
+	  char*fname = void;
 	char* fpath = void, fnamepart = null;
 	off_t size = 0;
 	alpm_handle_t* handle = newpkg.handle;
@@ -388,7 +388,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 	/* ensure all sync database are valid if we will be using them */
 	for(i = handle.dbs_sync; i; i = i.next) {
-		const(alpm_db_t)* db = i.data;
+		  alpm_db_t*db = i.data;
 		if(db.status & DB_STATUS_INVALID) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
@@ -519,8 +519,8 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 		for(i = deps; i; i = i.next) {
 			alpm_conflict_t* conflict = i.data;
-			const(char)* name1 = conflict.package1.name;
-			const(char)* name2 = conflict.package2.name;
+			  char*name1 = conflict.package1.name;
+			  char*name2 = conflict.package2.name;
 			alpm_pkg_t* rsync = void, sync = void, sync1 = void, sync2 = void;
 
 			/* have we already removed one of the conflicting targets? */
@@ -585,8 +585,8 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				conflict: i.data
 			};
 			alpm_conflict_t* conflict = i.data;
-			const(char)* name1 = conflict.package1.name;
-			const(char)* name2 = conflict.package2.name;
+			  char*name1 = conflict.package1.name;
+			  char*name2 = conflict.package2.name;
 			int found = 0;
 
 			/* if name2 (the local package) is not elected for removal,
@@ -702,7 +702,7 @@ off_t  alpm_pkg_download_size(alpm_pkg_t* newpkg)
  *
  * @return 1 if file was removed, 0 otherwise
  */
-private int prompt_to_delete(alpm_handle_t* handle, const(char)* filepath, alpm_errno_t reason)
+private int prompt_to_delete(alpm_handle_t* handle,   char*filepath, alpm_errno_t reason)
 {
 	alpm_question_corrupted_t question = {
 		type: ALPM_QUESTION_CORRUPTED_PKG,
@@ -771,7 +771,7 @@ private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 
 private int download_files(alpm_handle_t* handle)
 {
-	const(char)* cachedir = void;
+	  char*cachedir = void;
 	char* temporary_cachedir = null;
 	alpm_list_t* i = void, files = null;
 	int ret = 0;
@@ -803,7 +803,7 @@ private int download_files(alpm_handle_t* handle)
 			CALLOC(file_sizes, num_files, off_t.sizeof);
 
 			for(i = files, idx = 0; i; i = i.next, idx++) {
-				const(alpm_pkg_t)* pkg = i.data;
+				 alpm_pkg_t* pkg = i.data;
 				file_sizes[idx] = pkg.download_size;
 			}
 
@@ -833,8 +833,8 @@ private int download_files(alpm_handle_t* handle)
 			dload_payload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
-			STRDUP(payload.remote_name, pkg.filename);
-			STRDUP(payload.filepath, pkg.filename);
+			STRNDUP(payload.remote_name, pkg.filename);
+			STRNDUP(payload.filepath, pkg.filename);
 			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, "");
 			payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, ".part");
 			if(!payload.destfile_name || !payload.tempfile_name) {
@@ -886,9 +886,9 @@ finish:
 
 version (HAVE_LIBGPGME) {
 
-private int key_cmp(const(void)* k1, const(void)* k2) {
-	const(keyinfo_t)* key1 = k1;
-	const(char)* key2 = k2;
+private int key_cmp( void*k1,  void*k2) {
+	 keyinfo_t* key1 = k1;
+	  char*key2 = k2;
 
 	return strcmp(key1.keyid, key2);
 }
@@ -1082,7 +1082,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 	return 0;
 }
 
-private int dep_not_equal(const(alpm_depend_t)* left, const(alpm_depend_t)* right)
+private int dep_not_equal( alpm_depend_t* left,  alpm_depend_t* right)
 {
 	return left.name_hash != right.name_hash
 		|| strcmp(left.name, right.name) != 0
@@ -1091,7 +1091,7 @@ private int dep_not_equal(const(alpm_depend_t)* left, const(alpm_depend_t)* righ
 		|| ((left.version_ && right.version_) && strcmp(left.version_, right.version_) != 0);
 }
 
-private int check_pkg_field_matches_db(alpm_handle_t* handle, const(char)* field, alpm_list_t* left, alpm_list_t* right, alpm_list_fn_cmp cmp)
+private int check_pkg_field_matches_db(alpm_handle_t* handle,   char*field, alpm_list_t* left, alpm_list_t* right, alpm_list_fn_cmp cmp)
 {
 	switch(alpm_list_cmp_unsorted(left, right, cmp)) {
 		case 0:

@@ -39,11 +39,11 @@ import libalpmd.util;
  * @retval *vp		pointer to version
  * @retval *rp		pointer to release
  */
-private void parseEVR(char* evr, const(char)** ep, const(char)** vp, const(char)** rp)
+private void parseEVR(char* evr,  char** ep,  char** vp,  char** rp)
 {
-	const(char)* epoch = void;
-	const(char)* version_ = void;
-	const(char)* release = void;
+	  char*epoch = void;
+	  char*version_ = void;
+	  char*release = void;
 	char* s = void, se = void;
 
 	s = evr;
@@ -66,7 +66,7 @@ private void parseEVR(char* evr, const(char)** ep, const(char)** vp, const(char)
 	}
 	if(se) {
 		*se++ = '\0';
-		release = cast(const(char)*) se;
+		release = cast( char*) se;
 	} else {
 		release = null;
 	}
@@ -82,7 +82,7 @@ private void parseEVR(char* evr, const(char)** ep, const(char)** vp, const(char)
  *        0: a and b are the same version
  *       -1: b is newer than a
  */
-private int rpmvercmp(const(char)* a, const(char)* b)
+private int rpmvercmp(  char*a,   char*b)
 {
 	char oldch1 = void, oldch2 = void;
 	char* str1 = void, str2 = void;
@@ -218,11 +218,11 @@ cleanup:
 	return ret;
 }
 
-int  alpm_pkg_vercmp(const(char)* a, const(char)* b)
+int  alpm_pkg_vercmp(  char*a,   char*b)
 {
 	char* full1 = void, full2 = void;
-	const(char)* epoch1 = void, ver1 = void, rel1 = void;
-	const(char)* epoch2 = void, ver2 = void, rel2 = void;
+	  char*epoch1 = void, ver1 = void, rel1 = void;
+	  char*epoch2 = void, ver2 = void, rel2 = void;
 	int ret = void;
 
 	/* ensure our strings are not null */

@@ -52,7 +52,7 @@ struct _alpm_pkghash_t {
 
 alias alpm_pkghash_t = _alpm_pkghash_t;
 
-private const(uint)[145] prime_list = [
+private const (uint)[145] prime_list = [
 	11u, 13u, 17u, 19u, 23u, 29u, 31u, 37u, 41u, 43u, 47u,
 	53u, 59u, 61u, 67u, 71u, 73u, 79u, 83u, 89u, 97u, 103u,
 	109u, 113u, 127u, 137u, 139u, 149u, 157u, 167u, 179u, 193u,
@@ -74,11 +74,11 @@ private const(uint)[145] prime_list = [
 ];
 
 /* How far forward do we look when linear probing for a spot? */
-private const(uint) stride = 1;
+private const (uint) stride = 1;
 /* What is the maximum load percentage of our hash table? */
-private const(double) max_hash_load = 0.68;
+private const (double) max_hash_load = 0.68;
 /* Initial load percentage given a certain size */
-private const(double) initial_hash_load = 0.58;
+private const (double) initial_hash_load = 0.58;
 
 /* Allocate a hash table with space for at least "size" elements */
 alpm_pkghash_t* _alpm_pkghash_create(uint size)
@@ -87,7 +87,7 @@ alpm_pkghash_t* _alpm_pkghash_create(uint size)
 	uint i = void, loopsize = void;
 
 	CALLOC(hash, 1, alpm_pkghash_t.sizeof);
-	size = size / initial_hash_load + 1;
+	size = cast(uint)(size / initial_hash_load + 1);
 
 	loopsize = ARRAYSIZE(prime_list.ptr);
 	for(i = 0; i < loopsize; i++) {
@@ -338,7 +338,7 @@ void _alpm_pkghash_free(alpm_pkghash_t* hash)
 	free(hash);
 }
 
-alpm_pkg_t* _alpm_pkghash_find(alpm_pkghash_t* hash, const(char)* name)
+alpm_pkg_t* _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
 {
 	alpm_list_t* lp = void;
 	c_ulong name_hash = void;

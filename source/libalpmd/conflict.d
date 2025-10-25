@@ -259,7 +259,7 @@ alpm_list_t * alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
  *
  * @return the updated conflict list
  */
-private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* conflicts, const(char)* filestr, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
+private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* conflicts,   char*filestr, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
 {
 	alpm_fileconflict_t* conflict = void;
 	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof);
@@ -268,7 +268,7 @@ private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* confli
 	STRNDUP(conflict.file, filestr);
 	if(!pkg2) {
 		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
-		STRNDUP(conflict.ctarget, "");
+		STRNDUP(conflict.ctarget, cast(char*)"");
 	} else if(pkg2.origin == ALPM_PKG_FROM_LOCALDB) {
 		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
 		STRNDUP(conflict.ctarget, pkg2.name);
@@ -283,7 +283,7 @@ private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* confli
 
 	return conflicts;
 
-error:
+error:			
 	alpm_fileconflict_free(conflict);
 	RET_ERR(handle, ALPM_ERR_MEMORY, conflicts);
 }
@@ -307,7 +307,7 @@ void  alpm_fileconflict_free(alpm_fileconflict_t* conflict)
  *
  * @return 1 if a package owns all subdirectories and files, 0 otherwise
  */
-private int dir_belongsto_pkgs(alpm_handle_t* handle, const(char)* dirpath, alpm_list_t* pkgs)
+private int dir_belongsto_pkgs(alpm_handle_t* handle,   char*dirpath, alpm_list_t* pkgs)
 {
 	char[PATH_MAX] path = void, full_path = void;
 	DIR* dir = void;
@@ -320,7 +320,7 @@ private int dir_belongsto_pkgs(alpm_handle_t* handle, const(char)* dirpath, alpm
 	}
 
 	while((ent = readdir(dir)) != null) {
-		const(char)* name = ent.d_name.ptr;
+		  char*name = ent.d_name.ptr;
 		int owned = 0, is_dir = 0;
 		alpm_list_t* i = void;
 		stat_t sbuf = void;
@@ -352,8 +352,8 @@ private int dir_belongsto_pkgs(alpm_handle_t* handle, const(char)* dirpath, alpm
 
 		if(!owned) {
 			closedir(dir);
-			_alpm_log(handle, ALPM_LOG_DEBUG,
-					"unowned file %s found in directory\n", path.ptr);
+			// _alpm_log(handle, ALPM_LOG_DEBUG,
+			// 		"unowned file %s found in directory\n", path.ptr);
 			return 0;
 		}
 	}
@@ -361,7 +361,7 @@ private int dir_belongsto_pkgs(alpm_handle_t* handle, const(char)* dirpath, alpm
 	return 1;
 }
 
-private alpm_list_t* alpm_db_find_file_owners(alpm_db_t* db, const(char)* path)
+private alpm_list_t* alpm_db_find_file_owners(alpm_db_t* db,   char*path)
 {
 	alpm_list_t* i = void, owners = null;
 	for(i = alpm_db_get_pkgcache(db); i; i = i.next) {
@@ -372,7 +372,7 @@ private alpm_list_t* alpm_db_find_file_owners(alpm_db_t* db, const(char)* path)
 	return owners;
 }
 
-private alpm_pkg_t* _alpm_find_file_owner(alpm_handle_t* handle, const(char)* path)
+private alpm_pkg_t* _alpm_find_file_owner(alpm_handle_t* handle,   char*path)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
@@ -383,7 +383,7 @@ private alpm_pkg_t* _alpm_find_file_owner(alpm_handle_t* handle, const(char)* pa
 	return null;
 }
 
-private int _alpm_can_overwrite_file(alpm_handle_t* handle, const(char)* path, const(char)* rootedpath)
+private int _alpm_can_overwrite_file(alpm_handle_t* handle,   char*path,   char*rootedpath)
 {
 	return _alpm_fnmatch_patterns(handle.overwrite_files, path) == 0
 		|| _alpm_fnmatch_patterns(handle.overwrite_files, rootedpath) == 0;
@@ -498,8 +498,8 @@ alpm_list_t* _alpm_db_find_fileconflicts(alpm_handle_t* handle, alpm_list_t* upg
 		}
 
 		for(j = newfiles; j; j = j.next) {
-			const(char)* filestr = cast(char*)j.data;
-			const(char)* relative_path = void;
+			  char*filestr = cast(char*)j.data;
+			  char*relative_path = void;
 			alpm_list_t* k = void;
 			/* have we acted on this conflict? */
 			int resolved_conflict = 0;
@@ -540,7 +540,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(alpm_handle_t* handle, alpm_list_t* upg
 					 * necessarily be resolved by replacing the file with a dir
 					 * NOTE: afterward, j will point to the last file inside filestr */
 					for( ; j.next; j = j.next) {
-						const(char)* filestr2 = cast(char*)j.next.data;
+						  char*filestr2 = cast(char*)j.next.data;
 						if(strncmp(filestr, filestr2, fslen) != 0) {
 							break;
 						}
@@ -562,7 +562,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(alpm_handle_t* handle, alpm_list_t* upg
 						 * NOTE: afterward, j will point to the last file inside filestr */
 						size_t fslen = strlen(filestr);
 						for( ; j.next; j = j.next) {
-							const(char)* filestr2 = cast(char*)j.next.data;
+							  char*filestr2 = cast(char*)j.next.data;
 							if(strncmp(filestr, filestr2, fslen) != 0) {
 								break;
 							}
@@ -600,7 +600,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(alpm_handle_t* handle, alpm_list_t* upg
 						 * necessarily be resolved by replacing the file with a dir
 						 * NOTE: afterward, j will point to the last file inside filestr */
 						for( ; j.next; j = j.next) {
-							const(char)* filestr2 = cast(char*)j.next.data;
+							  char*filestr2 = cast(char*)j.next.data;
 							if(strncmp(filestr, filestr2, fslen) != 0) {
 								break;
 							}

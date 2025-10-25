@@ -44,16 +44,20 @@ import libalpmd.alpm;
 import derelict.libarchive;
 import libalpmd.signing;
 import libalpmd.backup;
+import std.conv;
+import std.string;
+
+
 
 
 struct pkg_operations {
-	const(char)* function(alpm_pkg_t*) get_base;
-	const(char)* function(alpm_pkg_t*) get_desc;
-	const(char)* function(alpm_pkg_t*) get_url;
+	  char*function(alpm_pkg_t*) get_base;
+	  char*function(alpm_pkg_t*) get_desc;
+	  char*function(alpm_pkg_t*) get_url;
 	alpm_time_t function(alpm_pkg_t*) get_builddate;
 	alpm_time_t function(alpm_pkg_t*) get_installdate;
-	const(char)* function(alpm_pkg_t*) get_packager;
-	const(char)* function(alpm_pkg_t*) get_arch;
+	  char*function(alpm_pkg_t*) get_packager;
+	  char*function(alpm_pkg_t*) get_arch;
 	off_t function(alpm_pkg_t*) get_isize;
 	alpm_pkgreason_t function(alpm_pkg_t*) get_reason;
 	int function(alpm_pkg_t*) get_validation;
@@ -74,7 +78,7 @@ struct pkg_operations {
 	alpm_list_t* function(alpm_pkg_t*) get_xdata;
 
 	void* function(alpm_pkg_t*) changelog_open;
-	size_t function(void*, size_t, const(alpm_pkg_t)*, void*) changelog_read;
+	size_t function(void*, size_t, alpm_pkg_t*, void*) changelog_read;
 	int function(alpm_pkg_t*, void*) changelog_close;
 
 	archive* function(alpm_pkg_t*) mtree_open;
@@ -127,7 +131,7 @@ struct _alpm_pkg_t {
 	alpm_list_t* removes; /* in transaction targets only */
 	alpm_pkg_t* oldpkg; /* in transaction targets only */
 
-	const(pkg_operations)* ops;
+	const (pkg_operations)* ops;
 
 	alpm_filelist_t files;
 
@@ -193,13 +197,13 @@ int  alpm_pkg_checkmd5sum(alpm_pkg_t* pkg)
  * backend logic that needs lazy access, such as the local database through
  * a lazy-load cache. However, the defaults will work just fine for fully-
  * populated package structures. */
-const(char)* _pkg_get_base(alpm_pkg_t* pkg)        { return pkg.base; }
-const(char)* _pkg_get_desc(alpm_pkg_t* pkg)        { return pkg.desc; }
-const(char)* _pkg_get_url(alpm_pkg_t* pkg)         { return pkg.url; }
+  char*_pkg_get_base(alpm_pkg_t* pkg)        { return pkg.base; }
+  char*_pkg_get_desc(alpm_pkg_t* pkg)        { return pkg.desc; }
+  char*_pkg_get_url(alpm_pkg_t* pkg)         { return pkg.url; }
 alpm_time_t _pkg_get_builddate(alpm_pkg_t* pkg)   { return pkg.builddate; }
 alpm_time_t _pkg_get_installdate(alpm_pkg_t* pkg) { return pkg.installdate; }
-const(char)* _pkg_get_packager(alpm_pkg_t* pkg)    { return pkg.packager; }
-const(char)* _pkg_get_arch(alpm_pkg_t* pkg)        { return pkg.arch; }
+  char*_pkg_get_packager(alpm_pkg_t* pkg)    { return pkg.packager; }
+  char*_pkg_get_arch(alpm_pkg_t* pkg)        { return pkg.arch; }
 off_t _pkg_get_isize(alpm_pkg_t* pkg)             { return pkg.isize; }
 alpm_pkgreason_t _pkg_get_reason(alpm_pkg_t* pkg) { return pkg.reason; }
 int _pkg_get_validation(alpm_pkg_t* pkg) { return pkg.validation; }
@@ -259,14 +263,14 @@ int _pkg_force_load(alpm_pkg_t* pkg) { return 0; }
 /* Public functions for getting package information. These functions
  * delegate the hard work to the function callbacks attached to each
  * package, which depend on where the package was loaded from. */
-const(char)* alpm_pkg_get_filename(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_filename(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.filename;
 }
 
-const(char)* alpm_pkg_get_base(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_base(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -279,14 +283,14 @@ alpm_handle_t * alpm_pkg_get_handle(alpm_pkg_t* pkg)
 	return pkg.handle;
 }
 
-const(char)* alpm_pkg_get_name(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_name(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.name;
 }
 
-const(char)* alpm_pkg_get_version(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_version(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -300,14 +304,14 @@ alpm_pkgfrom_t  alpm_pkg_get_origin(alpm_pkg_t* pkg)
 	return pkg.origin;
 }
 
-const(char)* alpm_pkg_get_desc(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_desc(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_desc(pkg);
 }
 
-const(char)* alpm_pkg_get_url(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_url(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -328,28 +332,28 @@ alpm_time_t  alpm_pkg_get_installdate(alpm_pkg_t* pkg)
 	return pkg.ops.get_installdate(pkg);
 }
 
-const(char)* alpm_pkg_get_packager(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_packager(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_packager(pkg);
 }
 
-const(char)* alpm_pkg_get_md5sum(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_md5sum(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.md5sum;
 }
 
-const(char)* alpm_pkg_get_sha256sum(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_sha256sum(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.sha256sum;
 }
 
-const(char)* alpm_pkg_get_base64_sig(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_base64_sig(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -394,7 +398,7 @@ cleanup:
 	} 
 }
 
-const(char)* alpm_pkg_get_arch(alpm_pkg_t* pkg)
+  char*alpm_pkg_get_arch(alpm_pkg_t* pkg)
 {
 	ASSERT(pkg != null);
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -573,14 +577,14 @@ alpm_list_t * alpm_pkg_get_xdata(alpm_pkg_t* pkg)
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
-private int fnmatch_wrapper(const(void)* pattern, const(void)* _string)
+private int fnmatch_wrapper( void* pattern,  void* _string)
 {
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
 void find_requiredby(alpm_pkg_t* pkg, alpm_db_t* db, alpm_list_t** reqs, int optional)
 {
-	const(alpm_list_t)* i = void;
+	 alpm_list_t* i = void;
 	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
 
 	for(i = _alpm_db_get_pkgcache(db); i; i = i.next) {
@@ -595,7 +599,7 @@ void find_requiredby(alpm_pkg_t* pkg, alpm_db_t* db, alpm_list_t** reqs, int opt
 
 		for(; j; j = j.next) {
 			if(_alpm_depcmp(pkg, cast(alpm_depend_t*)j.data)) {
-				const(char)* cachepkgname = cachepkg.name;
+				  char*cachepkgname = cachepkg.name;
 				if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
 					*reqs = alpm_list_add(*reqs, strdup(cachepkgname));
 				}
@@ -606,7 +610,7 @@ void find_requiredby(alpm_pkg_t* pkg, alpm_db_t* db, alpm_list_t** reqs, int opt
 
 alpm_list_t* compute_requiredby(alpm_pkg_t* pkg, int optional)
 {
-	const(alpm_list_t)* i = void;
+	 alpm_list_t* i = void;
 	alpm_list_t* reqs = null;
 	alpm_db_t* db = void;
 
@@ -869,17 +873,17 @@ int _alpm_pkg_compare_versions(alpm_pkg_t* spkg, alpm_pkg_t* localpkg)
 
 /* Helper function for comparing packages
  */
-int _alpm_pkg_cmp(const(void)* p1, const(void)* p2)
+int _alpm_pkg_cmp( void* p1,  void* p2)
 {
-	const(alpm_pkg_t)* pkg1 = cast(const(alpm_pkg_t*))p1;
-	const(alpm_pkg_t)* pkg2 = cast(const(alpm_pkg_t*))p2;
+	 alpm_pkg_t* pkg1 = cast( alpm_pkg_t*)p1;
+	 alpm_pkg_t* pkg2 = cast( alpm_pkg_t*)p2;
 	return strcmp(pkg1.name, pkg2.name);
 }
 
 /* Test for existence of a package in a alpm_list_t*
  * of alpm_pkg_t*
  */
-alpm_pkg_t * alpm_pkg_find(alpm_list_t* haystack, const(char)* needle)
+alpm_pkg_t * alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 {
 	alpm_list_t* lp = void;
 	c_ulong needle_hash = void;
@@ -955,7 +959,7 @@ enum string EPKGMETA(string error) = `do {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package name cannot start with '.' or '-')\n")`));
 	}
-	if(_alpm_fnmatch(pkg.name, "[![:alnum:]+_.@-]") == 0) {
+	if(_alpm_fnmatch(pkg.name, cast(char*)"[![:alnum:]+_.@-]") == 0) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package name contains invalid characters)\n")`));
 	}

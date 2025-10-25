@@ -52,7 +52,7 @@ import libalpmd.filelist;
 
 int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 {
-	const(char)* pkgname = void;
+	  char*pkgname = void;
 	alpm_trans_t* trans = void;
 	alpm_pkg_t* copy = void;
 
@@ -281,7 +281,7 @@ int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
  * @return 0 if @a directory is not a mountpoint or on error, 1 if @a directory
  * is a mountpoint
  */
-private int dir_is_mountpoint(alpm_handle_t* handle, const(char)* directory, const(stat_t)* stbuf)
+private int dir_is_mountpoint(alpm_handle_t* handle,   char*directory,  stat_t* stbuf)
 {
 	char[PATH_MAX] parent_dir = void;
 	stat_t parent_stbuf = void;
@@ -319,7 +319,7 @@ private int dir_is_mountpoint(alpm_handle_t* handle, const(char)* directory, con
  *
  * @return 1 if the file can be deleted, 0 if it cannot be deleted
  */
-private int can_remove_file(alpm_handle_t* handle, const(alpm_file_t)* file)
+private int can_remove_file(alpm_handle_t* handle,  alpm_file_t* file)
 {
 	char[PATH_MAX] filepath = void;
 
@@ -346,14 +346,14 @@ private int can_remove_file(alpm_handle_t* handle, const(alpm_file_t)* file)
 	return 1;
 }
 
-private void shift_pacsave(alpm_handle_t* handle, const(char)* file)
+private void shift_pacsave(alpm_handle_t* handle,   char*file)
 {
 	DIR* dir = null;
 	dirent* ent = void;
 	stat_t st = void;
 	regex_t reg = void;
 
-	const(char)* basename = void;
+	  char*basename = void;
 	char* dirname = void;
 	char[PATH_MAX] oldfile = void;
 	char[PATH_MAX] newfile = void;
@@ -367,7 +367,7 @@ private void shift_pacsave(alpm_handle_t* handle, const(char)* file)
 		return;
 	}
 
-	basename = mbasename(file);
+	basename = basename(file);
 	basename_len = strlen(basename);
 
 	snprintf(regstr.ptr, PATH_MAX, "^%s\\.pacsave\\.([[:digit:]]+)$", basename);
@@ -440,7 +440,7 @@ cleanup:
  * @return 0 on success, -1 if there was an error unlinking the file, 1 if the
  * file was skipped or did not exist
  */
-private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, const(alpm_file_t)* fileobj, int nosave)
+private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg,  alpm_file_t* fileobj, int nosave)
 {
 	stat_t buf = void;
 	char[PATH_MAX] file = void;
@@ -550,15 +550,15 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 					if(rename(file.ptr, newpath)) {
 						_alpm_log(handle, ALPM_LOG_ERROR, ("could not rename %s to %s (%s)\n"),
 								file.ptr, newpath, strerror(errno));
-						alpm_logaction(handle, ALPM_CALLER_PREFIX,
-								"error: could not rename %s to %s (%s)\n",
-								file.ptr, newpath, strerror(errno));
+						//alpm_logaction(handle, ALPM_CALLER_PREFIX,
+								// "error: could not rename %s to %s (%s)\n",
+								// file.ptr, newpath, strerror(errno));
 						free(newpath);
 						return -1;
 					}
 					EVENT(handle, &event);
-					alpm_logaction(handle, ALPM_CALLER_PREFIX,
-							"warning: %s saved as %s\n", file.ptr, newpath);
+					//alpm_logaction(handle, ALPM_CALLER_PREFIX,
+							// "warning: %s saved as %s\n", file.ptr, newpath);
 					free(newpath);
 					return 0;
 				}
@@ -570,8 +570,8 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 		if(unlink(file.ptr) == -1) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("cannot remove %s (%s)\n"),
 					file.ptr, strerror(errno));
-			alpm_logaction(handle, ALPM_CALLER_PREFIX,
-					"error: cannot remove %s (%s)\n", file.ptr, strerror(errno));
+			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
+					// "error: cannot remove %s (%s)\n", file.ptr, strerror(errno));
 			return -1;
 		}
 	}
@@ -587,7 +587,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
  *
  * @return 1 if the file should be skipped, 0 if it should be removed
  */
-private int should_skip_file(alpm_handle_t* handle, alpm_pkg_t* newpkg, const(char)* path)
+private int should_skip_file(alpm_handle_t* handle, alpm_pkg_t* newpkg,   char*path)
 {
 	return _alpm_fnmatch_patterns(handle.noupgrade, path) == 0
 		|| alpm_list_find_str(handle.trans.skip_remove, path)
@@ -682,8 +682,8 @@ private int remove_package_files(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm
  */
 int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, size_t targ_count, size_t pkg_count)
 {
-	const(char)* pkgname = oldpkg.name;
-	const(char)* pkgver = oldpkg.version_;
+	  char*pkgname = oldpkg.name;
+	  char*pkgver = oldpkg.version_;
 	alpm_event_package_operation_t event = {
 		type: ALPM_EVENT_PACKAGE_OPERATION_START,
 		operation: ALPM_PACKAGE_REMOVE,
@@ -715,8 +715,8 @@ int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_
 	}
 
 	if(!newpkg) {
-		alpm_logaction(handle, ALPM_CALLER_PREFIX, "removed %s (%s)\n",
-					oldpkg.name, oldpkg.version_);
+		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "removed %s (%s)\n",
+					// oldpkg.name, oldpkg.version_);
 	}
 
 	/* run the post-remove script if it exists */

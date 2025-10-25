@@ -26,6 +26,8 @@ import libalpmd.util;
 import libalpmd.log;
 import libalpmd.alpm_list;
 
+import core.stdc.stdlib;
+
 enum _alpm_graph_vertex_state {
 	ALPM_GRAPH_STATE_UNPROCESSED,
 	ALPM_GRAPH_STATE_PROCESSING,
@@ -58,7 +60,7 @@ alpm_graph_t* _alpm_graph_new()
 void _alpm_graph_free(void* data)
 {
 	ASSERT(data != null);
-	alpm_graph_t* graph = data;
+	alpm_graph_t* graph = cast(alpm_graph_t*)data;
 	alpm_list_free(graph.children);
 	free(graph);
 }

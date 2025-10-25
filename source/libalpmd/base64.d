@@ -43,7 +43,7 @@ enum POLARSSL_ERR_BASE64_BUFFER_TOO_SMALL =               -0x0010;
 enum POLARSSL_ERR_BASE64_INVALID_CHARACTER =              -0x0012;
 
 version (none) {
-private const(ubyte)[64] base64_enc_map = [
+private  const(ubyte)[64] base64_enc_map = [
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
     'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
     'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
@@ -54,7 +54,7 @@ private const(ubyte)[64] base64_enc_map = [
 ];
 }
 
-private const(ubyte)[128] base64_dec_map = [
+private  const(ubyte)[128] base64_dec_map = [
     127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
     127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
     127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
@@ -74,7 +74,7 @@ version (none) {
 /*
  * Encode a buffer into base64 format
  */
-int base64_encode(ubyte* dst, size_t* dlen, const(ubyte)* src, size_t slen)
+int base64_encode(ubyte* dst, size_t* dlen,  ubyte* src, size_t slen)
 {
     size_t i = void, n = void;
     int C1 = void, C2 = void, C3 = void;
@@ -137,7 +137,7 @@ int base64_encode(ubyte* dst, size_t* dlen, const(ubyte)* src, size_t slen)
 /*
  * Decode a base64-formatted buffer
  */
-int base64_decode(ubyte* dst, size_t* dlen, const(ubyte)* src, size_t slen)
+int base64_decode(ubyte* dst, size_t* dlen, ubyte* src, size_t slen)
 {
     size_t i = void, n = void;
     uint j = void, x = void;

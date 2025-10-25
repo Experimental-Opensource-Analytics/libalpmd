@@ -111,7 +111,7 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 		alpm_pkg_t* pkg = i.data;
 		alpm_list_t* j = void;
 		int found = 0;
-		const(char)* pkgarch = alpm_pkg_get_arch(pkg);
+		  char*pkgarch = alpm_pkg_get_arch(pkg);
 
 		/* always allow non-architecture packages and those marked "any" */
 		if(!pkgarch || strcmp(pkgarch, "any") == 0) {
@@ -127,8 +127,8 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 
 		if(!found) {
 			char* string = void;
-			const(char)* pkgname = pkg.name;
-			const(char)* pkgver = pkg.version_;
+			  char*pkgname = pkg.name;
+			  char*pkgver = pkg.version_;
 			size_t len = strlen(pkgname) + strlen(pkgver) + strlen(pkgarch) + 3;
 			MALLOC(string, len);
 			snprintf(string, len, "%s-%s-%s", pkgname, pkgver, pkgarch);
@@ -237,7 +237,7 @@ int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 
 	trans.state = STATE_COMMITTING;
 
-	alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction started\n");
+	//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction started\n");
 	event.type = ALPM_EVENT_TRANSACTION_START;
 	EVENT(handle, cast(void*)&event);
 
@@ -245,7 +245,7 @@ int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 		if(_alpm_remove_packages(handle, 1) == -1) {
 			/* pm_errno is set by _alpm_remove_packages() */
 			alpm_errno_t save = handle.pm_errno;
-			alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction failed\n");
+			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction failed\n");
 			handle.pm_errno = save;
 			return -1;
 		}
@@ -253,18 +253,18 @@ int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 		if(_alpm_sync_commit(handle) == -1) {
 			/* pm_errno is set by _alpm_sync_commit() */
 			alpm_errno_t save = handle.pm_errno;
-			alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction failed\n");
+			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction failed\n");
 			handle.pm_errno = save;
 			return -1;
 		}
 	}
 
 	if(trans.state == STATE_INTERRUPTED) {
-		alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction interrupted\n");
+		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction interrupted\n");
 	} else {
 		event.type = ALPM_EVENT_TRANSACTION_DONE;
 		EVENT(handle, cast(void*)&event);
-		alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction completed\n");
+		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction completed\n");
 
 		if(!(trans.flags & ALPM_TRANS_FLAG_NOHOOKS)) {
 			_alpm_hook_run(handle, ALPM_HOOK_POST_TRANSACTION);
@@ -338,7 +338,7 @@ void _alpm_trans_free(alpm_trans_t* trans)
 /* A cheap grep for text files, returns 1 if a substring
  * was found in the text file fn, 0 if it wasn't
  */
-private int grep(const(char)* fn, const(char)* needle)
+private int grep(  char*fn,   char*needle)
 {
 	FILE* fp = void;
 	char* ptr = void;
@@ -365,7 +365,7 @@ private int grep(const(char)* fn, const(char)* needle)
 	return 0;
 }
 
-int _alpm_runscriptlet(alpm_handle_t* handle, const(char)* filepath, const(char)* script, const(char)* ver, const(char)* oldver, int is_archive)
+int _alpm_runscriptlet(alpm_handle_t* handle,   char*filepath,   char*script,   char*ver,   char*oldver, int is_archive)
 {
 	char[PATH_MAX] arg0 = void; char[3] arg1 = void; char[PATH_MAX] cmdline = void;
 	char*[4] argv = [ arg0, arg1, cmdline, null ];

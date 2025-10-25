@@ -39,7 +39,7 @@ bool _alpm_sandbox_syscalls_filter(alpm_handle_t* handle)
 version (HAVE_LIBSECCOMP) {
 	/* see https://docs.docker.com/engine/security/seccomp/ for inspiration,
 	   as well as systemd's src/shared/seccomp-util.c */
-	const(char)*[84] denied_syscalls = [
+	const (char)*[84] denied_syscalls = [
 		/* kernel modules */
 		"delete_module",
 		"finit_module",

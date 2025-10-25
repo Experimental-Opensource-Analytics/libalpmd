@@ -25,7 +25,49 @@ import core.stdc.stdio;
 import core.stdc.stdarg;
 import core.stdc.errno;
 import core.sys.posix.syslog;
+// import core.sys.posix.stdc.stdarg;
+
 import core.stdc.time;
+import core.sys.posix.dirent;
+
+import core.sys.posix.stdio;
+
+import core.stdc.errno;
+import core.stdc.limits;
+import core.stdc.string;
+import core.stdc.stdlib;
+import libalpmd.handle;
+import libalpmd.ini;
+import libalpmd.log;
+import libalpmd.trans;
+import libalpmd.util;
+import libalpmd.alpm_list;
+import libalpmd.alpm;
+import libalpmd.util_common;
+import libalpmd._package;
+import libalpmd.conf;
+import libalpmd.db;
+
+
+import core.stdc.stdio;
+import core.stdc.errno;
+import core.sys.posix.unistd;
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.errno;
+import core.stdc.string;
+import core.stdc.stdint; /* intmax_t */
+// import core.sys.posix.dirent;
+import core.sys.posix.dirent;
+import core.sys.posix.sys.stat;
+import core.sys.posix.fcntl;
+import ae.sys.file;
+
+import std.string;
+import std.conv;
+import std.stdio;
+
+
 
 /* libalpm */
 import libalpmd.log;
@@ -33,13 +75,13 @@ import libalpmd.handle;
 import libalpmd.util;
 import libalpmd.alpm;
 
-enum ALPM_CALLER_PREFIX = "ALPM";
+enum char* ALPM_CALLER_PREFIX = cast(char*)"ALPM";
 
-private int _alpm_log_leader(FILE* f, const(char)* prefix)
+private int _alpm_log_leader(FILE* f,   char*prefix)
 {
 	time_t t = time(null);
 	tm* tm = localtime(&t);
-	int length = 32;
+	immutable int length = 32;
 	char[length] timestamp = void;
 
 	/* Use ISO-8601 date format */
@@ -47,7 +89,7 @@ private int _alpm_log_leader(FILE* f, const(char)* prefix)
 	return fprintf(f, "[%s] [%s] ", timestamp.ptr, prefix);
 }
 
-int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt, ...)
+int  alpm_logaction(alpm_handle_t* handle,   char*prefix,   char*fmt, ...)
 {
 	int ret = 0;
 	va_list args = void;
@@ -55,7 +97,7 @@ int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt
 	ASSERT(handle != null);
 
 	if(!(prefix && *prefix)) {
-		prefix = "UNKNOWN";
+		prefix = cast(char*)"UNKNOWN".ptr;
 	}
 
 	/* check if the logstream is open already, opening it if needed */
@@ -85,7 +127,7 @@ int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt
 		 * so we can use the original when calling vfprintf below. */
 		va_list args_syslog = void;
 		va_copy(args_syslog, args);
-		vsyslog(LOG_WARNING, fmt, args_syslog);
+		syslog(LOG_WARNING, fmt, args_syslog);
 		va_end(args_syslog);
 	}
 
@@ -102,7 +144,7 @@ int  alpm_logaction(alpm_handle_t* handle, const(char)* prefix, const(char)* fmt
 	return ret;
 }
 
-void _alpm_log(alpm_handle_t* handle, alpm_loglevel_t flag, const(char)* fmt, ...)
+void _alpm_log(alpm_handle_t* handle, alpm_loglevel_t flag, string fmt, ...)
 {
 	va_list args = void;
 
@@ -111,6 +153,6 @@ void _alpm_log(alpm_handle_t* handle, alpm_loglevel_t flag, const(char)* fmt, ..
 	}
 
 	va_start(args, fmt);
-	handle.logcb(handle.logcb_ctx, flag, fmt, args);
+	handle.logcb(handle.logcb_ctx, flag, fmt.ptr, args);
 	va_end(args);
 }

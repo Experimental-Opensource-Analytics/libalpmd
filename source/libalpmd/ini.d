@@ -31,9 +31,9 @@ import libalpmd.log;
 
 enum INI_BUFFER_SIZE = 4096;
 
-alias ini_parse_line_fn = int function(const(char)* file, int line, const(char)* section, char* key, char* value, void* data);
+alias ini_parse_line_fn = int function(  char*file, int line,   char*section, char* key, char* value, void* data);
 
-int parse_ini(const(char)* file, ini_parse_line_fn fn, void* data)
+int parse_ini(  char*file, ini_parse_line_fn fn, void* data)
 {
 	FILE* fp = void;
 	char[INI_BUFFER_SIZE] line = void;
@@ -80,7 +80,7 @@ int parse_ini(const(char)* file, ini_parse_line_fn fn, void* data)
 				ret = -1;
 				break;
 			}
-			STRDUP(section, name);
+			STRNDUP(section, name);
 		} else {
 			/* key/value pair */
 			char* key = ptr;

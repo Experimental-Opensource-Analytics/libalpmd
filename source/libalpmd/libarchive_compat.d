@@ -34,7 +34,7 @@ pragma(inline, true) long _alpm_archive_compressed_ftell(archive* archive)
 	return archive_filter_bytes(archive, -1);
 }
 
-pragma(inline, true) int _alpm_archive_read_open_file(archive* archive, const(char)* filename, size_t block_size)
+pragma(inline, true) int _alpm_archive_read_open_file(archive* archive,   char*filename, size_t block_size)
 {
 	return archive_read_open_filename(archive, filename, block_size);
 }

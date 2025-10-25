@@ -50,7 +50,7 @@ void  alpm_dep_free(void* _dep)
 	FREE(dep);
 }
 
-private alpm_depmissing_t* depmiss_new(const(char)* target, alpm_depend_t* dep, const(char)* causingpkg)
+private alpm_depmissing_t* depmiss_new(  char*target, alpm_depend_t* dep,   char*causingpkg)
 {
 	alpm_depmissing_t* miss = void;
 
@@ -81,7 +81,7 @@ private int _alpm_pkg_depends_on(alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_pkg_get_depends(pkg1); i; i = i.next) {
-		if(_alpm_depcmp(pkg2, cast(alpm_pkg_t*)i.data)) {
+		if(_alpm_depcmp(pkg2, cast(alpm_depend_t*)i.data)) {
 			return 1;
 		}
 	}
@@ -128,11 +128,11 @@ private alpm_list_t* dep_graph_init(alpm_handle_t* handle, alpm_list_t* targets,
 
 	/* We compute the edges */
 	for(i = vertices; i; i = i.next) {
-		alpm_graph_t* vertex_i = i.data;
+		alpm_graph_t* vertex_i = cast(alpm_graph_t*)i.data;
 		alpm_pkg_t* p_i = cast(alpm_pkg_t*)vertex_i.data;
 		/* TODO this should be somehow combined with alpm_checkdeps */
 		for(j = vertices; j; j = j.next) {
-			alpm_graph_t* vertex_j = j.data;
+			alpm_graph_t* vertex_j = cast(alpm_graph_t*)j.data;
 			alpm_pkg_t* p_j = cast(alpm_pkg_t*)vertex_j.data;
 			if(_alpm_pkg_depends_on(p_i, p_j)) {
 				vertex_i.children =
@@ -288,7 +288,7 @@ private int no_dep_version(alpm_handle_t* handle)
 	return (handle.trans.flags & ALPM_TRANS_FLAG_NODEPVERSION);
 }
 
-alpm_pkg_t * alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring)
+alpm_pkg_t * alpm_find_satisfier(alpm_list_t* pkgs,   char*depstring)
 {
 	alpm_depend_t* dep = alpm_dep_from_string(depstring);
 	if(!dep) {
@@ -389,7 +389,7 @@ alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_l
 	return baddeps;
 }
 
-private int dep_vercmp(const(char)* version1, alpm_depmod_t mod, const(char)* version2)
+private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 {
 	int equal = 0;
 
@@ -454,10 +454,10 @@ int _alpm_depcmp(alpm_pkg_t* pkg, alpm_depend_t* dep)
 		|| _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg));
 }
 
-alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
+alpm_depend_t * alpm_dep_from_string(  char*depstring)
 {
 	alpm_depend_t* depend = void;
-	const(char)* ptr = void, version_ = void, desc = void;
+	  char*ptr = void, version_ = void, desc = void;
 	size_t deplen = void;
 
 	if(depstring == null) {
@@ -479,7 +479,7 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 
 	/* Find a version comparator if one exists. If it does, set the type and
 	 * increment the ptr accordingly so we can copy the right strings. */
-	if(cast(bool)(ptr = cast(const(char*))memchr(depstring, '<', deplen))) {
+	if(cast(bool)(ptr = cast(char*)memchr(depstring, '<', deplen))) {
 		if(ptr[1] == '=') {
 			depend.mod = ALPM_DEP_MOD_LE;
 			version_ = ptr + 2;
@@ -487,7 +487,8 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 			depend.mod = ALPM_DEP_MOD_LT;
 			version_ = ptr + 1;
 		}
-	} else if(cast(bool)(ptr = cast(const(char*))memchr(depstring, '>', deplen))) {
+	}
+	if(cast(bool)(ptr = cast(char*)memchr(depstring, '>', deplen))) {
 		if(ptr[1] == '=') {
 			depend.mod = ALPM_DEP_MOD_GE;
 			version_ = ptr + 2;
@@ -495,7 +496,8 @@ alpm_depend_t * alpm_dep_from_string(const(char)* depstring)
 			depend.mod = ALPM_DEP_MOD_GT;
 			version_ = ptr + 1;
 		}
-	} else if(cast(bool)(ptr = cast(const(char*))memchr(depstring, '=', deplen))) {
+	}
+	if(cast(bool)(ptr =  cast(char*)memchr(depstring, '=', deplen))) {
 		/* Note: we must do =,<,> checks after <=, >= checks */
 		depend.mod = ALPM_DEP_MOD_EQ;
 		version_ = ptr + 1;
@@ -521,7 +523,7 @@ error:
 	return null;
 }
 
-alpm_depend_t* _alpm_dep_dup(const(alpm_depend_t)* dep)
+alpm_depend_t* _alpm_dep_dup( alpm_depend_t* dep)
 {
 	alpm_depend_t* newdep = void;
 	CALLOC(newdep, 1, alpm_depend_t.sizeof);
@@ -745,7 +747,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 	return null;
 }
 
-alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs, const(char)* depstring)
+alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs,   char*depstring)
 {
 	alpm_depend_t* dep = void;
 	alpm_pkg_t* pkg = void;
@@ -856,9 +858,9 @@ int _alpm_resolvedeps(alpm_handle_t* handle, alpm_list_t* localpkgs, alpm_pkg_t*
 	return ret;
 }
 
-char * alpm_dep_compute_string(const(alpm_depend_t)* dep)
+char * alpm_dep_compute_string( alpm_depend_t* dep)
 {
-	const(char)* name = void, opr = void, ver = void, desc_delim = void, desc = void;
+	  char*name = void, opr = void, ver = void, desc_delim = void, desc = void;
 	char* str = void;
 	size_t len = void;
 
@@ -867,45 +869,45 @@ char * alpm_dep_compute_string(const(alpm_depend_t)* dep)
 	if(dep.name) {
 		name = dep.name;
 	} else {
-		name = "";
+		name = cast(char*)"";
 	}
 
 	switch(dep.mod) {
 		case ALPM_DEP_MOD_ANY:
-			opr = "";
+			opr = cast(char*)"";
 			break;
 		case ALPM_DEP_MOD_GE:
-			opr = ">=";
+			opr = cast(char*)">=";
 			break;
 		case ALPM_DEP_MOD_LE:
-			opr = "<=";
+			opr = cast(char*)"<=";
 			break;
 		case ALPM_DEP_MOD_EQ:
-			opr = "=";
+			opr = cast(char*)"=";
 			break;
 		case ALPM_DEP_MOD_LT:
-			opr = "<";
+			opr = cast(char*)"<";
 			break;
 		case ALPM_DEP_MOD_GT:
-			opr = ">";
+			opr = cast(char*)">";
 			break;
 		default:
-			opr = "";
+			opr = cast(char*)"";
 			break;
 	}
 
 	if(dep.mod != ALPM_DEP_MOD_ANY && dep.version_) {
 		ver = dep.version_;
 	} else {
-		ver = "";
+		ver = cast(char*)"";
 	}
 
 	if(dep.desc) {
-		desc_delim = ": ";
+		desc_delim = cast(char*)": ";
 		desc = dep.desc;
 	} else {
-		desc_delim = "";
-		desc = "";
+		desc_delim = cast(char*)"";
+		desc = cast(char*)"";
 	}
 
 	/* we can always compute len and print the string like this because opr

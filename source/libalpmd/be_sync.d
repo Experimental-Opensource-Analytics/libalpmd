@@ -82,7 +82,7 @@ char* get_sync_dir(alpm_handle_t* handle)
 int sync_db_validate(alpm_db_t* db)
 {
 	int siglevel = void;
-	const(char)* dbpath = void;
+	  char*dbpath = void;
 
 	if(db.status & DB_STATUS_VALID || db.status & DB_STATUS_MISSING) {
 		return 0;
@@ -151,7 +151,7 @@ valid:
 int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 	char* syncpath = void;
 	char* temporary_syncpath = void;
-	const(char)* dbext = handle.dbext;
+	  char*dbext = handle.dbext;
 	alpm_list_t* i = void;
 	int ret = -1;
 	mode_t oldmask = void;
@@ -205,8 +205,8 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 		snprintf(payload.filepath, len, "%s%s", db.treename, dbext);
 
 		STRNDUP(payload.remote_name, payload.filepath);
-		payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, "");
-		payload.tempfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, ".part");
+		payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)"");
+		payload.tempfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)".part");
 		if(!payload.destfile_name || !payload.tempfile_name) {
 			_alpm_dload_payload_reset(payload);
 			FREE(payload);
@@ -313,7 +313,7 @@ int _sync_get_validation(alpm_pkg_t* pkg)
  * because we want to reuse the majority of the default_pkg_ops struct and
  * add only a few operations of our own on top.
  */
-const(pkg_operations)* get_sync_pkg_ops()
+ const (pkg_operations)* get_sync_pkg_ops()
 {
 	static pkg_operations sync_pkg_ops;
 	static int sync_pkg_ops_initialized = 0;
@@ -325,7 +325,7 @@ const(pkg_operations)* get_sync_pkg_ops()
 	return &sync_pkg_ops;
 }
 
-alpm_pkg_t* load_pkg_for_entry(alpm_db_t* db, const(char)* entryname, const(char)** entry_filename, alpm_pkg_t* likely_pkg)
+alpm_pkg_t* load_pkg_for_entry(alpm_db_t* db,   char*entryname,  char** entry_filename, alpm_pkg_t* likely_pkg)
 {
 	char* pkgname = null, pkgver = null;
 	c_ulong pkgname_hash = void;
@@ -425,7 +425,7 @@ version (ARCHIVE_COMPRESSION_UU) {
 
 int sync_db_populate(alpm_db_t* db)
 {
-	const(char)* dbpath = void;
+	  char*dbpath = void;
 	size_t est_count = void, count = void;
 	int fd = void;
 	int ret = 0;
@@ -515,7 +515,7 @@ cleanup:
 
 /* This function validates %FILENAME%. filename must be between 3 and
  * PATH_MAX characters and cannot be contain a path */
-int _alpm_validate_filename(alpm_db_t* db, const(char)* pkgname, const(char)* filename)
+int _alpm_validate_filename(alpm_db_t* db,   char*pkgname,   char*filename)
 {
 	size_t len = strlen(filename);
 
@@ -566,11 +566,11 @@ enum string READ_AND_SPLITDEP(string f) = `do {
 
 int sync_db_read(alpm_db_t* db, archive* archive, archive_entry* entry, alpm_pkg_t** likely_pkg)
 {
-	const(char)* entryname = void, filename = void;
+	  char*entryname = void, filename = void;
 	alpm_pkg_t* pkg = void;
 	archive_read_buffer buf;
 
-	entryname = archive_entry_pathname(entry);
+	entryname = cast(char*)archive_entry_pathname(entry);
 	if(entryname == null) {
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"invalid archive entry provided to _alpm_sync_db_read, skipping\n");
@@ -741,7 +741,7 @@ db_operations sync_db_ops = {
 	unregister: &_alpm_db_unregister,
 };
 
-alpm_db_t* _alpm_db_register_sync(alpm_handle_t* handle, const(char)* treename, int level)
+alpm_db_t* _alpm_db_register_sync(alpm_handle_t* handle,   char*treename, int level)
 {
 	alpm_db_t* db = void;
 

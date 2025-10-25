@@ -99,7 +99,7 @@ struct _alpm_db_t {
 	alpm_list_t* grpcache;
 	alpm_list_t* cache_servers;
 	alpm_list_t* servers;
-	const(db_operations)* ops;
+	const (db_operations)* ops;
 
 	/* bitfields for validity, local, loaded caches, etc. */
 	/* From _alpm_dbstatus_t */
@@ -112,7 +112,7 @@ struct _alpm_db_t {
 
 alias alpm_db_t = _alpm_db_t;
 
-alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle, const(char)* treename, int siglevel)
+alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle,   char*treename, int siglevel)
 {
 	alpm_list_t* i = void;
 
@@ -204,7 +204,7 @@ int  alpm_db_unregister(alpm_db_t* db)
 	return 0;
 }
 
-const(alpm_list_t)* alpm_db_get_cache_servers(const(alpm_db_t)* db)
+ alpm_list_t* alpm_db_get_cache_servers(  alpm_db_t*db)
 {
 	ASSERT(db != null);
 	return db.cache_servers;
@@ -224,7 +224,7 @@ int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 	return 0;
 }
 
-const(alpm_list_t)* alpm_db_get_servers(const(alpm_db_t)* db)
+ alpm_list_t* alpm_db_get_servers(  alpm_db_t*db)
 {
 	ASSERT(db != null);
 	return db.servers;
@@ -244,7 +244,7 @@ int  alpm_db_set_servers(alpm_db_t* db, alpm_list_t* servers)
 	return 0;
 }
 
-private char* sanitize_url(const(char)* url)
+private char* sanitize_url(  char*url)
 {
 	char* newurl = void;
 	size_t len = strlen(url);
@@ -257,7 +257,7 @@ private char* sanitize_url(const(char)* url)
 	return newurl;
 }
 
-int  alpm_db_add_cache_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_add_cache_server(alpm_db_t* db,   char*url)
 {
 	char* newurl = void;
 
@@ -276,7 +276,7 @@ int  alpm_db_add_cache_server(alpm_db_t* db, const(char)* url)
 	return 0;
 }
 
-int  alpm_db_add_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_add_server(alpm_db_t* db,   char*url)
 {
 	char* newurl = void;
 
@@ -295,7 +295,7 @@ int  alpm_db_add_server(alpm_db_t* db, const(char)* url)
 	return 0;
 }
 
-int  alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_remove_cache_server(alpm_db_t* db,   char*url)
 {
 	char* newurl = void, vdata = null;
 	int ret = 1;
@@ -321,7 +321,7 @@ int  alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url)
 	return ret;
 }
 
-int  alpm_db_remove_server(alpm_db_t* db, const(char)* url)
+int  alpm_db_remove_server(alpm_db_t* db,   char*url)
 {
 	char* newurl = void, vdata = null;
 	int ret = 1;
@@ -353,7 +353,7 @@ alpm_handle_t * alpm_db_get_handle(alpm_db_t* db)
 	return db.handle;
 }
 
-const(char)* alpm_db_get_name(const(alpm_db_t)* db)
+  char*alpm_db_get_name(  alpm_db_t*db)
 {
 	ASSERT(db != null);
 	return db.treename;
@@ -376,7 +376,7 @@ ASSERT(db != null);
 return db.ops.validate(db);
 }
 
-alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db, const(char)* name)
+alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db,   char*name)
 {
 alpm_pkg_t* pkg = void;
 ASSERT(db != null);
@@ -397,7 +397,7 @@ alpm_list_t * alpm_db_get_pkgcache(alpm_db_t* db)
 	return _alpm_db_get_pkgcache(db);
 }
 
-alpm_group_t * alpm_db_get_group(alpm_db_t* db, const(char)* name)
+alpm_group_t * alpm_db_get_group(alpm_db_t* db,   char*name)
 {
 	ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
@@ -414,7 +414,7 @@ alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 	return _alpm_db_get_groupcache(db);
 }
 
-int  alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** ret)
+int  alpm_db_search(alpm_db_t* db,  alpm_list_t* needles, alpm_list_t** ret)
 {
 	ASSERT(db != null && ret != null && *ret == null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
@@ -437,7 +437,7 @@ int  alpm_db_get_usage(alpm_db_t* db, int* usage)
 	return 0;
 }
 
-alpm_db_t* _alpm_db_new(const(char)* treename, int is_local)
+alpm_db_t* _alpm_db_new(  char*treename, int is_local)
 {
 	alpm_db_t* db = void;
 
@@ -468,13 +468,13 @@ void _alpm_db_free(alpm_db_t* db)
 	return;
 }
 
-const(char)* _alpm_db_path(alpm_db_t* db)
+  char*_alpm_db_path(alpm_db_t* db)
 {
 	if(!db) {
 		return null;
 	}
 	if(!db._path) {
-		const(char)* dbpath = void;
+		  char*dbpath = void;
 		size_t pathsize = void;
 
 		dbpath = db.handle.dbpath;
@@ -488,7 +488,7 @@ const(char)* _alpm_db_path(alpm_db_t* db)
 			CALLOC(db._path, 1, pathsize);
 			snprintf(db._path, pathsize, "%s%s/", dbpath, db.treename);
 		} else {
-			const(char)* dbext = db.handle.dbext;
+			  char*dbext = db.handle.dbext;
 
 			pathsize = strlen(dbpath) + 5 + strlen(db.treename) + strlen(dbext) + 1;
 			CALLOC(db._path, 1, pathsize);
@@ -501,16 +501,16 @@ const(char)* _alpm_db_path(alpm_db_t* db)
 	return db._path;
 }
 
-int _alpm_db_cmp(const(void)* d1, const(void)* d2)
+int _alpm_db_cmp( void* d1,  void* d2)
 {
-	const(alpm_db_t)* db1 = cast(alpm_db_t*)d1;
-	const(alpm_db_t)* db2 = cast(alpm_db_t*)d2;
+	  alpm_db_t*db1 = cast(alpm_db_t*)d1;
+	  alpm_db_t*db2 = cast(alpm_db_t*)d2;
 	return strcmp(db1.treename, db2.treename);
 }
 
-int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** ret)
+int _alpm_db_search(alpm_db_t* db,  alpm_list_t* needles, alpm_list_t** ret)
 {
-	const(alpm_list_t)* i = void, j = void, k = void;
+	 alpm_list_t* i = void, j = void, k = void;
 
 	if(!(db.usage & ALPM_DB_USAGE_SEARCH)) {
 		return 0;
@@ -529,11 +529,11 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 		targ = cast(char*)i.data;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
 
-		for(j = cast(const(alpm_list_t)*) list; j; j = j.next) {
+		for(j = cast( alpm_list_t*) list; j; j = j.next) {
 			alpm_pkg_t* pkg = cast(alpm_pkg_t*)j.data;
-			const(char)* matched = null;
-			const(char)* name = pkg.name;
-			const(char)* desc = alpm_pkg_get_desc(pkg);
+			  char*matched = null;
+			  char*name = pkg.name;
+			  char*desc = alpm_pkg_get_desc(pkg);
 
 			/* check name as plain text */
 			if(name && strstr(name, targ)) {
@@ -558,7 +558,7 @@ int _alpm_db_search(alpm_db_t* db, const(alpm_list_t)* needles, alpm_list_t** re
 			if(!matched) {
 				/* check groups */
 				for(k = alpm_pkg_get_groups(pkg); k; k = k.next) {
-					const(char)* group = cast(const(char*))k.data;
+					  char*group =  cast(char*)k.data;
 					if(strstr(group, targ)) {
 						matched = group;
 						break;
@@ -730,7 +730,7 @@ int _alpm_db_remove_pkgfromcache(alpm_db_t* db, alpm_pkg_t* pkg)
 	return 0;
 }
 
-alpm_pkg_t* _alpm_db_get_pkgfromcache(alpm_db_t* db, const(char)* target)
+alpm_pkg_t* _alpm_db_get_pkgfromcache(alpm_db_t* db,   char*target)
 {
 	if(db == null) {
 		return null;
@@ -758,11 +758,11 @@ private int load_grpcache(alpm_db_t* db)
 			db.treename);
 
 	for(lp = _alpm_db_get_pkgcache(db); lp; lp = lp.next) {
-		const(alpm_list_t)* i = void;
+		 alpm_list_t* i = void;
 		alpm_pkg_t* pkg = cast(alpm_pkg_t*)lp.data;
 
 		for(i = alpm_pkg_get_groups(pkg); i; i = i.next) {
-			const(char)* grpname = cast(const(char*))i.data;
+			  char*grpname =  cast(char*)i.data;
 			alpm_list_t* j = void;
 			alpm_group_t* grp = null;
 			int found = 0;
@@ -813,7 +813,7 @@ alpm_list_t* _alpm_db_get_groupcache(alpm_db_t* db)
 	return db.grpcache;
 }
 
-alpm_group_t* _alpm_db_get_groupfromcache(alpm_db_t* db, const(char)* target)
+alpm_group_t* _alpm_db_get_groupfromcache(alpm_db_t* db,   char*target)
 {
 	alpm_list_t* i = void;
 
@@ -822,7 +822,7 @@ alpm_group_t* _alpm_db_get_groupfromcache(alpm_db_t* db, const(char)* target)
 	}
 
 	for(i = _alpm_db_get_groupcache(db); i; i = i.next) {
-		alpm_group_t* info = i.data;
+		alpm_group_t* info = cast(alpm_group_t*)i.data;
 
 		if(strcmp(info.name, target) == 0) {
 			return info;

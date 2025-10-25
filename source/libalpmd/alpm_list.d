@@ -56,7 +56,7 @@ alias alpm_list_t = _alpm_list_t;
 alias alpm_list_fn_free = void function(void* item);
 
 /** item comparison callback */
-alias alpm_list_fn_cmp = int function(const(void)*, const(void)*);
+alias alpm_list_fn_cmp = int function( void*,  void*);
 
 void  alpm_list_free(alpm_list_t* list)
 {
@@ -92,7 +92,7 @@ alpm_list_t * alpm_list_add(alpm_list_t* list, void* data)
 	return list;
 }
 
-alpm_list_t * alpm_list_append(alpm_list_t** list, const void* data)
+alpm_list_t * alpm_list_append(alpm_list_t** list,   void* data)
 {
 	alpm_list_t* ptr = void;
 
@@ -118,7 +118,7 @@ alpm_list_t * alpm_list_append(alpm_list_t** list, const void* data)
 	return ptr;
 }
 
-alpm_list_t * alpm_list_append_strdup(alpm_list_t** list, const(char)* data)
+alpm_list_t * alpm_list_append_strdup(alpm_list_t** list,   char*data)
 {
 	alpm_list_t* ret = void;
 	char* dup = void;
@@ -369,12 +369,12 @@ alpm_list_t * alpm_list_remove_dupes(alpm_list_t* list)
 	return newlist;
 }
 
-alpm_list_t * alpm_list_strdup(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_strdup(alpm_list_t* list)
 {
-	const(alpm_list_t)* lp = list;
+	 alpm_list_t* lp = list;
 	alpm_list_t* newlist = null;
 	while(lp) {
-		if(alpm_list_append_strdup(&newlist, cast(const char*)lp.data) == null) {
+		if(alpm_list_append_strdup(&newlist, cast(  char*)lp.data) == null) {
 			FREELIST(newlist);
 			return null;
 		}
@@ -383,9 +383,9 @@ alpm_list_t * alpm_list_strdup(const(alpm_list_t)* list)
 	return newlist;
 }
 
-alpm_list_t * alpm_list_copy(const(alpm_list_t)* list)
+alpm_list_t * alpm_list_copy( alpm_list_t* list)
 {
-	const(alpm_list_t)* lp = list;
+	 alpm_list_t* lp = list;
 	alpm_list_t* newlist = null;
 	while(lp) {
 		if(alpm_list_append(&newlist, lp.data) == null) {
@@ -397,9 +397,9 @@ alpm_list_t * alpm_list_copy(const(alpm_list_t)* list)
 	return newlist;
 }
 
-alpm_list_t * alpm_list_copy_data(const(alpm_list_t)* list, size_t size)
+alpm_list_t * alpm_list_copy_data( alpm_list_t* list, size_t size)
 {
-	const(alpm_list_t)* lp = list;
+	 alpm_list_t* lp = list;
 	alpm_list_t* newlist = null;
 	while(lp) {
 		void* newdata = malloc(size);
@@ -421,7 +421,7 @@ alpm_list_t * alpm_list_copy_data(const(alpm_list_t)* list, size_t size)
 
 alpm_list_t * alpm_list_reverse(alpm_list_t* list)
 {
-	const(alpm_list_t)* lp = void;
+	 alpm_list_t* lp = void;
 	alpm_list_t* newlist = null, backup = void;
 
 	if(list == null) {
@@ -447,9 +447,9 @@ alpm_list_t * alpm_list_reverse(alpm_list_t* list)
 
 /* Accessors */
 
-alpm_list_t * alpm_list_nth(const(alpm_list_t)* list, size_t n)
+alpm_list_t * alpm_list_nth( alpm_list_t* list, size_t n)
 {
-	const(alpm_list_t)* i = list;
+	 alpm_list_t* i = list;
 	while(n--) {
 		i = i.next;
 	}
@@ -485,10 +485,10 @@ alpm_list_t * alpm_list_last(alpm_list_t* list)
 
 /* Misc */
 
-size_t  alpm_list_count(const(alpm_list_t)* list)
+size_t  alpm_list_count( alpm_list_t* list)
 {
 	size_t i = 0;
-	const(alpm_list_t)* lp = list;
+	 alpm_list_t* lp = list;
 	while(lp) {
 		++i;
 		lp = lp.next;
@@ -509,7 +509,7 @@ void * alpm_list_find(alpm_list_t* haystack, void* needle, alpm_list_fn_cmp fn)
 }
 
 /* trivial helper function for alpm_list_find_ptr */
-private int ptr_cmp(const(void)* p, const(void)* q)
+private int ptr_cmp(void* p, void* q)
 {
 	return (p != q);
 }
@@ -525,10 +525,10 @@ char * alpm_list_find_str(alpm_list_t* haystack, char* needle)
 			cast(alpm_list_fn_cmp)&strcmp);
 }
 
-int  alpm_list_cmp_unsorted(const(alpm_list_t)* left, const(alpm_list_t)* right, alpm_list_fn_cmp fn)
+int  alpm_list_cmp_unsorted( alpm_list_t* left,  alpm_list_t* right, alpm_list_fn_cmp fn)
 {
-	const(alpm_list_t)* l = left;
-	const(alpm_list_t)* r = right;
+	 alpm_list_t* l = left;
+	 alpm_list_t* r = right;
 	int* matched = void;
 
 	/* short circuiting length comparison */
@@ -640,10 +640,10 @@ alpm_list_t * alpm_list_diff(alpm_list_t* lhs, alpm_list_t* rhs, alpm_list_fn_cm
 	return ret;
 }
 
-void * alpm_list_to_array(const(alpm_list_t)* list, size_t n, size_t size)
+void * alpm_list_to_array( alpm_list_t* list, size_t n, size_t size)
 {
 	size_t i = void;
-	const(alpm_list_t)* item = void;
+	 alpm_list_t* item = void;
 	char* array = void;
 
 	if(n == 0) {

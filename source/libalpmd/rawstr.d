@@ -103,7 +103,7 @@ private char raw_toupper(char in_)
  * non-ascii.
  */
 
-int _alpm_raw_cmp(const(char)* first, const(char)* second)
+int _alpm_raw_cmp(  char*first,   char*second)
 {
 	while(*first && *second) {
 		if(raw_toupper(*first) != raw_toupper(*second)) {
@@ -119,7 +119,7 @@ int _alpm_raw_cmp(const(char)* first, const(char)* second)
 	return (raw_toupper(*first) - raw_toupper(*second));
 }
 
-int _alpm_raw_ncmp(const(char)* first, const(char)* second, size_t max)
+int _alpm_raw_ncmp(  char*first,   char*second, size_t max)
 {
 	while(*first && *second && max) {
 		if(raw_toupper(*first) != raw_toupper(*second)) {

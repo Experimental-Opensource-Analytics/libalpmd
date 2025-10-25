@@ -31,12 +31,12 @@ import libalpmd.util;
 import libalpmd.log;
 import libalpmd.alpm;
 
-alpm_group_t* _alpm_group_new(const(char)* name)
+alpm_group_t* _alpm_group_new(  char*name)
 {
 	alpm_group_t* grp = void;
 
 	CALLOC(grp, 1, alpm_group_t.sizeof);
-	STRDUP(grp.name, name);
+	STRNDUP(grp.name, name);
 
 	return grp;
 }

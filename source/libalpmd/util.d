@@ -106,11 +106,11 @@ void REALLOC(T, L)(ref T t, L l, size_t size) {
 	// t = calloc(l, size);
 }
 
-void STRDUP(ref char* str, const(char)* _str, size_t l) {
+void STRDUP(ref char* str,   char*_str, size_t l) {
 	str = strdup(_str, l);
 }
 
-void STRNDUP(ref char* str, const char* _str) {
+void STRNDUP(ref char* str,   char* _str) {
 	str = strndup(_str);
 } 
 
@@ -142,9 +142,14 @@ noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
 
 noreturn RET_ERR(H = alpm_handle_t*, E)(H handle, E err, ...) {
 	// _alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
-	handle.pm_errno = (err);
+	handle.pm_errno = cast(alpm_errno_t)(err);
 	assert(0, "ERROR BY RET_ERROR");
 }
+
+auto RET_ERR_ASYNC_SAFE(H, E, T) (H handle, E err, T ret) {
+	(handle).pm_errno = (err);
+	return (ret); 
+} 
 
 version (HAVE_STRSEP) {} else {
 /** Extracts tokens from a string.
@@ -157,7 +162,7 @@ version (HAVE_STRSEP) {} else {
  * @return pointer to the first token in str if str is not NULL, NULL if
  * str is NULL
  */
-char* strsep(char** str, const(char)* delims)
+char* strsep(char** str,   char*delims)
 {
 	char* token = void;
 
@@ -181,7 +186,7 @@ char* strsep(char** str, const(char)* delims)
 }
 }
 
-int _alpm_makepath(const(char)* path)
+int _alpm_makepath(  char*path)
 {
 	return _alpm_makepath_mode(path, octal!"0755");
 }
@@ -191,13 +196,13 @@ int _alpm_makepath(const(char)* path)
  * @param mode permission mode for created directories
  * @return 0 on success, 1 on error
  */
-int _alpm_makepath_mode(const(char)* path, mode_t mode)
+int _alpm_makepath_mode(  char*path, mode_t mode)
 {
 	char* ptr = void, str = void;
 	mode_t oldmask = void;
 	int ret = 0;
 
-	STRDUP(str, path);
+	STRNDUP(str, path);
 
 	oldmask = umask(0000);
 
@@ -236,7 +241,7 @@ done:
  * @param dest file path to copy to
  * @return 0 on success, 1 on error
  */
-int _alpm_copyfile(const(char)* src, const(char)* dest)
+int _alpm_copyfile(  char*src,   char*dest)
 {
 	char* buf = void;
 	int in_ = void, out_ = void, ret = 1;
@@ -291,7 +296,7 @@ cleanup:
  * @param suffix suffix
  * @return file path
 */
-char* _alpm_get_fullpath(const(char)* path, const(char)* filename, const(char)* suffix)
+char* _alpm_get_fullpath(  char*path,   char*filename,   char*suffix)
 {
 	char* filepath = void;
 	/* len = localpath len + filename len + suffix len + null */
@@ -338,7 +343,7 @@ size_t _alpm_strip_newline(char* str, size_t len)
  * @param error error code to set on failure to open archive
  * @return -1 on failure, >=0 file descriptor on success
  */
-int _alpm_open_archive(alpm_handle_t* handle, const(char)* path, stat_t* buf, archive** archive, alpm_errno_t error)
+int _alpm_open_archive(alpm_handle_t* handle,   char*path, stat_t* buf, archive** archive, alpm_errno_t error)
 {
 	int fd = void;
 	size_t bufsize = ALPM_BUFFER_SIZE;
@@ -394,7 +399,7 @@ error:
  * @param filename a file within the archive to unpack
  * @return 0 on success, 1 on failure
  */
-int _alpm_unpack_single(alpm_handle_t* handle, const(char)* archive, const(char)* prefix, const(char)* filename)
+int _alpm_unpack_single(alpm_handle_t* handle,   char*archive,   char*prefix,   char*filename)
 {
 	alpm_list_t* list = null;
 	int ret = 0;
@@ -415,7 +420,7 @@ int _alpm_unpack_single(alpm_handle_t* handle, const(char)* archive, const(char)
  * @param breakfirst break after the first entry found
  * @return 0 on success, 1 on failure
  */
-int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, alpm_list_t* list, int breakfirst)
+int _alpm_unpack(alpm_handle_t* handle,   char*path,   char*prefix, alpm_list_t* list, int breakfirst)
 {
 	int ret = 0;
 	mode_t oldmask = void;
@@ -446,7 +451,7 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 	}
 
 	while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
-		const(char)* entryname = void;
+		  char*entryname = void;
 		mode_t mode = void;
 
 		entryname = archive_entry_pathname(entry);
@@ -459,7 +464,7 @@ int _alpm_unpack(alpm_handle_t* handle, const(char)* path, const(char)* prefix, 
 		/* If specific files were requested, skip entries that don't match. */
 		if(list) {
 			char* entry_prefix = null;
-			STRDUP(entry_prefix, entryname);
+			STRNDUP(entry_prefix, entryname);
 			char* p = strstr(entry_prefix,"/");
 			if(p) {
 				*(p + 1) = '\0';
@@ -524,7 +529,7 @@ cleanup:
  * @return a file count if full_count is != 0, else >0 if directory has
  * contents, 0 if no contents, and -1 on error
  */
-ssize_t _alpm_files_in_directory(alpm_handle_t* handle, const(char)* path, int full_count)
+ssize_t _alpm_files_in_directory(alpm_handle_t* handle,   char*path, int full_count)
 {
 	ssize_t files = 0;
 	dirent* ent = void;
@@ -540,7 +545,7 @@ ssize_t _alpm_files_in_directory(alpm_handle_t* handle, const(char)* path, int f
 		return -1;
 	}
 	while((ent = readdir(dir)) != null) {
-		const(char)* name = ent.d_name;
+		  char*name = ent.d_name;
 
 		if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 			continue;
@@ -599,13 +604,13 @@ private int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf
 alias _alpm_cb_io = ssize_t function(void* buf, ssize_t len, void* ctx);
 
 
-private void _alpm_chroot_process_output(alpm_handle_t* handle, const(char)* line)
+private void _alpm_chroot_process_output(alpm_handle_t* handle,   char*line)
 {
 	alpm_event_scriptlet_info_t event = {
 		type: ALPM_EVENT_SCRIPTLET_INFO,
 		line: line
 	};
-	alpm_logaction(handle, "ALPM-SCRIPTLET", "%s", line);
+	//alpm_logaction(handle, "ALPM-SCRIPTLET", "%s", line);
 	EVENT(handle, &event);
 }
 
@@ -685,7 +690,7 @@ void _alpm_reset_signals()
  * @param stdin_ctx context to be passed to @a stdin_cb
  * @return 0 on success, 1 on error
  */
-int _alpm_run_chroot(alpm_handle_t* handle, const(char)* cmd, char** argv, _alpm_cb_io stdin_cb, void* stdin_ctx)
+int _alpm_run_chroot(alpm_handle_t* handle,   char*cmd, char** argv, _alpm_cb_io stdin_cb, void* stdin_ctx)
 {
 	pid_t pid = void;
 	int[2] child2parent_pipefd = void, parent2child_pipefd = void;
@@ -917,7 +922,7 @@ int _alpm_ldconfig(alpm_handle_t* handle)
  * @return 0 if strings are equal, positive int if first unequal character
  * has a greater value in s1, negative if it has a greater value in s2
  */
-int _alpm_str_cmp(const(void)* s1, const(void)* s2)
+int _alpm_str_cmp( void* s1,  void* s2)
 {
 	return strcmp(s1, s2);
 }
@@ -927,7 +932,7 @@ int _alpm_str_cmp(const(void)* s1, const(void)* s2)
  * @param filename name of file to find
  * @return malloced path of file, NULL if not found
  */
-char* _alpm_filecache_find(alpm_handle_t* handle, const(char)* filename)
+char* _alpm_filecache_find(alpm_handle_t* handle,   char*filename)
 {
 	char[PATH_MAX] path = void;
 	char* retpath = void;
@@ -960,7 +965,7 @@ char* _alpm_filecache_find(alpm_handle_t* handle, const(char)* filename)
  * @param filename name of file to find
  * @return 0 if the filename was not found, 1 otherwise
  */
-int _alpm_filecache_exists(alpm_handle_t* handle, const(char)* filename)
+int _alpm_filecache_exists(alpm_handle_t* handle,   char*filename)
 {
 	int res = void;
 	char* fpath = _alpm_filecache_find(handle, filename);
@@ -974,12 +979,12 @@ int _alpm_filecache_exists(alpm_handle_t* handle, const(char)* filename)
  * @param handle the context handle
  * @return pointer to a writable cache directory.
  */
-const(char)* _alpm_filecache_setup(alpm_handle_t* handle)
+  char*_alpm_filecache_setup(alpm_handle_t* handle)
 {
 	stat_t buf = void;
 	alpm_list_t* i = void;
 	char* cachedir = void;
-	const(char)* tmpdir = void;
+	  char*tmpdir = void;
 
 	/* Loop through the cache dirs until we find a usable directory */
 	for(i = handle.cachedirs; i; i = i.next) {
@@ -1028,16 +1033,16 @@ const(char)* _alpm_filecache_setup(alpm_handle_t* handle)
  * @param user download user name
  * @return pointer to a sub-directory writable by the download user inside the existing directory.
  */
-char* _alpm_temporary_download_dir_setup(const(char)* dir, const(char)* user)
+char* _alpm_temporary_download_dir_setup(  char*dir,   char*user)
 {
-	const(passwd)* pw = null;
+	 (passwd)* pw = null;
 
 	ASSERT(dir != null);
 	if(user != null) {
 		ASSERT((pw = getpwnam(user)) != null);
 	}
 
-	const(char)[16] template_ = "download-XXXXXX";
+	const (char)[16] template_ = "download-XXXXXX";
 	size_t newdirlen = strlen(dir) + ((template_) + 1).sizeof;
 	char* newdir = null;
 	MALLOC(newdir, newdirlen);
@@ -1062,7 +1067,7 @@ char* _alpm_temporary_download_dir_setup(const(char)* dir, const(char)* user)
  * leftover files.
  * @param dir directory to be removed
  */
-void _alpm_remove_temporary_download_dir(const(char)* dir)
+void _alpm_remove_temporary_download_dir(  char*dir)
 {
 	ASSERT(dir != null);
 	size_t dirlen = strlen(dir);
@@ -1096,11 +1101,11 @@ static if (HasVersion!"HAVE_LIBSSL" || HasVersion!"HAVE_LIBNETTLE") {
  * @param output string to hold computed MD5 digest
  * @return 0 on success, 1 on file open error, 2 on file read error
  */
-private int md5_file(const(char)* path, ubyte* output)
+private int md5_file(  char*path, ubyte* output)
 {
 static if (HAVE_LIBSSL) {
 	EVP_MD_CTX* ctx = void;
-	const(EVP_MD)* md = EVP_get_digestbyname("MD5");
+	 (EVP_MD)* md = EVP_get_digestbyname("MD5");
 } else { /* HAVE_LIBNETTLE */
 	md5_ctx ctx = void;
 }
@@ -1155,11 +1160,11 @@ static if (HAVE_LIBSSL) {
  * @param output string to hold computed SHA256 digest
  * @return 0 on success, 1 on file open error, 2 on file read error
  */
-private int sha256_file(const(char)* path, ubyte* output)
+private int sha256_file(  char*path, ubyte* output)
 {
 static if (HAVE_LIBSSL) {
 	EVP_MD_CTX* ctx = void;
-	const(EVP_MD)* md = EVP_get_digestbyname("SHA256");
+	 (EVP_MD)* md = EVP_get_digestbyname("SHA256");
 } else { /* HAVE_LIBNETTLE */
 	sha256_ctx ctx = void;
 }
@@ -1210,7 +1215,7 @@ static if (HAVE_LIBSSL) {
 }
 } /* HAVE_LIBSSL || HAVE_LIBNETTLE */
 
-char * alpm_compute_md5sum(const(char)* filename)
+char * alpm_compute_md5sum(  char*filename)
 {
 	ubyte[16] output = void;
 
@@ -1223,7 +1228,7 @@ char * alpm_compute_md5sum(const(char)* filename)
 	return hex_representation(output.ptr, 16);
 }
 
-char * alpm_compute_sha256sum(const(char)* filename)
+char * alpm_compute_sha256sum(  char*filename)
 {
 	ubyte[32] output = void;
 
@@ -1243,7 +1248,7 @@ char * alpm_compute_sha256sum(const(char)* filename)
  * @return 0 if file matches the expected hash, 1 if they do not match, -1 on
  * error
  */
-int _alpm_test_checksum(const(char)* filepath, const(char)* expected, alpm_pkgvalidation_t type)
+int _alpm_test_checksum(  char*filepath,   char*expected, alpm_pkgvalidation_t type)
 {
 	char* computed = void;
 	int ret = void;
@@ -1380,7 +1385,7 @@ cleanup:
  * @param name_hash to hold package name hash
  * @return 0 on success, -1 on error
  */
-int _alpm_splitname(const(char)* target, char** name, char** version_, c_ulong* name_hash)
+int _alpm_splitname(  char*target, char** name, char** version_, c_ulong* name_hash)
 {
 	/* the format of a db entry is as follows:
 	 *    package-version-rel/
@@ -1388,7 +1393,7 @@ int _alpm_splitname(const(char)* target, char** name, char** version_, c_ulong* 
 	 * package name can contain hyphens, so parse from the back- go back
 	 * two hyphens and we have split the version from the name.
 	 */
-	const(char)* pkgver = void, end = void;
+	  char*pkgver = void, end = void;
 
 	if(target == null) {
 		return -1;
@@ -1436,7 +1441,7 @@ int _alpm_splitname(const(char)* target, char** name, char** version_, c_ulong* 
  * @param str string to hash
  * @return the hash value of the given string
  */
-c_ulong _alpm_hash_sdbm(const(char)* str)
+c_ulong _alpm_hash_sdbm(  char*str)
 {
 	c_ulong hash = 0;
 	int c = void;
@@ -1456,7 +1461,7 @@ c_ulong _alpm_hash_sdbm(const(char)* str)
  * @param line string to convert
  * @return off_t on success, -1 on error
  */
-off_t _alpm_strtoofft(const(char)* line)
+off_t _alpm_strtoofft(  char*line)
 {
 	char* end = void;
 	ulong result = void;
@@ -1485,7 +1490,7 @@ off_t _alpm_strtoofft(const(char)* line)
  * @param line date to parse
  * @return time struct on success, 0 on error
  */
-alpm_time_t _alpm_parsedate(const(char)* line)
+alpm_time_t _alpm_parsedate(  char*line)
 {
 	char* end = void;
 	long result = void;
@@ -1517,7 +1522,7 @@ alpm_time_t _alpm_parsedate(const(char)* line)
  * @param amode access mode as described in access()
  * @return int value returned by access()
  */
-int _alpm_access(alpm_handle_t* handle, const(char)* dir, const(char)* file, int amode)
+int _alpm_access(alpm_handle_t* handle,   char*dir,   char*file, int amode)
 {
 	size_t len = 0;
 	int ret = 0;
@@ -1571,7 +1576,7 @@ version (AT_SYMLINK_NOFOLLOW) {
  * @return 0 if string matches pattern, negative if they don't match and
  * positive if the last match was inverted
  */
-int _alpm_fnmatch_patterns(alpm_list_t* patterns, const(char)* string)
+int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char*string)
 {
 	alpm_list_t* i = void;
 	char* pattern = void;
@@ -1615,7 +1620,7 @@ int _alpm_fnmatch(char* pattern, char* _string)
  * @param required size you want
  * @return new memory; NULL on error
  */
-void* _alpm_realloc(void** data, size_t* current, const(size_t) required)
+void* _alpm_realloc(void** data, size_t* current,  size_t required)
 {
 	REALLOC(*data, required);
 
@@ -1638,7 +1643,7 @@ void* _alpm_realloc(void** data, size_t* current, const(size_t) required)
  * @param required size you want
  * @return new memory if grown; old memory otherwise; NULL on error
  */
-void* _alpm_greedy_grow(void** data, size_t* current, const(size_t) required)
+void* _alpm_greedy_grow(void** data, size_t* current,  size_t required)
 {
 	size_t newsize = 0;
 
@@ -1675,7 +1680,7 @@ void _alpm_alloc_fail(size_t size)
  * @param data_len size of the output buffer
  * @return error code for the operation
  */
-alpm_errno_t _alpm_read_file(const(char)* filepath, ubyte** data, size_t* data_len)
+alpm_errno_t _alpm_read_file(  char*filepath, ubyte** data, size_t* data_len)
 {
 	stat_t st = void;
 	FILE* fp = void;

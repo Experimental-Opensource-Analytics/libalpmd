@@ -31,6 +31,8 @@ import core.sys.posix.sys.stat;
 import core.sys.posix.fcntl;
 import core.stdc.limits;
 import core.stdc.stdio;;
+import std.conv;
+
 
 
 /* libarchive */
@@ -70,7 +72,7 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
 	package_changelog* changelog = void;
 	archive* _archive = void;
 	archive_entry* entry = void;
-	const(char)* pkgfile = pkg.origin_data.file;
+	  char*pkgfile = pkg.origin_data.file;
 	stat_t buf = void;
 	int fd = void;
 
@@ -81,7 +83,7 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
 	}
 
 	while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
-		const(char)* entry_name = archive_entry_pathname(entry);
+		  char*entry_name = cast(char*)archive_entry_pathname(entry);
 
 		if(strcmp(entry_name, ".CHANGELOG") == 0) {
 			changelog = cast(package_changelog*) malloc(package_changelog.sizeof);
@@ -113,7 +115,7 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
  * @param fp a 'file stream' to the package changelog
  * @return the number of characters read, or 0 if there is no more data
  */
-private size_t _package_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)* pkg, void* fp)
+private size_t _package_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg, void* fp)
 {
 	package_changelog* changelog = cast(package_changelog*)fp;
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
@@ -132,7 +134,7 @@ private size_t _package_changelog_read(void* ptr, size_t size, const(alpm_pkg_t)
  * @param fp a 'file stream' to the package changelog
  * @return whether closing the package changelog stream was successful
  */
-private int _package_changelog_close(const(alpm_pkg_t)* pkg, void* fp)
+private int _package_changelog_close( alpm_pkg_t* pkg, void* fp)
 {
 	int ret = void;
 	package_changelog* changelog = cast(package_changelog*)fp;
@@ -146,7 +148,7 @@ private int _package_changelog_close(const(alpm_pkg_t)* pkg, void* fp)
  * because we want to reuse the majority of the default_pkg_ops struct and
  * add only a few operations of our own on top.
  */
-private const(pkg_operations)* get_file_pkg_ops()
+private const (pkg_operations)* get_file_pkg_ops()
 {
 	static pkg_operations file_pkg_ops;
 	static int file_pkg_ops_initialized = 0;
@@ -260,7 +262,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 					return -1;
 				}
 			} else {
-				const(char)* pkgname = newpkg.name ? newpkg.name : "error";
+				  char*pkgname = newpkg.name ? newpkg.name : "error".to!(char*);
 				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in package description\n"), pkgname, key);
 				_alpm_log(handle, ALPM_LOG_DEBUG, "%s: unknown key '%s' in description file line %d\n",
 									pkgname, key, linenum);
@@ -286,7 +288,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
  * @param validation successful validations performed on the package file
  * @return 0 if package is fully valid, -1 and pm_errno otherwise
  */
-int _alpm_pkg_validate_internal(alpm_handle_t* handle, const(char)* pkgfile, alpm_pkg_t* syncpkg, int level, alpm_siglist_t** sigdata, int* validation)
+int _alpm_pkg_validate_internal(alpm_handle_t* handle,   char*pkgfile, alpm_pkg_t* syncpkg, int level, alpm_siglist_t** sigdata, int* validation)
 {
 	int has_sig = void;
 	handle.pm_errno = ALPM_ERR_OK;
@@ -347,7 +349,7 @@ int _alpm_pkg_validate_internal(alpm_handle_t* handle, const(char)* pkgfile, alp
 
 	/* even if we don't have a sig, run the check code if level tells us to */
 	if(level & ALPM_SIG_PACKAGE) {
-		const(char)* sig = syncpkg ? syncpkg.base64_sig : null;
+		  char*sig = syncpkg ? syncpkg.base64_sig : null;
 		_alpm_log(handle, ALPM_LOG_DEBUG, "sig data: %s\n", sig ? sig : "<from .sig>");
 		if(!has_sig && !(level & ALPM_SIG_PACKAGE_OPTIONAL)) {
 			handle.pm_errno = ALPM_ERR_PKG_MISSING_SIG;
@@ -377,7 +379,7 @@ int _alpm_pkg_validate_internal(alpm_handle_t* handle, const(char)* pkgfile, alp
  * @param path path to examine
  * @return 0 if path doesn't match any rule, 1 if it has been handled
  */
-private int handle_simple_path(alpm_pkg_t* pkg, const(char)* path)
+private int handle_simple_path(alpm_pkg_t* pkg,   char*path)
 {
 	if(strcmp(path, ".INSTALL") == 0) {
 		pkg.scriptlet = 1;
@@ -400,9 +402,9 @@ private int handle_simple_path(alpm_pkg_t* pkg, const(char)* path)
  * @param path path of the file to be added
  * @return <0 on error, 0 on success
  */
-private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_size, archive_entry* entry, const(char)* path)
+private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_size, archive_entry* entry,   char*path)
 {
-	const(size_t) files_count = filelist.count;
+	size_t files_count = filelist.count;
 	alpm_file_t* current_file = void;
 	mode_t type = void;
 	size_t pathlen = void;
@@ -504,7 +506,7 @@ private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, ar
 	}
 
 	while((ret = archive_read_next_header(mtree, &mtree_entry)) == ARCHIVE_OK) {
-		const(char)* path = archive_entry_pathname(mtree_entry);
+		  char*path = cast(char*)archive_entry_pathname(mtree_entry);
 
 		/* strip leading "./" from path entries */
 		if(path[0] == '.' && path[1] == '/') {
@@ -558,7 +560,7 @@ error:
  * @param full whether to stop the load after metadata is read or continue
  * through the full archive
  */
-alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile, int full)
+alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle,   char*pkgfile, int full)
 {
 	int ret = void, fd = void;
 	int config = 0;
@@ -598,9 +600,9 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle, const(char)* pkgfile,
 	 * metadata. If it is true, read through the entire archive, which serves
 	 * as a verification of integrity and allows us to create the filelist. */
 	while((ret = archive_read_next_header(archive, &entry)) == ARCHIVE_OK) {
-		const(char)* entry_name = archive_entry_pathname(entry);
+		  char*entry_name = cast(char*)archive_entry_pathname(entry);;
 
-		if(strcmp(entry_name, ".PKGINFO") == 0) {
+		if(strcmp(entry_name, cast(char*)".PKGINFO") == 0) {
 			/* parse the info file */
 			if(parse_descfile(handle, archive, newpkg) != 0) {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("could not parse package description file in %s\n"),
@@ -701,7 +703,7 @@ error:
 /* adopted limit from repo-add */
 enum MAX_SIGFILE_SIZE = 16384;
 
-private int read_sigfile(const(char)* sigpath, ubyte** sig)
+private int read_sigfile(  char*sigpath, ubyte** sig)
 {
 	stat_t st = void;
 	FILE* fp = void;
@@ -727,7 +729,7 @@ private int read_sigfile(const(char)* sigpath, ubyte** sig)
 	return cast(int)st.st_size;
 }
 
-int  alpm_pkg_load(alpm_handle_t* handle, const(char)* filename, int full, int level, alpm_pkg_t** pkg)
+int  alpm_pkg_load(alpm_handle_t* handle,   char*filename, int full, int level, alpm_pkg_t** pkg)
 {
 	int validation = 0;
 	char* sigpath = void;

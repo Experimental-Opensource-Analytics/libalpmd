@@ -35,133 +35,133 @@ alpm_errno_t  alpm_errno(alpm_handle_t* handle)
 	return handle.pm_errno;
 }
 
-const(char)* alpm_strerror(alpm_errno_t err)
+  char*alpm_strerror(alpm_errno_t err)
 {
 	switch(err) {
 		/* System */
 		case ALPM_ERR_MEMORY:
-			return ("out of memory!");
+			return cast(char*)("out of memory!");
 		case ALPM_ERR_SYSTEM:
-			return ("unexpected system error");
+			return cast(char*)("unexpected system error");
 		case ALPM_ERR_BADPERMS:
-			return ("permission denied");
+			return cast(char*)("permission denied");
 		case ALPM_ERR_NOT_A_FILE:
-			return ("could not find or read file");
+			return cast(char*)("could not find or read file");
 		case ALPM_ERR_NOT_A_DIR:
-			return ("could not find or read directory");
+			return cast(char*)("could not find or read directory");
 		case ALPM_ERR_WRONG_ARGS:
-			return ("wrong or NULL argument passed");
+			return cast(char*)("wrong or NULL argument passed");
 		case ALPM_ERR_DISK_SPACE:
-			return ("not enough free disk space");
+			return cast(char*)("not enough free disk space");
 		/* Interface */
 		case ALPM_ERR_HANDLE_NULL:
-			return ("library not initialized");
+			return cast(char*)("library not initialized");
 		case ALPM_ERR_HANDLE_NOT_NULL:
-			return ("library already initialized");
+			return cast(char*)("library already initialized");
 		case ALPM_ERR_HANDLE_LOCK:
-			return ("unable to lock database");
+			return cast(char*)("unable to lock database");
 		/* Databases */
 		case ALPM_ERR_DB_OPEN:
-			return ("could not open database");
+			return cast(char*)("could not open database");
 		case ALPM_ERR_DB_CREATE:
-			return ("could not create database");
+			return cast(char*)("could not create database");
 		case ALPM_ERR_DB_NULL:
-			return ("database not initialized");
+			return cast(char*)("database not initialized");
 		case ALPM_ERR_DB_NOT_NULL:
-			return ("database already registered");
+			return cast(char*)("database already registered");
 		case ALPM_ERR_DB_NOT_FOUND:
-			return ("could not find database");
+			return cast(char*)("could not find database");
 		case ALPM_ERR_DB_INVALID:
-			return ("invalid or corrupted database");
+			return cast(char*)("invalid or corrupted database");
 		case ALPM_ERR_DB_INVALID_SIG:
-			return ("invalid or corrupted database (PGP signature)");
+			return cast(char*)("invalid or corrupted database (PGP signature)");
 		case ALPM_ERR_DB_VERSION:
-			return ("database is incorrect version");
+			return cast(char*)("database is incorrect version");
 		case ALPM_ERR_DB_WRITE:
-			return ("could not update database");
+			return cast(char*)("could not update database");
 		case ALPM_ERR_DB_REMOVE:
-			return ("could not remove database entry");
+			return cast(char*)("could not remove database entry");
 		/* Servers */
 		case ALPM_ERR_SERVER_BAD_URL:
-			return ("invalid url for server");
+			return cast(char*)("invalid url for server");
 		case ALPM_ERR_SERVER_NONE:
-			return ("no servers configured for repository");
+			return cast(char*)("no servers configured for repository");
 		/* Transactions */
 		case ALPM_ERR_TRANS_NOT_NULL:
-			return ("transaction already initialized");
+			return cast(char*)("transaction already initialized");
 		case ALPM_ERR_TRANS_NULL:
-			return ("transaction not initialized");
+			return cast(char*)("transaction not initialized");
 		case ALPM_ERR_TRANS_DUP_TARGET:
-			return ("duplicate target");
+			return cast(char*)("duplicate target");
 		case ALPM_ERR_TRANS_DUP_FILENAME:
-			return ("duplicate filename");
+			return cast(char*)("duplicate filename");
 		case ALPM_ERR_TRANS_NOT_INITIALIZED:
-			return ("transaction not initialized");
+			return cast(char*)("transaction not initialized");
 		case ALPM_ERR_TRANS_NOT_PREPARED:
-			return ("transaction not prepared");
+			return cast(char*)("transaction not prepared");
 		case ALPM_ERR_TRANS_ABORT:
-			return ("transaction aborted");
+			return cast(char*)("transaction aborted");
 		case ALPM_ERR_TRANS_TYPE:
-			return ("operation not compatible with the transaction type");
+			return cast(char*)("operation not compatible with the transaction type");
 		case ALPM_ERR_TRANS_NOT_LOCKED:
-			return ("transaction commit attempt when database is not locked");
+			return cast(char*)("transaction commit attempt when database is not locked");
 		case ALPM_ERR_TRANS_HOOK_FAILED:
-			return ("failed to run transaction hooks");
+			return cast(char*)("failed to run transaction hooks");
 		/* Packages */
 		case ALPM_ERR_PKG_NOT_FOUND:
-			return ("could not find or read package");
+			return cast(char*)("could not find or read package");
 		case ALPM_ERR_PKG_IGNORED:
-			return ("operation cancelled due to ignorepkg");
+			return cast(char*)("operation cancelled due to ignorepkg");
 		case ALPM_ERR_PKG_INVALID:
-			return ("invalid or corrupted package");
+			return cast(char*)("invalid or corrupted package");
 		case ALPM_ERR_PKG_INVALID_CHECKSUM:
-			return ("invalid or corrupted package (checksum)");
+			return cast(char*)("invalid or corrupted package (checksum)");
 		case ALPM_ERR_PKG_INVALID_SIG:
-			return ("invalid or corrupted package (PGP signature)");
+			return cast(char*)("invalid or corrupted package (PGP signature)");
 		case ALPM_ERR_PKG_MISSING_SIG:
-			return ("package missing required signature");
+			return cast(char*)("package missing required signature");
 		case ALPM_ERR_PKG_OPEN:
-			return ("cannot open package file");
+			return cast(char*)("cannot open package file");
 		case ALPM_ERR_PKG_CANT_REMOVE:
-			return ("cannot remove all files for package");
+			return cast(char*)("cannot remove all files for package");
 		case ALPM_ERR_PKG_INVALID_NAME:
-			return ("package filename is not valid");
+			return cast(char*)("package filename is not valid");
 		case ALPM_ERR_PKG_INVALID_ARCH:
-			return ("package architecture is not valid");
+			return cast(char*)("package architecture is not valid");
 		/* Signatures */
 		case ALPM_ERR_SIG_MISSING:
-			return ("missing PGP signature");
+			return cast(char*)("missing PGP signature");
 		case ALPM_ERR_SIG_INVALID:
-			return ("invalid PGP signature");
+			return cast(char*)("invalid PGP signature");
 		/* Dependencies */
 		case ALPM_ERR_UNSATISFIED_DEPS:
-			return ("could not satisfy dependencies");
+			return cast(char*)("could not satisfy dependencies");
 		case ALPM_ERR_CONFLICTING_DEPS:
-			return ("conflicting dependencies");
+			return cast(char*)("conflicting dependencies");
 		case ALPM_ERR_FILE_CONFLICTS:
-			return ("conflicting files");
+			return cast(char*)("conflicting files");
 		/* Miscellaneous */
 		case ALPM_ERR_RETRIEVE:
-			return ("failed to retrieve some files");
+			return cast(char*)("failed to retrieve some files");
 		case ALPM_ERR_INVALID_REGEX:
-			return ("invalid regular expression");
+			return cast(char*)("invalid regular expression");
 		/* Errors from external libraries- our own wrapper error */
 		case ALPM_ERR_LIBARCHIVE:
 			/* it would be nice to use archive_error_string() here, but that
 			 * requires the archive struct, so we can't. Just use a generic
 			 * error string instead. */
-			return ("libarchive error");
+			return cast(char*)("libarchive error");
 		case ALPM_ERR_LIBCURL:
-			return ("download library error");
+			return cast(char*)("download library error");
 		case ALPM_ERR_GPGME:
-			return ("gpgme error");
+			return cast(char*)("gpgme error");
 		case ALPM_ERR_EXTERNAL_DOWNLOAD:
-			return ("error invoking external downloader");
+			return cast(char*)("error invoking external downloader");
 		/* Missing compile-time features */
 		case ALPM_ERR_MISSING_CAPABILITY_SIGNATURES:
-				return ("compiled without signature support");
+				return cast(char*)("compiled without signature support");
 		/* Unknown error! */
 		default:
-			return ("unexpected error");
+			return cast(char*)("unexpected error");
 	}
 }

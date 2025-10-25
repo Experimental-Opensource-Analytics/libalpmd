@@ -39,6 +39,7 @@ import derelict.libarchive;
 // import archive_entry;
 
 /* libalpm */
+import std.string;
 import libalpmd.add;
 import libalpmd.alpm;
 import libalpmd.alpm_list;
@@ -55,7 +56,7 @@ import libalpmd.handle;
 
 int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 {
-	const(char)* pkgname = void, pkgver = void;
+	  char*pkgname = void, pkgver = void;
 	alpm_trans_t* trans = void;
 	alpm_pkg_t* local = void;
 	alpm_pkg_t* dup = void;
@@ -84,8 +85,8 @@ int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 	}
 
 	if(cast(bool)(local = _alpm_db_get_pkgfromcache(handle.db_local, pkgname))) {
-		const(char)* localpkgname = local.name;
-		const(char)* localpkgver = local.version_;
+		  char*localpkgname = local.name;
+		  char*localpkgver = local.version_;
 		int cmp = _alpm_pkg_compare_versions(pkg, local);
 
 		if(cmp == 0) {
@@ -114,11 +115,11 @@ int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 	return 0;
 }
 
-private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive_entry* entry, const(char)* filename)
+private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive_entry* entry,  char* filename)
 {
 	int ret = void;
 	archive* archive_writer = void;
-	const(int) archive_flags = ARCHIVE_EXTRACT_OWNER |
+	 const (int) archive_flags = ARCHIVE_EXTRACT_OWNER |
 	                          ARCHIVE_EXTRACT_PERM |
 	                          ARCHIVE_EXTRACT_TIME |
 	                          ARCHIVE_EXTRACT_UNLINK |
@@ -130,8 +131,8 @@ private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive
 	archive_writer = archive_write_disk_new();
 	if (archive_writer == null) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("cannot allocate disk archive object"));
-		alpm_logaction(handle, ALPM_CALLER_PREFIX,
-				"error: cannot allocate disk archive object");
+		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
+				// "error: cannot allocate disk archive object");
 		return 1;
 	}
 
@@ -148,36 +149,36 @@ private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive
 	} else if(ret != ARCHIVE_OK) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not extract %s (%s)\n"),
 				filename, archive_error_string(_archive));
-		alpm_logaction(handle, ALPM_CALLER_PREFIX,
-				"error: could not extract %s (%s)\n",
-				filename, archive_error_string(_archive));
+		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
+				// "error: could not extract %s (%s)\n".to!(char*),
+				// filename, archive_error_string(_archive));
 		return 1;
 	}
 	return 0;
 }
 
-private int try_rename(alpm_handle_t* handle, const(char)* src, const(char)* dest)
+private int try_rename(alpm_handle_t* handle,   char*src,   char*dest)
 {
 	if(rename(src, dest)) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not rename %s to %s (%s)\n"),
 				src, dest, strerror(errno));
-		alpm_logaction(handle, ALPM_CALLER_PREFIX,
-				"error: could not rename %s to %s (%s)\n", src, dest, strerror(errno));
+		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
+		//		"error: could not rename %s to %s (%s)\n".to!(char*), src, dest, strerror(errno));
 		return 1;
 	}
 	return 0;
 }
 
-private int extract_db_file(alpm_handle_t* handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg, const(char)* entryname)
+private int extract_db_file(alpm_handle_t* handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg,   char*entryname)
 {
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
-	const(char)* dbfile = null;
+	  char*dbfile = null;
 	if(strcmp(entryname, ".INSTALL") == 0) {
-		dbfile = "install";
+		dbfile = cast(char*)"install";
 	} else if(strcmp(entryname, ".CHANGELOG") == 0) {
-		dbfile = "changelog";
+		dbfile = cast(char*)"changelog";
 	} else if(strcmp(entryname, ".MTREE") == 0) {
-		dbfile = "mtree";
+		dbfile = cast(char*)"mtree";
 	} else if(*entryname == '.') {
 		/* reserve all files starting with '.' for future possibilities */
 		_alpm_log(handle, ALPM_LOG_DEBUG, "skipping extraction of '%s'\n", entryname);
@@ -192,12 +193,12 @@ private int extract_db_file(alpm_handle_t* handle, archive* archive, archive_ent
 
 int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg, alpm_pkg_t* oldpkg)
 {
-	const(char)* entryname = archive_entry_pathname(entry);
+	char*entryname = cast(char*)archive_entry_pathname(entry);
 	mode_t entrymode = archive_entry_mode(entry);
 	alpm_backup_t* backup = _alpm_needbackup(entryname, newpkg);
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
 	int needbackup = 0, notouch = 0;
-	const(char)* hash_orig = null;
+	  char*hash_orig = null;
 	int isnewfile = 0, errors = 0;
 	stat_t lsbuf = void;
 	size_t filename_len = void;
@@ -262,7 +263,7 @@ int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* 
 // 			_alpm_log(handle, ALPM_LOG_WARNING, ("directory permissions differ on %s\n"
 // 					~ "filesystem: %o  package: %o\n"), filename.ptr, lsbuf.st_mode & mask,
 // 					entrymode & mask);
-// 			alpm_logaction(handle, ALPM_CALLER_PREFIX,
+// 			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 // 					"warning: directory permissions differ on %s, "
 // 					~ "filesystem: %o  package: %o\n", filename.ptr, lsbuf.st_mode & mask,
 // 					entrymode & mask);
@@ -277,7 +278,7 @@ int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* 
 // 			_alpm_log(handle, ALPM_LOG_WARNING, ("directory ownership differs on %s\n"
 // 					~ "filesystem: %u:%u  package: %u:%u\n"), filename.ptr,
 // 					lsbuf.st_uid, lsbuf.st_gid, entryuid, entrygid);
-// 			alpm_logaction(handle, ALPM_CALLER_PREFIX,
+// 			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 // 					"warning: directory ownership differs on %s, "
 // 					~ "filesystem: %u:%u  package: %u:%u\n", filename.ptr,
 // 					lsbuf.st_uid, lsbuf.st_gid, entryuid, entrygid);
@@ -342,12 +343,12 @@ int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* 
 // 			from_noupgrade: 1,
 // 			oldpkg: oldpkg,
 // 			newpkg: newpkg,
-// 			file: cast(const char*)filename.
+// 			file: cast(  char*)filename.
 // 		};
 // 		/* "remove" the .pacnew suffix */
 // 		filename[filename_len] = '\0';
 // 		EVENT(handle, &event);
-// 		alpm_logaction(handle, ALPM_CALLER_PREFIX,
+// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 // 				"warning: %s installed as %s.pacnew\n", filename.ptr, filename.ptr);
 // 	} 
 // 	if (needbackup) {
@@ -402,7 +403,7 @@ int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* 
 // 					"action: keeping current file and installing"
 // 					~ " new one with .pacnew ending\n");
 // 			EVENT(handle, &event);
-// 			alpm_logaction(handle, ALPM_CALLER_PREFIX,
+// 			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 // 					"warning: %s installed as %s\n", origfile.ptr, filename.ptr);
 // 		}
 
@@ -423,8 +424,8 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	alpm_trans_t* trans = handle.trans;
 	alpm_progress_t progress = ALPM_PROGRESS_ADD_START;
 	alpm_event_package_operation_t event = void;
-	const(char)* log_msg = "adding";
-	const(char)* pkgfile = void;
+	  char*log_msg = cast(char*)"adding";
+	  char*pkgfile = void;
 	archive* archive = void;
 	archive_entry* entry = void;
 	int fd = void, cwdfd = void;
@@ -468,7 +469,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	// 	/* pre_install/pre_upgrade scriptlet */
 	// if(alpm_pkg_has_scriptlet(newpkg) &&
 	// 		!(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
-	// 	const(char)* scriptlet_name = is_upgrade ? "pre_upgrade" : "pre_install";
+	// 	  char*scriptlet_name = is_upgrade ? "pre_upgrade" : "pre_install";
 
 	// 	_alpm_runscriptlet(handle, pkgfile, scriptlet_name,
 	// 			newpkg.version_, oldpkg ? oldpkg.version_ : null, 1);
@@ -492,7 +493,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	// /* prepare directory for database entries so permissions are correct after
 	//    changelog/install script installation */
 	// if(_alpm_local_db_prepare(db, newpkg)) {
-	// 	alpm_logaction(handle, ALPM_CALLER_PREFIX,
+	// 	//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 	// 			"error: could not create database entry %s-%s\n",
 	// 			newpkg.name, newpkg.version_);
 	// 	handle.pm_errno = ALPM_ERR_DB_WRITE;
@@ -526,7 +527,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	// if(trans.flags & ALPM_TRANS_FLAG_DBONLY) {
 	// 	_alpm_log(handle, ALPM_LOG_DEBUG, "extracting db files\n");
 	// 	while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
-	// 		const(char)* entryname = archive_entry_pathname(entry);
+	// 		  char*entryname = archive_entry_pathname(entry);
 	// 		if(entryname[0] == '.') {
 	// 			errors += extract_db_file(handle, archive, entry, newpkg, entryname);
 	// 		} else {
@@ -579,13 +580,13 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	// 	if(is_upgrade) {
 	// 		_alpm_log(handle, ALPM_LOG_ERROR, ("problem occurred while upgrading %s\n"),
 	// 				newpkg.name);
-	// 		alpm_logaction(handle, ALPM_CALLER_PREFIX,
+	// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 	// 				"error: problem occurred while upgrading %s\n",
 	// 				newpkg.name);
 	// 	} else {
 	// 		_alpm_log(handle, ALPM_LOG_ERROR, ("problem occurred while installing %s\n"),
 	// 				newpkg.name);
-	// 		alpm_logaction(handle, ALPM_CALLER_PREFIX,
+	// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 	// 				"error: problem occurred while installing %s\n",
 	// 				newpkg.name);
 	// 	}
@@ -600,7 +601,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	// if(_alpm_local_db_write(db, newpkg, INFRQ_ALL)) {
 	// 	_alpm_log(handle, ALPM_LOG_ERROR, ("could not update database entry %s-%s\n"),
 	// 			newpkg.name, newpkg.version_);
-	// 	alpm_logaction(handle, ALPM_CALLER_PREFIX,
+	// 	//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 	// 			"error: could not update database entry %s-%s\n",
 	// 			newpkg.name, newpkg.version_);
 	// 	handle.pm_errno = ALPM_ERR_DB_WRITE;
@@ -616,19 +617,19 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 
 	// switch(event.operation) {
 	// 	case ALPM_PACKAGE_INSTALL:
-	// 		alpm_logaction(handle, ALPM_CALLER_PREFIX, "installed %s (%s)\n",
+	// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "installed %s (%s)\n",
 	// 				newpkg.name, newpkg.version_);
 	// 		break;
 	// 	case ALPM_PACKAGE_DOWNGRADE:
-	// 		alpm_logaction(handle, ALPM_CALLER_PREFIX, "downgraded %s (%s -> %s)\n",
+	// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "downgraded %s (%s -> %s)\n",
 	// 				newpkg.name, oldpkg.version_, newpkg.version_);
 	// 		break;
 	// 	case ALPM_PACKAGE_REINSTALL:
-	// 		alpm_logaction(handle, ALPM_CALLER_PREFIX, "reinstalled %s (%s)\n",
+	// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "reinstalled %s (%s)\n",
 	// 				newpkg.name, newpkg.version_);
 	// 		break;
 	// 	case ALPM_PACKAGE_UPGRADE:
-	// 		alpm_logaction(handle, ALPM_CALLER_PREFIX, "upgraded %s (%s -> %s)\n",
+	// 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "upgraded %s (%s -> %s)\n",
 	// 				newpkg.name, oldpkg.version_, newpkg.version_);
 	// 		break;
 	// 	default:
@@ -640,7 +641,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	// if(alpm_pkg_has_scriptlet(newpkg)
 	// 		&& !(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 	// 	char* scriptlet = _alpm_local_db_pkgpath(db, newpkg, "install");
-	// 	const(char)* scriptlet_name = is_upgrade ? "post_upgrade" : "post_install";
+	// 	  char*scriptlet_name = is_upgrade ? "post_upgrade" : "post_install";
 
 	// 	_alpm_runscriptlet(handle, scriptlet, scriptlet_name,
 	// 			newpkg.version_, oldpkg ? oldpkg.version_ : null, 0);
