@@ -94,7 +94,7 @@ int  alpm_logaction(alpm_handle_t* handle,   char*prefix,   char*fmt, ...)
 	int ret = 0;
 	va_list args = void;
 
-	ASSERT(handle != null);
+	//ASSERT(handle != null);
 
 	if(!(prefix && *prefix)) {
 		prefix = cast(char*)"UNKNOWN".ptr;

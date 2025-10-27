@@ -43,7 +43,7 @@ import libalpmd.alpm;
 void  alpm_dep_free(void* _dep)
 {
 	auto dep = cast(alpm_depend_t*) _dep;
-	ASSERT(dep != null);
+	//ASSERT(dep != null);
 	FREE(dep.name);
 	FREE(dep.version_);
 	FREE(dep.desc);
@@ -69,7 +69,7 @@ error:
 
 void  alpm_depmissing_free(alpm_depmissing_t* miss)
 {
-	ASSERT(miss != null);
+	//ASSERT(miss != null);
 	alpm_dep_free(miss.depend);
 	FREE(miss.target);
 	FREE(miss.causingpkg);
@@ -753,10 +753,10 @@ alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs,   
 	alpm_pkg_t* pkg = void;
 
 	CHECK_HANDLE(handle);
-	ASSERT(dbs !is null);
+	//ASSERT(dbs !is null);
 
 	dep = alpm_dep_from_string(depstring);
-	ASSERT(dep !is null);
+	//ASSERT(dep !is null);
 	pkg = resolvedep(handle, dep, dbs, null, 1);
 	alpm_dep_free(dep);
 	return pkg;
@@ -864,7 +864,7 @@ char * alpm_dep_compute_string( alpm_depend_t* dep)
 	char* str = void;
 	size_t len = void;
 
-	ASSERT(dep != null);
+	//ASSERT(dep != null);
 
 	if(dep.name) {
 		name = dep.name;

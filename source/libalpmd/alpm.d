@@ -741,7 +741,7 @@ int alpm_siglist_cleanup(alpm_siglist_t* siglist);
  * @param reversedeps handles the backward dependencies
  * @return an alpm_list_t* of alpm_depmissing_t pointers.
  */
-alpm_list_t* alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
+// alpm_list_t* alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
 
 /** Find a package satisfying a specified dependency.
  * The dependency can include versions with depmod operators.
@@ -749,7 +749,7 @@ alpm_list_t* alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_li
  * @param depstring package or provision name, versioned or not
  * @return a alpm_pkg_t* satisfying depstring
  */
-alpm_pkg_t* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
+// alpm_pkg_t* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
 
 /** Find a package satisfying a specified dependency.
  * First look for a literal, going through each db one by one. Then look for
@@ -1584,7 +1584,7 @@ int alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force);
  * @param name of the package
  * @return the package entry on success, NULL on error
  */
-alpm_pkg_t* alpm_db_get_pkg(alpm_db_t* db, const(char)* name);
+// alpm_pkg_t* alpm_db_get_pkg(alpm_db_t* db, const(char)* name);
 
 /** Get the package cache of a package database.
  * This is a list of all packages the db contains.
@@ -1600,7 +1600,7 @@ alpm_pkg_t* alpm_db_get_pkg(alpm_db_t* db, const(char)* name);
  * @param name of the group
  * @return the groups entry on success, NULL on error
  */
-alpm_group_t* alpm_db_get_group(alpm_db_t* db, const(char)* name);
+// alpm_group_t* alpm_db_get_group(alpm_db_t* db, const(char)* name);
 
 /** Get the group cache of a package database.
  * @param db pointer to the package database to get the group from
@@ -2824,7 +2824,7 @@ alpm_list_t* alpm_pkg_get_makedepends(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_replaces(alpm_pkg_t* pkg);
+// alpm_list_t* alpm_pkg_get_replaces(alpm_pkg_t* pkg);
 
 /** Returns the list of files installed by pkg.
  * The filenames are relative to the install root,
@@ -2881,7 +2881,7 @@ alpm_list_t* alpm_pkg_get_xdata(alpm_pkg_t* pkg);
 /** Returns whether the package has an install scriptlet.
  * @return 0 if FALSE, TRUE otherwise
  */
-int alpm_pkg_has_scriptlet(alpm_pkg_t* pkg);
+// int alpm_pkg_has_scriptlet(alpm_pkg_t* pkg);
 
 /** Returns the size of the files that will be downloaded to install a
  * package.
@@ -3218,7 +3218,7 @@ int alpm_sandbox_setup_child(alpm_handle_t* handle, const(char)* sandboxuser, co
  * @param reversedeps handles the backward dependencies
  * @return an alpm_list_t* of alpm_depmissing_t pointers.
  */
-alpm_list_t* alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
+// alpm_list_t* alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
 
 /** Find a package satisfying a specified dependency.
  * The dependency can include versions with depmod operators.
@@ -3370,7 +3370,7 @@ version (HAVE_LIBCURL) {
 	myhandle.parallel_downloads = 1;
 
 	/* set default sandboxuser */
-	ASSERT((pw = getpwuid(0)) != null);
+	//ASSERT((pw = getpwuid(0)) != null);
 	STRNDUP(myhandle.sandboxuser, cast(char*)pw.pw_name);
 	
 version (ENABLE_NLS) {
@@ -3393,7 +3393,7 @@ cleanup:
 int  alpm_release(alpm_handle_t* myhandle)
 {
 	CHECK_HANDLE(myhandle);
-	ASSERT(myhandle.trans == null);
+	//ASSERT(myhandle.trans == null);
 
 	_alpm_handle_unlock(myhandle);
 	_alpm_handle_free(myhandle);

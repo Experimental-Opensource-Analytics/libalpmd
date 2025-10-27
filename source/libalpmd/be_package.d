@@ -67,7 +67,7 @@ struct package_changelog {
  */
 private void* _package_changelog_open(alpm_pkg_t* pkg)
 {
-	ASSERT(pkg != null);
+	//ASSERT(pkg != null);
 
 	package_changelog* changelog = void;
 	archive* _archive = void;
@@ -262,7 +262,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 					return -1;
 				}
 			} else {
-				  char*pkgname = newpkg.name ? newpkg.name : "error".to!(char*);
+				  char*pkgname = cast(char*)(newpkg.name ? newpkg.name : "error") ;
 				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in package description\n"), pkgname, key);
 				_alpm_log(handle, ALPM_LOG_DEBUG, "%s: unknown key '%s' in description file line %d\n",
 									pkgname, key, linenum);
@@ -736,7 +736,7 @@ int  alpm_pkg_load(alpm_handle_t* handle,   char*filename, int full, int level, 
 	alpm_pkg_t* pkg_temp = void;
 
 	CHECK_HANDLE(handle);
-	ASSERT(pkg != null);
+	//ASSERT(pkg != null);
 
 	sigpath = _alpm_sigpath(handle, filename);
 	if(sigpath && !_alpm_access(handle, null, sigpath, R_OK)) {

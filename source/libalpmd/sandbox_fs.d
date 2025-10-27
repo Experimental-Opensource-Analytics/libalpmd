@@ -91,8 +91,8 @@ enum _LANDLOCK_ACCESS_FS_TRUNCATE = 0;
 
 bool _alpm_sandbox_fs_restrict_writes_to(alpm_handle_t* handle,   char*path)
 {
-	ASSERT(handle != null);
-	ASSERT(path != null);
+	//ASSERT(handle != null);
+	//ASSERT(path != null);
 
 version (HAVE_LINUX_LANDLOCK_H) {
 	landlock_ruleset_attr ruleset_attr = {

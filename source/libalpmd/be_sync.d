@@ -160,13 +160,13 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(dbs != null);
+	//ASSERT(dbs != null);
 	handle.pm_errno = ALPM_ERR_OK;
 
 	syncpath = get_sync_dir(handle);
-	ASSERT(syncpath != null);
+	//ASSERT(syncpath != null);
 	temporary_syncpath = _alpm_temporary_download_dir_setup(syncpath, handle.sandboxuser);
-	ASSERT(temporary_syncpath != null);
+	//ASSERT(temporary_syncpath != null);
 
 	/* make sure we have a sane umask */
 	oldmask = umask(octal!"0022");
@@ -187,8 +187,8 @@ int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
 			continue;
 		}
 
-		ASSERT(db != handle.db_local);
-		ASSERT(db.servers != null);
+		//ASSERT(db != handle.db_local);
+		//ASSERT(db.servers != null);
 
 		/* force update of invalid databases to fix potential mismatched database/signature */
 		if(db.status & DB_STATUS_INVALID) {

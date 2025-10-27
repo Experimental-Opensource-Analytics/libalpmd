@@ -208,9 +208,9 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 	};
 
 	if(!section && !key) {
-		return error("error while reading hook %s: %s\n", file, line, strerror(errno));
+		return error(cast(char*)"error while reading hook %s: %s\n", file, line, strerror(cast(char*)errno));
 	} else if(!section) {
-		return error("hook %s line %d: invalid option %s\n", file, line, key);
+		return error(cast(char*)"hook %s line %d: invalid option %s\n", file, line, key);
 	} else if(!key) {
 		/* beginning a new section */
 		if(strcmp(section, "Trigger") == 0) {
@@ -220,7 +220,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 		} else if(strcmp(section, "Action") == 0) {
 			/* no special processing required */
 		} else {
-			return error("hook %s line %d: invalid section %s\n", file, line, section);
+			return error(cast(char*)"hook %s line %d: invalid section %s\n", file, line, section);
 		}
 	} else if(strcmp(section, "Trigger") == 0) {
 		_alpm_trigger_t* t = cast(_alpm_trigger_t*)hook.triggers.prev.data;
@@ -232,7 +232,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 			} else if(strcmp(value, "Remove") == 0) {
 				t.op |= ALPM_HOOK_OP_REMOVE;
 			} else {
-				return error("hook %s line %d: invalid value %s\n", file, line, value);
+				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
 			}
 		} else if(strcmp(key, "Type") == 0) {
 			if(t.type != 0) {
@@ -363,9 +363,9 @@ private int _alpm_hook_trigger_match_file(alpm_handle_t* handle, _alpm_hook_t* h
 			break;
 		}
 		if(strcmp(cast(char*)i.data, cast(char*)j.data) == 0) {
-			char* path = i.data;
+			char* path = cast(char*)i.data;
 			upgrade = alpm_list_add(upgrade, path);
-			while(i && strcmp(i.data, path) == 0) {
+			while(i && strcmp(cast(char*)i.data, path) == 0) {
 				alpm_list_t* next = i.next;
 				install = alpm_list_remove_item(install, i);
 				free(i);

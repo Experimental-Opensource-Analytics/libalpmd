@@ -59,7 +59,7 @@ alpm_graph_t* _alpm_graph_new()
 
 void _alpm_graph_free(void* data)
 {
-	ASSERT(data != null);
+	//ASSERT(data != null);
 	alpm_graph_t* graph = cast(alpm_graph_t*)data;
 	alpm_list_free(graph.children);
 	free(graph);

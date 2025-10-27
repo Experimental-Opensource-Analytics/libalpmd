@@ -750,7 +750,7 @@ private int local_db_read(alpm_pkg_t* info, int inforeq)
 
 	/* DESC */
 	if(inforeq & INFRQ_DESC && !(info.infolevel & INFRQ_DESC)) {
-		char* path = _alpm_local_db_pkgpath(db, info, "desc");
+		char* path = _alpm_local_db_pkgpath(db, info, cast(char*)"desc");
 		if(!path || (fp = fopen(path, "r")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"), path, strerror(errno));
 			free(path);
@@ -1003,7 +1003,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s DESC information back to db\n",
 				info.name, info.version_);
-		path = _alpm_local_db_pkgpath(db, info, "desc".to!(char*));
+		path = _alpm_local_db_pkgpath(db, info, cast(char*)"desc");
 		if(!path || (fp = fopen(path, "w")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
 					path, strerror(errno));
@@ -1084,11 +1084,11 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 			fputc('\n', fp);
 		}
 
-		write_deps(fp, "%REPLACES%".to!(char*), info.replaces);
-		write_deps(fp, "%DEPENDS%".to!(char*), info.depends);
-		write_deps(fp, "%OPTDEPENDS%".to!(char*), info.optdepends);
-		write_deps(fp, "%CONFLICTS%".to!(char*), info.conflicts);
-		write_deps(fp, "%PROVIDES%".to!(char*), info.provides);
+		write_deps(fp, cast(char*)"%REPLACES%", info.replaces);
+		write_deps(fp, cast(char*)"%DEPENDS%", info.depends);
+		write_deps(fp, cast(char*)"%OPTDEPENDS%", info.optdepends);
+		write_deps(fp, cast(char*)"%CONFLICTS%", info.conflicts);
+		write_deps(fp, cast(char*)"%PROVIDES%", info.provides);
 
 		if(info.xdata) {
 			fputs("%XDATA%\n", fp);
@@ -1109,7 +1109,7 @@ int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s FILES information back to db\n",
 				info.name, info.version_);
-		path = _alpm_local_db_pkgpath(db, info, "files".to!(char*));
+		path = _alpm_local_db_pkgpath(db, info, cast(char*)"files");
 		if(!path || (fp = fopen(path, "w")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
 					path, strerror(errno));
@@ -1195,9 +1195,9 @@ int _alpm_local_db_remove(alpm_db_t* db, alpm_pkg_t* info)
 
 int  alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
 {
-	ASSERT(pkg != null);
-	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
-	ASSERT(pkg.origin_data.db == pkg.handle.db_local);
+	//ASSERT(pkg != null);
+	//ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
+	//ASSERT(pkg.origin_data.db == pkg.handle.db_local);
 
 	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);
@@ -1227,7 +1227,7 @@ alpm_db_t* _alpm_db_register_local(alpm_handle_t* handle)
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "registering local database\n");
 
-	db = _alpm_db_new("local".to!(char*), 1);
+	db = _alpm_db_new(cast(char*)"local", 1);
 	if(db == null) {
 		handle.pm_errno = ALPM_ERR_DB_CREATE;
 		return null;

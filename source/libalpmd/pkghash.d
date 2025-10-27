@@ -22,6 +22,10 @@ import core.stdc.config: c_long, c_ulong;
  */
 
 import core.stdc.errno;
+import core.stdc.stdlib;
+import core.stdc.string;
+
+
 
 import libalpmd.pkghash;
 import libalpmd.util;
@@ -89,11 +93,12 @@ alpm_pkghash_t* _alpm_pkghash_create(uint size)
 	CALLOC(hash, 1, alpm_pkghash_t.sizeof);
 	size = cast(uint)(size / initial_hash_load + 1);
 
-	loopsize = ARRAYSIZE(prime_list.ptr);
+	// loopsize = ARRAYSIZE(prime_list.ptr);
+	loopsize = 145; 
 	for(i = 0; i < loopsize; i++) {
 		if(prime_list[i] > size) {
 			hash.buckets = prime_list[i];
-			hash.limit = hash.buckets * max_hash_load;
+			hash.limit = cast(uint)(hash.buckets * max_hash_load);
 			break;
 		}
 	}
@@ -161,7 +166,7 @@ private alpm_pkghash_t* rehash(alpm_pkghash_t* oldhash)
 
 	for(i = 0; i < oldhash.buckets; i++) {
 		if(oldhash.hash_table[i] != null) {
-			alpm_pkg_t* package_ = oldhash.hash_table[i].data;
+			alpm_pkg_t* package_ = cast(alpm_pkg_t*)oldhash.hash_table[i].data;
 			uint position = get_hash_position(package_.name_hash, newhash);
 
 			newhash.hash_table[position] = oldhash.hash_table[i];
@@ -207,7 +212,7 @@ private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, alpm_pkg_t* pk
 	if(!sorted) {
 		hash.list = alpm_list_join(hash.list, ptr);
 	} else {
-		hash.list = alpm_list_mmerge(hash.list, ptr, _alpm_pkg_cmp);
+		hash.list = alpm_list_mmerge(hash.list, ptr, &_alpm_pkg_cmp);
 	}
 
 	hash.entries += 1;
@@ -235,7 +240,7 @@ private uint move_one_entry(alpm_pkghash_t* hash, uint start, uint end)
 	 * 'start' we can stop this madness. */
 	while(end != start) {
 		alpm_list_t* i = hash.hash_table[end];
-		alpm_pkg_t* info = i.data;
+		alpm_pkg_t* info = cast(alpm_pkg_t*)i.data;
 		uint new_position = get_hash_position(info.name_hash, hash);
 
 		if(new_position == start) {
@@ -276,7 +281,7 @@ alpm_pkghash_t* _alpm_pkghash_remove(alpm_pkghash_t* hash, alpm_pkg_t* pkg, alpm
 
 	position = pkg.name_hash % hash.buckets;
 	while((i = hash.hash_table[position]) != null) {
-		alpm_pkg_t* info = i.data;
+		alpm_pkg_t* info = cast(alpm_pkg_t*)i.data;
 
 		if(info.name_hash == pkg.name_hash &&
 					strcmp(info.name, pkg.name) == 0) {
@@ -353,7 +358,7 @@ alpm_pkg_t* _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
 	position = name_hash % hash.buckets;
 
 	while((lp = hash.hash_table[position]) != null) {
-		alpm_pkg_t* info = lp.data;
+		alpm_pkg_t* info = cast(alpm_pkg_t*)lp.data;
 
 		if(info.name_hash == name_hash && strcmp(info.name, name) == 0) {
 			return info;

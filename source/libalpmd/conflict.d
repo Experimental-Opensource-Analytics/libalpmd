@@ -58,8 +58,8 @@ private alpm_conflict_t* conflict_new(alpm_pkg_t* pkg1, alpm_pkg_t* pkg2, alpm_d
 
 	CALLOC(conflict, 1, alpm_conflict_t.sizeof);
 
-	ASSERT(_alpm_pkg_dup(pkg1, &conflict.package1) == 0);
-	ASSERT(_alpm_pkg_dup(pkg2, &conflict.package2) == 0);
+	//ASSERT(_alpm_pkg_dup(pkg1, &conflict.package1) == 0);
+	//ASSERT(_alpm_pkg_dup(pkg2, &conflict.package2) == 0);
 	conflict.reason = reason;
 
 	return conflict;
@@ -71,7 +71,7 @@ error:
 
 void  alpm_conflict_free(alpm_conflict_t* conflict)
 {
-	ASSERT(conflict != null);
+	//ASSERT(conflict != null);
 	_alpm_pkg_free(conflict.package1);
 	_alpm_pkg_free(conflict.package2);
 
@@ -86,8 +86,8 @@ alpm_conflict_t* _alpm_conflict_dup(alpm_conflict_t* conflict)
 	alpm_conflict_t* newconflict = void;
 	CALLOC(newconflict, 1, alpm_conflict_t.sizeof);
 
-	ASSERT(_alpm_pkg_dup(conflict.package1, &newconflict.package1) == 0);
-	ASSERT(_alpm_pkg_dup(conflict.package2, &newconflict.package2) == 0);
+	//ASSERT(_alpm_pkg_dup(conflict.package1, &newconflict.package1) == 0);
+	//ASSERT(_alpm_pkg_dup(conflict.package2, &newconflict.package2) == 0);
 	newconflict.reason = conflict.reason;
 
 	return newconflict;
@@ -290,7 +290,7 @@ error:
 
 void  alpm_fileconflict_free(alpm_fileconflict_t* conflict)
 {
-	ASSERT(conflict != null);
+	//ASSERT(conflict != null);
 	FREE(conflict.ctarget);
 	FREE(conflict.file);
 	FREE(conflict.target);
@@ -426,7 +426,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(alpm_handle_t* handle, alpm_list_t* upg
 		alpm_pkg_t* dbpkg = void;
 
 		int percent = cast(int)((current * 100) / numtargs);
-		PROGRESS(handle, ALPM_PROGRESS_CONFLICTS_START, "", percent,
+		PROGRESS(handle, ALPM_PROGRESS_CONFLICTS_START, cast(char*)"", percent,
 		         numtargs, current);
 
 		/* CHECK 1: check every target against every target */

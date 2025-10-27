@@ -37,7 +37,9 @@ import core.sys.posix.stdlib;
 import core.sys.posix.unistd;
 import core.sys.posix.sys.socket; /* setsockopt, SO_KEEPALIVE */
 import core.sys.posix.sys.time;
-import core.sys.posix.sys.types;
+// import core.sys.posix.stdc;
+// import core.sys.posix.sys.stdc;
+
 import core.sys.posix.sys.stat;
 import core.sys.posix.sys.wait;
 import core.stdc.signal;

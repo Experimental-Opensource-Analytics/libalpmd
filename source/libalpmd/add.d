@@ -63,12 +63,12 @@ int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(pkg != null);
-	ASSERT(pkg.origin != ALPM_PKG_FROM_LOCALDB);
-	ASSERT(handle == pkg.handle);
+	//ASSERT(pkg != null);
+	//ASSERT(pkg.origin != ALPM_PKG_FROM_LOCALDB);
+	//ASSERT(handle == pkg.handle);
 	trans = handle.trans;
-	ASSERT(trans != null);
-	ASSERT(trans.state == STATE_INITIALIZED);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state == STATE_INITIALIZED);
 
 	pkgname = pkg.name;
 	pkgver = pkg.version_;
@@ -150,7 +150,7 @@ private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not extract %s (%s)\n"),
 				filename, archive_error_string(_archive));
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
-				// "error: could not extract %s (%s)\n".to!(char*),
+				// "error: could not extract %s (%s)\n" ,
 				// filename, archive_error_string(_archive));
 		return 1;
 	}
@@ -163,7 +163,7 @@ private int try_rename(alpm_handle_t* handle,   char*src,   char*dest)
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not rename %s to %s (%s)\n"),
 				src, dest, strerror(errno));
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
-		//		"error: could not rename %s to %s (%s)\n".to!(char*), src, dest, strerror(errno));
+		//		"error: could not rename %s to %s (%s)\n" , src, dest, strerror(errno));
 		return 1;
 	}
 	return 0;
@@ -431,7 +431,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	int fd = void, cwdfd = void;
 	stat_t buf = void;
 
-	ASSERT(trans != null);
+	//ASSERT(trans != null);
 
 	// /* see if this is an upgrade. if so, remove the old package first */
 	// if(_alpm_db_get_pkgfromcache(db, newpkg.name) && (oldpkg = newpkg.oldpkg)) {

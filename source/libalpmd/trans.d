@@ -80,7 +80,7 @@ int  alpm_trans_init(alpm_handle_t* handle, int flags)
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(handle.trans == null);
+	//ASSERT(handle.trans == null);
 
 	/* lock db */
 	if(!(flags & ALPM_TRANS_FLAG_NOLOCK)) {
@@ -144,12 +144,12 @@ int  alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(data != null);
+	//ASSERT(data != null);
 
 	trans = handle.trans;
 
-	ASSERT(trans != null);
-	ASSERT(trans.state == STATE_INITIALIZED);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state == STATE_INITIALIZED);
 
 	/* If there's nothing to do, return without complaining */
 	if(trans.add == null && trans.remove == null) {
@@ -206,10 +206,10 @@ int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 
 	trans = handle.trans;
 
-	ASSERT(trans != null);
-	ASSERT(trans.state == STATE_PREPARED);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state == STATE_PREPARED);
 
-	ASSERT(!(trans.flags & ALPM_TRANS_FLAG_NOLOCK));
+	//ASSERT(!(trans.flags & ALPM_TRANS_FLAG_NOLOCK));
 
 	/* If there's nothing to do, return without complaining */
 	if(trans.add == null && trans.remove == null) {
@@ -284,8 +284,8 @@ int  alpm_trans_interrupt(alpm_handle_t* handle)
 	CHECK_HANDLE(handle);
 
 	trans = handle.trans;
-	ASSERT(trans != null);
-	ASSERT(trans.state == STATE_COMMITTING || trans.state == STATE_INTERRUPTED);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state == STATE_COMMITTING || trans.state == STATE_INTERRUPTED);
 
 	trans.state = STATE_INTERRUPTED;
 
@@ -300,8 +300,8 @@ int  alpm_trans_release(alpm_handle_t* handle)
 	CHECK_HANDLE(handle);
 
 	trans = handle.trans;
-	ASSERT(trans != null);
-	ASSERT(trans.state != STATE_IDLE);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state != STATE_IDLE);
 
 	int nolock_flag = trans.flags & ALPM_TRANS_FLAG_NOLOCK;
 
@@ -458,7 +458,7 @@ int  alpm_trans_get_flags(alpm_handle_t* handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(handle.trans != null);
+	//ASSERT(handle.trans != null);
 
 	return handle.trans.flags;
 }
@@ -467,7 +467,7 @@ alpm_list_t * alpm_trans_get_add(alpm_handle_t* handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(handle.trans != null);
+	//ASSERT(handle.trans != null);
 
 	return handle.trans.add;
 }
@@ -476,7 +476,7 @@ alpm_list_t * alpm_trans_get_remove(alpm_handle_t* handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(handle.trans != null);
+	//ASSERT(handle.trans != null);
 
 	return handle.trans.remove;
 }

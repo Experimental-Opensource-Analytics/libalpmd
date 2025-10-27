@@ -1037,9 +1037,9 @@ char* _alpm_temporary_download_dir_setup(  char*dir,   char*user)
 {
 	 (passwd)* pw = null;
 
-	ASSERT(dir != null);
+	//ASSERT(dir != null);
 	if(user != null) {
-		ASSERT((pw = getpwnam(user)) != null);
+		//ASSERT((pw = getpwnam(user)) != null);
 	}
 
 	const (char)[16] template_ = "download-XXXXXX";
@@ -1069,7 +1069,7 @@ char* _alpm_temporary_download_dir_setup(  char*dir,   char*user)
  */
 void _alpm_remove_temporary_download_dir(  char*dir)
 {
-	ASSERT(dir != null);
+	//ASSERT(dir != null);
 	size_t dirlen = strlen(dir);
 	dirent* dp = null;
 	DIR* dirp = opendir(dir);
@@ -1219,7 +1219,7 @@ char * alpm_compute_md5sum(  char*filename)
 {
 	ubyte[16] output = void;
 
-	ASSERT(filename != null);
+	//ASSERT(filename != null);
 
 	if(md5_file(filename, output.ptr) > 0) {
 		return null;
@@ -1232,7 +1232,7 @@ char * alpm_compute_sha256sum(  char*filename)
 {
 	ubyte[32] output = void;
 
-	ASSERT(filename != null);
+	//ASSERT(filename != null);
 
 	if(sha256_file(filename, output.ptr) > 0) {
 		return null;

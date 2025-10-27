@@ -83,7 +83,7 @@ alpm_backup_t* _alpm_needbackup(  char*file, alpm_pkg_t* pkg)
 
 void _alpm_backup_free(alpm_backup_t* backup)
 {
-	ASSERT(backup != null);
+	//ASSERT(backup != null);
 	FREE(backup.name);
 	FREE(backup.hash);
 	FREE(backup);

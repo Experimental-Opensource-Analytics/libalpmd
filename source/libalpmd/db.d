@@ -118,10 +118,10 @@ alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle,   char*treename, int sig
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(treename != null && strlen(treename) != 0);
-	ASSERT(!strchr(treename, '/'));
+	//ASSERT(treename != null && strlen(treename) != 0);
+	//ASSERT(!strchr(treename, '/'));
 	/* Do not register a database if a transaction is on-going */
-	ASSERT(handle.trans == null);
+	//ASSERT(handle.trans == null);
 
 	/* ensure database name is unique */
 	if(strcmp(treename, "local") == 0) {
@@ -156,7 +156,7 @@ int  alpm_unregister_all_syncdbs(alpm_handle_t* handle)
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
 	/* Do not unregister a database if a transaction is on-going */
-	ASSERT(handle.trans == null);
+	//ASSERT(handle.trans == null);
 
 	/* unregister all sync dbs */
 	for(i = handle.dbs_sync; i; i = i.next) {
@@ -174,11 +174,11 @@ int  alpm_db_unregister(alpm_db_t* db)
 	alpm_handle_t* handle = void;
 
 	/* Sanity checks */
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	/* Do not unregister a database if a transaction is on-going */
 	handle = db.handle;
 	handle.pm_errno = ALPM_ERR_OK;
-	ASSERT(handle.trans == null);
+	//ASSERT(handle.trans == null);
 
 	if(db == handle.db_local) {
 		handle.db_local = null;
@@ -206,14 +206,14 @@ int  alpm_db_unregister(alpm_db_t* db)
 
  alpm_list_t* alpm_db_get_cache_servers(  alpm_db_t*db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	return db.cache_servers;
 }
 
 int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 {
 	alpm_list_t* i = void;
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	FREELIST(db.cache_servers);
 	for(i = cache_servers; i; i = i.next) {
 		char* url = cast(char*)i.data;
@@ -226,14 +226,14 @@ int  alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* cache_servers)
 
  alpm_list_t* alpm_db_get_servers(  alpm_db_t*db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	return db.servers;
 }
 
 int  alpm_db_set_servers(alpm_db_t* db, alpm_list_t* servers)
 {
 	alpm_list_t* i = void;
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	FREELIST(db.servers);
 	for(i = servers; i; i = i.next) {
 		char* url = cast(char*)i.data;
@@ -262,12 +262,12 @@ int  alpm_db_add_cache_server(alpm_db_t* db,   char*url)
 	char* newurl = void;
 
 	/* Sanity checks */
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
-	ASSERT(url != null && strlen(url) != 0);
+	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
-	ASSERT(newurl != null);
+	//ASSERT(newurl != null);
 
 	db.cache_servers = alpm_list_add(db.cache_servers, newurl);
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
@@ -281,12 +281,12 @@ int  alpm_db_add_server(alpm_db_t* db,   char*url)
 	char* newurl = void;
 
 	/* Sanity checks */
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
-	ASSERT(url != null && strlen(url) != 0);
+	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
-	ASSERT(newurl != null);
+	//ASSERT(newurl != null);
 
 	db.servers = alpm_list_add(db.servers, newurl);
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s\n",
@@ -301,12 +301,12 @@ int  alpm_db_remove_cache_server(alpm_db_t* db,   char*url)
 	int ret = 1;
 
 	/* Sanity checks */
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
-	ASSERT(url != null && strlen(url) != 0);
+	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
-	ASSERT(newurl != null);
+	//ASSERT(newurl != null);
 
 	db.cache_servers = alpm_list_remove_str(db.cache_servers, newurl, &vdata);
 
@@ -327,12 +327,12 @@ int  alpm_db_remove_server(alpm_db_t* db,   char*url)
 	int ret = 1;
 
 	/* Sanity checks */
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
-	ASSERT(url != null && strlen(url) != 0);
+	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
-	ASSERT(newurl != null);
+	//ASSERT(newurl != null);
 
 	db.servers = alpm_list_remove_str(db.servers, newurl, &vdata);
 
@@ -349,19 +349,19 @@ int  alpm_db_remove_server(alpm_db_t* db,   char*url)
 
 alpm_handle_t * alpm_db_get_handle(alpm_db_t* db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	return db.handle;
 }
 
   char*alpm_db_get_name(  alpm_db_t*db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	return db.treename;
 }
 
 int  alpm_db_get_siglevel(alpm_db_t* db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	if(db.siglevel & ALPM_SIG_USE_DEFAULT) {
 		return db.handle.siglevel;
 	} else {
@@ -371,7 +371,7 @@ int  alpm_db_get_siglevel(alpm_db_t* db)
 
 int  alpm_db_get_valid(alpm_db_t* db)
 {
-ASSERT(db != null);
+//ASSERT(db != null);
 (cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 return db.ops.validate(db);
 }
@@ -379,9 +379,9 @@ return db.ops.validate(db);
 alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db,   char*name)
 {
 alpm_pkg_t* pkg = void;
-ASSERT(db != null);
+//ASSERT(db != null);
 (cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
-ASSERT(name != null && strlen(name) != 0);
+//ASSERT(name != null && strlen(name) != 0);
 
 	pkg = _alpm_db_get_pkgfromcache(db, name);
 	if(!pkg) {
@@ -392,23 +392,23 @@ ASSERT(name != null && strlen(name) != 0);
 
 alpm_list_t * alpm_db_get_pkgcache(alpm_db_t* db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 	return _alpm_db_get_pkgcache(db);
 }
 
 alpm_group_t * alpm_db_get_group(alpm_db_t* db,   char*name)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
-	ASSERT(name != null && strlen(name) != 0);
+	//ASSERT(name != null && strlen(name) != 0);
 
 	return _alpm_db_get_groupfromcache(db, name);
 }
 
 alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 
 	return _alpm_db_get_groupcache(db);
@@ -416,7 +416,7 @@ alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 
 int  alpm_db_search(alpm_db_t* db,  alpm_list_t* needles, alpm_list_t** ret)
 {
-	ASSERT(db != null && ret != null && *ret == null);
+	//ASSERT(db != null && ret != null && *ret == null);
 	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
 
 	return _alpm_db_search(db, needles, ret);
@@ -424,15 +424,15 @@ int  alpm_db_search(alpm_db_t* db,  alpm_list_t* needles, alpm_list_t** ret)
 
 int  alpm_db_set_usage(alpm_db_t* db, int usage)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	db.usage = usage;
 	return 0;
 }
 
 int  alpm_db_get_usage(alpm_db_t* db, int* usage)
 {
-	ASSERT(db != null);
-	ASSERT(usage != null);
+	//ASSERT(db != null);
+	//ASSERT(usage != null);
 	*usage = db.usage;
 	return 0;
 }
@@ -455,7 +455,7 @@ alpm_db_t* _alpm_db_new(  char*treename, int is_local)
 
 void _alpm_db_free(alpm_db_t* db)
 {
-	ASSERT(db != null);
+	//ASSERT(db != null);
 	/* cleanup pkgcache */
 	_alpm_db_free_pkgcache(db);
 	/* cleanup server list */

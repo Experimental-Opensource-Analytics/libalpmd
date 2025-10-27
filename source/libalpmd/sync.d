@@ -32,6 +32,8 @@ import core.stdc.string;
 import core.stdc.stdint; /* intmax_t */
 import core.sys.posix.unistd;
 import core.stdc.limits;
+import core.sys.posix.sys.stat;
+
 
 /* libalpm */
 import libalpmd.sync;
@@ -61,11 +63,11 @@ alpm_pkg_t * alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync)
 	alpm_list_t* i = void;
 	alpm_pkg_t* spkg = null;
 
-	ASSERT(pkg != null);
-	cast(alpm_handle_t*)pkg.handle.pm_errno = ALPM_ERR_OK;
+	//ASSERT(pkg != null);
+	pkg.handle.pm_errno = ALPM_ERR_OK;
 
 	for(i = dbs_sync; !spkg && i; i = i.next) {
-		alpm_db_t* db = i.data;
+		alpm_db_t* db = cast(alpm_db_t*)i.data;
 		spkg = _alpm_db_get_pkgfromcache(db, pkg.name);
 	}
 
@@ -133,10 +135,10 @@ private alpm_list_t* check_replacers(alpm_handle_t* handle, alpm_pkg_t* lpkg, al
 			lpkg.name, sdb.treename);
 	for(k = _alpm_db_get_pkgcache(sdb); k; k = k.next) {
 		int found = 0;
-		alpm_pkg_t* spkg = k.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)k.data;
 		alpm_list_t* l = void;
 		for(l = alpm_pkg_get_replaces(spkg); l; l = l.next) {
-			alpm_depend_t* replace = l.data;
+			alpm_depend_t* replace = cast(alpm_depend_t*)l.data;
 			/* we only want to consider literal matches at this point. */
 			if(_alpm_depcmp_literal(lpkg, replace)) {
 				found = 1;
@@ -205,12 +207,12 @@ int  alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 
 	CHECK_HANDLE(handle);
 	trans = handle.trans;
-	ASSERT(trans != null);
-	ASSERT(trans.state == STATE_INITIALIZED);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state == STATE_INITIALIZED);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "checking for package upgrades\n");
 	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
-		alpm_pkg_t* lpkg = i.data;
+		alpm_pkg_t* lpkg = cast(alpm_pkg_t*)i.data;
 
 		if(alpm_pkg_find(trans.remove, lpkg.name)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "%s is marked for removal -- skipping\n", lpkg.name);
@@ -224,7 +226,7 @@ int  alpm_sync_sysupgrade(alpm_handle_t* handle, int enable_downgrade)
 
 		/* Search for replacers then literal (if no replacer) in each sync database. */
 		for(j = handle.dbs_sync; j; j = j.next) {
-			alpm_db_t* sdb = j.data;
+			alpm_db_t* sdb = cast(alpm_db_t*)j.data;
 			alpm_list_t* replacers = void;
 
 			if(!(sdb.usage & ALPM_DB_USAGE_UPGRADE)) {
@@ -258,7 +260,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 	alpm_list_t* i = void, j = void, pkgs = null, ignorelist = null;
 
 	for(i = dbs; i; i = i.next) {
-		alpm_db_t* db = i.data;
+		alpm_db_t* db = cast(alpm_db_t*)i.data;
 		alpm_group_t* grp = alpm_db_get_group(db, name);
 
 		if(!grp) {
@@ -266,7 +268,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 		}
 
 		for(j = grp.packages; j; j = j.next) {
-			alpm_pkg_t* pkg = j.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)j.data;
 			alpm_trans_t* trans = db.handle.trans;
 
 			if(alpm_pkg_find(ignorelist, pkg.name)) {
@@ -322,7 +324,7 @@ private int compute_download_size(alpm_pkg_t* newpkg)
 		return 0;
 	}
 
-	ASSERT(newpkg.filename != null);
+	//ASSERT(newpkg.filename != null);
 	fname = newpkg.filename;
 	fpath = _alpm_filecache_find(handle, fname);
 
@@ -379,7 +381,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 	}
 
 	for(i = trans.add; i; i = i.next) {
-		alpm_pkg_t* spkg = i.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 		if (spkg.origin == ALPM_PKG_FROM_SYNCDB){
 			from_sync = 1;
 			break;
@@ -388,7 +390,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 	/* ensure all sync database are valid if we will be using them */
 	for(i = handle.dbs_sync; i; i = i.next) {
-		  alpm_db_t*db = i.data;
+		  alpm_db_t*db = cast(alpm_db_t*)i.data;
 		if(db.status & DB_STATUS_INVALID) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
@@ -411,7 +413,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 		/* build remove list for resolvedeps */
 		for(i = trans.add; i; i = i.next) {
-			alpm_pkg_t* spkg = i.data;
+			alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 			for(j = spkg.removes; j; j = j.next) {
 				remove = alpm_list_add(remove, j.data);
 			}
@@ -420,12 +422,12 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 		/* Compute the fake local database for resolvedeps (partial fix for the
 		 * phonon/qt issue) */
 		localpkgs = alpm_list_diff(_alpm_db_get_pkgcache(handle.db_local),
-				trans.add, _alpm_pkg_cmp);
+				trans.add, &_alpm_pkg_cmp);
 
 		/* Resolve packages in the transaction one at a time, in addition
 		   building up a list of packages which could not be resolved. */
 		for(i = trans.add; i; i = i.next) {
-			alpm_pkg_t* pkg = i.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 			if(_alpm_resolvedeps(handle, localpkgs, pkg, trans.add,
 						&resolved, remove, data) == -1) {
 				unresolvable = alpm_list_add(unresolvable, pkg);
@@ -453,7 +455,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_OK;
 				if(data) {
 					alpm_list_free_inner(*data,
-							cast(alpm_list_fn_free)alpm_depmissing_free);
+							cast(alpm_list_fn_free)&alpm_depmissing_free);
 					alpm_list_free(*data);
 					*data = null;
 				}
@@ -462,15 +464,15 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				alpm_list_free(resolved);
 				alpm_list_free(unresolvable);
 				ret = -1;
-				GOTO_ERR(handle, ALPM_ERR_UNSATISFIED_DEPS, cleanup);
+				GOTO_ERR(handle, ALPM_ERR_UNSATISFIED_DEPS, "cleanup");
 			}
 		}
 
 		/* Ensure two packages don't have the same filename */
 		for(i = resolved; i; i = i.next) {
-			alpm_pkg_t* pkg1 = i.data;
+			alpm_pkg_t* pkg1 = cast(alpm_pkg_t*)i.data;
 			for(j = i.next; j; j = j.next) {
-				alpm_pkg_t* pkg2 = j.data;
+				alpm_pkg_t* pkg2 = cast(alpm_pkg_t*)j.data;
 				if(strcmp(pkg1.filename, pkg2.filename) == 0) {
 					ret = -1;
 					(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_TRANS_DUP_FILENAME;
@@ -487,7 +489,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 		/* Set DEPEND reason for pulled packages */
 		for(i = resolved; i; i = i.next) {
-			alpm_pkg_t* pkg = i.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 			if(!alpm_pkg_find(trans.add, pkg.name)) {
 				pkg.reason = ALPM_PKG_REASON_DEPEND;
 			}
@@ -518,7 +520,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 		deps = _alpm_innerconflicts(handle, trans.add);
 
 		for(i = deps; i; i = i.next) {
-			alpm_conflict_t* conflict = i.data;
+			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
 			  char*name1 = conflict.package1.name;
 			  char*name2 = conflict.package2.name;
 			alpm_pkg_t* rsync = void, sync = void, sync1 = void, sync2 = void;
@@ -552,7 +554,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 						*data = alpm_list_add(*data, newconflict);
 					}
 				}
-				alpm_list_free_inner(deps, cast(alpm_list_fn_free)alpm_conflict_free);
+				alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 				alpm_list_free(deps);
 				alpm_dep_free(dep1);
 				alpm_dep_free(dep2);
@@ -565,12 +567,12 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("removing '%s-%s' from target list because it conflicts with '%s-%s'\n"),
 					rsync.name, rsync.version_, sync.name, sync.version_);
-			trans.add = alpm_list_remove(trans.add, rsync, _alpm_pkg_cmp, null);
+			trans.add = alpm_list_remove(trans.add, rsync, &_alpm_pkg_cmp, null);
 			/* rsync is not a transaction target anymore */
 			trans.unresolvable = alpm_list_add(trans.unresolvable, rsync);
 		}
 
-		alpm_list_free_inner(deps, cast(alpm_list_fn_free)alpm_conflict_free);
+		alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 		alpm_list_free(deps);
 		deps = null;
 
@@ -582,9 +584,9 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 			alpm_question_conflict_t question = {
 				type: ALPM_QUESTION_CONFLICT_PKG,
 				remove: 0,
-				conflict: i.data
+				conflict: cast(alpm_conflict_t*)i.data
 			};
-			alpm_conflict_t* conflict = i.data;
+			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
 			  char*name1 = conflict.package1.name;
 			  char*name2 = conflict.package2.name;
 			int found = 0;
@@ -595,7 +597,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				found = 1;
 			}
 			for(j = trans.add; j && !found; j = j.next) {
-				alpm_pkg_t* spkg = j.data;
+				alpm_pkg_t* spkg = cast(alpm_pkg_t*)j.data;
 				if(alpm_pkg_find(spkg.removes, name2)) {
 					found = 1;
 				}
@@ -624,22 +626,22 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 						*data = alpm_list_add(*data, newconflict);
 					}
 				}
-				alpm_list_free_inner(deps, cast(alpm_list_fn_free)alpm_conflict_free);
+				alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 				alpm_list_free(deps);
 				goto cleanup;
 			}
 		}
 		event.type = ALPM_EVENT_INTERCONFLICTS_DONE;
 		EVENT(handle, &event);
-		alpm_list_free_inner(deps, cast(alpm_list_fn_free)alpm_conflict_free);
+		alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 		alpm_list_free(deps);
 	}
 
 	/* Build trans->remove list */
 	for(i = trans.add; i; i = i.next) {
-		alpm_pkg_t* spkg = i.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 		for(j = spkg.removes; j; j = j.next) {
-			alpm_pkg_t* rpkg = j.data;
+			alpm_pkg_t* rpkg = cast(alpm_pkg_t*)j.data;
 			if(!alpm_pkg_find(trans.remove, rpkg.name)) {
 				alpm_pkg_t* copy = void;
 				_alpm_log(handle, ALPM_LOG_DEBUG, "adding '%s' to remove list\n", rpkg.name);
@@ -662,7 +664,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				*data = deps;
 			} else {
 				alpm_list_free_inner(deps,
-						cast(alpm_list_fn_free)alpm_depmissing_free);
+						cast(alpm_list_fn_free)&alpm_depmissing_free);
 				alpm_list_free(deps);
 			}
 			goto cleanup;
@@ -670,7 +672,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 	}
 	for(i = trans.add; i; i = i.next) {
 		/* update download size field */
-		alpm_pkg_t* spkg = i.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 		alpm_pkg_t* lpkg = alpm_db_get_pkg(handle.db_local, spkg.name);
 		if(compute_download_size(spkg) < 0) {
 			ret = -1;
@@ -726,7 +728,7 @@ private int prompt_to_delete(alpm_handle_t* handle,   char*filepath, alpm_errno_
 private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 {
 	for(alpm_list_t* i = handle.trans.add; i; i = i.next) {
-		alpm_pkg_t* spkg = i.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
 			alpm_db_t* repo = spkg.origin_data.db;
@@ -740,7 +742,7 @@ private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 				return -1;
 			}
 
-			ASSERT(spkg.filename != null);
+			//ASSERT(spkg.filename != null);
 
 			need_download = spkg.download_size != 0 || !_alpm_filecache_exists(handle, spkg.filename);
 			/* even if the package file in the cache we need to check for
@@ -749,7 +751,7 @@ private int find_dl_candidates(alpm_handle_t* handle, alpm_list_t** files)
 			 */
 			if(!need_download && (siglevel & ALPM_SIG_PACKAGE)) {
 				char* sig_filename = null;
-				int len = strlen(spkg.filename) + 5;
+				int len = cast(int)strlen(spkg.filename) + 5;
 
 				MALLOC(sig_filename, len);
 				snprintf(sig_filename, len, "%s.sig", spkg.filename);
@@ -803,7 +805,7 @@ private int download_files(alpm_handle_t* handle)
 			CALLOC(file_sizes, num_files, off_t.sizeof);
 
 			for(i = files, idx = 0; i; i = i.next, idx++) {
-				 alpm_pkg_t* pkg = i.data;
+				 alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 				file_sizes[idx] = pkg.download_size;
 			}
 
@@ -821,26 +823,26 @@ private int download_files(alpm_handle_t* handle)
 
 		/* sum up the number of packages to download and its total size */
 		for(i = files; i; i = i.next) {
-			alpm_pkg_t* spkg = i.data;
+			alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 			event.pkg_retrieve.total_size += spkg.download_size;
 			event.pkg_retrieve.num++;
 		}
 
 		EVENT(handle, &event);
 		for(i = files; i; i = i.next) {
-			alpm_pkg_t* pkg = i.data;
+			alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(pkg));
 			dload_payload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
 			STRNDUP(payload.remote_name, pkg.filename);
 			STRNDUP(payload.filepath, pkg.filename);
-			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, "");
-			payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, ".part");
+			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)"");
+			payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)".part");
 			if(!payload.destfile_name || !payload.tempfile_name) {
 				_alpm_dload_payload_reset(payload);
 				FREE(payload);
-				GOTO_ERR(handle, ALPM_ERR_MEMORY, finish);
+				GOTO_ERR(handle, ALPM_ERR_MEMORY, "finish");
 			}
 			payload.max_size = pkg.size;
 			payload.cache_servers = pkg.origin_data.db.cache_servers;
@@ -866,7 +868,7 @@ private int download_files(alpm_handle_t* handle)
 
 finish:
 	if(payloads) {
-		alpm_list_free_inner(payloads, cast(alpm_list_fn_free)_alpm_dload_payload_reset);
+		alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
 		FREELIST(payloads);
 	}
 
@@ -875,7 +877,7 @@ finish:
 	}
 
 	for(i = handle.trans.add; i; i = i.next) {
-		alpm_pkg_t* pkg = i.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 		pkg.infolevel &= ~INFRQ_DSIZE;
 		pkg.download_size = 0;
 	}

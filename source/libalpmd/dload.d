@@ -126,16 +126,16 @@ private int finalize_download_file(  char*filename)
 {
 	stat_t st = void;
 	uid_t myuid = getuid();
-	ASSERT(filename != null);
-	ASSERT(stat(filename, &st) == 0);
+	//ASSERT(filename != null);
+	//ASSERT(stat(filename, &st) == 0);
 	if(st.st_size == 0) {
 		unlink(filename);
                 return 1;
 	}
 	if(myuid == 0) {
-		ASSERT(chown(filename, 0, 0) != -1);
+		//ASSERT(chown(filename, 0, 0) != -1);
 	}
-	ASSERT(chmod(filename, octal!"0666") != -1);
+	//ASSERT(chmod(filename, octal!"0666") != -1);
 	return 0;
 }
 
@@ -557,7 +557,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 	int ret = -1;
 
 	curlerr = curl_easy_getinfo(curl, CURLINFO_PRIVATE, &payload);
-	ASSERT(curlerr == CURLE_OK);
+	//ASSERT(curlerr == CURLE_OK);
 
 	curl_gethost(payload.fileurl, hostname.ptr, hostname.sizeof);
 	curlerr = msg.data.result;
@@ -801,14 +801,14 @@ private int curl_add_payload(alpm_handle_t* handle, CURLM* curlm, dload_payload*
 	payload.curl = curl;
 
 	if(payload.fileurl) {
-		ASSERT(!payload.servers);
-		ASSERT(!payload.filepath);
+		//ASSERT(!payload.servers);
+		//ASSERT(!payload.filepath);
 		payload.request_errors_ok = payload.errors_ok;
 	} else {
 		  char*server = payload_next_server(payload);
 
-		ASSERT(server);
-		ASSERT(payload.filepath);
+		//ASSERT(server);
+		//ASSERT(payload.filepath);
 
 		len = strlen(server) + strlen(payload.filepath) + 2;
 		MALLOC(payload.fileurl, len);
@@ -1121,8 +1121,8 @@ private int payload_download_fetchcb(dload_payload* payload,   char*server,   ch
 
 private int move_file(  char*filepath,   char*directory)
 {
-	ASSERT(filepath != null);
-	ASSERT(directory != null);
+	//ASSERT(filepath != null);
+	//ASSERT(directory != null);
 	int ret = finalize_download_file(filepath);
 	if(ret != 0) {
 		return ret;
@@ -1139,8 +1139,8 @@ private int move_file(  char*filepath,   char*directory)
 
 private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 {
-	ASSERT(payloads != null);
-	ASSERT(localpath != null);
+	//ASSERT(payloads != null);
+	//ASSERT(localpath != null);
 	alpm_list_t* p = void;
 	stat_t st = void;
 	int returnvalue = 0;
@@ -1172,13 +1172,13 @@ private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 
 			filename = payload.destfile_name ? payload.destfile_name : payload.tempfile_name;
 			sig_filename = _alpm_get_fullpath(cast(char*)"", filename, cast(char*)".sig");
-			// ASSERT(sig_filename);
+			// //ASSERT(sig_filename);
 			ret = move_file(sig_filename, localpath);
 			free(sig_filename);
 
 			if(ret == -1) {
 				sig_filename = _alpm_get_fullpath(cast(char*)"", filename, cast(char*)".sig.part");
-				// ASSERT(sig_filename);
+				// //ASSERT(sig_filename);
 				move_file(sig_filename, localpath);
 				free(sig_filename);
 			}
@@ -1190,10 +1190,10 @@ private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath,   char*user)
 {
 	passwd* pw = null;
-	ASSERT(payloads != null);
-	ASSERT(localpath != null);
+	//ASSERT(payloads != null);
+	//ASSERT(localpath != null);
 	if(user != null) {
-		ASSERT((pw = getpwnam(user)) != null);
+		//ASSERT((pw = getpwnam(user)) != null);
 	}
 	alpm_list_t* p = void;
 	for(p = payloads; p; p = p.next) {
@@ -1222,7 +1222,7 @@ private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath
 			continue;
 		}
 		if(pw != null) {
-			// ASSERT(chown(payload.tempfile_name, pw.pw_uid, pw.pw_gid));
+			// //ASSERT(chown(payload.tempfile_name, pw.pw_uid, pw.pw_gid));
 		}
 		FREE(src);
 	}
@@ -1357,12 +1357,12 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle,  alpm_list_t* urls, alpm_list_t** 
 	alpm_event_t event = void;
 
 	CHECK_HANDLE(handle);
-	ASSERT(*fetched == null);
+	//ASSERT(*fetched == null);
 
 	/* find a valid cache dir to download to */
 	cachedir = _alpm_filecache_setup(handle);
 	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, handle.sandboxuser);
-	ASSERT(temporary_cachedir != null);
+	//ASSERT(temporary_cachedir != null);
 
 	for(i = urls; i; i = i.next) {
 		char* url = cast(char*)i.data;
@@ -1393,7 +1393,7 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle,  alpm_list_t* urls, alpm_list_t** 
 			dload_payload* payload = null;
 			char* c = void;
 
-			// ASSERT(url);
+			// //ASSERT(url);
 			CALLOC(payload, 1, typeof(*payload).sizeof);
 			STRNDUP(payload.fileurl, url);
 
@@ -1482,7 +1482,7 @@ err:
 
 void _alpm_dload_payload_reset(dload_payload* payload)
 {
-	// ASSERT(payload);
+	// //ASSERT(payload);
 
 	if(payload.localf != null) {
 		fclose(payload.localf);

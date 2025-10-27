@@ -38,6 +38,8 @@ import libalpmd.log;
 import libalpmd.alpm;
 import libalpmd.handle;
 import libalpmd.alpm_list;
+import libalpmd.db;
+
 
 
 int  alpm_decode_signature(  char*base64_data, ubyte** data, size_t* data_len)
@@ -969,9 +971,10 @@ int _alpm_process_siglist(alpm_handle_t* handle,   char*identifier, alpm_siglist
 
 int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 {
-	ASSERT(pkg != null);
-	ASSERT(siglist != null);
-	cast(alpm_handle_t*)pkg.handle.pm_errno = ALPM_ERR_OK;
+	//ASSERT(pkg != null);
+	//ASSERT(siglist != null);
+	alpm_handle_t* handle = cast(alpm_handle_t*)pkg.handle;
+	handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(pkg.handle, pkg.filename,
 			pkg.base64_sig, siglist);
@@ -979,8 +982,8 @@ int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 
 int  alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
 {
-	ASSERT(db != null);
-	ASSERT(siglist != null);
+	//ASSERT(db != null);
+	//ASSERT(siglist != null);
 	db.handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(db.handle, _alpm_db_path(db), null, siglist);
@@ -988,7 +991,7 @@ int  alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
 
 int  alpm_siglist_cleanup(alpm_siglist_t* siglist)
 {
-	ASSERT(siglist != null);
+	//ASSERT(siglist != null);
 	size_t num = void;
 	for(num = 0; num < siglist.count; num++) {
 		alpm_sigresult_t* result = siglist.results + num;

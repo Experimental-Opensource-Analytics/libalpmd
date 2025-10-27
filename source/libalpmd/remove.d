@@ -27,6 +27,8 @@ import core.stdc.config: c_long, c_ulong;
  */
 
 import core.stdc.stdlib;
+import core.stdc.stdio;
+
 import core.stdc.errno;
 import core.stdc.string;
 import core.stdc.limits;
@@ -49,6 +51,10 @@ import libalpmd.db;
 import libalpmd.deps;
 import libalpmd.handle;
 import libalpmd.filelist;
+import libalpmd.util_common;
+import libalpmd.be_local;
+
+
 
 int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 {
@@ -58,13 +64,13 @@ int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
-	ASSERT(pkg != null);
-	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB,
-			RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
-	ASSERT(handle == pkg.handle);
+	//ASSERT(pkg != null);
+	//ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB,
+			// RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1));
+	//ASSERT(handle == pkg.handle);
 	trans = handle.trans;
-	ASSERT(trans != null);
-	ASSERT(trans.state == STATE_INITIALIZED);
+	//ASSERT(trans != null);
+	//ASSERT(trans.state == STATE_INITIALIZED);
 
 	pkgname = pkg.name;
 
@@ -97,7 +103,7 @@ private int remove_prepare_cascade(alpm_handle_t* handle, alpm_list_t* lp)
 	while(lp) {
 		alpm_list_t* i = void;
 		for(i = lp; i; i = i.next) {
-			alpm_depmissing_t* miss = i.data;
+			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
 			alpm_pkg_t* info = _alpm_db_get_pkgfromcache(handle.db_local, miss.target);
 			if(info) {
 				alpm_pkg_t* copy = void;
@@ -114,7 +120,7 @@ private int remove_prepare_cascade(alpm_handle_t* handle, alpm_list_t* lp)
 						("could not find %s in database -- skipping\n"), miss.target);
 			}
 		}
-		alpm_list_free_inner(lp, cast(alpm_list_fn_free)alpm_depmissing_free);
+		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
 		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.db_local),
 				trans.remove, null, 1);
@@ -136,13 +142,13 @@ private void remove_prepare_keep_needed(alpm_handle_t* handle, alpm_list_t* lp)
 	while(lp != null) {
 		alpm_list_t* i = void;
 		for(i = lp; i; i = i.next) {
-			alpm_depmissing_t* miss = i.data;
+			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
 			void* vpkg = void;
 			alpm_pkg_t* pkg = alpm_pkg_find(trans.remove, miss.causingpkg);
 			if(pkg == null) {
 				continue;
 			}
-			trans.remove = alpm_list_remove(trans.remove, pkg, _alpm_pkg_cmp,
+			trans.remove = alpm_list_remove(trans.remove, pkg, &_alpm_pkg_cmp,
 					&vpkg);
 			pkg = cast(alpm_pkg_t*) vpkg;
 			if(pkg) {
@@ -151,7 +157,7 @@ private void remove_prepare_keep_needed(alpm_handle_t* handle, alpm_list_t* lp)
 				_alpm_pkg_free(pkg);
 			}
 		}
-		alpm_list_free_inner(lp, cast(alpm_list_fn_free)alpm_depmissing_free);
+		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
 		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.db_local),
 				trans.remove, null, 1);
@@ -169,13 +175,13 @@ private void remove_notify_needed_optdepends(alpm_handle_t* handle, alpm_list_t*
 	alpm_list_t* i = void;
 
 	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = alpm_list_next(i)) {
-		alpm_pkg_t* pkg = i.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 		alpm_list_t* optdeps = alpm_pkg_get_optdepends(pkg);
 
 		if(optdeps && !alpm_pkg_find(lp, pkg.name)) {
 			alpm_list_t* j = void;
 			for(j = optdeps; j; j = alpm_list_next(j)) {
-				alpm_depend_t* optdep = j.data;
+				alpm_depend_t* optdep = cast(alpm_depend_t*)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
 				if(alpm_find_satisfier(lp, optstring)) {
 					alpm_event_optdep_removal_t event = {
@@ -240,7 +246,7 @@ int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
 					*data = lp;
 				} else {
 					alpm_list_free_inner(lp,
-							cast(alpm_list_fn_free)alpm_depmissing_free);
+							cast(alpm_list_fn_free)&alpm_depmissing_free);
 					alpm_list_free(lp);
 				}
 				RET_ERR(handle, ALPM_ERR_UNSATISFIED_DEPS, -1);
@@ -348,6 +354,8 @@ private int can_remove_file(alpm_handle_t* handle,  alpm_file_t* file)
 
 private void shift_pacsave(alpm_handle_t* handle,   char*file)
 {
+	c_ulong i = void;
+
 	DIR* dir = null;
 	dirent* ent = void;
 	stat_t st = void;
@@ -362,12 +370,12 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	c_ulong log_max = 0;
 	size_t basename_len = void;
 
-	dirname = mdirname(file);
+	dirname = cast(char*)mdirname(cast(char*)file);
 	if(!dirname) {
 		return;
 	}
 
-	basename = basename(file);
+	basename = cast(char*)mbasename(cast(char*)file);
 	basename_len = strlen(basename);
 
 	snprintf(regstr.ptr, PATH_MAX, "^%s\\.pacsave\\.([[:digit:]]+)$", basename);
@@ -383,13 +391,13 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	}
 
 	while((ent = readdir(dir)) != null) {
-		if(strcmp(ent.d_name, ".") == 0 || strcmp(ent.d_name, "..") == 0) {
+		if(strcmp(ent.d_name.ptr, cast(char*)".") == 0 || strcmp(ent.d_name.ptr, cast(char*)"..") == 0) {
 			continue;
 		}
 
 		if(regexec(&reg, ent.d_name, 0, 0, 0) == 0) {
 			c_ulong cur_log = void;
-			cur_log = strtoul(ent.d_name + basename_len + strlen(".pacsave."), null, 10);
+			cur_log = strtoul(ent.d_name.ptr + basename_len + strlen(".pacsave."), null, 10);
 			if(cur_log > log_max) {
 				log_max = cur_log;
 			}
@@ -397,7 +405,6 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	}
 
 	/* Shift pacsaves */
-	c_ulong i = void;
 	for(i = log_max + 1; i > 1; i--) {
 		if(snprintf(oldfile.ptr, PATH_MAX, "%s.pacsave.%lu", file, i-1) >= PATH_MAX
 				|| snprintf(newfile.ptr, PATH_MAX, "%s.pacsave.%lu", file, i) >= PATH_MAX) {
@@ -499,7 +506,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 			int found = 0;
 			local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
 			for(local = local_pkgs; local && !found; local = local.next) {
-				alpm_pkg_t* local_pkg = local.data;
+				alpm_pkg_t* local_pkg = cast(alpm_pkg_t*)local.data;
 				alpm_filelist_t* filelist = void;
 
 				/* we duplicated the package when we put it in the removal list, so we
@@ -540,7 +547,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
 					alpm_event_pacsave_created_t event = {
 						type: ALPM_EVENT_PACSAVE_CREATED,
 						oldpkg: oldpkg,
-						file: file
+						file: cast(char*)file
 					};
 					char* newpath = void;
 					size_t len = strlen(file.ptr) + 8 + 1;
@@ -654,7 +661,7 @@ private int remove_package_files(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm
 
 		if(!newpkg) {
 			/* update progress bar after each file */
-			int percent = ((filelist.count - i) * 100) / filelist.count;
+			int percent = cast(int)(((filelist.count - i) * 100) / filelist.count);
 			PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.name,
 					percent, pkg_count, targ_count);
 		}
@@ -703,8 +710,8 @@ int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_
 		if(alpm_pkg_has_scriptlet(oldpkg) &&
 				!(handle.trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 			char* scriptlet = _alpm_local_db_pkgpath(handle.db_local,
-					oldpkg, "install");
-			_alpm_runscriptlet(handle, scriptlet, "pre_remove", pkgver, null, 0);
+					oldpkg, cast(char*)"install");
+			_alpm_runscriptlet(handle, scriptlet, cast(char*)"pre_remove", pkgver, null, 0);
 			free(scriptlet);
 		}
 	}
@@ -723,8 +730,8 @@ int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_
 	if(!newpkg && alpm_pkg_has_scriptlet(oldpkg) &&
 			!(handle.trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		char* scriptlet = _alpm_local_db_pkgpath(handle.db_local,
-				oldpkg, "install");
-		_alpm_runscriptlet(handle, scriptlet, "post_remove", pkgver, null, 0);
+				oldpkg, cast(char*)"install");
+		_alpm_runscriptlet(handle, scriptlet, cast(char*)"post_remove", pkgver, null, 0);
 		free(scriptlet);
 	}
 
@@ -768,7 +775,7 @@ int _alpm_remove_packages(alpm_handle_t* handle, int run_ldconfig)
 	targ_count = 1;
 
 	for(targ = trans.remove; targ; targ = targ.next) {
-		alpm_pkg_t* pkg = targ.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)targ.data;
 
 		if(trans.state == STATE_INTERRUPTED) {
 			return ret;
