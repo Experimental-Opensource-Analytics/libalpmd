@@ -1916,7 +1916,7 @@ int alpm_option_set_cachedirs(alpm_handle_t* handle, alpm_list_t* cachedirs);
  * @param cachedir the cachedir to add
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_option_add_cachedir(alpm_handle_t* handle, const(char)* cachedir);
+// int alpm_option_add_cachedir(alpm_handle_t* handle, const(char)* cachedir);
 
 /** Remove a cachedir from the configured cachedirs.
  * @param handle the context handle

@@ -134,7 +134,7 @@ alpm_file_t * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
 
 	key.name = cast(char*)path;
 
-	return bsearch(cast(  void*)key, cast(void*)&filelist.files, cast(ulong)filelist.count,
+	return bsearch(cast(  void*)key, cast(void*)filelist.files, filelist.count,
 			alpm_file_t.sizeof, &_alpm_files_cmp);
 }
 
@@ -145,7 +145,7 @@ void _alpm_filelist_sort(alpm_filelist_t* filelist)
 		if(strcmp(filelist.files[i - 1].name, filelist.files[i].name) > 0) {
 			/* filelist is not pre-sorted */
 			qsort(filelist.files, filelist.count,
-					alpm_file_t.sizeof, cast(int function(const(void*), const(void*)))&_alpm_files_cmp);
+					alpm_file_t.sizeof, &_alpm_files_cmp);
 			return;
 		}
 	}

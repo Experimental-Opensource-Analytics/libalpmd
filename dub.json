@@ -12,6 +12,7 @@
 	"license": "MIT",
 	"name": "libalpmd",
 	"dflags" : [
-		"-verrors=0"
+		"-verrors=0",
+		"-version=HAVE_LIBSSL"
 	]
 }

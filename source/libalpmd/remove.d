@@ -33,7 +33,7 @@ import core.stdc.errno;
 import core.stdc.string;
 import core.stdc.limits;
 import core.sys.posix.dirent;
-// import regex;
+import std.regex;
 import core.sys.posix.unistd;
 import core.sys.posix.sys.stat;
 import core.sys.posix.sys.types;
@@ -359,7 +359,7 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	DIR* dir = null;
 	dirent* ent = void;
 	stat_t st = void;
-	regex_t reg = void;
+	auto reg = void;
 
 	  char*basename = void;
 	char* dirname = void;
@@ -379,9 +379,7 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	basename_len = strlen(basename);
 
 	snprintf(regstr.ptr, PATH_MAX, "^%s\\.pacsave\\.([[:digit:]]+)$", basename);
-	if(regcomp(&reg, regstr.ptr, REG_EXTENDED | REG_NEWLINE) != 0) {
-		goto cleanup;
-	}
+	reg = regex(regstr.ptr);
 
 	dir = opendir(dirname);
 	if(dir == null) {
@@ -395,7 +393,7 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 			continue;
 		}
 
-		if(regexec(&reg, ent.d_name, 0, 0, 0) == 0) {
+		if(match(ent.d_name, reg)) {
 			c_ulong cur_log = void;
 			cur_log = strtoul(ent.d_name.ptr + basename_len + strlen(".pacsave."), null, 10);
 			if(cur_log > log_max) {
@@ -424,8 +422,6 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	if(stat(oldfile.ptr, &st) == 0) {
 		rename(oldfile.ptr, newfile.ptr);
 	}
-
-	regfree(&reg);
 
 cleanup:
 	free(dirname);

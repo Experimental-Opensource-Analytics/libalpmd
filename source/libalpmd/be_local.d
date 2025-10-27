@@ -891,7 +891,7 @@ private int local_db_read(alpm_pkg_t* info, int inforeq)
 				}
 				/* attempt to hand back any memory we don't need */
 				if(files_count > 0) {
-					REALLOC(files, ((alpm_file_t).sizeof * files_count), 0);
+					REALLOC(files, ((alpm_file_t).sizeof * files_count));
 				} else {
 					FREE(files);
 				}

@@ -10,7 +10,7 @@ import std.path;
 
 
 
-private template HasVersion(string versionId) {
+template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
 }
 import core.stdc.config: c_long, c_ulong;
@@ -49,11 +49,188 @@ import core.sys.posix.sys.wait;
 import core.sys.posix.sys.socket;
 import core.sys.posix.sys.types;
 import core.sys.posix.fcntl;
-// import core.sys.posix.;
 import core.sys.posix.poll;
 import core.sys.posix.pwd;
+import core.sys.posix.signal;
+import core.sys.posix.unistd;
 import core.stdc.signal;
+import core.sys.posix.stdlib;
+
 import std.conv;
+import core.stdc.string;
+import libalpmd.util_common;
+import libalpmd.conf;
+
+// fnmatch constants
+enum FNM_PATHNAME = 1;     // No wildcard can ever match '/'
+enum FNM_NOESCAPE = 2;     // Backslashes don't quote special chars
+enum FNM_PERIOD = 4;       // Leading '.' is matched only explicitly
+enum FNM_NOMATCH = 1;      // Match failed
+enum FNM_LEADING_DIR = 8;  // Ignore '/...' after a match
+enum FNM_CASEFOLD = 16;    // Compare without regard to case
+
+/** Match NAME against the filename pattern PATTERN,
+ * returning zero if it matches, FNM_NOMATCH if not
+ */
+int fnmatch(const(char)* pattern, const(char)* name, int flags)
+{
+	if (!pattern || !name) return FNM_NOMATCH;
+
+	const(char)* p = pattern;
+	const(char)* n = name;
+	const(char)* fallback_p = null;
+	const(char)* fallback_n = null;
+
+	while (*p != '\0' && *n != '\0') {
+		switch (*p) {
+			case '?':
+				if ((flags & FNM_PATHNAME) && *n == '/') {
+					// Метасимвол '?' не соответствует '/' при установленном флаге FNM_PATHNAME
+					break;
+				}
+				if ((flags & FNM_PERIOD) && n == name && *n == '.') {
+					// Начальная точка должна совпадать явно
+					if (!(p > pattern && *(p-1) == '\\')) {
+						break;
+					}
+				}
+				p++;
+				n++;
+				break;
+
+			case '*':
+				// Пропускаем последовательные '*'
+				while (*p == '*') p++;
+				
+				// Если '*' в конце шаблона, то совпадение найдено
+				if (*p == '\0') return 0;
+				
+				// Запоминаем позицию для возврата
+				fallback_p = p;
+				fallback_n = n;
+				break;
+
+			case '[':
+				if ((flags & FNM_PATHNAME) && *n == '/') {
+					// Метасимвол '[' не соответствует '/' при установленном флаге FNM_PATHNAME
+					break;
+				}
+				if ((flags & FNM_PERIOD) && n == name && *n == '.') {
+					// Начальная точка должна совпадать явно
+					break;
+				}
+				
+				p++;
+				bool matched = false;
+				bool negated = false;
+				
+				if (*p == '!') {
+					negated = true;
+					p++;
+				}
+				
+				char last_char = '\0';
+				while (*p != '\0' && *p != ']') {
+					if (p[0] == '-' && p[1] != ']' && last_char != '\0') {
+						// Диапазон символов
+						p++;
+						if (*n >= last_char && *n <= *p) {
+							matched = !negated;
+						}
+						last_char = *p;
+					} else {
+						if (*p == *n) {
+							matched = !negated;
+						}
+						last_char = *p;
+					}
+					p++;
+				}
+				
+				if (*p == ']') p++;
+				
+				if (!matched) {
+					// Если не совпало, возвращаемся к предыдущей позиции '*'
+					if (fallback_p) {
+						p = fallback_p;
+						n = fallback_n + 1;
+						continue;
+					} else {
+						break;
+					}
+				}
+				n++;
+				break;
+
+			case '\\':
+				if (!(flags & FNM_NOESCAPE) && *(p+1) != '\0') {
+					p++;
+					// Проверяем точное совпадение следующего символа
+					if (*p == *n) {
+						p++;
+						n++;
+					} else {
+						// Если экранированный символ не совпадает, возвращаемся к предыдущей позиции '*'
+						if (fallback_p) {
+							p = fallback_p;
+							n = fallback_n + 1;
+							continue;
+						} else {
+							break;
+						}
+					}
+				} else {
+					// Обрабатываем '\' как обычный символ
+					if (*p == *n) {
+						p++;
+						n++;
+					} else {
+						// Если символ не совпадает, возвращаемся к предыдущей позиции '*'
+						if (fallback_p) {
+							p = fallback_p;
+							n = fallback_n + 1;
+							continue;
+						} else {
+							break;
+						}
+					}
+				}
+				break;
+
+			default:
+				// Обычный символ
+				if (*p == *n) {
+					p++;
+					n++;
+				} else {
+					// Если символ не совпадает, возвращаемся к предыдущей позиции '*'
+					if (fallback_p) {
+						p = fallback_p;
+						n = fallback_n + 1;
+						continue;
+					} else {
+						break;
+					}
+				}
+				break;
+		}
+	}
+	
+	// Пропускаем оставшиеся '*' в конце шаблона
+	while (*p == '*') p++;
+	
+	// Совпадение, если обе строки достигли конца
+	if (*p == '\0' && *n == '\0') {
+		return 0;
+	}
+	
+	// Если шаблон закончился, но строка нет, проверяем специальный случай с '/'
+	if (*p == '\0' && (flags & FNM_LEADING_DIR) && *n == '/') {
+		return 0;
+	}
+	
+	return FNM_NOMATCH;
+}
 
 // public import openss;
 
@@ -93,9 +270,11 @@ struct archive_read_buffer {
 	int ret;
 }
 
-enum string OPEN(string fd, string path, string flags) = `do { 
-` ~ fd ~ ` = open(` ~ path ~ `, ` ~ flags ~ ` | O_BINARY); } 
-while(` ~ fd ~ ` == -1 && errno == EINTR);`;
+void OPEN(ref int fd,   char* path, int flags) {
+	do {
+		fd = open(path, flags);
+	} while(fd == -1 && errno == EINTR);
+}
 
 auto MALLOC(T)(T* ptr, size_t size) {
 	ptr = cast(T*)malloc(size);
@@ -113,18 +292,18 @@ void REALLOC(T)(ref T t, size_t size) {
 	void* np = realloc(t, size);
 	if(np !is null) {
 		t = cast(T)np;
-	}  
-	assert(0, "ERROR");
-	// t = calloc(l, size);
+	} else {
+		assert(0, "ERROR");
+	}
 }
 
 void STRNDUP(ref char* str,   char*_str, size_t l) {
-	str = strndup(_str, l);
+	str = cast(char*)strndup(_str, l);
 }
 
 void STRDUP(ref char* str,   char* _str) {
-	str = strdup(_str);
-} 
+	str = cast(char*)strdup(_str);
+}
 
 void CHECK_HANDLE(T) (T t) {
 	assert(t !is null);
@@ -264,7 +443,7 @@ int _alpm_copyfile(  char*src,   char*dest)
 
 	OPEN(in_, src, O_RDONLY | O_CLOEXEC);
 	do {
-		out_ = open(dest, O_WRONLY | O_CREAT | O_BINARY | O_CLOEXEC, 0000);
+		out_ = open(dest, O_WRONLY | O_CREAT | O_CLOEXEC, 0000);
 	} while(out_ == -1 && errno == EINTR);
 	if(in_ < 0 || out_ < 0) {
 		goto cleanup;
@@ -449,7 +628,7 @@ int _alpm_unpack(alpm_handle_t* handle,   char*path,   char*prefix, alpm_list_t*
 	oldmask = umask(octal!"0022");
 
 	/* save the cwd so we can restore it later */
-	OPEN(cwdfd, ".", O_RDONLY | O_CLOEXEC);
+	OPEN(cwdfd, cast(char*)".", O_RDONLY | O_CLOEXEC);
 	if(cwdfd < 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not get current working directory\n"));
 	}
@@ -466,7 +645,7 @@ int _alpm_unpack(alpm_handle_t* handle,   char*path,   char*prefix, alpm_list_t*
 		  char*entryname = void;
 		mode_t mode = void;
 
-		entryname = archive_entry_pathname(entry);
+		entryname = cast(char*)archive_entry_pathname(entry);
 
 		if(entryname == null) {
 			ret = 1;
@@ -557,7 +736,7 @@ ssize_t _alpm_files_in_directory(alpm_handle_t* handle,   char*path, int full_co
 		return -1;
 	}
 	while((ent = readdir(dir)) != null) {
-		  char*name = ent.d_name;
+		  char*name = cast(char*)ent.d_name;
 
 		if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 			continue;
@@ -574,17 +753,16 @@ ssize_t _alpm_files_in_directory(alpm_handle_t* handle,   char*path, int full_co
 	return files;
 }
 
-private int should_retry(int errnum)
+int should_retry(int errnum)
 {
-// 	return errnum == EAGAIN
-// /* EAGAIN may be the same value as EWOULDBLOCK (POSIX.1) - prevent GCC warning */
-// static if (EAGAIN != EWOULDBLOCK
-// 	|| errnum == EWOULDBLOCK) {
-// }
-// 	|| errnum == EINTR;
+	static if (EAGAIN != EWOULDBLOCK) {
+		return (errnum == EAGAIN || errnum == EWOULDBLOCK || errnum == EINTR);
+	} else {
+		return (errnum == EAGAIN || errnum == EINTR);
+	}
 }
 
-private int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit, _alpm_cb_io out_cb, void* cb_ctx)
+int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit, _alpm_cb_io out_cb, void* cb_ctx)
 {
 	ssize_t nwrite = void;
 
@@ -616,7 +794,7 @@ private int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf
 alias _alpm_cb_io = ssize_t function(void* buf, ssize_t len, void* ctx);
 
 
-private void _alpm_chroot_process_output(alpm_handle_t* handle,   char*line)
+void _alpm_chroot_process_output(alpm_handle_t* handle,   char*line)
 {
 	alpm_event_scriptlet_info_t event = {
 		type: ALPM_EVENT_SCRIPTLET_INFO,
@@ -626,12 +804,12 @@ private void _alpm_chroot_process_output(alpm_handle_t* handle,   char*line)
 	EVENT(handle, &event);
 }
 
-private int _alpm_chroot_read_from_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit)
+int _alpm_chroot_read_from_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit)
 {
 	ssize_t space = buf_limit - *buf_size - 2; /* reserve 2 for "\n\0" */
 	ssize_t nread = read(fd, buf + *buf_size, space);
 	if(nread > 0) {
-		char* newline = memchr(buf + *buf_size, '\n', nread);
+		char* newline = cast(char*)memchr(buf + *buf_size, '\n', nread);
 		*buf_size += nread;
 		if(newline) {
 			while(newline) {
@@ -643,7 +821,7 @@ private int _alpm_chroot_read_from_child(alpm_handle_t* handle, int fd, char* bu
 
 				*buf_size -= linelen;
 				memmove(buf, buf + linelen, *buf_size);
-				newline = memchr(buf, '\n', *buf_size);
+				newline = cast(char*)memchr(buf, '\n', *buf_size);
 			}
 		} else if(nread == space) {
 			/* we didn't read a full line, but we're out of space */
@@ -687,9 +865,9 @@ void _alpm_reset_signals()
 	version(SIGPOLL) {
 		signals[28] = SIGPOLL;
 	}
-	sigaction def = { sa_handler: SIG_DFL };
+	sigaction_t def = { sa_handler: SIG_DFL };
 	sigemptyset(&def.sa_mask);
-	for(i = signals; *i; i++) {
+	for(i = signals.ptr; *i; i++) {
 		sigaction(*i, &def, null);
 	}
 }
@@ -713,7 +891,7 @@ enum HEAD = 1;
 enum TAIL = 0;
 
 	/* save the cwd so we can restore it later */
-	OPEN(cwdfd, ".", O_RDONLY | O_CLOEXEC);
+	OPEN(cwdfd, cast(char*)".", O_RDONLY | O_CLOEXEC);
 	if(cwdfd < 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not get current working directory\n"));
 	}
@@ -731,13 +909,13 @@ enum TAIL = 0;
 	/* Flush open fds before fork() to avoid cloning buffers */
 	fflush(null);
 
-	if(socketpair(AF_UNIX, SOCK_STREAM, 0, child2parent_pipefd.ptr) == -1) {
+	if(socketpair(AF_UNIX, SOCK_STREAM, 0, child2parent_pipefd) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not create pipe (%s)\n"), strerror(errno));
 		retval = 1;
 		goto cleanup;
 	}
 
-	if(socketpair(AF_UNIX, SOCK_STREAM, 0, parent2child_pipefd.ptr) == -1) {
+	if(socketpair(AF_UNIX, SOCK_STREAM, 0, parent2child_pipefd) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not create pipe (%s)\n"), strerror(errno));
 		retval = 1;
 		goto cleanup;
@@ -776,7 +954,7 @@ enum TAIL = 0;
 		}
 		if(chdir("/") != 0) {
 			fprintf(stderr, ("could not change directory to %s (%s)\n"),
-					"/", strerror(errno));
+					"/".ptr, strerror(errno));
 			exit(1);
 		}
 		/* bash assumes it's being run under rsh/ssh if stdin is a socket and
@@ -797,7 +975,7 @@ enum TAIL = 0;
 		/* this code runs for the parent only (wait on the child) */
 		int status = void;
 		char[PIPE_BUF] obuf = void; /* writes <= PIPE_BUF are guaranteed atomic */
-		char[LINE_MAX] ibuf = void;
+		char[2048] ibuf = void;
 		ssize_t olen = 0, ilen = 0;
 		nfds_t nfds = 2;
 		pollfd[2] fds = void; pollfd* child2parent = &(fds[0]), parent2child = &(fds[1]);
@@ -819,10 +997,10 @@ enum TAIL = 0;
 			close(parent2child_pipefd[HEAD]);
 		}
 
-enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -1; } while(0)`;
+enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -1; } while(0);`;
 
 		while((child2parent.fd != -1 || parent2child.fd != -1)
-				&& (poll_ret = poll(fds, nfds, -1)) != 0) {
+				&& (poll_ret = poll(fds.ptr, nfds, -1)) != 0) {
 			if(poll_ret == -1) {
 				if(errno == EINTR) {
 					continue;
@@ -832,19 +1010,19 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 			}
 			if(child2parent.revents & POLLIN) {
 				if(_alpm_chroot_read_from_child(handle, child2parent.fd,
-							ibuf, &ilen, ibuf.sizeof) != 0) {
-					/* we encountered end-of-file or an error */
-					mixin(STOP_POLLING!(`child2parent`));
-				}
+											ibuf.ptr, &ilen, ibuf.sizeof) != 0) {
+									/* we encountered end-of-file or an error */
+									mixin(STOP_POLLING!(`child2parent`));
+								}
 			} else if(child2parent.revents) {
 				/* anything but POLLIN indicates an error */
 				mixin(STOP_POLLING!(`child2parent`));
 			}
 			if(parent2child.revents & POLLOUT) {
-				if(_alpm_chroot_write_to_child(handle, parent2child.fd, obuf, &olen,
-							obuf.sizeof, stdin_cb, stdin_ctx) != 0) {
-					mixin(STOP_POLLING!(`parent2child`));
-				}
+				if(_alpm_chroot_write_to_child(handle, parent2child.fd, obuf.ptr, &olen,
+											obuf.sizeof, stdin_cb, stdin_ctx) != 0) {
+									mixin(STOP_POLLING!(`parent2child`));
+								}
 			} else if(parent2child.revents) {
 				/* anything but POLLOUT indicates an error */
 				mixin(STOP_POLLING!(`parent2child`));
@@ -853,8 +1031,8 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 		/* process anything left in the input buffer */
 		if(ilen) {
 			/* buffer would have already been flushed if it had a newline */
-			strcpy(ibuf + ilen, "\n");
-			_alpm_chroot_process_output(handle, ibuf);
+						strcpy(ibuf.ptr + ilen, "\n");
+						_alpm_chroot_process_output(handle, ibuf.ptr);
 		}
 
 		if(parent2child.fd != -1) {
@@ -882,9 +1060,9 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 		} else if(WIFSIGNALED(status) != 0) {
 			char* signal_description = strsignal(WTERMSIG(status));
 			/* strsignal can return NULL on some (non-Linux) platforms */
-			if(signal_description == null) {
-				signal_description = ("Unknown signal");
-			}
+						if(signal_description == null) {
+							signal_description = strdup("Unknown signal");
+						}
 			_alpm_log(handle, ALPM_LOG_ERROR, ("command terminated by signal %d: %s\n"),
 						WTERMSIG(status), signal_description);
 			retval = 1;
@@ -914,15 +1092,15 @@ int _alpm_ldconfig(alpm_handle_t* handle)
 	_alpm_log(handle, ALPM_LOG_DEBUG, "running ldconfig\n");
 
 	snprintf(line.ptr, PATH_MAX, "%setc/ld.so.conf", handle.root);
-	if(access(line.ptr, F_OK) == 0) {
-		snprintf(line.ptr, PATH_MAX, "%s%s", handle.root, LDCONFIG);
-		if(access(line.ptr, X_OK) == 0) {
-			char[32] arg0 = void;
-			char*[2] argv = [ arg0, null ];
-			strcpy(arg0.ptr, "ldconfig");
-			return _alpm_run_chroot(handle, LDCONFIG, argv.ptr, null, null);
+		if(access(line.ptr, F_OK) == 0) {
+			snprintf(line.ptr, PATH_MAX, "%s%s", handle.root, "/sbin/ldconfig".ptr);
+			if(access(line.ptr, X_OK) == 0) {
+				char[32] arg0 = void;
+				char*[2] argv = [ arg0.ptr, null ];
+				strcpy(arg0.ptr, "ldconfig");
+				return _alpm_run_chroot(handle, cast(char*)"/sbin/ldconfig".ptr, argv.ptr, null, null);
+			}
 		}
-	}
 
 	return 0;
 }
@@ -936,7 +1114,7 @@ int _alpm_ldconfig(alpm_handle_t* handle)
  */
 int _alpm_str_cmp( void* s1,  void* s2)
 {
-	return strcmp(s1, s2);
+	return strcmp(cast(char*)s1, cast(char*)s2);
 }
 
 /** Find a filename in a registered alpm cachedir.
@@ -1000,7 +1178,7 @@ int _alpm_filecache_exists(alpm_handle_t* handle,   char*filename)
 
 	/* Loop through the cache dirs until we find a usable directory */
 	for(i = handle.cachedirs; i; i = i.next) {
-		cachedir = i.data;
+		cachedir = cast(char*)i.data;
 		if(stat(cachedir, &buf) != 0) {
 			/* cache directory does not exist.... try creating it */
 			_alpm_log(handle, ALPM_LOG_WARNING, ("no %s cache exists, creating...\n"),
@@ -1025,13 +1203,13 @@ int _alpm_filecache_exists(alpm_handle_t* handle,   char*filename)
 	}
 
 	/* we didn't find a valid cache directory. use TMPDIR or /tmp. */
-	if((tmpdir = getenv("TMPDIR")) && stat(tmpdir, &buf) && S_ISDIR(buf.st_mode)) {
+	if((tmpdir = getenv("TMPDIR")) !is null && (stat(tmpdir, &buf) == 0) && S_ISDIR(buf.st_mode)) {
 		/* TMPDIR was good, we can use it */
-	} else {
-		tmpdir = "/tmp";
-	}
+			} else {
+				tmpdir = strdup("/tmp");
+			}
 	alpm_option_add_cachedir(handle, tmpdir);
-	cachedir = handle.cachedirs.prev.data;
+	cachedir = cast(char*)handle.cachedirs.prev.data;
 	_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
 	_alpm_log(handle, ALPM_LOG_WARNING,
 			("couldn't find or create package cache, using %s instead\n"), cachedir);
@@ -1047,7 +1225,7 @@ int _alpm_filecache_exists(alpm_handle_t* handle,   char*filename)
  */
 char* _alpm_temporary_download_dir_setup(  char*dir,   char*user)
 {
-	 (passwd)* pw = null;
+	passwd * pw = null;
 
 	//ASSERT(dir != null);
 	if(user != null) {
@@ -1055,10 +1233,10 @@ char* _alpm_temporary_download_dir_setup(  char*dir,   char*user)
 	}
 
 	const (char)[16] template_ = "download-XXXXXX";
-	size_t newdirlen = strlen(dir) + ((template_) + 1).sizeof;
+	size_t newdirlen = strlen(dir) + ((template_).sizeof + 1);
 	char* newdir = null;
 	MALLOC(newdir, newdirlen);
-	snprintf(newdir, newdirlen - 1, "%s%s", dir, template_);
+	snprintf(newdir, newdirlen - 1, "%s%s", dir, template_.ptr);
 	if(mkdtemp(newdir) == null) {
 		free(newdir);
 		return null;
@@ -1089,13 +1267,13 @@ void _alpm_remove_temporary_download_dir(  char*dir)
 		return;
 	}
 	for(dp = readdir(dirp); dp != null; dp = readdir(dirp)) {
-		if(strcmp(dp.d_name, "..") != 0 && strcmp(dp.d_name, ".") != 0) {
+		if(strcmp(dp.d_name.ptr, cast(char*)"..") != 0 && strcmp(dp.d_name.ptr, cast(char*)".") != 0) {
 			char[PATH_MAX] name = void;
-			if(dirlen + strlen(dp.d_name) + 2 > PATH_MAX) {
+			if(dirlen + strlen(dp.d_name.ptr) + 2 > PATH_MAX) {
 				/* file path is too long to remove, hmm. */
 				continue;
 			} else {
-				sprintf(name.ptr, "%s/%s", dir, dp.d_name);
+				sprintf(name.ptr, "%s/%s", dir, dp.d_name.ptr);
 				if(unlink(name.ptr)) {
 					continue;
 				}
@@ -1113,7 +1291,7 @@ static if (HasVersion!"HAVE_LIBSSL" || HasVersion!"HAVE_LIBNETTLE") {
  * @param output string to hold computed MD5 digest
  * @return 0 on success, 1 on file open error, 2 on file read error
  */
-private int md5_file(  char*path, ubyte* output)
+int md5_file(  char*path, ubyte* output)
 {
 static if (HAVE_LIBSSL) {
 	EVP_MD_CTX* ctx = void;
@@ -1172,7 +1350,7 @@ static if (HAVE_LIBSSL) {
  * @param output string to hold computed SHA256 digest
  * @return 0 on success, 1 on file open error, 2 on file read error
  */
-private int sha256_file(  char*path, ubyte* output)
+int sha256_file(char* path, ubyte* output)
 {
 static if (HAVE_LIBSSL) {
 	EVP_MD_CTX* ctx = void;
@@ -1310,8 +1488,8 @@ int _alpm_archive_fgets(archive* a, archive_read_buffer* b)
 			}
 
 			/* zero-copy - this is the entire next block of data. */
-			b.ret = archive_read_data_block(a, cast(void*)&b.block,
-					&b.block_size, &offset);
+			b.ret = archive_read_data_block(a, cast(const(void**))&b.block,
+					cast(size_t*)&b.block_size, cast(la_int64_t*)&offset);
 			b.block_offset = b.block;
 			block_remaining = b.block_size;
 
@@ -1324,9 +1502,9 @@ int _alpm_archive_fgets(archive* a, archive_read_buffer* b)
 		}
 
 		/* look through the block looking for EOL characters */
-		eol = memchr(b.block_offset, '\n', block_remaining);
+		eol = cast(char*)memchr(b.block_offset, '\n', block_remaining);
 		if(!eol) {
-			eol = memchr(b.block_offset, '\0', block_remaining);
+			eol = cast(char*)memchr(b.block_offset, '\0', block_remaining);
 		}
 
 		/* allocate our buffer, or ensure our existing one is big enough */
@@ -1384,7 +1562,7 @@ cleanup:
 	{
 		int ret = b.ret;
 		FREE(b.line);
-		*b = archive_read_buffer(0);
+		*b = archive_read_buffer();
 		return ret;
 	}
 }
@@ -1439,7 +1617,7 @@ int _alpm_splitname(  char*target, char** name, char** version_, c_ulong* name_h
 		if(*name) {
 			FREE(*name);
 		}
-		STRDUP(*name, target, pkgver - target);
+		STRNDUP(*name, target, pkgver - target);
 		if(name_hash) {
 			*name_hash = _alpm_hash_sdbm(*name);
 		}
@@ -1461,7 +1639,7 @@ c_ulong _alpm_hash_sdbm(  char*str)
 	if(!str) {
 		return hash;
 	}
-	while((c = *str++)!is null) {
+	while(cast(bool)(c = cast(int)(*str++))) {
 		hash = c + hash * 65599;
 	}
 
@@ -1481,18 +1659,18 @@ off_t _alpm_strtoofft(  char*line)
 
 	/* we are trying to parse bare numbers only, no leading anything */
 	if(!isdigit(cast(ubyte)line[0])) {
-		return (off_t)-1;
+		return cast(off_t)-1;
 	}
 	result = strtoull(line, &end, 10);
 	if(result == 0 && end == line) {
 		/* line was not a number */
-		return (off_t)-1;
+		return cast(off_t)-1;
 	} else if(result == ULLONG_MAX && errno == ERANGE) {
 		/* line does not fit in unsigned long long */
-		return (off_t)-1;
+		return cast(off_t)-1;
 	} else if(*end) {
 		/* line began with a number but has junk left over at the end */
-		return (off_t)-1;
+		return cast(off_t)-1;
 	}
 
 	return cast(off_t)result;
@@ -1536,47 +1714,60 @@ alpm_time_t _alpm_parsedate(  char*line)
  */
 int _alpm_access(alpm_handle_t* handle,   char*dir,   char*file, int amode)
 {
-	size_t len = 0;
-	int ret = 0;
+ size_t len = 0;
+ int ret = 0;
 
-	int flag = 0;
+ // Define constants if they are not available
+ enum AT_FDCWD = -100;
+ 
+ int flag = 0;
 version (AT_SYMLINK_NOFOLLOW) {
-	flag |= AT_SYMLINK_NOFOLLOW;
+ flag |= AT_SYMLINK_NOFOLLOW;
 }
 
-	if(dir) {
-		char* check_path = void;
+ if(dir) {
+ 	char* check_path = void;
 
-		len = strlen(dir) + strlen(file) + 1;
-		CALLOC(check_path, len, char.sizeof);
-		snprintf(check_path, len, "%s%s", dir, file);
+ 	len = strlen(dir) + strlen(file) + 1;
+ 	CALLOC(check_path, len, char.sizeof);
+ 	snprintf(check_path, len, "%s%s", dir, file);
 
-		ret = faccessat(AT_FDCWD, check_path, amode, flag);
-		free(check_path);
-	} else {
-		dir = "";
-		ret = faccessat(AT_FDCWD, file, amode, flag);
-	}
+ 	// Use faccessat if available, otherwise fall back to access
+version (faccessat) {
+ 	ret = faccessat(AT_FDCWD, check_path, amode, flag);
+} else {
+ 	ret = access(check_path, amode);
+}
+ 	free(check_path);
+ } else {
+ 	dir = cast(char*)"";
+ 	// Use faccessat if available, otherwise fall back to access
+version (faccessat) {
+ 	ret = faccessat(AT_FDCWD, file, amode, flag);
+} else {
+ 	ret = access(file, amode);
+}
+ }
 
-	if(ret != 0) {
-		if(amode & R_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not readable: %s\n",
-					dir, file, strerror(errno));
-		}
-		if(amode & W_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not writable: %s\n",
-					dir, file, strerror(errno));
-		}
-		if(amode & X_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not executable: %s\n",
-					dir, file, strerror(errno));
-		}
-		if(amode == F_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" does not exist: %s\n",
-					dir, file, strerror(errno));
-		}
-	}
-	return ret;
+ if(ret != 0) {
+ 	if(amode & R_OK) {
+ 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not readable: %s\n",
+ 				dir, file, strerror(errno));
+ 	}
+ 	if(amode & W_OK) {
+ 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not writable: %s\n",
+ 				dir, file, strerror(errno));
+ 	}
+ 	if(amode & X_OK) {
+ 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not executable: %s\n",
+ 				dir, file, strerror(errno));
+ 	}
+ 	if(amode == F_OK) {
+ 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" does not exist: %s\n",
+ 				dir, file, strerror(errno));
+ 	}
+ }
+ return ret;
 }
 
 /** Checks whether a string matches at least one shell wildcard pattern.

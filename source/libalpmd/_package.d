@@ -781,7 +781,7 @@ alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(char* _string)
 	}
 
 	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof);
-	STRDUP(pd.name, _string, sep - _string);
+	STRNDUP(pd.name, _string, sep - _string);
 	STRDUP(pd.value, sep + 1);
 
 	return pd;

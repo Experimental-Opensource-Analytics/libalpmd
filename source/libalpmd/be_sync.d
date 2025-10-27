@@ -693,7 +693,7 @@ int sync_db_read(alpm_db_t* db, archive* archive, archive_entry* entry, alpm_pkg
 				}
 				/* attempt to hand back any memory we don't need */
 				if(files_count > 0) {
-					REALLOC(files, ((alpm_file_t).sizeof * files_count), 0);
+					REALLOC(files, ((alpm_file_t).sizeof * files_count));
 				} else {
 					FREE(files);
 				}
