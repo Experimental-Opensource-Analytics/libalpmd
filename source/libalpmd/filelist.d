@@ -117,16 +117,16 @@ alpm_list_t* _alpm_filelist_intersection(alpm_filelist_t* filesA, alpm_filelist_
 
 /* Helper function for comparing files list entries
  */
-int _alpm_files_cmp( void* f1,  void* f2)
+extern (C) int _alpm_files_cmp(const void* f1, const void* f2)
 {
-	 alpm_file_t* file1 = cast( alpm_file_t*)f1;
-	 alpm_file_t* file2 = cast( alpm_file_t*)f2;
-	return strcmp(file1.name, file2.name);
+	const(alpm_file_t)* file1 = cast(const(alpm_file_t)*)f1;
+	const(alpm_file_t)* file2 = cast(const(alpm_file_t)*)f2;
+	return strcmp(cast(char*)file1.name, cast(char*)file2.name);
 }
 
 alpm_file_t * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
 {
-	alpm_file_t* key = void;
+	alpm_file_t key = alpm_file_t.init;
 
 	if(!filelist || filelist.count == 0) {
 		return null;
@@ -134,13 +134,13 @@ alpm_file_t * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
 
 	key.name = cast(char*)path;
 
-	return bsearch(cast(  void*)key, cast(void*)filelist.files, filelist.count,
+	return cast(alpm_file_t*)bsearch(cast(const void*)&key, cast(void*)filelist.files, filelist.count,
 			alpm_file_t.sizeof, &_alpm_files_cmp);
 }
 
 void _alpm_filelist_sort(alpm_filelist_t* filelist)
 {
-	size_t i = void;
+	size_t i = 0;
 	for(i = 1; i < filelist.count; i++) {
 		if(strcmp(filelist.files[i - 1].name, filelist.files[i].name) > 0) {
 			/* filelist is not pre-sorted */

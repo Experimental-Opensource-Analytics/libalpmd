@@ -98,7 +98,7 @@ private int check_literal(alpm_handle_t* handle, alpm_pkg_t* lpkg, alpm_pkg_t* s
 		/* check IgnorePkg/IgnoreGroup */
 		if(alpm_pkg_should_ignore(handle, spkg)
 				|| alpm_pkg_should_ignore(handle, lpkg)) {
-			_alpm_log(handle, ALPM_LOG_WARNING, ("%s: ignoring package upgrade (%s => %s)\n"),
+			_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package upgrade (%s => %s)\n",
 					lpkg.name, lpkg.version_, spkg.version_);
 		} else {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "adding package %s-%s to the transaction targets\n",
@@ -110,16 +110,16 @@ private int check_literal(alpm_handle_t* handle, alpm_pkg_t* lpkg, alpm_pkg_t* s
 			/* check IgnorePkg/IgnoreGroup */
 			if(alpm_pkg_should_ignore(handle, spkg)
 					|| alpm_pkg_should_ignore(handle, lpkg)) {
-				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: ignoring package downgrade (%s => %s)\n"),
+				_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package downgrade (%s => %s)\n",
 						lpkg.name, lpkg.version_, spkg.version_);
 			} else {
-				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: downgrading from version %s to version %s\n"),
+				_alpm_log(handle, ALPM_LOG_WARNING, "%s: downgrading from version %s to version %s\n",
 						lpkg.name, lpkg.version_, spkg.version_);
 				return 1;
 			}
 		} else {
 			alpm_db_t* sdb = alpm_pkg_get_db(spkg);
-			_alpm_log(handle, ALPM_LOG_WARNING, ("%s: local (%s) is newer than %s (%s)\n"),
+			_alpm_log(handle, ALPM_LOG_WARNING, "%s: local (%s) is newer than %s (%s)\n",
 					lpkg.name, lpkg.version_, sdb.treename, spkg.version_);
 		}
 	}
@@ -175,7 +175,7 @@ private alpm_list_t* check_replacers(alpm_handle_t* handle, alpm_pkg_t* lpkg, al
 			if(tpkg) {
 				/* sanity check, multiple repos can contain spkg->name */
 				if(tpkg.origin_data.db != sdb) {
-					_alpm_log(handle, ALPM_LOG_WARNING, ("cannot replace %s by %s\n"),
+					_alpm_log(handle, ALPM_LOG_WARNING, "cannot replace %s by %s\n",
 							lpkg.name, spkg.name);
 					continue;
 				}
@@ -279,7 +279,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 				alpm_pkg_t* local = _alpm_db_get_pkgfromcache(db.handle.db_local, pkg.name);
 				if(local && _alpm_pkg_compare_versions(pkg, local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
-					_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s-%s is up to date -- skipping\n"),
+					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
 							local.name, local.version_);
 					ignorelist = alpm_list_add(ignorelist, pkg);
 					continue;
@@ -391,7 +391,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 
 	/* ensure all sync database are valid if we will be using them */
 	for(i = handle.dbs_sync; i; i = i.next) {
-		  alpm_db_t*db = cast(alpm_db_t*)i.data;
+		  alpm_db_t* db = cast(alpm_db_t*)i.data;
 		if(db.status & DB_STATUS_INVALID) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
@@ -477,7 +477,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				if(strcmp(pkg1.filename, pkg2.filename) == 0) {
 					ret = -1;
 					(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_TRANS_DUP_FILENAME;
-					_alpm_log(handle, ALPM_LOG_ERROR, ("packages %s and %s have the same filename: %s\n"),
+					_alpm_log(handle, ALPM_LOG_ERROR, "packages %s and %s have the same filename: %s\n",
 						pkg1.name, pkg2.name, pkg1.filename);
 				}
 			}
@@ -546,7 +546,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				rsync = sync1;
 				sync = sync2;
 			} else {
-				_alpm_log(handle, ALPM_LOG_ERROR, ("unresolvable package conflicts detected\n"));
+				_alpm_log(handle, ALPM_LOG_ERROR, "unresolvable package conflicts detected\n");
 				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
@@ -618,7 +618,7 @@ int _alpm_sync_prepare(alpm_handle_t* handle, alpm_list_t** data)
 				_alpm_log(handle, ALPM_LOG_DEBUG, "electing '%s' for removal\n", name2);
 				sync.removes = alpm_list_add(sync.removes, local);
 			} else { /* abort */
-				_alpm_log(handle, ALPM_LOG_ERROR, ("unresolvable package conflicts detected\n"));
+				_alpm_log(handle, ALPM_LOG_ERROR, "unresolvable package conflicts detected\n");
 				(cast(alpm_handle_t*)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
@@ -860,7 +860,7 @@ private int download_files(alpm_handle_t* handle)
 		if(ret == -1) {
 			event.type = ALPM_EVENT_PKG_RETRIEVE_FAILED;
 			EVENT(handle, &event);
-			_alpm_log(handle, ALPM_LOG_WARNING, ("failed to retrieve some files\n"));
+			_alpm_log(handle, ALPM_LOG_WARNING, "failed to retrieve some files\n");
 			goto finish;
 		}
 		event.type = ALPM_EVENT_PKG_RETRIEVE_DONE;
@@ -974,7 +974,7 @@ private int check_keyring(alpm_handle_t* handle)
 		event.type = ALPM_EVENT_KEY_DOWNLOAD_DONE;
 		EVENT(handle, &event);
 		if(fail) {
-			_alpm_log(handle, ALPM_LOG_ERROR, ("required key missing from keyring\n"));
+			_alpm_log(handle, ALPM_LOG_ERROR, "required key missing from keyring\n");
 			return -1;
 		}
 	}
@@ -1003,7 +1003,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 	EVENT(handle, &event);
 
 	for(i = handle.trans.add; i; i = i.next, current++) {
-		validity v = { i.data, null, null, 0, 0, 0 };
+		validity v = { cast(_alpm_pkg_t*)i.data, null, null, 0, 0, cast(alpm_errno_t)0 };
 		int percent = cast(int)((cast(double)current_bytes / total_bytes) * 100);
 
 		PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", percent,
@@ -1031,7 +1031,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 			memcpy(invalid, &v, validity.sizeof);
 			errors = alpm_list_add(errors, invalid);
 		} else {
-			alpm_siglist_cleanup(v.siglist);
+			libalpmd.signing.alpm_siglist_cleanup(v.siglist);
 			free(v.siglist);
 			free(v.path);
 			v.pkg.validation = v.validation;
@@ -1045,7 +1045,7 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 
 	if(errors) {
 		for(i = errors; i; i = i.next) {
-			validity* v = i.data;
+			validity* v = cast(validity*)i.data;
 			switch(v.error) {
 				case ALPM_ERR_PKG_MISSING_SIG:
 					_alpm_log(handle, ALPM_LOG_ERROR,
@@ -1057,19 +1057,20 @@ private int check_validity(alpm_handle_t* handle, size_t total, ulong total_byte
 							v.siglevel & ALPM_SIG_PACKAGE_MARGINAL_OK,
 							v.siglevel & ALPM_SIG_PACKAGE_UNKNOWN_OK);
 					// __attribute_((fallthrough)){}
+					goto case;
 				case ALPM_ERR_PKG_INVALID_CHECKSUM:
 					prompt_to_delete(handle, v.path, v.error);
 					break;
 				case ALPM_ERR_PKG_NOT_FOUND:
 				case ALPM_ERR_BADPERMS:
 				case ALPM_ERR_PKG_OPEN:
-					_alpm_log(handle, ALPM_LOG_ERROR, ("failed to read file %s: %s\n"), v.path, alpm_strerror(v.error));
+					_alpm_log(handle, ALPM_LOG_ERROR, "failed to read file %s: %s\n", v.path, alpm_strerror(v.error));
 					break;
 				default:
 					/* ignore */
 					break;
 			}
-			alpm_siglist_cleanup(v.siglist);
+			libalpmd.signing.alpm_siglist_cleanup(v.siglist);
 			free(v.siglist);
 			free(v.path);
 			free(v);
@@ -1114,7 +1115,7 @@ private int check_pkg_matches_db(alpm_pkg_t* spkg, alpm_pkg_t* pkgfile)
 	int error = 0;
 
 enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do { 
-	int ok = check_pkg_field_matches_db(handle, ` ~ STR ~ `, spkg.` ~ FIELD ~ `, pkgfile.` ~ FIELD ~ `, cast(alpm_list_fn_cmp)&` ~ CMP ~ `); 
+	int ok = check_pkg_field_matches_db(handle, cast(char*)` ~ STR ~ `, spkg.` ~ FIELD ~ `, pkgfile.` ~ FIELD ~ `, cast(alpm_list_fn_cmp)&` ~ CMP ~ `); 
 	if(ok == -1) { 
 		return 1; 
 	} else if(ok != 0) { 
@@ -1317,7 +1318,7 @@ int _alpm_sync_check(alpm_handle_t* handle, alpm_list_t** data)
 
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checking available disk space\n");
 		if(_alpm_check_diskspace(handle) == -1) {
-			_alpm_log(handle, ALPM_LOG_ERROR, ("not enough free disk space\n"));
+			_alpm_log(handle, ALPM_LOG_ERROR, "not enough free disk space\n");
 			return -1;
 		}
 
@@ -1347,7 +1348,7 @@ int _alpm_sync_commit(alpm_handle_t* handle)
 	/* install targets */
 	_alpm_log(handle, ALPM_LOG_DEBUG, "installing packages\n");
 	if(_alpm_upgrade_packages(handle) == -1) {
-		_alpm_log(handle, ALPM_LOG_ERROR, ("could not commit transaction\n"));
+		_alpm_log(handle, ALPM_LOG_ERROR, "could not commit transaction\n");
 		return -1;
 	}
 

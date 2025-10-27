@@ -46,8 +46,8 @@ import libalpmd.deps;
 import core.stdc.stdio;
 
 void EVENT(h, e)(h handle, e event) { 
-	if(h.eventcb) { 
-		h.eventcb(h.eventcb_ctx, cast(alpm_event_t*) event);
+	if(handle.eventcb) { 
+		handle.eventcb(handle.eventcb_ctx, cast(alpm_event_t*) event);
 	}
 } 
 

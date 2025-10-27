@@ -795,18 +795,18 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
 /** Free a fileconflict and its members.
  * @param conflict the fileconflict to free
  */
-void alpm_fileconflict_free(alpm_fileconflict_t* conflict);
+// void alpm_fileconflict_free(alpm_fileconflict_t* conflict);
 
 /** Free a depmissing and its members
  * @param miss the depmissing to free
  * */
-void alpm_depmissing_free(alpm_depmissing_t* miss);
+// void alpm_depmissing_free(alpm_depmissing_t* miss);
 
 /**
  * Free a conflict and its members.
  * @param conflict the conflict to free
  */
-void alpm_conflict_free(alpm_conflict_t* conflict);
+// void alpm_conflict_free(alpm_conflict_t* conflict);
 
 
 /* End of libalpm_depends */
@@ -3272,18 +3272,18 @@ alpm_list_t* alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist);
 /** Free a fileconflict and its members.
  * @param conflict the fileconflict to free
  */
-void alpm_fileconflict_free(alpm_fileconflict_t* conflict);
+// void alpm_fileconflict_free(alpm_fileconflict_t* conflict);
 
 /** Free a depmissing and its members
  * @param miss the depmissing to free
  * */
-void alpm_depmissing_free(alpm_depmissing_t* miss);
+// void alpm_depmissing_free(alpm_depmissing_t* miss);
 
 /**
  * Free a conflict and its members.
  * @param conflict the conflict to free
  */
-void alpm_conflict_free(alpm_conflict_t* conflict);
+// void alpm_conflict_free(alpm_conflict_t* conflict);
 
 
 

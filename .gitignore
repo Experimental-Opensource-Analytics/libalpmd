@@ -24,3 +24,5 @@ docs/
 # Code coverage
 *.lst
 errors
+compilation_errors_report.txt
+new_compilation_errors.txt

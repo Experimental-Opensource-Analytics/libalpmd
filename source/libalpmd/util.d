@@ -1,14 +1,18 @@
 module libalpmd.util;
-@nogc  
+@nogc
  
 
 import core.sys.posix.unistd;
+import core.sys.posix.string;
+
+// import core.uni;
+
 import core.stdc.string;
 import core.sys.posix.stdio;
 import core.stdc.fenv;
 import std.path;
-
-
+import std.digest.md;
+import std.digest.sha;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -68,6 +72,9 @@ enum FNM_PERIOD = 4;       // Leading '.' is matched only explicitly
 enum FNM_NOMATCH = 1;      // Match failed
 enum FNM_LEADING_DIR = 8;  // Ignore '/...' after a match
 enum FNM_CASEFOLD = 16;    // Compare without regard to case
+
+// Объявление функции chroot, если она отсутствует в стандартной библиотеке
+extern (C) int chroot(const(char)* path);
 
 /** Match NAME against the filename pattern PATTERN,
  * returning zero if it matches, FNM_NOMATCH if not
@@ -298,7 +305,7 @@ void REALLOC(T)(ref T t, size_t size) {
 }
 
 void STRNDUP(ref char* str,   char*_str, size_t l) {
-	str = cast(char*)strndup(_str, l);
+	str = strndup(_str, l);
 }
 
 void STRDUP(ref char* str,   char* _str) {
@@ -1058,7 +1065,7 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 				retval = 1;
 			}
 		} else if(WIFSIGNALED(status) != 0) {
-			char* signal_description = strsignal(WTERMSIG(status));
+			char* signal_description = cast(char*)strsignal(WTERMSIG(status));
 			/* strsignal can return NULL on some (non-Linux) platforms */
 						if(signal_description == null) {
 							signal_description = strdup("Unknown signal");
@@ -1289,16 +1296,10 @@ static if (HasVersion!"HAVE_LIBSSL" || HasVersion!"HAVE_LIBNETTLE") {
 /** Compute the MD5 message digest of a file.
  * @param path file path of file to compute  MD5 digest of
  * @param output string to hold computed MD5 digest
- * @return 0 on success, 1 on file open error, 2 on file read error
  */
 int md5_file(  char*path, ubyte* output)
 {
-static if (HAVE_LIBSSL) {
-	EVP_MD_CTX* ctx = void;
-	 (EVP_MD)* md = EVP_get_digestbyname("MD5");
-} else { /* HAVE_LIBNETTLE */
-	md5_ctx ctx = void;
-}
+	MD5 ctx = void;
 	ubyte* buf = void;
 	ssize_t n = void;
 	int fd = void;
@@ -1311,22 +1312,13 @@ static if (HAVE_LIBSSL) {
 		return 1;
 	}
 
-static if (HAVE_LIBSSL) {
-	ctx = EVP_MD_CTX_create();
-	EVP_DigestInit_ex(ctx, md, null);
-} else { /* HAVE_LIBNETTLE */
-	md5_init(&ctx);
-}
+	ctx.start();
 
 	while((n = read(fd, buf, ALPM_BUFFER_SIZE)) > 0 || errno == EINTR) {
 		if(n < 0) {
 			continue;
 		}
-static if (HAVE_LIBSSL) {
-		EVP_DigestUpdate(ctx, buf, n);
-} else { /* HAVE_LIBNETTLE */
-		md5_update(&ctx, n, buf);
-}
+		ctx.put(buf[0..n]);
 	}
 
 	close(fd);
@@ -1336,28 +1328,18 @@ static if (HAVE_LIBSSL) {
 		return 2;
 	}
 
-static if (HAVE_LIBSSL) {
-	EVP_DigestFinal_ex(ctx, output, null);
-	EVP_MD_CTX_destroy(ctx);
-} else { /* HAVE_LIBNETTLE */
-	md5_digest(&ctx, MD5_DIGEST_SIZE, output);
-}
+	output[0..16] = ctx.finish()[0..16];
 	return 0;
 }
+
 
 /** Compute the SHA-256 message digest of a file.
  * @param path file path of file to compute SHA256 digest of
  * @param output string to hold computed SHA256 digest
- * @return 0 on success, 1 on file open error, 2 on file read error
  */
 int sha256_file(char* path, ubyte* output)
 {
-static if (HAVE_LIBSSL) {
-	EVP_MD_CTX* ctx = void;
-	 (EVP_MD)* md = EVP_get_digestbyname("SHA256");
-} else { /* HAVE_LIBNETTLE */
-	sha256_ctx ctx = void;
-}
+	SHA256 ctx = void;
 	ubyte* buf = void;
 	ssize_t n = void;
 	int fd = void;
@@ -1370,22 +1352,13 @@ static if (HAVE_LIBSSL) {
 		return 1;
 	}
 
-static if (HAVE_LIBSSL) {
-	ctx = EVP_MD_CTX_create();
-	EVP_DigestInit_ex(ctx, md, null);
-} else { /* HAVE_LIBNETTLE */
-	sha256_init(&ctx);
-}
+	ctx.start();
 
 	while((n = read(fd, buf, ALPM_BUFFER_SIZE)) > 0 || errno == EINTR) {
 		if(n < 0) {
 			continue;
 		}
-static if (HAVE_LIBSSL) {
-		EVP_DigestUpdate(ctx, buf, n);
-} else { /* HAVE_LIBNETTLE */
-		sha256_update(&ctx, n, buf);
-}
+		ctx.put(buf[0..n]);
 	}
 
 	close(fd);
@@ -1395,12 +1368,7 @@ static if (HAVE_LIBSSL) {
 		return 2;
 	}
 
-static if (HAVE_LIBSSL) {
-	EVP_DigestFinal_ex(ctx, output, null);
-	EVP_MD_CTX_destroy(ctx);
-} else { /* HAVE_LIBNETTLE */
-	sha256_digest(&ctx, SHA256_DIGEST_SIZE, output);
-}
+	output[0..32] = ctx.finish()[0..32];
 	return 0;
 }
 } /* HAVE_LIBSSL || HAVE_LIBNETTLE */
@@ -1488,8 +1456,8 @@ int _alpm_archive_fgets(archive* a, archive_read_buffer* b)
 			}
 
 			/* zero-copy - this is the entire next block of data. */
-			b.ret = archive_read_data_block(a, cast(const(void**))&b.block,
-					cast(size_t*)&b.block_size, cast(la_int64_t*)&offset);
+			b.ret = archive_read_data_block(a, cast(const (void)**)&(b.block),
+					cast(size_t*)&b.block_size, cast(long*)&offset);
 			b.block_offset = b.block;
 			block_remaining = b.block_size;
 

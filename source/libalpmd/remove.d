@@ -183,7 +183,7 @@ private void remove_notify_needed_optdepends(alpm_handle_t* handle, alpm_list_t*
 			for(j = optdeps; j; j = alpm_list_next(j)) {
 				alpm_depend_t* optdep = cast(alpm_depend_t*)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
-				if(alpm_find_satisfier(lp, optstring)) {
+				if(libalpmd.deps.alpm_find_satisfier(lp, optstring)) {
 					alpm_event_optdep_removal_t event = {
 						type: ALPM_EVENT_OPTDEP_REMOVAL,
 						pkg: pkg,
@@ -359,7 +359,7 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	DIR* dir = null;
 	dirent* ent = void;
 	stat_t st = void;
-	auto reg = void;
+	// auto reg = void;
 
 	  char*basename = void;
 	char* dirname = void;
@@ -379,7 +379,7 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 	basename_len = strlen(basename);
 
 	snprintf(regstr.ptr, PATH_MAX, "^%s\\.pacsave\\.([[:digit:]]+)$", basename);
-	reg = regex(regstr.ptr);
+	auto reg = regex(cast(string)(regstr));
 
 	dir = opendir(dirname);
 	if(dir == null) {
@@ -393,7 +393,7 @@ private void shift_pacsave(alpm_handle_t* handle,   char*file)
 			continue;
 		}
 
-		if(match(ent.d_name, reg)) {
+		if(match(cast(string)ent.d_name, reg)) {
 			c_ulong cur_log = void;
 			cur_log = strtoul(ent.d_name.ptr + basename_len + strlen(".pacsave."), null, 10);
 			if(cur_log > log_max) {

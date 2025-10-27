@@ -235,18 +235,18 @@ version (HAVE_STRDUP) {} else {
  * @param n maximum number of characters to copy
  * @return pointer to the new string on success, NULL on error
  */
-char* strndup(const(char)* s, size_t n)
-{
-	size_t len = strnlen(s, n);
-	char* new_ = cast(char*) malloc(len + 1);
+// char* strndup(const(char)* s, size_t n)
+// {
+// 	size_t len = strnlen(s, n);
+// 	char* new_ = cast(char*) malloc(len + 1);
 
-	if(new_ == null) {
-		return null;
-	}
+// 	if(new_ == null) {
+// 		return null;
+// 	}
 
-	new_[len] = '\0';
-	return cast(char*)memcpy(new_, s, len);
-}
+// 	new_[len] = '\0';
+// 	return cast(char*)memcpy(new_, s, len);
+// }
 }
 
 void wordsplit_free(char** ws)
