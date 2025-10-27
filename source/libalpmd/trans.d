@@ -1,5 +1,4 @@
 module libalpmd.trans;
-@nogc  
    
 /*
  *  trans.c
