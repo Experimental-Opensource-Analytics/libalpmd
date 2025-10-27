@@ -137,8 +137,7 @@ version (HAVE_LIBGPGME) {
 	}
 
 	/** Lock the database */
-	int lock()
-	{
+	int lock() {
 		char* dir = void, ptr = void;
 
 		assert(this.lockfile != null);
@@ -161,6 +160,21 @@ version (HAVE_LIBGPGME) {
 		} while(this.lockfd == -1 && errno == EINTR);
 
 		return (this.lockfd >= 0 ? 0 : -1);
+	}
+
+	int  unlock() {
+		assert(this.lockfile != null);
+		assert(this.lockfd >= 0);
+
+		close(this.lockfd);
+		this.lockfd = -1;
+
+		if(unlink(this.lockfile) != 0) {
+			RET_ERR_ASYNC_SAFE(this, ALPM_ERR_SYSTEM, -1);
+			assert(0);
+		} else {
+			return 0;
+		}
 	}
 }
 
@@ -228,23 +242,6 @@ version (HAVE_LIBCURL) {
 	alpm_list_free(handle.assumeinstalled);
 
 	FREE(handle);
-}
-
-int  alpm_unlock(AlpmHandle handle)
-{
-	//ASSERT(handle != null);
-	//ASSERT(handle.lockfile != null);
-	//ASSERT(handle.lockfd >= 0);
-
-	close(handle.lockfd);
-	handle.lockfd = -1;
-
-	if(unlink(handle.lockfile) != 0) {
-		RET_ERR_ASYNC_SAFE(handle, ALPM_ERR_SYSTEM, -1);
-		assert(0);
-	} else {
-		return 0;
-	}
 }
 
 int _alpm_handle_unlock(AlpmHandle handle)
