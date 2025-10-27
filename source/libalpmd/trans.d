@@ -89,7 +89,7 @@ int  alpm_trans_init(AlpmHandle handle, int flags)
 
 	/* lock db */
 	if(!(flags & ALPM_TRANS_FLAG_NOLOCK)) {
-		if(_alpm_handle_lock(handle)) {
+		if(handle.lock()) {
 			RET_ERR(handle, ALPM_ERR_HANDLE_LOCK, -1);
 		}
 	}

@@ -136,6 +136,32 @@ version (HAVE_LIBGPGME) {
 		this.lockfd = -1;
 	}
 
+	/** Lock the database */
+	int lock()
+	{
+		char* dir = void, ptr = void;
+
+		assert(this.lockfile != null);
+		assert(this.lockfd < 0);
+
+		/* create the dir of the lockfile first */
+		STRDUP(dir, this.lockfile);
+		ptr = strrchr(dir, '/');
+		if(ptr) {
+			*ptr = '\0';
+		}
+		if(_alpm_makepath(dir)) {
+			FREE(dir);
+			return -1;
+		}
+		FREE(dir);
+
+		do {
+			this.lockfd = open(this.lockfile, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
+		} while(this.lockfd == -1 && errno == EINTR);
+
+		return (this.lockfd >= 0 ? 0 : -1);
+	}
 }
 
 /* free all in-memory resources */
@@ -202,33 +228,6 @@ version (HAVE_LIBCURL) {
 	alpm_list_free(handle.assumeinstalled);
 
 	FREE(handle);
-}
-
-/** Lock the database */
-int _alpm_handle_lock(AlpmHandle handle)
-{
-	char* dir = void, ptr = void;
-
-	//ASSERT(handle.lockfile != null);
-	//ASSERT(handle.lockfd < 0);
-
-	/* create the dir of the lockfile first */
-	STRDUP(dir, handle.lockfile);
-	ptr = strrchr(dir, '/');
-	if(ptr) {
-		*ptr = '\0';
-	}
-	if(_alpm_makepath(dir)) {
-		FREE(dir);
-		return -1;
-	}
-	FREE(dir);
-
-	do {
-		handle.lockfd = open(handle.lockfile, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
-	} while(handle.lockfd == -1 && errno == EINTR);
-
-	return (handle.lockfd >= 0 ? 0 : -1);
 }
 
 int  alpm_unlock(AlpmHandle handle)

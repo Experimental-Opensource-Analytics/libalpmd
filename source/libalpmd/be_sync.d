@@ -172,7 +172,7 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 	oldmask = umask(octal!"0022");
 
 	/* attempt to grab a lock */
-	if(_alpm_handle_lock(handle)) {
+	if(handle.lock()) {
 		GOTO_ERR(handle, ALPM_ERR_HANDLE_LOCK, "cleanup");
 	}
 
