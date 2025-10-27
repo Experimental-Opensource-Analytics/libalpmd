@@ -3329,11 +3329,8 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	char* hookdir = void;
 	size_t hookdirlen = void, lockfilelen = void;
 	const(passwd)* pw = null;
-	AlpmHandle myhandle = _alpm_handle_new();
-
-	if(myhandle is null) {
-		goto nomem;
-	}
+	AlpmHandle myhandle = new AlpmHandle();
+	
 	if(cast(bool)(myerr = _alpm_set_directory_option(root, &(myhandle.root), 1))) {
 		goto cleanup;
 	}

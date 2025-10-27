@@ -131,18 +131,11 @@ version (HAVE_LIBGPGME) {
 
 	/* lock file descriptor */
 	int lockfd;
-}
 
-// alias AlpmHandle = _AlpmHandle;
+	this() {
+		this.lockfd = -1;
+	}
 
-AlpmHandle _alpm_handle_new()
-{
-	AlpmHandle handle = void;
-
-	CALLOC(handle, 1, AlpmHandle.sizeof);
-	handle.lockfd = -1;
-
-	return handle;
 }
 
 /* free all in-memory resources */
