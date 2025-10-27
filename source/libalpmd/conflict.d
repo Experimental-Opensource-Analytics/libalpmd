@@ -264,17 +264,17 @@ private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* confli
 	alpm_fileconflict_t* conflict = void;
 	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof);
 
-	STRNDUP(conflict.target, pkg1.name);
-	STRNDUP(conflict.file, filestr);
+	STRDUP(conflict.target, pkg1.name);
+	STRDUP(conflict.file, filestr);
 	if(!pkg2) {
 		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
-		STRNDUP(conflict.ctarget, cast(char*)"");
+		STRDUP(conflict.ctarget, cast(char*)"");
 	} else if(pkg2.origin == ALPM_PKG_FROM_LOCALDB) {
 		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
-		STRNDUP(conflict.ctarget, pkg2.name);
+		STRDUP(conflict.ctarget, pkg2.name);
 	} else {
 		conflict.type = ALPM_FILECONFLICT_TARGET;
-		STRNDUP(conflict.ctarget, pkg2.name);
+		STRDUP(conflict.ctarget, pkg2.name);
 	}
 
 	conflicts = alpm_list_add(conflicts, conflict);

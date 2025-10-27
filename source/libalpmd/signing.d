@@ -459,7 +459,7 @@ private int email_from_uid(  char*uid, char** email)
        }
 
        if(start && end) {
-               STRNDUP(*email, start+1, end-start-1);
+               STRDUP(*email, start+1, end-start-1);
                return 0;
        } else {
                *email = null;
@@ -657,7 +657,7 @@ int _alpm_gpgme_checksig(alpm_handle_t* handle,   char*path,   char*base64_sig, 
 			_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed, unknown key\n");
 			gpg_err = GPG_ERR_NO_ERROR;
 			/* we dupe the fpr in this case since we have no key to point at */
-			STRNDUP(result.key.fingerprint, gpgsig.fpr);
+			STRDUP(result.key.fingerprint, gpgsig.fpr);
 		} else {
 			mixin(CHECK_ERR!());
 			if(key.uids) {

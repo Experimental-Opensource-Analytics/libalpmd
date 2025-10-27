@@ -2751,7 +2751,7 @@ const(char)* alpm_pkg_get_sha256sum(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_arch(alpm_pkg_t* pkg);
+// const(char)* alpm_pkg_get_arch(alpm_pkg_t* pkg);
 
 /** Returns the size of the package. This is only available for sync database
  * packages and package files, not those loaded from the local database.
@@ -3351,7 +3351,7 @@ alpm_handle_t * alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	myhandle.hookdirs = alpm_list_add(null, hookdir);
 
 	/* set default database extension */
-	STRNDUP(myhandle.dbext, cast(char*)".db");
+	STRDUP(myhandle.dbext, cast(char*)".db");
 
 	lockfilelen = strlen(myhandle.dbpath) + strlen(lf) + 1;
 	MALLOC(myhandle.lockfile, lockfilelen);
@@ -3371,7 +3371,7 @@ version (HAVE_LIBCURL) {
 
 	/* set default sandboxuser */
 	//ASSERT((pw = getpwuid(0)) != null);
-	STRNDUP(myhandle.sandboxuser, cast(char*)pw.pw_name);
+	STRDUP(myhandle.sandboxuser, cast(char*)pw.pw_name);
 	
 version (ENABLE_NLS) {
 	bindtextdomain("libalpm", LOCALEDIR);

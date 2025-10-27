@@ -200,32 +200,32 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 			*ptr = '\0';
 			ptr += 3;
 			if(strcmp(key, "pkgname") == 0) {
-				STRNDUP(newpkg.name, ptr);
+				STRDUP(newpkg.name, ptr);
 				newpkg.name_hash = _alpm_hash_sdbm(newpkg.name);
 			} else if(strcmp(key, "pkgbase") == 0) {
-				STRNDUP(newpkg.base, ptr);
+				STRDUP(newpkg.base, ptr);
 			} else if(strcmp(key, "pkgver") == 0) {
-				STRNDUP(newpkg.version_, ptr);
+				STRDUP(newpkg.version_, ptr);
 			} else if(strcmp(key, "basever") == 0) {
 				/* not used atm */
 			} else if(strcmp(key, "pkgdesc") == 0) {
-				STRNDUP(newpkg.desc, ptr);
+				STRDUP(newpkg.desc, ptr);
 			} else if(strcmp(key, "group") == 0) {
 				char* tmp = null;
-				STRNDUP(tmp, ptr);
+				STRDUP(tmp, ptr);
 				newpkg.groups = alpm_list_add(newpkg.groups, tmp);
 			} else if(strcmp(key, "url") == 0) {
-				STRNDUP(newpkg.url, ptr);
+				STRDUP(newpkg.url, ptr);
 			} else if(strcmp(key, "license") == 0) {
 				char* tmp = null;
-				STRNDUP(tmp, ptr);
+				STRDUP(tmp, ptr);
 				newpkg.licenses = alpm_list_add(newpkg.licenses, tmp);
 			} else if(strcmp(key, "builddate") == 0) {
 				newpkg.builddate = _alpm_parsedate(ptr);
 			} else if(strcmp(key, "packager") == 0) {
-				STRNDUP(newpkg.packager, ptr);
+				STRDUP(newpkg.packager, ptr);
 			} else if(strcmp(key, "arch") == 0) {
-				STRNDUP(newpkg.arch, ptr);
+				STRDUP(newpkg.arch, ptr);
 			} else if(strcmp(key, "size") == 0) {
 				/* size in the raw package is uncompressed (installed) size */
 				newpkg.isize = _alpm_strtoofft(ptr);
@@ -253,7 +253,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
 			} else if(strcmp(key, "backup") == 0) {
 				alpm_backup_t* backup = void;
 				CALLOC(backup, 1, alpm_backup_t.sizeof);
-				STRNDUP(backup.name, ptr);
+				STRDUP(backup.name, ptr);
 				newpkg.backup = alpm_list_add(newpkg.backup, backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				alpm_pkg_xdata_t* pd = _alpm_pkg_parse_xdata(ptr);
@@ -432,7 +432,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
 		newpath[pathlen + 1] = '\0';
 		current_file.name = newpath;
 	} else {
-		STRNDUP(current_file.name, path);
+		STRDUP(current_file.name, path);
 	}
 	current_file.size = archive_entry_size(entry);
 	current_file.mode = archive_entry_mode(entry);
@@ -591,7 +591,7 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle,   char*pkgfile, int f
 	if(newpkg == null) {
 		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}
-	STRNDUP(newpkg.filename, pkgfile);
+	STRDUP(newpkg.filename, pkgfile);
 	newpkg.size = st.st_size;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "starting package load for %s\n", pkgfile);
@@ -663,7 +663,7 @@ alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle,   char*pkgfile, int f
 
 	/* internal fields for package struct */
 	newpkg.origin = ALPM_PKG_FROM_FILE;
-	STRNDUP(newpkg.origin_data.file, pkgfile);
+	STRDUP(newpkg.origin_data.file, pkgfile);
 	newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
 	newpkg.infolevel = INFRQ_BASE | INFRQ_DESC | INFRQ_SCRIPTLET;

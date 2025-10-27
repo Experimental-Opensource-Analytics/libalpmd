@@ -220,7 +220,7 @@ int _alpm_handle_lock(alpm_handle_t* handle)
 	//ASSERT(handle.lockfd < 0);
 
 	/* create the dir of the lockfile first */
-	STRNDUP(dir, handle.lockfile);
+	STRDUP(dir, handle.lockfile);
 	ptr = strrchr(dir, '/');
 	if(ptr) {
 		*ptr = '\0';
@@ -673,7 +673,7 @@ int  alpm_option_set_logfile(alpm_handle_t* handle,   char*logfile)
 		return -1;
 	}
 
-	STRNDUP(handle.logfile, logfile);
+	STRDUP(handle.logfile, logfile);
 
 	/* free the old logfile path string, and close the stream so logaction
 	 * will reopen a new stream on the new logfile */
@@ -706,7 +706,7 @@ int  alpm_option_set_sandboxuser(alpm_handle_t* handle,   char*sandboxuser)
 		FREE(handle.sandboxuser);
 	}
 
-	STRNDUP(handle.sandboxuser, sandboxuser);
+	STRDUP(handle.sandboxuser, sandboxuser);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'sandboxuser' = %s\n", handle.sandboxuser);
 	return 0;
@@ -723,7 +723,7 @@ int _alpm_option_strlist_add(alpm_handle_t* handle, alpm_list_t** list,   char*s
 {
 	char* dup = void;
 	CHECK_HANDLE(handle);
-	STRNDUP(dup, str);
+	STRDUP(dup, str);
 	*list = alpm_list_add(*list, dup);
 	return 0;
 }
@@ -954,7 +954,7 @@ int  alpm_option_set_dbext(alpm_handle_t* handle, char* dbext)
 		FREE(handle.dbext);
 	}
 
-	STRNDUP(handle.dbext, dbext);
+	STRDUP(handle.dbext, dbext);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'dbext' = %s\n", handle.dbext);
 	return 0;

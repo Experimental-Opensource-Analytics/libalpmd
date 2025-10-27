@@ -28,12 +28,18 @@ import core.stdc.stdlib;
 import core.stdc.stdio;
 import core.stdc.string;
 import core.sys.posix.unistd;
+import core.sys.posix.stdlib;
+
 import core.sys.posix.sys.types;
 import core.stdc.errno;
 import core.stdc.limits;
+import std.conv;
+
 
 /* libalpm */
 import libalpmd.trans;
+import libalpmd.conf;
+
 import libalpmd.alpm_list;
 import libalpmd._package;
 import libalpmd.util;
@@ -108,7 +114,7 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 		return null;
 	}
 	for(i = pkgs; i; i = i.next) {
-		alpm_pkg_t* pkg = i.data;
+		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
 		alpm_list_t* j = void;
 		int found = 0;
 		  char*pkgarch = alpm_pkg_get_arch(pkg);
@@ -119,7 +125,7 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 		}
 
 		for(j = handle.architectures; j; j = j.next) {
-			if(strcmp(pkgarch, j.data) == 0) {
+			if(strcmp(pkgarch, cast(char*)j.data) == 0) {
 				found = 1;
 				break;
 			}
@@ -323,11 +329,11 @@ void _alpm_trans_free(alpm_trans_t* trans)
 	}
 
 	alpm_list_free_inner(trans.unresolvable,
-			cast(alpm_list_fn_free)_alpm_pkg_free_trans);
+			cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
 	alpm_list_free(trans.unresolvable);
-	alpm_list_free_inner(trans.add, cast(alpm_list_fn_free)_alpm_pkg_free_trans);
+	alpm_list_free_inner(trans.add, cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
 	alpm_list_free(trans.add);
-	alpm_list_free_inner(trans.remove, cast(alpm_list_fn_free)_alpm_pkg_free);
+	alpm_list_free_inner(trans.remove, cast(alpm_list_fn_free)&_alpm_pkg_free);
 	alpm_list_free(trans.remove);
 
 	FREELIST(trans.skip_remove);
@@ -368,7 +374,7 @@ private int grep(  char*fn,   char*needle)
 int _alpm_runscriptlet(alpm_handle_t* handle,   char*filepath,   char*script,   char*ver,   char*oldver, int is_archive)
 {
 	char[PATH_MAX] arg0 = void; char[3] arg1 = void; char[PATH_MAX] cmdline = void;
-	char*[4] argv = [ arg0, arg1, cmdline, null ];
+	char*[4] argv = cast(char*[4])[ arg0, arg1, cmdline, null ];
 	char* tmpdir = void, scriptfn = null, scriptpath = void;
 	int retval = 0;
 	size_t len = void;
@@ -406,7 +412,7 @@ int _alpm_runscriptlet(alpm_handle_t* handle,   char*filepath,   char*script,   
 	MALLOC(scriptfn, len);
 	snprintf(scriptfn, len, "%s/.INSTALL", tmpdir);
 	if(is_archive) {
-		if(_alpm_unpack_single(handle, filepath, tmpdir, ".INSTALL")) {
+		if(_alpm_unpack_single(handle, filepath, tmpdir, cast(char*)".INSTALL")) {
 			retval = 1;
 		}
 	} else {
@@ -437,7 +443,8 @@ int _alpm_runscriptlet(alpm_handle_t* handle,   char*filepath,   char*script,   
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "executing \"%s\"\n", cmdline.ptr);
 
-	retval = _alpm_run_chroot(handle, SCRIPTLET_SHELL, argv.ptr, null, null);
+
+	retval = _alpm_run_chroot(handle, cast(char*)SCRIPTLET_SHELL, argv.ptr, null, null);
 
 cleanup:
 	if(scriptfn && unlink(scriptfn)) {

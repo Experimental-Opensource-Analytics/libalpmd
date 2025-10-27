@@ -228,7 +228,7 @@ private size_t strnlen(const(char)* s, size_t max)
 }
 }
 
-version (HAVE_STRNDUP) {} else {
+version (HAVE_STRDUP) {} else {
 /** Copies a string.
  * Returned string needs to be freed
  * @param s string to be copied
@@ -277,7 +277,7 @@ char** wordsplit(const(char)* str)
 
 		/* extend our array */
 		outsave = out_;
-		if((out_ = realloc(out_, (count + 1) * (char*).sizeof)) == null) {
+		if((out_ = cast(char**)realloc(out_, (count + 1) * (char).sizeof)) == null) {
 			out_ = outsave;
 			goto error;
 		}
@@ -311,7 +311,7 @@ char** wordsplit(const(char)* str)
 			}
 		} else {
 			/* manually copy to remove quotes and escapes */
-			char* dest = out_[count++] = malloc(wordlen + 1);
+			char* dest = out_[count++] = cast(char*)malloc(wordlen + 1);
 			if(dest == null) { goto error; }
 			while(c < end) {
 				if(*c == '\'' || *c == '"') {
@@ -343,7 +343,7 @@ char** wordsplit(const(char)* str)
 	}
 
 	outsave = out_;
-	if((out_ = realloc(out_, (count + 1) * (char*).sizeof)) == null) {
+	if((out_ = cast(char**)realloc(out_, (count + 1) * (char).sizeof)) == null) {
 		out_ = outsave;
 		goto error;
 	}

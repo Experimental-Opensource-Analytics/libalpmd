@@ -80,7 +80,7 @@ int parse_ini(  char*file, ini_parse_line_fn fn, void* data)
 				ret = -1;
 				break;
 			}
-			STRNDUP(section, name);
+			STRDUP(section, name);
 		} else {
 			/* key/value pair */
 			char* key = ptr;

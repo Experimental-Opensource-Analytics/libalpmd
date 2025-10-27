@@ -164,7 +164,7 @@ private FILE* create_tempfile(dload_payload* payload,   char*localpath)
 	free(payload.tempfile_name);
 	payload.tempfile_name = randpath;
 	free(payload.remote_name);
-	STRNDUP(payload.remote_name, strrchr(randpath, '/') + 1);
+	STRDUP(payload.remote_name, strrchr(randpath, '/') + 1);
 
 	return fp;
 }
@@ -666,7 +666,7 @@ private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CU
 		  char*realname = payload.destfile_name ? payload.destfile_name : payload.tempfile_name;
 		int len = void;
 
-		STRNDUP(_effective_filename, effective_url);
+		STRDUP(_effective_filename, effective_url);
 		effective_filename = get_filename(_effective_filename);
 		query = strrchr(effective_filename, '?');
 
@@ -1395,9 +1395,9 @@ int  alpm_fetch_pkgurl(alpm_handle_t* handle,  alpm_list_t* urls, alpm_list_t** 
 
 			// //ASSERT(url);
 			CALLOC(payload, 1, typeof(*payload).sizeof);
-			STRNDUP(payload.fileurl, url);
+			STRDUP(payload.fileurl, url);
 
-			STRNDUP(payload.remote_name, get_filename(payload.fileurl));
+			STRDUP(payload.remote_name, get_filename(payload.fileurl));
 
 			c = strrchr(url, '/');
 			if(c != null &&  strstr(c, ".pkg") && payload.remote_name && strlen(payload.remote_name) > 0) {

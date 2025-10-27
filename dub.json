@@ -10,5 +10,8 @@
 	},
 	"description": "Port of libalpm to D language",
 	"license": "MIT",
-	"name": "libalpmd"
+	"name": "libalpmd",
+	"dflags" : [
+		"-verrors=0"
+	]
 }

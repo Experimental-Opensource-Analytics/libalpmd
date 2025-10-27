@@ -701,7 +701,7 @@ enum string READ_NEXT() = `do {
 
 enum string READ_AND_STORE(string f) = `do { 
 	` ~ READ_NEXT!() ~ `; 
-	STRNDUP(` ~ f ~ `, line.ptr); 
+	STRDUP(` ~ f ~ `, line.ptr); 
 } while(0);`;
 
 enum string READ_AND_STORE_ALL(string f) = `do { 
@@ -710,7 +710,7 @@ enum string READ_AND_STORE_ALL(string f) = `do {
 		if(!feof(fp)) goto error; else break; 
 	} 
 	if(_alpm_strip_newline(line.ptr, 0) == 0) break; 
-	STRNDUP(linedup, line.ptr); 
+	STRDUP(linedup, line.ptr); 
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, linedup); 
 } while(1); /* note the while(1) and not (0) */`;
 

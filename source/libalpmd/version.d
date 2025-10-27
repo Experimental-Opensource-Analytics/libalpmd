@@ -20,6 +20,8 @@ module libalpmd._version;
 
 import core.stdc.string;
 import core.stdc.ctype;
+import core.stdc.stdlib;
+
 
 /* libalpm */
 import libalpmd.util;
@@ -57,11 +59,11 @@ private void parseEVR(char* evr,  char** ep,  char** vp,  char** rp)
 		*s++ = '\0';
 		version_ = s;
 		if(*epoch == '\0') {
-			epoch = "0";
+			epoch = cast(char*)"0";
 		}
 	} else {
 		/* different from RPM- always assume 0 epoch */
-		epoch = "0";
+		epoch = cast(char*)"0";
 		version_ = evr;
 	}
 	if(se) {

@@ -649,7 +649,7 @@ alpm_list_t * alpm_pkg_compute_optionalfor(alpm_pkg_t* pkg)
 
 alpm_file_t* _alpm_file_copy(alpm_file_t* dest, alpm_file_t* src)
 {
-	STRNDUP(dest.name, src.name);
+	STRDUP(dest.name, src.name);
 	dest.size = src.size;
 	dest.mode = src.mode;
 
@@ -705,18 +705,18 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 	CALLOC(newpkg, 1, alpm_pkg_t.sizeof);
 
 	newpkg.name_hash = pkg.name_hash;
-	STRNDUP(newpkg.filename, pkg.filename);
-	STRNDUP(newpkg.base, pkg.base);
-	STRNDUP(newpkg.name, pkg.name);
-	STRNDUP(newpkg.version_, pkg.version_);
-	STRNDUP(newpkg.desc, pkg.desc);
-	STRNDUP(newpkg.url, pkg.url);
+	STRDUP(newpkg.filename, pkg.filename);
+	STRDUP(newpkg.base, pkg.base);
+	STRDUP(newpkg.name, pkg.name);
+	STRDUP(newpkg.version_, pkg.version_);
+	STRDUP(newpkg.desc, pkg.desc);
+	STRDUP(newpkg.url, pkg.url);
 	newpkg.builddate = pkg.builddate;
 	newpkg.installdate = pkg.installdate;
-	STRNDUP(newpkg.packager, pkg.packager);
-	STRNDUP(newpkg.md5sum, pkg.md5sum);
-	STRNDUP(newpkg.sha256sum, pkg.sha256sum);
-	STRNDUP(newpkg.arch, pkg.arch);
+	STRDUP(newpkg.packager, pkg.packager);
+	STRDUP(newpkg.md5sum, pkg.md5sum);
+	STRDUP(newpkg.sha256sum, pkg.sha256sum);
+	STRDUP(newpkg.arch, pkg.arch);
 	newpkg.size = pkg.size;
 	newpkg.isize = pkg.isize;
 	newpkg.scriptlet = pkg.scriptlet;
@@ -751,7 +751,7 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 	newpkg.infolevel = pkg.infolevel;
 	newpkg.origin = pkg.origin;
 	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-		STRNDUP(newpkg.origin_data.file, pkg.origin_data.file);
+		STRDUP(newpkg.origin_data.file, pkg.origin_data.file);
 	} else {
 		newpkg.origin_data.db = pkg.origin_data.db;
 	}
@@ -782,7 +782,7 @@ alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(char* _string)
 
 	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof);
 	STRDUP(pd.name, _string, sep - _string);
-	STRNDUP(pd.value, sep + 1);
+	STRDUP(pd.value, sep + 1);
 
 	return pd;
 }

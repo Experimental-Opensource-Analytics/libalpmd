@@ -41,7 +41,7 @@ int _alpm_split_backup(  char*_string, alpm_backup_t** backup)
 {
 	char* str = void, ptr = void;
 
-	STRNDUP(str, _string);
+	STRDUP(str, _string);
 
 	/* tab delimiter */
 	ptr = str ? strchr(str, '\t') : null;
@@ -53,8 +53,8 @@ int _alpm_split_backup(  char*_string, alpm_backup_t** backup)
 	*ptr = '\0';
 	ptr++;
 	/* now str points to the filename and ptr points to the hash */
-	STRNDUP((*backup).name, str);
-	STRNDUP((*backup).hash, ptr);
+	STRDUP((*backup).name, str);
+	STRDUP((*backup).hash, ptr);
 	FREE(str);
 	return 0;
 }
@@ -94,8 +94,8 @@ alpm_backup_t* _alpm_backup_dup(alpm_backup_t* backup)
 	alpm_backup_t* newbackup = void;
 	CALLOC(newbackup, 1, alpm_backup_t.sizeof);
 
-	STRNDUP(newbackup.name, backup.name);
-	STRNDUP(newbackup.hash, backup.hash);
+	STRDUP(newbackup.name, backup.name);
+	STRDUP(newbackup.hash, backup.hash);
 
 	return newbackup;
 

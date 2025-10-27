@@ -251,7 +251,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 			}
 		} else if(strcmp(key, "Target") == 0) {
 			char* val;
-			STRNDUP(val, value);
+			STRDUP(val, value);
 			t.targets = alpm_list_add(t.targets, val);
 		} else {
 			return error(cast(char*)"hook %s line %d: invalid option %s\n", file, line, key);
@@ -273,10 +273,10 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Description");
 				FREE(hook.desc);
 			}
-			STRNDUP(hook.desc, value);
+			STRDUP(hook.desc, value);
 		} else if(strcmp(key, "Depends") == 0) {
 			char* val;
-			STRNDUP(val, value);
+			STRDUP(val, value);
 			hook.depends = alpm_list_add(hook.depends, val);
 		} else if(strcmp(key, "AbortOnFail") == 0) {
 			hook.abort_on_fail = 1;
@@ -656,7 +656,7 @@ int _alpm_hook_run(alpm_handle_t* handle, alpm_hook_when_t when)
 				continue;
 			}
 
-			STRNDUP(ctx.hook.name, entry.d_name.ptr);
+			STRDUP(ctx.hook.name, entry.d_name.ptr);
 			hooks = alpm_list_add(hooks, ctx.hook);
 		}
 		if(errno != 0) {

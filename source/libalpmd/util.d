@@ -3,6 +3,12 @@ module libalpmd.util;
  
 
 import core.sys.posix.unistd;
+import core.stdc.string;
+import core.sys.posix.stdio;
+import core.stdc.fenv;
+import std.path;
+
+
 
 private template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -47,6 +53,8 @@ import core.sys.posix.fcntl;
 import core.sys.posix.poll;
 import core.sys.posix.pwd;
 import core.stdc.signal;
+import std.conv;
+
 // public import openss;
 
 /* libarchive */
@@ -85,6 +93,10 @@ struct archive_read_buffer {
 	int ret;
 }
 
+enum string OPEN(string fd, string path, string flags) = `do { 
+` ~ fd ~ ` = open(` ~ path ~ `, ` ~ flags ~ ` | O_BINARY); } 
+while(` ~ fd ~ ` == -1 && errno == EINTR);`;
+
 auto MALLOC(T)(T* ptr, size_t size) {
 	ptr = cast(T*)malloc(size);
 }
@@ -97,7 +109,7 @@ void FREE(T)(T* t) {
 	t = null;
 }
 
-void REALLOC(T, L)(ref T t, L l, size_t size) {
+void REALLOC(T)(ref T t, size_t size) {
 	void* np = realloc(t, size);
 	if(np !is null) {
 		t = cast(T)np;
@@ -106,12 +118,12 @@ void REALLOC(T, L)(ref T t, L l, size_t size) {
 	// t = calloc(l, size);
 }
 
-void STRDUP(ref char* str,   char*_str, size_t l) {
-	str = strdup(_str, l);
+void STRNDUP(ref char* str,   char*_str, size_t l) {
+	str = strndup(_str, l);
 }
 
-void STRNDUP(ref char* str,   char* _str) {
-	str = strndup(_str);
+void STRDUP(ref char* str,   char* _str) {
+	str = strdup(_str);
 } 
 
 void CHECK_HANDLE(T) (T t) {
@@ -122,7 +134,7 @@ void ASSERT(bool exp, ...) {
 	if(_arguments.length > 2) {
 		auto fn = _arguments[1];
 
-		fn();
+		// fn();
 	}
 	
 	assert(exp);
@@ -202,7 +214,7 @@ int _alpm_makepath_mode(  char*path, mode_t mode)
 	mode_t oldmask = void;
 	int ret = 0;
 
-	STRNDUP(str, path);
+	STRDUP(str, path);
 
 	oldmask = umask(0000);
 
@@ -464,7 +476,7 @@ int _alpm_unpack(alpm_handle_t* handle,   char*path,   char*prefix, alpm_list_t*
 		/* If specific files were requested, skip entries that don't match. */
 		if(list) {
 			char* entry_prefix = null;
-			STRNDUP(entry_prefix, entryname);
+			STRDUP(entry_prefix, entryname);
 			char* p = strstr(entry_prefix,"/");
 			if(p) {
 				*(p + 1) = '\0';
@@ -1427,7 +1439,7 @@ int _alpm_splitname(  char*target, char** name, char** version_, c_ulong* name_h
 		if(*name) {
 			FREE(*name);
 		}
-		STRNDUP(*name, target, pkgver - target);
+		STRDUP(*name, target, pkgver - target);
 		if(name_hash) {
 			*name_hash = _alpm_hash_sdbm(*name);
 		}
@@ -1449,7 +1461,7 @@ c_ulong _alpm_hash_sdbm(  char*str)
 	if(!str) {
 		return hash;
 	}
-	while((c = *str++)) {
+	while((c = *str++)!is null) {
 		hash = c + hash * 65599;
 	}
 
@@ -1583,7 +1595,7 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char*string)
 	short inverted = void;
 
 	for(i = alpm_list_last(patterns); i; i = alpm_list_previous(i)) {
-		pattern = i.data;
+		pattern = cast(char*)i.data;
 
 		inverted = pattern[0] == '!';
 		if(inverted || pattern[0] == '\\') {

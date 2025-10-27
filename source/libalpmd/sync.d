@@ -52,6 +52,7 @@ import libalpmd.dload;
 import libalpmd.remove;
 import libalpmd.diskspace;
 import libalpmd.signing;
+import libalpmd.be_package;
 
 struct keyinfo_t {
        char* uid;
@@ -835,8 +836,8 @@ private int download_files(alpm_handle_t* handle)
 			dload_payload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
-			STRNDUP(payload.remote_name, pkg.filename);
-			STRNDUP(payload.filepath, pkg.filename);
+			STRDUP(payload.remote_name, pkg.filename);
+			STRDUP(payload.filepath, pkg.filename);
 			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)"");
 			payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)".part");
 			if(!payload.destfile_name || !payload.tempfile_name) {
@@ -1113,13 +1114,13 @@ private int check_pkg_matches_db(alpm_pkg_t* spkg, alpm_pkg_t* pkgfile)
 	int error = 0;
 
 enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do { 
-	int ok = check_pkg_field_matches_db(handle, ` ~ STR ~ `, spkg.` ~ FIELD ~ `, pkgfile.` ~ FIELD ~ `, cast(alpm_list_fn_cmp)` ~ CMP ~ `); 
+	int ok = check_pkg_field_matches_db(handle, ` ~ STR ~ `, spkg.` ~ FIELD ~ `, pkgfile.` ~ FIELD ~ `, cast(alpm_list_fn_cmp)&` ~ CMP ~ `); 
 	if(ok == -1) { 
 		return 1; 
 	} else if(ok != 0) { 
 		error = 1; 
 	} 
-} while(0)`;
+} while(0);`;
 
 	if(strcmp(spkg.name, pkgfile.name) != 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -1163,7 +1164,7 @@ private int load_packages(alpm_handle_t* handle, alpm_list_t** data, size_t tota
 
 	for(i = handle.trans.add; i; i = i.next, current++) {
 		int error = 0;
-		alpm_pkg_t* spkg = i.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 		char* filepath = void;
 		int percent = cast(int)((cast(double)current_bytes / total_bytes) * 100);
 
@@ -1223,7 +1224,7 @@ private int load_packages(alpm_handle_t* handle, alpm_list_t** data, size_t tota
 
 	if(errors) {
 		for(i = delete_list; i; i = i.next) {
-			prompt_to_delete(handle, i.data, ALPM_ERR_PKG_INVALID);
+			prompt_to_delete(handle, cast(char*)i.data, ALPM_ERR_PKG_INVALID);
 		}
 		FREELIST(delete_list);
 
@@ -1257,7 +1258,7 @@ version (HAVE_LIBGPGME) {
 	/* get the total size of all packages so we can adjust the progress bar more
 	 * realistically if there are small and huge packages involved */
 	for(i = trans.add; i; i = i.next) {
-		alpm_pkg_t* spkg = i.data;
+		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
 			total_bytes += spkg.size;
 		}
@@ -1299,7 +1300,7 @@ int _alpm_sync_check(alpm_handle_t* handle, alpm_list_t** data)
 				*data = conflict;
 			} else {
 				alpm_list_free_inner(conflict,
-						cast(alpm_list_fn_free)alpm_fileconflict_free);
+						cast(alpm_list_fn_free)&alpm_fileconflict_free);
 				alpm_list_free(conflict);
 			}
 			RET_ERR(handle, ALPM_ERR_FILE_CONFLICTS, -1);

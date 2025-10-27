@@ -56,9 +56,9 @@ private alpm_depmissing_t* depmiss_new(  char*target, alpm_depend_t* dep,   char
 
 	CALLOC(miss, 1, alpm_depmissing_t.sizeof);
 
-	STRDUP(miss.target, target, strlen(target));
+	STRNDUP(miss.target, target, strlen(target));
 	miss.depend = _alpm_dep_dup(dep);
-	STRDUP(miss.causingpkg, causingpkg, strlen(causingpkg));
+	STRNDUP(miss.causingpkg, causingpkg, strlen(causingpkg));
 
 	return miss;
 
@@ -468,7 +468,7 @@ alpm_depend_t * alpm_dep_from_string(  char*depstring)
 
 	/* Note the extra space in ": " to avoid matching the epoch */
 	if((desc = strstr(depstring, ": ")) != null) {
-		STRDUP(depend.desc, desc + 2, strlen(desc + 2));
+		STRNDUP(depend.desc, desc + 2, strlen(desc + 2));
 		deplen = desc - depstring;
 	} else {
 		/* no description- point desc at NULL at end of string for later use */
@@ -510,10 +510,10 @@ alpm_depend_t * alpm_dep_from_string(  char*depstring)
 	}
 
 	/* copy the right parts to the right places */
-	STRDUP(depend.name, depstring, ptr - depstring);
+	STRNDUP(depend.name, depstring, ptr - depstring);
 	depend.name_hash = _alpm_hash_sdbm(depend.name);
 	if(version_) {
-		STRDUP(depend.version_, version_, desc - version_);
+		STRNDUP(depend.version_, version_, desc - version_);
 	}
 
 	return depend;
@@ -528,9 +528,9 @@ alpm_depend_t* _alpm_dep_dup( alpm_depend_t* dep)
 	alpm_depend_t* newdep = void;
 	CALLOC(newdep, 1, alpm_depend_t.sizeof);
 
-	STRDUP(newdep.name, dep.name, strlen(dep.name));
-	STRDUP(newdep.version_, dep.version_, strlen(dep.version_));
-	STRDUP(newdep.desc, dep.desc, strlen(dep.desc));
+	STRNDUP(newdep.name, dep.name, strlen(dep.name));
+	STRNDUP(newdep.version_, dep.version_, strlen(dep.version_));
+	STRNDUP(newdep.desc, dep.desc, strlen(dep.desc));
 	newdep.name_hash = dep.name_hash;
 	newdep.mod = dep.mod;
 
