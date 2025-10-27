@@ -56,7 +56,7 @@ import libalpmd.be_local;
 
 
 
-int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
+int  alpm_remove_pkg(AlpmHandle handle, alpm_pkg_t* pkg)
 {
 	  char*pkgname = void;
 	alpm_trans_t* trans = void;
@@ -96,7 +96,7 @@ int  alpm_remove_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
  *
  * @return 0 on success, -1 on error
  */
-private int remove_prepare_cascade(alpm_handle_t* handle, alpm_list_t* lp)
+private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 {
 	alpm_trans_t* trans = handle.trans;
 
@@ -134,7 +134,7 @@ private int remove_prepare_cascade(alpm_handle_t* handle, alpm_list_t* lp)
  * @param handle the context handle
  * @param lp list of missing dependencies caused by the removal transaction
  */
-private void remove_prepare_keep_needed(alpm_handle_t* handle, alpm_list_t* lp)
+private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 {
 	alpm_trans_t* trans = handle.trans;
 
@@ -170,7 +170,7 @@ private void remove_prepare_keep_needed(alpm_handle_t* handle, alpm_list_t* lp)
  * @param handle the context handle
  * @param lp list of packages to be removed
  */
-private void remove_notify_needed_optdepends(alpm_handle_t* handle, alpm_list_t* lp)
+private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 {
 	alpm_list_t* i = void;
 
@@ -209,7 +209,7 @@ private void remove_notify_needed_optdepends(alpm_handle_t* handle, alpm_list_t*
  *
  * @return 0 on success, -1 on error
  */
-int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
+int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_list_t* lp = void;
 	alpm_trans_t* trans = handle.trans;
@@ -287,7 +287,7 @@ int _alpm_remove_prepare(alpm_handle_t* handle, alpm_list_t** data)
  * @return 0 if @a directory is not a mountpoint or on error, 1 if @a directory
  * is a mountpoint
  */
-private int dir_is_mountpoint(alpm_handle_t* handle,   char*directory,  stat_t* stbuf)
+private int dir_is_mountpoint(AlpmHandle handle,   char*directory,  stat_t* stbuf)
 {
 	char[PATH_MAX] parent_dir = void;
 	stat_t parent_stbuf = void;
@@ -325,7 +325,7 @@ private int dir_is_mountpoint(alpm_handle_t* handle,   char*directory,  stat_t* 
  *
  * @return 1 if the file can be deleted, 0 if it cannot be deleted
  */
-private int can_remove_file(alpm_handle_t* handle,  alpm_file_t* file)
+private int can_remove_file(AlpmHandle handle,  alpm_file_t* file)
 {
 	char[PATH_MAX] filepath = void;
 
@@ -352,7 +352,7 @@ private int can_remove_file(alpm_handle_t* handle,  alpm_file_t* file)
 	return 1;
 }
 
-private void shift_pacsave(alpm_handle_t* handle,   char*file)
+private void shift_pacsave(AlpmHandle handle,   char*file)
 {
 	c_ulong i = void;
 
@@ -443,7 +443,7 @@ cleanup:
  * @return 0 on success, -1 if there was an error unlinking the file, 1 if the
  * file was skipped or did not exist
  */
-private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg,  alpm_file_t* fileobj, int nosave)
+private int unlink_file(AlpmHandle handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg,  alpm_file_t* fileobj, int nosave)
 {
 	stat_t buf = void;
 	char[PATH_MAX] file = void;
@@ -590,7 +590,7 @@ private int unlink_file(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* n
  *
  * @return 1 if the file should be skipped, 0 if it should be removed
  */
-private int should_skip_file(alpm_handle_t* handle, alpm_pkg_t* newpkg,   char*path)
+private int should_skip_file(AlpmHandle handle, alpm_pkg_t* newpkg,   char*path)
 {
 	return _alpm_fnmatch_patterns(handle.noupgrade, path) == 0
 		|| alpm_list_find_str(handle.trans.skip_remove, path)
@@ -611,7 +611,7 @@ private int should_skip_file(alpm_handle_t* handle, alpm_pkg_t* newpkg,   char*p
  * @return 0 on success, -1 if alpm lacks permission to delete some of the
  * files, >0 the number of files alpm was unable to delete
  */
-private int remove_package_files(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, size_t targ_count, size_t pkg_count)
+private int remove_package_files(AlpmHandle handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, size_t targ_count, size_t pkg_count)
 {
 	alpm_filelist_t* filelist = void;
 	size_t i = void;
@@ -683,7 +683,7 @@ private int remove_package_files(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm
  *
  * @return 0
  */
-int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, size_t targ_count, size_t pkg_count)
+int _alpm_remove_single_package(AlpmHandle handle, alpm_pkg_t* oldpkg, alpm_pkg_t* newpkg, size_t targ_count, size_t pkg_count)
 {
 	  char*pkgname = oldpkg.name;
 	  char*pkgver = oldpkg.version_;
@@ -760,7 +760,7 @@ int _alpm_remove_single_package(alpm_handle_t* handle, alpm_pkg_t* oldpkg, alpm_
  *
  * @return 0 on success, -1 if errors occurred while removing files
  */
-int _alpm_remove_packages(alpm_handle_t* handle, int run_ldconfig)
+int _alpm_remove_packages(AlpmHandle handle, int run_ldconfig)
 {
 	alpm_list_t* targ = void;
 	size_t pkg_count = void, targ_count = void;

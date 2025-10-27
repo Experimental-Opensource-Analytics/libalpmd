@@ -52,7 +52,7 @@ import libalpmd.pkghash;
 
 
 
-char* get_sync_dir(alpm_handle_t* handle)
+char* get_sync_dir(AlpmHandle handle)
 {
 	size_t len = strlen(handle.dbpath) + 6;
 	char* syncpath = void;
@@ -148,7 +148,7 @@ valid:
 	return 0;
 }
 
-int  alpm_db_update(alpm_handle_t* handle, alpm_list_t* dbs, int force) {
+int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 	char* syncpath = void;
 	char* temporary_syncpath = void;
 	  char*dbext = handle.dbext;
@@ -741,7 +741,7 @@ db_operations sync_db_ops = {
 	unregister: &_alpm_db_unregister,
 };
 
-alpm_db_t* _alpm_db_register_sync(alpm_handle_t* handle,   char*treename, int level)
+alpm_db_t* _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
 {
 	alpm_db_t* db = void;
 

@@ -91,7 +91,7 @@ struct db_operations {
 
 /* Database */
 struct _alpm_db_t {
-	alpm_handle_t* handle;
+	AlpmHandle handle;
 	char* treename;
 	/* do not access directly, use _alpm_db_path(db) for lazy access */
 	char* _path;
@@ -112,7 +112,7 @@ struct _alpm_db_t {
 
 alias alpm_db_t = _alpm_db_t;
 
-alpm_db_t * alpm_register_syncdb(alpm_handle_t* handle,   char*treename, int siglevel)
+alpm_db_t * alpm_register_syncdb(AlpmHandle handle,   char*treename, int siglevel)
 {
 	alpm_list_t* i = void;
 
@@ -148,7 +148,7 @@ void _alpm_db_unregister(alpm_db_t* db)
 	_alpm_db_free(db);
 }
 
-int  alpm_unregister_all_syncdbs(alpm_handle_t* handle)
+int  alpm_unregister_all_syncdbs(AlpmHandle handle)
 {
 	alpm_list_t* i = void;
 	alpm_db_t* db = void;
@@ -171,7 +171,7 @@ int  alpm_unregister_all_syncdbs(alpm_handle_t* handle)
 int  alpm_db_unregister(alpm_db_t* db)
 {
 	int found = 0;
-	alpm_handle_t* handle = void;
+	AlpmHandle handle = void;
 
 	/* Sanity checks */
 	//ASSERT(db != null);
@@ -263,7 +263,7 @@ int  alpm_db_add_cache_server(alpm_db_t* db,   char*url)
 
 	/* Sanity checks */
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -282,7 +282,7 @@ int  alpm_db_add_server(alpm_db_t* db,   char*url)
 
 	/* Sanity checks */
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -302,7 +302,7 @@ int  alpm_db_remove_cache_server(alpm_db_t* db,   char*url)
 
 	/* Sanity checks */
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -328,7 +328,7 @@ int  alpm_db_remove_server(alpm_db_t* db,   char*url)
 
 	/* Sanity checks */
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 	//ASSERT(url != null && strlen(url) != 0);
 
 	newurl = sanitize_url(url);
@@ -347,7 +347,7 @@ int  alpm_db_remove_server(alpm_db_t* db,   char*url)
 	return ret;
 }
 
-alpm_handle_t * alpm_db_get_handle(alpm_db_t* db)
+AlpmHandle alpm_db_get_handle(alpm_db_t* db)
 {
 	//ASSERT(db != null);
 	return db.handle;
@@ -372,7 +372,7 @@ int  alpm_db_get_siglevel(alpm_db_t* db)
 int  alpm_db_get_valid(alpm_db_t* db)
 {
 //ASSERT(db != null);
-(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 return db.ops.validate(db);
 }
 
@@ -380,7 +380,7 @@ alpm_pkg_t * alpm_db_get_pkg(alpm_db_t* db,   char*name)
 {
 alpm_pkg_t* pkg = void;
 //ASSERT(db != null);
-(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 //ASSERT(name != null && strlen(name) != 0);
 
 	pkg = _alpm_db_get_pkgfromcache(db, name);
@@ -393,14 +393,14 @@ alpm_pkg_t* pkg = void;
 alpm_list_t * alpm_db_get_pkgcache(alpm_db_t* db)
 {
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 	return _alpm_db_get_pkgcache(db);
 }
 
 alpm_group_t * alpm_db_get_group(alpm_db_t* db,   char*name)
 {
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 	//ASSERT(name != null && strlen(name) != 0);
 
 	return _alpm_db_get_groupfromcache(db, name);
@@ -409,7 +409,7 @@ alpm_group_t * alpm_db_get_group(alpm_db_t* db,   char*name)
 alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 {
 	//ASSERT(db != null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 
 	return _alpm_db_get_groupcache(db);
 }
@@ -417,7 +417,7 @@ alpm_list_t * alpm_db_get_groupcache(alpm_db_t* db)
 int  alpm_db_search(alpm_db_t* db,  alpm_list_t* needles, alpm_list_t** ret)
 {
 	//ASSERT(db != null && ret != null && *ret == null);
-	(cast(alpm_handle_t*)db.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 
 	return _alpm_db_search(db, needles, ret);
 }

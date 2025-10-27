@@ -33,7 +33,7 @@ version (HAVE_LIBSECCOMP) {
 import seccomp;
 } /* HAVE_LIBSECCOMP */
 
-bool _alpm_sandbox_syscalls_filter(alpm_handle_t* handle)
+bool _alpm_sandbox_syscalls_filter(AlpmHandle handle)
 {
 	int ret = 0;
 version (HAVE_LIBSECCOMP) {

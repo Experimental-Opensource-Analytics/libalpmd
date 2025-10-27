@@ -88,7 +88,7 @@ struct _alpm_hook_t {
 }
 
 struct _alpm_hook_cb_ctx {
-	alpm_handle_t* handle;
+	AlpmHandle handle;
 	_alpm_hook_t* hook;
 }
 
@@ -114,7 +114,7 @@ private void _alpm_hook_free(_alpm_hook_t* hook)
 	}
 }
 
-private int _alpm_trigger_validate(alpm_handle_t* handle, _alpm_trigger_t* trigger,   char*file)
+private int _alpm_trigger_validate(AlpmHandle handle, _alpm_trigger_t* trigger,   char*file)
 {
 	int ret = 0;
 
@@ -139,7 +139,7 @@ private int _alpm_trigger_validate(alpm_handle_t* handle, _alpm_trigger_t* trigg
 	return ret;
 }
 
-private int _alpm_hook_validate(alpm_handle_t* handle, _alpm_hook_t* hook,   char*file)
+private int _alpm_hook_validate(AlpmHandle handle, _alpm_hook_t* hook,   char*file)
 {
 	alpm_list_t* i = void;
 	int ret = 0;
@@ -177,7 +177,7 @@ private int _alpm_hook_validate(alpm_handle_t* handle, _alpm_hook_t* hook,   cha
 private int _alpm_hook_parse_cb(  char*file, int line,   char*section, char* key, char* value, void* data)
 {
 	_alpm_hook_cb_ctx* ctx = cast(_alpm_hook_cb_ctx*)data;
-	alpm_handle_t* handle = ctx.handle;
+	AlpmHandle handle = ctx.handle;
 	_alpm_hook_t* hook = ctx.hook;
 
 	
@@ -302,7 +302,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 	return 0;
 }
 
-private int _alpm_hook_trigger_match_file(alpm_handle_t* handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
 {
 	alpm_list_t* i = void, j = void, install = null, upgrade = null, remove = null;
 	size_t isize = 0, rsize = 0;
@@ -405,7 +405,7 @@ enum string _save_matches(string _op, string _matches) = `
 	return ret;
 }
 
-private int _alpm_hook_trigger_match_pkg(alpm_handle_t* handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
 {
 	alpm_list_t* install = null, upgrade = null, remove = null;
 
@@ -460,14 +460,14 @@ private int _alpm_hook_trigger_match_pkg(alpm_handle_t* handle, _alpm_hook_t* ho
 	return install || upgrade || remove;
 }
 
-private int _alpm_hook_trigger_match(alpm_handle_t* handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match(AlpmHandle handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
 {
 	return t.type == ALPM_HOOK_TYPE_PACKAGE
 		? _alpm_hook_trigger_match_pkg(handle, hook, t)
 		: _alpm_hook_trigger_match_file(handle, hook, t);
 }
 
-private int _alpm_hook_triggered(alpm_handle_t* handle, _alpm_hook_t* hook)
+private int _alpm_hook_triggered(AlpmHandle handle, _alpm_hook_t* hook)
 {
 	alpm_list_t* i = void;
 	int ret = 0;
@@ -547,7 +547,7 @@ private alpm_list_t* _alpm_strlist_dedup(alpm_list_t* list)
 	return list;
 }
 
-private int _alpm_hook_run_hook(alpm_handle_t* handle, _alpm_hook_t* hook)
+private int _alpm_hook_run_hook(AlpmHandle handle, _alpm_hook_t* hook)
 {
 	alpm_list_t* i = void, pkgs = _alpm_db_get_pkgcache(handle.db_local);
 
@@ -572,7 +572,7 @@ private int _alpm_hook_run_hook(alpm_handle_t* handle, _alpm_hook_t* hook)
 	}
 }
 
-int _alpm_hook_run(alpm_handle_t* handle, alpm_hook_when_t when)
+int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 {
 	alpm_event_hook_t event = { when: when };
 	alpm_event_hook_run_t hook_event = void;

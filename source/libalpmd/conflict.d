@@ -132,7 +132,7 @@ private int conflict_isin(alpm_conflict_t* needle, alpm_list_t* haystack)
  *
  * @return 0 on success, -1 on error
  */
-private int add_conflict(alpm_handle_t* handle, alpm_list_t** baddeps, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2, alpm_depend_t* reason)
+private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2, alpm_depend_t* reason)
 {
 	alpm_conflict_t* conflict = conflict_new(pkg1, pkg2, reason);
 	if(!conflict) {
@@ -164,7 +164,7 @@ private int add_conflict(alpm_handle_t* handle, alpm_list_t** baddeps, alpm_pkg_
  * @param baddeps list to store conflicts
  * @param order if >= 0 the conflict order is preserved, if < 0 it's reversed
  */
-private void check_conflict(alpm_handle_t* handle, alpm_list_t* list1, alpm_list_t* list2, alpm_list_t** baddeps, int order)
+private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* list2, alpm_list_t** baddeps, int order)
 {
 	alpm_list_t* i = void;
 
@@ -208,7 +208,7 @@ private void check_conflict(alpm_handle_t* handle, alpm_list_t* list1, alpm_list
  *
  * @return list of conflicts
  */
-alpm_list_t* _alpm_innerconflicts(alpm_handle_t* handle, alpm_list_t* packages)
+alpm_list_t* _alpm_innerconflicts(AlpmHandle handle, alpm_list_t* packages)
 {
 	alpm_list_t* baddeps = null;
 
@@ -242,7 +242,7 @@ alpm_list_t* _alpm_outerconflicts(alpm_db_t* db, alpm_list_t* packages)
 	return baddeps;
 }
 
-alpm_list_t * alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
+alpm_list_t * alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist)
 {
 	CHECK_HANDLE(handle);
 	return _alpm_innerconflicts(handle, pkglist);
@@ -259,7 +259,7 @@ alpm_list_t * alpm_checkconflicts(alpm_handle_t* handle, alpm_list_t* pkglist)
  *
  * @return the updated conflict list
  */
-private alpm_list_t* add_fileconflict(alpm_handle_t* handle, alpm_list_t* conflicts,   char*filestr, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
+private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,   char*filestr, alpm_pkg_t* pkg1, alpm_pkg_t* pkg2)
 {
 	alpm_fileconflict_t* conflict = void;
 	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof);
@@ -307,7 +307,7 @@ void  alpm_fileconflict_free(alpm_fileconflict_t* conflict)
  *
  * @return 1 if a package owns all subdirectories and files, 0 otherwise
  */
-private int dir_belongsto_pkgs(alpm_handle_t* handle,   char*dirpath, alpm_list_t* pkgs)
+private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* pkgs)
 {
 	char[PATH_MAX] path = void, full_path = void;
 	DIR* dir = void;
@@ -372,7 +372,7 @@ private alpm_list_t* alpm_db_find_file_owners(alpm_db_t* db,   char*path)
 	return owners;
 }
 
-private alpm_pkg_t* _alpm_find_file_owner(alpm_handle_t* handle,   char*path)
+private alpm_pkg_t* _alpm_find_file_owner(AlpmHandle handle,   char*path)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
@@ -383,7 +383,7 @@ private alpm_pkg_t* _alpm_find_file_owner(alpm_handle_t* handle,   char*path)
 	return null;
 }
 
-private int _alpm_can_overwrite_file(alpm_handle_t* handle,   char*path,   char*rootedpath)
+private int _alpm_can_overwrite_file(AlpmHandle handle,   char*path,   char*rootedpath)
 {
 	return _alpm_fnmatch_patterns(handle.overwrite_files, path) == 0
 		|| _alpm_fnmatch_patterns(handle.overwrite_files, rootedpath) == 0;
@@ -402,7 +402,7 @@ private int _alpm_can_overwrite_file(alpm_handle_t* handle,   char*path,   char*
  *
  * @return list of file conflicts
  */
-alpm_list_t* _alpm_db_find_fileconflicts(alpm_handle_t* handle, alpm_list_t* upgrade, alpm_list_t* rem)
+alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade, alpm_list_t* rem)
 {
 	alpm_list_t* i = void, conflicts = null;
 	size_t numtargs = alpm_list_count(upgrade);

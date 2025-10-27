@@ -291,7 +291,7 @@ void CALLOC(T, L)(ref T t, L l, size_t size) {
 	t = cast(T)calloc(l, size);
 }
 
-void FREE(T)(T* t) {
+void FREE(T)(T t) {
 	t = null;
 }
 
@@ -338,7 +338,7 @@ noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
 	assert(0, "ERROR BY GOTO_ERROR");
 }
 
-noreturn RET_ERR(H = alpm_handle_t*, E)(H handle, E err, ...) {
+noreturn RET_ERR(H = AlpmHandle, E)(H handle, E err, ...) {
 	// _alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
 	handle.pm_errno = cast(alpm_errno_t)(err);
 	assert(0, "ERROR BY RET_ERROR");
@@ -541,7 +541,7 @@ size_t _alpm_strip_newline(char* str, size_t len)
  * @param error error code to set on failure to open archive
  * @return -1 on failure, >=0 file descriptor on success
  */
-int _alpm_open_archive(alpm_handle_t* handle,   char*path, stat_t* buf, archive** archive, alpm_errno_t error)
+int _alpm_open_archive(AlpmHandle handle,   char*path, stat_t* buf, archive** archive, alpm_errno_t error)
 {
 	int fd = void;
 	size_t bufsize = ALPM_BUFFER_SIZE;
@@ -597,7 +597,7 @@ error:
  * @param filename a file within the archive to unpack
  * @return 0 on success, 1 on failure
  */
-int _alpm_unpack_single(alpm_handle_t* handle,   char*archive,   char*prefix,   char*filename)
+int _alpm_unpack_single(AlpmHandle handle,   char*archive,   char*prefix,   char*filename)
 {
 	alpm_list_t* list = null;
 	int ret = 0;
@@ -618,7 +618,7 @@ int _alpm_unpack_single(alpm_handle_t* handle,   char*archive,   char*prefix,   
  * @param breakfirst break after the first entry found
  * @return 0 on success, 1 on failure
  */
-int _alpm_unpack(alpm_handle_t* handle,   char*path,   char*prefix, alpm_list_t* list, int breakfirst)
+int _alpm_unpack(AlpmHandle handle,   char*path,   char*prefix, alpm_list_t* list, int breakfirst)
 {
 	int ret = 0;
 	mode_t oldmask = void;
@@ -727,7 +727,7 @@ cleanup:
  * @return a file count if full_count is != 0, else >0 if directory has
  * contents, 0 if no contents, and -1 on error
  */
-ssize_t _alpm_files_in_directory(alpm_handle_t* handle,   char*path, int full_count)
+ssize_t _alpm_files_in_directory(AlpmHandle handle,   char*path, int full_count)
 {
 	ssize_t files = 0;
 	dirent* ent = void;
@@ -769,7 +769,7 @@ int should_retry(int errnum)
 	}
 }
 
-int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit, _alpm_cb_io out_cb, void* cb_ctx)
+int _alpm_chroot_write_to_child(AlpmHandle handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit, _alpm_cb_io out_cb, void* cb_ctx)
 {
 	ssize_t nwrite = void;
 
@@ -801,7 +801,7 @@ int _alpm_chroot_write_to_child(alpm_handle_t* handle, int fd, char* buf, ssize_
 alias _alpm_cb_io = ssize_t function(void* buf, ssize_t len, void* ctx);
 
 
-void _alpm_chroot_process_output(alpm_handle_t* handle,   char*line)
+void _alpm_chroot_process_output(AlpmHandle handle,   char*line)
 {
 	alpm_event_scriptlet_info_t event = {
 		type: ALPM_EVENT_SCRIPTLET_INFO,
@@ -811,7 +811,7 @@ void _alpm_chroot_process_output(alpm_handle_t* handle,   char*line)
 	EVENT(handle, &event);
 }
 
-int _alpm_chroot_read_from_child(alpm_handle_t* handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit)
+int _alpm_chroot_read_from_child(AlpmHandle handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit)
 {
 	ssize_t space = buf_limit - *buf_size - 2; /* reserve 2 for "\n\0" */
 	ssize_t nread = read(fd, buf + *buf_size, space);
@@ -887,7 +887,7 @@ void _alpm_reset_signals()
  * @param stdin_ctx context to be passed to @a stdin_cb
  * @return 0 on success, 1 on error
  */
-int _alpm_run_chroot(alpm_handle_t* handle,   char*cmd, char** argv, _alpm_cb_io stdin_cb, void* stdin_ctx)
+int _alpm_run_chroot(AlpmHandle handle,   char*cmd, char** argv, _alpm_cb_io stdin_cb, void* stdin_ctx)
 {
 	pid_t pid = void;
 	int[2] child2parent_pipefd = void, parent2child_pipefd = void;
@@ -1092,7 +1092,7 @@ cleanup:
  * @param handle the context handle
  * @return 0 on success, 1 on error
  */
-int _alpm_ldconfig(alpm_handle_t* handle)
+int _alpm_ldconfig(AlpmHandle handle)
 {
 	char[PATH_MAX] line = void;
 
@@ -1129,7 +1129,7 @@ int _alpm_str_cmp( void* s1,  void* s2)
  * @param filename name of file to find
  * @return malloced path of file, NULL if not found
  */
-char* _alpm_filecache_find(alpm_handle_t* handle,   char*filename)
+char* _alpm_filecache_find(AlpmHandle handle,   char*filename)
 {
 	char[PATH_MAX] path = void;
 	char* retpath = void;
@@ -1162,7 +1162,7 @@ char* _alpm_filecache_find(alpm_handle_t* handle,   char*filename)
  * @param filename name of file to find
  * @return 0 if the filename was not found, 1 otherwise
  */
-int _alpm_filecache_exists(alpm_handle_t* handle,   char*filename)
+int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 {
 	int res = void;
 	char* fpath = _alpm_filecache_find(handle, filename);
@@ -1176,7 +1176,7 @@ int _alpm_filecache_exists(alpm_handle_t* handle,   char*filename)
  * @param handle the context handle
  * @return pointer to a writable cache directory.
  */
-  char*_alpm_filecache_setup(alpm_handle_t* handle)
+  char*_alpm_filecache_setup(AlpmHandle handle)
 {
 	stat_t buf = void;
 	alpm_list_t* i = void;
@@ -1683,7 +1683,7 @@ alpm_time_t _alpm_parsedate(  char*line)
  * @param amode access mode as described in access()
  * @return int value returned by access()
  */
-int _alpm_access(alpm_handle_t* handle,   char*dir,   char*file, int amode)
+int _alpm_access(AlpmHandle handle,   char*dir,   char*file, int amode)
 {
  size_t len = 0;
  int ret = 0;

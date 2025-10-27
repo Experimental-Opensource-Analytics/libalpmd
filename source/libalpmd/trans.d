@@ -79,7 +79,7 @@ struct alpm_trans_t {
 	alpm_list_t* skip_remove;   /* list of (char *) */
 }
 
-int  alpm_trans_init(alpm_handle_t* handle, int flags)
+int  alpm_trans_init(AlpmHandle handle, int flags)
 {
 	alpm_trans_t* trans = void;
 
@@ -103,7 +103,7 @@ int  alpm_trans_init(alpm_handle_t* handle, int flags)
 	return 0;
 }
 
-private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
+private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 {
 	alpm_list_t* i = void;
 	alpm_list_t* invalid = null;
@@ -143,7 +143,7 @@ private alpm_list_t* check_arch(alpm_handle_t* handle, alpm_list_t* pkgs)
 	return invalid;
 }
 
-int  alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
+int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_trans_t* trans = void;
 
@@ -201,7 +201,7 @@ int  alpm_trans_prepare(alpm_handle_t* handle, alpm_list_t** data)
 	return 0;
 }
 
-int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
+int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_trans_t* trans = void;
 	alpm_event_any_t event = void;
@@ -281,7 +281,7 @@ int  alpm_trans_commit(alpm_handle_t* handle, alpm_list_t** data)
 	return 0;
 }
 
-int  alpm_trans_interrupt(alpm_handle_t* handle)
+int  alpm_trans_interrupt(AlpmHandle handle)
 {
 	alpm_trans_t* trans = void;
 
@@ -297,7 +297,7 @@ int  alpm_trans_interrupt(alpm_handle_t* handle)
 	return 0;
 }
 
-int  alpm_trans_release(alpm_handle_t* handle)
+int  alpm_trans_release(AlpmHandle handle)
 {
 	alpm_trans_t* trans = void;
 
@@ -370,7 +370,7 @@ private int grep(  char*fn,   char*needle)
 	return 0;
 }
 
-int _alpm_runscriptlet(alpm_handle_t* handle,   char*filepath,   char*script,   char*ver,   char*oldver, int is_archive)
+int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char*ver,   char*oldver, int is_archive)
 {
 	char[PATH_MAX] arg0 = void; char[3] arg1 = void; char[PATH_MAX] cmdline = void;
 	char*[4] argv = cast(char*[4])[ arg0, arg1, cmdline, null ];
@@ -460,7 +460,7 @@ cleanup:
 	return retval;
 }
 
-int  alpm_trans_get_flags(alpm_handle_t* handle)
+int  alpm_trans_get_flags(AlpmHandle handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -469,7 +469,7 @@ int  alpm_trans_get_flags(alpm_handle_t* handle)
 	return handle.trans.flags;
 }
 
-alpm_list_t * alpm_trans_get_add(alpm_handle_t* handle)
+alpm_list_t * alpm_trans_get_add(AlpmHandle handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -478,7 +478,7 @@ alpm_list_t * alpm_trans_get_add(alpm_handle_t* handle)
 	return handle.trans.add;
 }
 
-alpm_list_t * alpm_trans_get_remove(alpm_handle_t* handle)
+alpm_list_t * alpm_trans_get_remove(AlpmHandle handle)
 {
 	/* Sanity checks */
 	CHECK_HANDLE(handle);

@@ -151,7 +151,7 @@ private void mount_point_list_free(alpm_list_t* mount_points)
 	FREELIST(mount_points);
 }
 
-private int mount_point_load_fsinfo(alpm_handle_t* handle, alpm_mountpoint_t* mountpoint)
+private int mount_point_load_fsinfo(AlpmHandle handle, alpm_mountpoint_t* mountpoint)
 {
 version (HAVE_GETMNTENT) {
 	/* grab the filesystem usage */
@@ -174,7 +174,7 @@ version (HAVE_GETMNTENT) {
 	return 0;
 }
 
-private alpm_list_t* mount_point_list(alpm_handle_t* handle)
+private alpm_list_t* mount_point_list(AlpmHandle handle)
 {
 	alpm_list_t* mount_points = null, ptr = void;
 	alpm_mountpoint_t* mp = void;
@@ -309,7 +309,7 @@ private alpm_mountpoint_t* match_mount_point( alpm_list_t* mount_points,   char*
 	return null;
 }
 
-private int calculate_removed_size(alpm_handle_t* handle,  alpm_list_t* mount_points, alpm_pkg_t* pkg)
+private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points, alpm_pkg_t* pkg)
 {
 	size_t i = void;
 	alpm_filelist_t* filelist = alpm_pkg_get_files(pkg);
@@ -370,7 +370,7 @@ private int calculate_removed_size(alpm_handle_t* handle,  alpm_list_t* mount_po
 	return 0;
 }
 
-private int calculate_installed_size(alpm_handle_t* handle,  alpm_list_t* mount_points, alpm_pkg_t* pkg)
+private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_points, alpm_pkg_t* pkg)
 {
 	size_t i = void;
 	alpm_filelist_t* filelist = alpm_pkg_get_files(pkg);
@@ -428,7 +428,7 @@ private int calculate_installed_size(alpm_handle_t* handle,  alpm_list_t* mount_
 	return 0;
 }
 
-private int check_mountpoint(alpm_handle_t* handle, alpm_mountpoint_t* mp)
+private int check_mountpoint(AlpmHandle handle, alpm_mountpoint_t* mp)
 {
 	/* cushion is roughly min(5% capacity, 20MiB) */
 	fsblkcnt_t fivepc = (mp.fsp.f_blocks / 20) + 1;
@@ -449,7 +449,7 @@ private int check_mountpoint(alpm_handle_t* handle, alpm_mountpoint_t* mp)
 	return 0;
 }
 
-int _alpm_check_downloadspace(alpm_handle_t* handle,   char*cachedir, size_t num_files,  off_t* file_sizes)
+int _alpm_check_downloadspace(AlpmHandle handle,   char*cachedir, size_t num_files,  off_t* file_sizes)
 {
 	alpm_list_t* mount_points = void;
 	alpm_mountpoint_t* cachedir_mp = void;
@@ -508,7 +508,7 @@ finish:
 	return 0;
 }
 
-int _alpm_check_diskspace(alpm_handle_t* handle)
+int _alpm_check_diskspace(AlpmHandle handle)
 {
 	alpm_list_t* mount_points = void, i = void;
 	alpm_mountpoint_t* root_mp = void;

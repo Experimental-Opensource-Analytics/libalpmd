@@ -89,7 +89,7 @@ enum _LANDLOCK_ACCESS_FS_TRUNCATE = 0;
 
 } /* HAVE_LINUX_LANDLOCK_H */
 
-bool _alpm_sandbox_fs_restrict_writes_to(alpm_handle_t* handle,   char*path)
+bool _alpm_sandbox_fs_restrict_writes_to(AlpmHandle handle,   char*path)
 {
 	//ASSERT(handle != null);
 	//ASSERT(path != null);

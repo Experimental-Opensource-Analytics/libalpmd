@@ -667,7 +667,7 @@ private int local_db_populate(alpm_db_t* db)
 	return 0;
 }
 
-private alpm_pkgreason_t _read_pkgreason(alpm_handle_t* handle,   char*pkgname,   char*line) {
+private alpm_pkgreason_t _read_pkgreason(AlpmHandle handle,   char*pkgname,   char*line) {
 	if(strcmp(line, "0") == 0) {
 		return ALPM_PKG_REASON_EXPLICIT;
 	} else if(strcmp(line, "1") == 0) {
@@ -1221,7 +1221,7 @@ private  const(db_operations) local_db_ops = {
 	unregister: &_alpm_db_unregister,
 };
 
-alpm_db_t* _alpm_db_register_local(alpm_handle_t* handle)
+alpm_db_t* _alpm_db_register_local(AlpmHandle handle)
 {
 	alpm_db_t* db = void;
 

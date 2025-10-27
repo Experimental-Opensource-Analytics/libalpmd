@@ -42,6 +42,7 @@ import core.stdc.limits;
 import core.stdc.stdarg;
 
 import libalpmd.alpm;
+import libalpmd.handle;
 import libalpmd.log;
 import libalpmd.sandbox;
 import libalpmd.sandbox_fs;
@@ -89,7 +90,7 @@ struct _alpm_sandbox_callback_context {
 
 
 
-int  alpm_sandbox_setup_child(alpm_handle_t* handle,   char*sandboxuser,   char*sandbox_path, bool restrict_syscalls)
+int  alpm_sandbox_setup_child(AlpmHandle handle,   char*sandboxuser,   char*sandbox_path, bool restrict_syscalls)
 {
 	 passwd* pw = null;
 
@@ -230,7 +231,7 @@ void _alpm_sandbox_cb_dl(void* ctx,   char*filename, alpm_download_event_type_t 
 }
 
 
-bool _alpm_sandbox_process_cb_log(alpm_handle_t* handle, int callback_pipe) {
+bool _alpm_sandbox_process_cb_log(AlpmHandle handle, int callback_pipe) {
 	alpm_loglevel_t level = void;
 	char* string = null;
 	int string_size = 0;
@@ -249,7 +250,7 @@ bool _alpm_sandbox_process_cb_log(alpm_handle_t* handle, int callback_pipe) {
 	return true;
 }
 
-bool _alpm_sandbox_process_cb_download(alpm_handle_t* handle, int callback_pipe) {
+bool _alpm_sandbox_process_cb_download(AlpmHandle handle, int callback_pipe) {
 	alpm_download_event_type_t type = void;
 	char* filename = null;
 	size_t filename_size = void, cb_data_size = void;

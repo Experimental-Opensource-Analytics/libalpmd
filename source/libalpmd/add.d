@@ -30,7 +30,7 @@ import libalpmd.handle;
 
 import libalpmd.be_local;
 
-int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
+int  alpm_add_pkg(AlpmHandle handle, alpm_pkg_t* pkg)
 {
 	  char*pkgname = void, pkgver = void;
 	alpm_trans_t* trans = void;
@@ -91,7 +91,7 @@ int  alpm_add_pkg(alpm_handle_t* handle, alpm_pkg_t* pkg)
 	return 0;
 }
 
-private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive_entry* entry,  char* filename)
+private int perform_extraction(AlpmHandle handle, archive* _archive, archive_entry* entry,  char* filename)
 {
 	int ret = void;
 	archive* archive_writer = void;
@@ -133,7 +133,7 @@ private int perform_extraction(alpm_handle_t* handle, archive* _archive, archive
 	return 0;
 }
 
-private int try_rename(alpm_handle_t* handle,   char*src,   char*dest)
+private int try_rename(AlpmHandle handle,   char*src,   char*dest)
 {
 	if(rename(src, dest)) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not rename %s to %s (%s)\n"),
@@ -145,7 +145,7 @@ private int try_rename(alpm_handle_t* handle,   char*src,   char*dest)
 	return 0;
 }
 
-private int extract_db_file(alpm_handle_t* handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg,   char*entryname)
+private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg,   char*entryname)
 {
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
 	  char*dbfile = null;
@@ -167,7 +167,7 @@ private int extract_db_file(alpm_handle_t* handle, archive* archive, archive_ent
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
-int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg, alpm_pkg_t* oldpkg)
+int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg, alpm_pkg_t* oldpkg)
 {
 	char*entryname = cast(char*)archive_entry_pathname(entry);
 	mode_t entrymode = archive_entry_mode(entry);
@@ -391,7 +391,7 @@ int extract_single_file(alpm_handle_t* handle, archive* archive, archive_entry* 
 	return errors;
 }
 
-int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_current, size_t pkg_count)
+int commit_single_pkg(AlpmHandle handle, alpm_pkg_t* newpkg, size_t pkg_current, size_t pkg_count)
 {
 	int ret = 0, errors = 0;
 	int is_upgrade = 0;
@@ -630,7 +630,7 @@ int commit_single_pkg(alpm_handle_t* handle, alpm_pkg_t* newpkg, size_t pkg_curr
 	return ret;
 }
 
-int _alpm_upgrade_packages(alpm_handle_t* handle)
+int _alpm_upgrade_packages(AlpmHandle handle)
 {
 	size_t pkg_count = void, pkg_current = void;
 	int skip_ldconfig = 0, ret = 0;

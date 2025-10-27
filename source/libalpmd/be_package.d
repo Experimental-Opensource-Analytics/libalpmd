@@ -88,7 +88,7 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
 		if(strcmp(entry_name, ".CHANGELOG") == 0) {
 			changelog = cast(package_changelog*) malloc(package_changelog.sizeof);
 			if(!changelog) {
-				(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_MEMORY;
+				(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_MEMORY;
 				_alpm_archive_read_free(_archive);
 				close(fd);
 				return null;
@@ -121,7 +121,7 @@ private size_t _package_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg,
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
-		RET_ERR(cast(alpm_handle_t*)pkg.handle, ALPM_ERR_LIBARCHIVE, 0);
+		RET_ERR(cast(AlpmHandle)pkg.handle, ALPM_ERR_LIBARCHIVE, 0);
 	} else {
 		return cast(size_t)sret;
 	}
@@ -169,7 +169,7 @@ private const (pkg_operations)* get_file_pkg_ops()
  *
  * @return 0 on success, -1 on error
  */
-private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg)
+private int parse_descfile(AlpmHandle handle, archive* a, alpm_pkg_t* newpkg)
 {
 	char* ptr = null;
 	char* key = null;
@@ -288,7 +288,7 @@ private int parse_descfile(alpm_handle_t* handle, archive* a, alpm_pkg_t* newpkg
  * @param validation successful validations performed on the package file
  * @return 0 if package is fully valid, -1 and pm_errno otherwise
  */
-int _alpm_pkg_validate_internal(alpm_handle_t* handle,   char*pkgfile, alpm_pkg_t* syncpkg, int level, alpm_siglist_t** sigdata, int* validation)
+int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, alpm_pkg_t* syncpkg, int level, alpm_siglist_t** sigdata, int* validation)
 {
 	int has_sig = void;
 	handle.pm_errno = ALPM_ERR_OK;
@@ -452,7 +452,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
  * @param archive archive containing the mtree
  * @return 0 on success, <0 on error
  */
-private int build_filelist_from_mtree(alpm_handle_t* handle, alpm_pkg_t* pkg, archive* _archive)
+private int build_filelist_from_mtree(AlpmHandle handle, alpm_pkg_t* pkg, archive* _archive)
 {
 	int ret = 0;
 	size_t i = void;
@@ -560,7 +560,7 @@ error:
  * @param full whether to stop the load after metadata is read or continue
  * through the full archive
  */
-alpm_pkg_t* _alpm_pkg_load_internal(alpm_handle_t* handle,   char*pkgfile, int full)
+alpm_pkg_t* _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 {
 	int ret = void, fd = void;
 	int config = 0;
@@ -729,7 +729,7 @@ private int read_sigfile(  char*sigpath, ubyte** sig)
 	return cast(int)st.st_size;
 }
 
-int  alpm_pkg_load(alpm_handle_t* handle,   char*filename, int full, int level, alpm_pkg_t** pkg)
+int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, alpm_pkg_t** pkg)
 {
 	int validation = 0;
 	char* sigpath = void;

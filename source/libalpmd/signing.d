@@ -148,7 +148,7 @@ private alpm_list_t* list_sigsum(gpgme_sigsum_t sigsum)
  * @param handle the context handle
  * @return 0 on success, -1 on error
  */
-private int init_gpgme(alpm_handle_t* handle)
+private int init_gpgme(AlpmHandle handle)
 {
 	static int init = 0;
 	  char*version_ = void, sigdir = void;
@@ -213,7 +213,7 @@ gpg_error:
  * @param fpr the fingerprint key ID to look up
  * @return 1 if key is known, 0 if key is unknown, -1 on error
  */
-int _alpm_key_in_keychain(alpm_handle_t* handle,   char*fpr)
+int _alpm_key_in_keychain(AlpmHandle handle,   char*fpr)
 {
 	gpgme_error_t gpg_err = void;
 	gpgme_ctx_t ctx = {0};
@@ -268,7 +268,7 @@ error:
  * @param fpr the fingerprint key ID to look up (or NULL)
  * @return 0 on success, -1 on error
  */
-private int key_import_wkd(alpm_handle_t* handle,   char*email,   char*fpr)
+private int key_import_wkd(AlpmHandle handle,   char*email,   char*fpr)
 {
 	gpgme_error_t gpg_err = void;
 	gpgme_ctx_t ctx = {0};
@@ -313,7 +313,7 @@ gpg_error:
  * @param pgpkey storage location for the given key if found
  * @return 1 on success, 0 on key not found, -1 on error
  */
-private int key_search_keyserver(alpm_handle_t* handle,   char*fpr, alpm_pgpkey_t* pgpkey)
+private int key_search_keyserver(AlpmHandle handle,   char*fpr, alpm_pgpkey_t* pgpkey)
 {
 	gpgme_error_t gpg_err = void;
 	gpgme_ctx_t ctx = {0};
@@ -399,7 +399,7 @@ gpg_error:
  * @param key the key to import, likely retrieved from #key_search_keyserver
  * @return 0 on success, -1 on error
  */
-private int key_import_keyserver(alpm_handle_t* handle, alpm_pgpkey_t* key)
+private int key_import_keyserver(AlpmHandle handle, alpm_pgpkey_t* key)
 {
 	gpgme_error_t gpg_err = void;
 	gpgme_ctx_t ctx = {0};
@@ -474,7 +474,7 @@ private int email_from_uid(  char*uid, char** email)
  * @param fpr the fingerprint key ID to import
  * @return 0 on success, -1 on error
  */
-int _alpm_key_import(alpm_handle_t* handle,   char*uid,   char*fpr)
+int _alpm_key_import(AlpmHandle handle,   char*uid,   char*fpr)
 {
 	int ret = -1;
 	alpm_pgpkey_t fetch_key = {0};
@@ -540,7 +540,7 @@ int _alpm_key_import(alpm_handle_t* handle,   char*uid,   char*fpr)
  * @param siglist a pointer to storage for signature results
  * @return 0 in normal cases, -1 if the something failed in the check process
  */
-int _alpm_gpgme_checksig(alpm_handle_t* handle,   char*path,   char*base64_sig, alpm_siglist_t* siglist)
+int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm_siglist_t* siglist)
 {
 	int ret = -1, sigcount = void;
 	gpgme_error_t gpg_err = 0;
@@ -746,19 +746,19 @@ error:
 }
 
 } else { /* HAVE_LIBGPGME */
-int _alpm_key_in_keychain(alpm_handle_t* handle,   char*fpr)
+int _alpm_key_in_keychain(AlpmHandle handle,   char*fpr)
 {
 	handle.pm_errno = ALPM_ERR_MISSING_CAPABILITY_SIGNATURES;
 	return -1;
 }
 
-int _alpm_key_import(alpm_handle_t* handle,   char*uid,   char*fpr)
+int _alpm_key_import(AlpmHandle handle,   char*uid,   char*fpr)
 {
 	handle.pm_errno = ALPM_ERR_MISSING_CAPABILITY_SIGNATURES;
 	return -1;
 }
 
-int _alpm_gpgme_checksig(alpm_handle_t* handle,   char*path,   char*base64_sig, alpm_siglist_t* siglist)
+int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm_siglist_t* siglist)
 {
 	siglist.count = 0;
 	handle.pm_errno = ALPM_ERR_MISSING_CAPABILITY_SIGNATURES;
@@ -773,7 +773,7 @@ int _alpm_gpgme_checksig(alpm_handle_t* handle,   char*path,   char*base64_sig, 
  * @param path the full path to a file
  * @return the path with '.sig' appended, NULL on errors
  */
-char* _alpm_sigpath(alpm_handle_t* handle,   char*path)
+char* _alpm_sigpath(AlpmHandle handle,   char*path)
 {
 	char* sigpath = void;
 	size_t len = void;
@@ -801,7 +801,7 @@ char* _alpm_sigpath(alpm_handle_t* handle,   char*path)
  * @param sigdata a pointer to storage for signature results
  * @return 0 on success, -1 on error (consult pm_errno or sigdata)
  */
-int _alpm_check_pgp_helper(alpm_handle_t* handle,   char*path,   char*base64_sig, int optional, int marginal, int unknown, alpm_siglist_t** sigdata)
+int _alpm_check_pgp_helper(AlpmHandle handle,   char*path,   char*base64_sig, int optional, int marginal, int unknown, alpm_siglist_t** sigdata)
 {
 	alpm_siglist_t* siglist = void;
 	int ret = void;
@@ -885,7 +885,7 @@ int _alpm_check_pgp_helper(alpm_handle_t* handle,   char*path,   char*base64_sig
  * @return 0 if all signatures are OK, -1 on errors, 1 if we should retry the
  * validation process
  */
-int _alpm_process_siglist(alpm_handle_t* handle,   char*identifier, alpm_siglist_t* siglist, int optional, int marginal, int unknown)
+int _alpm_process_siglist(AlpmHandle handle,   char*identifier, alpm_siglist_t* siglist, int optional, int marginal, int unknown)
 {
 	size_t i = void;
 	int retry = 0;
@@ -973,7 +973,7 @@ int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 {
 	//ASSERT(pkg != null);
 	//ASSERT(siglist != null);
-	alpm_handle_t* handle = cast(alpm_handle_t*)pkg.handle;
+	AlpmHandle handle = cast(AlpmHandle)pkg.handle;
 	handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(pkg.handle, pkg.filename,
@@ -1012,7 +1012,7 @@ version (HAVE_LIBGPGME) {
 }
 
 /* Check to avoid out of boundary reads */
-private size_t length_check(size_t length, size_t position, size_t a, alpm_handle_t* handle,   char*identifier)
+private size_t length_check(size_t length, size_t position, size_t a, AlpmHandle handle,   char*identifier)
 {
 	if( a == 0 || position > length || length - position <= a) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
@@ -1023,7 +1023,7 @@ private size_t length_check(size_t length, size_t position, size_t a, alpm_handl
 	}
 }
 
-private int parse_subpacket(alpm_handle_t* handle,   char*identifier,  ubyte* sig,  size_t len,  size_t pos,  size_t plen, alpm_list_t** keys)
+private int parse_subpacket(AlpmHandle handle,   char*identifier,  ubyte* sig,  size_t len,  size_t pos,  size_t plen, alpm_list_t** keys)
 {
 		size_t slen = void;
 		size_t spos = pos;
@@ -1066,7 +1066,7 @@ private int parse_subpacket(alpm_handle_t* handle,   char*identifier,  ubyte* si
 		return 0;
 }
 
-int  alpm_extract_keyid(alpm_handle_t* handle,   char*identifier,  ubyte* sig,  size_t len, alpm_list_t** keys)
+int  alpm_extract_keyid(AlpmHandle handle,   char*identifier,  ubyte* sig,  size_t len, alpm_list_t** keys)
 {
 	size_t pos = void, blen = void, hlen = void, ulen = void;
 	pos = 0;

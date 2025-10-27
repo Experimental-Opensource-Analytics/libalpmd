@@ -64,7 +64,7 @@ import libalpmd.handle;
 import libalpmd.sandbox;
 
 struct dload_payload {
-	alpm_handle_t* handle;
+	AlpmHandle handle;
 	  char*tempfile_openmode;
 	/* name of the remote file */
 	char* remote_name;
@@ -187,7 +187,7 @@ struct server_error_count {
 	int errors;
 }
 
-private server_error_count* find_server_errors(alpm_handle_t* handle,   char*server)
+private server_error_count* find_server_errors(AlpmHandle handle,   char*server)
 {
 	alpm_list_t* i = void;
 	server_error_count* h = void;
@@ -215,7 +215,7 @@ private server_error_count* find_server_errors(alpm_handle_t* handle,   char*ser
 }
 
 /* skip for hard errors or too many soft errors */
-private int should_skip_server(alpm_handle_t* handle,   char*server)
+private int should_skip_server(AlpmHandle handle,   char*server)
 {
 	server_error_count* h = void;
 	if(server_error_limit && (h = find_server_errors(handle, server.ptr)) ) {
@@ -225,7 +225,7 @@ private int should_skip_server(alpm_handle_t* handle,   char*server)
 }
 
 /* only skip for hard errors */
-private int should_skip_cache_server(alpm_handle_t* handle,   char*server)
+private int should_skip_cache_server(AlpmHandle handle,   char*server)
 {
 	server_error_count* h = void;
 	if(server_error_limit && (h = find_server_errors(handle, server.ptr)) ) {
@@ -235,7 +235,7 @@ private int should_skip_cache_server(alpm_handle_t* handle,   char*server)
 }
 
 /* block normal servers after too many errors */
-private void server_soft_error(alpm_handle_t* handle,   char*server)
+private void server_soft_error(AlpmHandle handle,   char*server)
 {
 	server_error_count* h = void;
 	if(server_error_limit
@@ -252,7 +252,7 @@ private void server_soft_error(alpm_handle_t* handle,   char*server)
 }
 
 /* immediate block for both servers and cache servers */
-private void server_hard_error(alpm_handle_t* handle,   char*server)
+private void server_hard_error(AlpmHandle handle,   char*server)
 {
 	server_error_count* h = void;
 	if(server_error_limit && (h = find_server_errors(handle, server.ptr))) {
@@ -419,7 +419,7 @@ private size_t dload_parseheader_cb(void* ptr, size_t size, size_t nmemb, void* 
 
 private void curl_set_handle_opts(CURL* curl, dload_payload* payload)
 {
-	alpm_handle_t* handle = payload.handle;
+	AlpmHandle handle = payload.handle;
 	  char*useragent = getenv("HTTP_USER_AGENT");
 	stat_t st = void;
 
@@ -486,7 +486,7 @@ private int curl_retry_next_server(CURLM* curlm, CURL* curl, dload_payload* payl
 	  char*server = null;
 	size_t len = void;
 	stat_t st = void;
-	alpm_handle_t* handle = payload.handle;
+	AlpmHandle handle = payload.handle;
 
 	if((server = payload_next_server(payload)) == null) {
 		_alpm_log(payload.handle, ALPM_LOG_DEBUG,
@@ -542,7 +542,7 @@ private int curl_retry_next_server(CURLM* curlm, CURL* curl, dload_payload* payl
  * Returns -1 if an error happened for a required file
  * Returns -2 if an error happened for an optional file
  */
-private int curl_check_finished_download(alpm_handle_t* handle, CURLM* curlm, CURLMsg* msg, int* active_downloads_num)
+private int curl_check_finished_download(AlpmHandle handle, CURLM* curlm, CURLMsg* msg, int* active_downloads_num)
 {
 	dload_payload* payload = null;
 	CURL* curl = msg.easy_handle;
@@ -790,7 +790,7 @@ cleanup:
 /* Returns 0 in case if a new download transaction has been successfully started
  * Returns -1 if am error happened while starting a new download
  */
-private int curl_add_payload(alpm_handle_t* handle, CURLM* curlm, dload_payload* payload)
+private int curl_add_payload(AlpmHandle handle, CURLM* curlm, dload_payload* payload)
 {
 	size_t len = void;
 	CURL* curl = null;
@@ -877,7 +877,7 @@ private int compare_dload_payload_sizes( void* left_ptr,  void* right_ptr)
  * Returns 0 if a payload was actually downloaded
  * Returns 1 if no files were downloaded and all errors were non-fatal
  */
-private int curl_download_internal(alpm_handle_t* handle, alpm_list_t* payloads)
+private int curl_download_internal(AlpmHandle handle, alpm_list_t* payloads)
 {
 	int active_downloads_num = 0;
 	int err = 0;
@@ -954,7 +954,7 @@ private int curl_download_internal(alpm_handle_t* handle, alpm_list_t* payloads)
  * Returns 0 if a payload was actually downloaded
  * Returns 1 if no files were downloaded and all errors were non-fatal
  */
-private int curl_download_internal_sandboxed(alpm_handle_t* handle, alpm_list_t* payloads,   char*localpath, int* childsig)
+private int curl_download_internal_sandboxed(AlpmHandle handle, alpm_list_t* payloads,   char*localpath, int* childsig)
 {
 	int pid = void, err = 0, ret = -1; int[2] callbacks_fd = void;
 	sigset_t oldblock = void;
@@ -1107,7 +1107,7 @@ private int payload_download_fetchcb(dload_payload* payload,   char*server,   ch
 {
 	int ret = void;
 	char* fileurl = void;
-	alpm_handle_t* handle = payload.handle;
+	AlpmHandle handle = payload.handle;
 
 	size_t len = strlen(server) + strlen(payload.filepath) + 2;
 	MALLOC(fileurl, len);
@@ -1232,7 +1232,7 @@ private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath
  * Returns 0 if a payload was actually downloaded
  * Returns 1 if no files were downloaded and all errors were non-fatal
  */
-int _alpm_download(alpm_handle_t* handle, alpm_list_t* payloads,   char*localpath,   char*temporary_localpath)
+int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,   char*temporary_localpath)
 {
 	int ret = void;
 	int finalize_ret = void;
@@ -1347,7 +1347,7 @@ private   char*url_basename(  char*url)
 	return filebase;
 }
 
-int  alpm_fetch_pkgurl(alpm_handle_t* handle,  alpm_list_t* urls, alpm_list_t** fetched)
+int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetched)
 {
 	alpm_siglevel_t siglevel = cast(alpm_siglevel_t)alpm_option_get_remote_file_siglevel(handle);
 	  char*cachedir = void;

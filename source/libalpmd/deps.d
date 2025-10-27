@@ -106,7 +106,7 @@ private alpm_pkg_t* find_dep_satisfier(alpm_list_t* pkgs, alpm_depend_t* dep)
  * Returns a list of vertices (one vertex = one package)
  * (used by alpm_sortbydeps)
  */
-private alpm_list_t* dep_graph_init(alpm_handle_t* handle, alpm_list_t* targets, alpm_list_t* ignore)
+private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alpm_list_t* ignore)
 {
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* vertices = null;
@@ -162,7 +162,7 @@ private alpm_list_t* dep_graph_init(alpm_handle_t* handle, alpm_list_t* targets,
 	return vertices;
 }
 
-private void _alpm_warn_dep_cycle(alpm_handle_t* handle, alpm_list_t* targets, alpm_graph_t* ancestor, alpm_graph_t* vertex, int reverse)
+private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, alpm_graph_t* ancestor, alpm_graph_t* vertex, int reverse)
 {
 	/* vertex depends on and is required by ancestor */
 	if(!alpm_list_find_ptr(targets, vertex.data)) {
@@ -213,7 +213,7 @@ private void _alpm_warn_dep_cycle(alpm_handle_t* handle, alpm_list_t* targets, a
  * This function returns the new alpm_list_t* target list.
  *
  */
-alpm_list_t* _alpm_sortbydeps(alpm_handle_t* handle, alpm_list_t* targets, alpm_list_t* ignore, int reverse)
+alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list_t* ignore, int reverse)
 {
 	alpm_list_t* newtargs = null;
 	alpm_list_t* vertices = null;
@@ -280,7 +280,7 @@ alpm_list_t* _alpm_sortbydeps(alpm_handle_t* handle, alpm_list_t* targets, alpm_
 	return newtargs;
 }
 
-private int no_dep_version(alpm_handle_t* handle)
+private int no_dep_version(AlpmHandle handle)
 {
 	if(!handle.trans) {
 		return 0;
@@ -299,7 +299,7 @@ alpm_pkg_t * alpm_find_satisfier(alpm_list_t* pkgs,   char*depstring)
 	return pkg;
 }
 
-alpm_list_t * alpm_checkdeps(alpm_handle_t* handle, alpm_list_t* pkglist, alpm_list_t* rem, alpm_list_t* upgrade, int reversedeps)
+alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_t* rem, alpm_list_t* upgrade, int reversedeps)
 {
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* dblist = null, modified = null;
@@ -633,7 +633,7 @@ int _alpm_recursedeps(alpm_db_t* db, alpm_list_t** targs, int include_explicit)
  *        packages.
  * @return the resolved package
  **/
-private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_list_t* dbs, alpm_list_t* excluding, int prompt)
+private alpm_pkg_t* resolvedep(AlpmHandle handle, alpm_depend_t* dep, alpm_list_t* dbs, alpm_list_t* excluding, int prompt)
 {
 	alpm_list_t* i = void, j = void;
 	int ignored = 0;
@@ -747,7 +747,7 @@ private alpm_pkg_t* resolvedep(alpm_handle_t* handle, alpm_depend_t* dep, alpm_l
 	return null;
 }
 
-alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs,   char*depstring)
+alpm_pkg_t * alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs,   char*depstring)
 {
 	alpm_depend_t* dep = void;
 	alpm_pkg_t* pkg = void;
@@ -783,7 +783,7 @@ alpm_pkg_t * alpm_find_dbs_satisfier(alpm_handle_t* handle, alpm_list_t* dbs,   
  *         unresolvable dependency, in which case the [*packages] list will be
  *         unmodified by this function
  */
-int _alpm_resolvedeps(alpm_handle_t* handle, alpm_list_t* localpkgs, alpm_pkg_t* pkg, alpm_list_t* preferred, alpm_list_t** packages, alpm_list_t* rem, alpm_list_t** data)
+int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, alpm_pkg_t* pkg, alpm_list_t* preferred, alpm_list_t** packages, alpm_list_t* rem, alpm_list_t** data)
 {
 	int ret = 0;
 	alpm_list_t* j = void;

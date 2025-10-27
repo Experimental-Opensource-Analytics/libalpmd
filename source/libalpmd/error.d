@@ -30,7 +30,7 @@ import libalpmd.util;
 import libalpmd.alpm;
 import libalpmd.handle;
 
-alpm_errno_t  alpm_errno(alpm_handle_t* handle)
+alpm_errno_t  alpm_errno(AlpmHandle handle)
 {
 	return handle.pm_errno;
 }

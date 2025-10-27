@@ -116,7 +116,7 @@ struct _alpm_pkg_t {
 	off_t isize;
 	off_t download_size;
 
-	alpm_handle_t* handle;
+	AlpmHandle handle;
 
 	alpm_list_t* licenses;
 	alpm_list_t* replaces;
@@ -174,10 +174,10 @@ int  alpm_pkg_checkmd5sum(alpm_pkg_t* pkg)
 	int retval = void;
 
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	/* We only inspect packages from sync repositories */
 	//ASSERT(pkg.origin == ALPM_PKG_FROM_SYNCDB,
-			// RET_ERR(cast(alpm_handle_t*)pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
+			// RET_ERR(cast(AlpmHandle)pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
 
 	fpath = _alpm_filecache_find(pkg.handle, pkg.filename);
 
@@ -266,18 +266,18 @@ int _pkg_force_load(alpm_pkg_t* pkg) { return 0; }
   char*alpm_pkg_get_filename(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.filename;
 }
 
   char*alpm_pkg_get_base(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_base(pkg);
 }
 
-alpm_handle_t * alpm_pkg_get_handle(alpm_pkg_t* pkg)
+AlpmHandle alpm_pkg_get_handle(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
 	return pkg.handle;
@@ -286,77 +286,77 @@ alpm_handle_t * alpm_pkg_get_handle(alpm_pkg_t* pkg)
   char*alpm_pkg_get_name(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.name;
 }
 
   char*alpm_pkg_get_version(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.version_;
 }
 
 alpm_pkgfrom_t  alpm_pkg_get_origin(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.origin;
 }
 
   char*alpm_pkg_get_desc(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_desc(pkg);
 }
 
   char*alpm_pkg_get_url(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_url(pkg);
 }
 
 alpm_time_t  alpm_pkg_get_builddate(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_builddate(pkg);
 }
 
 alpm_time_t  alpm_pkg_get_installdate(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_installdate(pkg);
 }
 
   char*alpm_pkg_get_packager(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_packager(pkg);
 }
 
   char*alpm_pkg_get_md5sum(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.md5sum;
 }
 
   char*alpm_pkg_get_sha256sum(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.sha256sum;
 }
 
   char*alpm_pkg_get_base64_sig(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.base64_sig;
 }
 
@@ -401,112 +401,112 @@ cleanup:
   char*alpm_pkg_get_arch(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_arch(pkg);
 }
 
 off_t  alpm_pkg_get_size(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.size;
 }
 
 off_t  alpm_pkg_get_isize(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_isize(pkg);
 }
 
 alpm_pkgreason_t  alpm_pkg_get_reason(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_reason(pkg);
 }
 
 int  alpm_pkg_get_validation(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_validation(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_licenses(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_licenses(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_groups(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_groups(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_depends(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_depends(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_optdepends(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_optdepends(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_checkdepends(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_checkdepends(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_makedepends(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_makedepends(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_conflicts(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_conflicts(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_provides(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_provides(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_replaces(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_replaces(pkg);
 }
 
 alpm_filelist_t * alpm_pkg_get_files(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_files(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_backup(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_backup(pkg);
 }
 
@@ -515,7 +515,7 @@ alpm_db_t * alpm_pkg_get_db(alpm_pkg_t* pkg)
 	/* Sanity checks */
 	//ASSERT(pkg != null);
 	//ASSERT(pkg.origin != ALPM_PKG_FROM_FILE);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 
 	return pkg.origin_data.db;
 }
@@ -523,56 +523,56 @@ alpm_db_t * alpm_pkg_get_db(alpm_pkg_t* pkg)
 void * alpm_pkg_changelog_open(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.changelog_open(pkg);
 }
 
 size_t  alpm_pkg_changelog_read(void* ptr, size_t size, alpm_pkg_t* pkg, void* fp)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.changelog_read(ptr, size, pkg, fp);
 }
 
 int  alpm_pkg_changelog_close(alpm_pkg_t* pkg, void* fp)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.changelog_close(pkg, fp);
 }
 
 archive * alpm_pkg_mtree_open(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.mtree_open(pkg);
 }
 
 int  alpm_pkg_mtree_next(alpm_pkg_t* pkg, archive* archive, archive_entry** entry)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.mtree_next(pkg, archive, entry);
 }
 
 int  alpm_pkg_mtree_close(alpm_pkg_t* pkg, archive* archive)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.mtree_close(pkg, archive);
 }
 
 int  alpm_pkg_has_scriptlet(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.has_scriptlet(pkg);
 }
 
 alpm_list_t * alpm_pkg_get_xdata(alpm_pkg_t* pkg)
 {
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_xdata(pkg);
 }
 
@@ -585,7 +585,7 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 void find_requiredby(alpm_pkg_t* pkg, alpm_db_t* db, alpm_list_t** reqs, int optional)
 {
 	 alpm_list_t* i = void;
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 
 	for(i = _alpm_db_get_pkgcache(db); i; i = i.next) {
 		alpm_pkg_t* cachepkg = cast(alpm_pkg_t*)i.data;
@@ -615,7 +615,7 @@ alpm_list_t* compute_requiredby(alpm_pkg_t* pkg, int optional)
 	alpm_db_t* db = void;
 
 	//ASSERT(pkg != null);
-	(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_OK;
+	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 
 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
 		/* The sane option; search locally for things that require this. */
@@ -699,7 +699,7 @@ int _alpm_pkg_dup(alpm_pkg_t* pkg, alpm_pkg_t** new_ptr)
 				("could not fully load metadata for package %s-%s\n"),
 				pkg.name, pkg.version_);
 		ret = 1;
-		(cast(alpm_handle_t*)pkg.handle).pm_errno = ALPM_ERR_PKG_INVALID;
+		(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_PKG_INVALID;
 	}
 
 	CALLOC(newpkg, 1, alpm_pkg_t.sizeof);
@@ -911,7 +911,7 @@ alpm_pkg_t * alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 	return null;
 }
 
-int  alpm_pkg_should_ignore(alpm_handle_t* handle, alpm_pkg_t* pkg)
+int  alpm_pkg_should_ignore(AlpmHandle handle, alpm_pkg_t* pkg)
 {
 	alpm_list_t* groups = null;
 
@@ -943,7 +943,7 @@ enum string EPKGMETA(string error) = `do {
 } while(0);`;
 
 	/* sanity check */
-	if(pkg.handle == null) {
+	if(pkg.handle is null) {
 		return -1;
 	}
 

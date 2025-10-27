@@ -89,7 +89,7 @@ private int _alpm_log_leader(FILE* f,   char*prefix)
 	return fprintf(f, "[%s] [%s] ", timestamp.ptr, prefix);
 }
 
-int  alpm_logaction(alpm_handle_t* handle,   char*prefix,   char*fmt, ...)
+int  alpm_logaction(AlpmHandle handle,   char*prefix,   char*fmt, ...)
 {
 	int ret = 0;
 	va_list args = void;
@@ -144,11 +144,11 @@ int  alpm_logaction(alpm_handle_t* handle,   char*prefix,   char*fmt, ...)
 	return ret;
 }
 
-void _alpm_log(alpm_handle_t* handle, alpm_loglevel_t flag, string fmt, ...)
+void _alpm_log(AlpmHandle handle, alpm_loglevel_t flag, string fmt, ...)
 {
 	va_list args = void;
 
-	if(handle == null || handle.logcb == null) {
+	if(handle is null || handle.logcb == null) {
 		return;
 	}
 
