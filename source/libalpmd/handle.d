@@ -47,6 +47,7 @@ import core.stdc.stdio;
 import libalpmd.db;
 import libalpmd.be_sync;
 import std.exception;
+import std.stdio;
 
 
 void EVENT(h, e)(h handle, e event) { 
@@ -70,7 +71,7 @@ class AlpmHandle {
 	/* internal usage */
 	AlpmDB db_local;    /* local db pointer */
 	AlpmDBList dbs_sync;  /* List of (AlpmDB) */
-	FILE* logstream;        /* log file stream pointer */
+	File logstream;        /* log file stream pointer */
 	alpm_trans_t* trans;
 
 version (HAVE_LIBCURL) {
@@ -223,9 +224,8 @@ void _alpm_handle_free(AlpmHandle handle)
 	handle.dbs_sync = null;
 
 	/* close logfile */
-	if(handle.logstream) {
-		fclose(handle.logstream);
-		handle.logstream = null;
+	if(handle.logstream.isOpen) {
+		handle.logstream.close();
 	}
 	if(handle.usesyslog) {
 		handle.usesyslog = 0;
@@ -691,9 +691,8 @@ int  alpm_option_set_logfile(AlpmHandle handle,   char*logfile)
 	if(oldlogfile) {
 		FREE(oldlogfile);
 	}
-	if(handle.logstream) {
-		fclose(handle.logstream);
-		handle.logstream = null;
+	if(handle.logstream.isOpen()) {
+		handle.logstream.close();
 	}
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'logfile' = %s\n", handle.logfile);
 	return 0;

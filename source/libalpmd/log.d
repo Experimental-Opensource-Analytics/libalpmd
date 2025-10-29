@@ -101,14 +101,15 @@ int  alpm_logaction(AlpmHandle handle,   char*prefix,   char*fmt, ...)
 	}
 
 	/* check if the logstream is open already, opening it if needed */
-	if(handle.logstream == null && handle.logfile != null) {
+	if(!(handle.logstream.isOpen) && handle.logfile != null) {
 		int fd = void;
 		do {
 			fd = open(handle.logfile, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC,
 					octal!"0644");
 		} while(fd == -1 && errno == EINTR);
 		/* if we couldn't open it, we have an issue */
-		if(fd < 0 || (handle.logstream = fdopen(fd, "a")) == null) {
+		handle.logstream.fdopen(fd, "a");
+		if(fd < 0) {
 			if(errno == EACCES) {
 				handle.pm_errno = ALPM_ERR_BADPERMS;
 			} else if(errno == ENOENT) {
@@ -131,13 +132,13 @@ int  alpm_logaction(AlpmHandle handle,   char*prefix,   char*fmt, ...)
 		va_end(args_syslog);
 	}
 
-	if(handle.logstream) {
-		if(_alpm_log_leader(handle.logstream, prefix) < 0
-				|| vfprintf(handle.logstream, fmt, args) < 0) {
+	if(handle.logstream.isOpen()) {
+		if(_alpm_log_leader(handle.logstream.getFP, prefix) < 0
+				|| vfprintf(handle.logstream.getFP, fmt, args) < 0) {
 			ret = -1;
 			handle.pm_errno = ALPM_ERR_SYSTEM;
 		}
-		fflush(handle.logstream);
+		handle.logstream.flush();
 	}
 
 	va_end(args);
