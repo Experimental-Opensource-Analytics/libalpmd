@@ -47,6 +47,8 @@ import libalpmd.backup;
 
 import libalpmd.db;
 
+import std.conv;
+
 
 
 /**
@@ -341,7 +343,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 		snprintf(path.ptr, PATH_MAX, "%s%s%s", dirpath, name, is_dir ? "/".ptr : "".ptr);
 
 		for(i = pkgs; i && !owned; i = i.next) {
-			if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.ptr)) {
+			if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.to!string)) {
 				owned = 1;
 			}
 		}
@@ -365,7 +367,7 @@ private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 {
 	alpm_list_t* i = void, owners = null;
 	for(i = alpm_db_get_pkgcache(db); i; i = i.next) {
-		if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path)) {
+		if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.to!string)) {
 			owners = alpm_list_add(owners, i.data);
 		}
 	}
@@ -376,7 +378,7 @@ private AlpmPkg _alpm_find_file_owner(AlpmHandle handle,   char*path)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
-		if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path)) {
+		if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.to!string)) {
 			return cast(AlpmPkg)i.data;
 		}
 	}
@@ -452,7 +454,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 					 * checking presence in p2_files detects dir-file or file-dir
 					 * conflicts as the path from p1 is returned */
 					if(_alpm_can_overwrite_file(handle, filename, path.ptr)
-							&& alpm_filelist_contains(p2_files, filename)) {
+							&& alpm_filelist_contains(p2_files, filename.to!string)) {
 						_alpm_log(handle, ALPM_LOG_DEBUG,
 							"%s exists in both '%s' and '%s'\n", filename,
 							p1.name, p2.name);
@@ -493,7 +495,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			alpm_filelist_t* fl = alpm_pkg_get_files(p1);
 			size_t filenum = void;
 			for(filenum = 0; filenum < fl.count; filenum++) {
-				newfiles = alpm_list_add(newfiles, fl.files[filenum].name);
+				newfiles = alpm_list_add(newfiles, cast(char*)fl.files[filenum].name);
 			}
 		}
 
@@ -530,7 +532,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				path[pathlen - 1] = '\0';
 
 				/* Check if the directory was a file in dbpkg */
-				if(alpm_filelist_contains(alpm_pkg_get_files(dbpkg), relative_path)) {
+				if(alpm_filelist_contains(alpm_pkg_get_files(dbpkg), relative_path.to!string)) {
 					size_t fslen = strlen(filestr);
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"replacing package file with a directory, not a conflict\n");
@@ -552,7 +554,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			for(k = rem; k && !resolved_conflict; k = k.next) {
 				AlpmPkg rempkg = cast(AlpmPkg)k.data;
 				if(rempkg && alpm_filelist_contains(alpm_pkg_get_files(rempkg),
-							relative_path)) {
+							relative_path.to!string)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"local file will be removed, not a conflict\n");
 					resolved_conflict = 1;
@@ -582,7 +584,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				localp2 = _alpm_db_get_pkgfromcache(handle.db_local, p2.name);
 
 				/* localp2->files will be removed (target conflicts are handled by CHECK 1) */
-				if(localp2 && alpm_filelist_contains(alpm_pkg_get_files(localp2), relative_path)) {
+				if(localp2 && alpm_filelist_contains(alpm_pkg_get_files(localp2), relative_path.to!string)) {
 					size_t fslen = strlen(filestr);
 
 					/* skip removal of file, but not add. this will prevent a second
@@ -646,7 +648,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				alpm_list_t* local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
 				int found = 0;
 				for(k = local_pkgs; k && !found; k = k.next) {
-					if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)k.data), relative_path)) {
+					if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)k.data), relative_path.to!string)) {
 							found = 1;
 					}
 				}

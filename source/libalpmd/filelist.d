@@ -30,11 +30,12 @@ import libalpmd.filelist;
 import libalpmd.util;
 import libalpmd.alpm_list;
 import libalpmd.alpm;
+import std.conv;
 
 /** File in a package */
 struct AlpmFile {
        /** Name of the file */
-       char* name;
+       string name;
        /** Size of the file */
        off_t size;
        /** The file's permissions */
@@ -51,13 +52,13 @@ alpm_list_t* _alpm_filelist_difference(alpm_filelist_t* filesA, alpm_filelist_t*
 	size_t ctrA = 0, ctrB = 0;
 
 	while(ctrA < filesA.count && ctrB < filesB.count) {
-		char* strA = filesA.files[ctrA].name;
-		char* strB = filesB.files[ctrB].name;
+		string strA = filesA.files[ctrA].name;
+		string strB = filesB.files[ctrB].name;
 
-		int cmp = strcmp(strA, strB);
+		int cmp = strA == strB;
 		if(cmp < 0) {
 			/* item only in filesA, qualifies as a difference */
-			ret = alpm_list_add(ret, strA);
+			ret = alpm_list_add(ret, cast(void*)strA);
 			ctrA++;
 		} else if(cmp > 0) {
 			ctrB++;
@@ -69,7 +70,7 @@ alpm_list_t* _alpm_filelist_difference(alpm_filelist_t* filesA, alpm_filelist_t*
 
 	/* ensure we have completely emptied pA */
 	while(ctrA < filesA.count) {
-		ret = alpm_list_add(ret, filesA.files[ctrA].name);
+		ret = alpm_list_add(ret, cast(char*)filesA.files[ctrA].name);
 		ctrA++;
 	}
 
@@ -104,16 +105,16 @@ alpm_list_t* _alpm_filelist_intersection(alpm_filelist_t* filesA, alpm_filelist_
 	AlpmFile* arrA = filesA.files, arrB = filesB.files;
 
 	while(ctrA < filesA.count && ctrB < filesB.count) {
-		  char*strA = arrA[ctrA].name, strB = arrB[ctrB].name;
-		int cmp = _alpm_filelist_pathcmp(strA, strB);
+		string strA = arrA[ctrA].name, strB = arrB[ctrB].name;
+		int cmp = _alpm_filelist_pathcmp(cast(char*)strA, cast(char*)strB);
 		if(cmp < 0) {
 			ctrA++;
 		} else if(cmp > 0) {
 			ctrB++;
 		} else {
 			/* when not directories, item in both qualifies as an intersect */
-			if(strA[strlen(strA) - 1] != '/' || strB[strlen(strB) - 1] != '/') {
-				ret = alpm_list_add(ret, arrA[ctrA].name);
+			if(strA[$ - 1] != '/' || strB[$ - 1] != '/') {
+				ret = alpm_list_add(ret, cast(char*)arrA[ctrA].name);
 			}
 			ctrA++;
 			ctrB++;
@@ -132,7 +133,7 @@ extern (C) int _alpm_files_cmp(const void* f1, const void* f2)
 	return strcmp(cast(char*)file1.name, cast(char*)file2.name);
 }
 
-AlpmFile * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
+AlpmFile * alpm_filelist_contains( alpm_filelist_t* filelist, string path)
 {
 	AlpmFile key = AlpmFile.init;
 
@@ -140,7 +141,7 @@ AlpmFile * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
 		return null;
 	}
 
-	key.name = cast(char*)path;
+	key.name = path.to!string;
 
 	return cast(AlpmFile*)bsearch(cast(const void*)&key, cast(void*)filelist.files, filelist.count,
 			AlpmFile.sizeof, &_alpm_files_cmp);
@@ -150,7 +151,7 @@ void _alpm_filelist_sort(alpm_filelist_t* filelist)
 {
 	size_t i = 0;
 	for(i = 1; i < filelist.count; i++) {
-		if(strcmp(filelist.files[i - 1].name, filelist.files[i].name) > 0) {
+		if(filelist.files[i - 1].name == filelist.files[i].name) {
 			/* filelist is not pre-sorted */
 			qsort(filelist.files, filelist.count,
 					AlpmFile.sizeof, &_alpm_files_cmp);

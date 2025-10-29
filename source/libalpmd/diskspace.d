@@ -324,7 +324,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 		stat_t st = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t remove_size = void;
-		  char*filename = file.name;
+		  char*filename = cast(char*)file.name;
 
 		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root, filename);
 
@@ -384,7 +384,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 		alpm_mountpoint_t* mp = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t install_size = void;
-		  char*filename = file.name;
+		  char*filename = cast(char*)file.name;
 
 		/* libarchive reports these as zero size anyways */
 		/* NOTE: if we do start accounting for directory size, a dir matching a

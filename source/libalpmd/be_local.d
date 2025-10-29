@@ -885,8 +885,8 @@ private int local_db_read(AlpmPkg info, int inforeq)
 					/* since we know the length of the file string already,
 					 * we can do malloc + memcpy rather than strdup */
 					len += 1;
-					MALLOC(files[files_count].name, len);
-					memcpy(files[files_count].name, line.ptr, len);
+					MALLOC(cast(char*)files[files_count].name, len);
+					memcpy(cast(char*)files[files_count].name, line.ptr, len);
 					files_count++;
 				}
 				/* attempt to hand back any memory we don't need */
@@ -1123,7 +1123,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			fputs("%FILES%\n", fp);
 			for(i = 0; i < info.files.count; i++) {
 				AlpmFile* file = info.files.files + i;
-				fputs(file.name, fp);
+				fputs(cast(char*)file.name, fp);
 				fputc('\n', fp);
 			}
 			fputc('\n', fp);

@@ -38,6 +38,8 @@ import core.sys.posix.unistd;
 import core.sys.posix.sys.stat;
 import core.sys.posix.sys.types;
 
+import std.conv;
+
 /* libalpm */
 import libalpmd.remove;
 import libalpmd.alpm_list;
@@ -329,9 +331,9 @@ private int can_remove_file(AlpmHandle handle,  AlpmFile* file)
 {
 	char[PATH_MAX] filepath = void;
 
-	snprintf(filepath.ptr, PATH_MAX, "%s%s", handle.root, file.name);
+	snprintf(filepath.ptr, PATH_MAX, "%s%s", handle.root, cast(char*)file.name);
 
-	if(file.name[strlen(file.name) - 1] == '/' &&
+	if(file.name[$ - 1] == '/' &&
 			dir_is_mountpoint(handle, filepath.ptr, null)) {
 		/* we do not remove mountpoints */
 		return 1;
@@ -449,7 +451,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 	char[PATH_MAX] file = void;
 	int file_len = void;
 
-	file_len = snprintf(file.ptr, PATH_MAX, "%s%s", handle.root, fileobj.name);
+	file_len = snprintf(file.ptr, PATH_MAX, "%s%s", handle.root, cast(char*)fileobj.name);
 	if(file_len <= 0 || file_len >= PATH_MAX) {
 		/* 0 is a valid value from snprintf, but should be impossible here */
 		_alpm_log(handle, ALPM_LOG_DEBUG, "path too long to unlink %s%s\n",
@@ -531,7 +533,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 		}
 	} else {
 		/* if the file needs backup and has been modified, back it up to .pacsave */
-		alpm_backup_t* backup = _alpm_needbackup(fileobj.name, oldpkg);
+		alpm_backup_t* backup = _alpm_needbackup(cast(char*)fileobj.name, oldpkg);
 		if(backup) {
 			if(nosave) {
 				_alpm_log(handle, ALPM_LOG_DEBUG, "transaction is set to NOSAVE, not backing up '%s'\n", file.ptr);
@@ -595,7 +597,7 @@ private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
 	return _alpm_fnmatch_patterns(handle.noupgrade, path) == 0
 		|| alpm_list_find_str(handle.trans.skip_remove, path)
 		|| (newpkg && _alpm_needbackup(path, newpkg)
-				&& alpm_filelist_contains(alpm_pkg_get_files(newpkg), path));
+				&& alpm_filelist_contains(alpm_pkg_get_files(newpkg), path.to!string));
 }
 
 /**
@@ -621,7 +623,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 	filelist = alpm_pkg_get_files(oldpkg);
 	for(i = 0; i < filelist.count; i++) {
 		AlpmFile* file = filelist.files + i;
-		if(!should_skip_file(handle, newpkg, file.name)
+		if(!should_skip_file(handle, newpkg, cast(char*)file.name)
 				&& !can_remove_file(handle, file)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"not removing package '%s', can't remove all files\n",
@@ -645,7 +647,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 		/* check the remove skip list before removing the file.
 		 * see the big comment block in db_find_fileconflicts() for an
 		 * explanation. */
-		if(should_skip_file(handle, newpkg, file.name)) {
+		if(should_skip_file(handle, newpkg, cast(char*)file.name)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"%s is in skip_remove, skipping removal\n", file.name);
 			continue;

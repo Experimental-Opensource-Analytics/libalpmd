@@ -688,7 +688,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 								(files_count ? (files_count + 1) * AlpmFile.sizeof : 8 * AlpmFile.sizeof))) {
 						goto error;
 					}
-					STRDUP(files[files_count].name, line);
+					files[files_count].name = line.to!string;
 					files_count++;
 				}
 				/* attempt to hand back any memory we don't need */

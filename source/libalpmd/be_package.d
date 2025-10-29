@@ -431,9 +431,9 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
 		strcpy(newpath, path);
 		newpath[pathlen] = '/';
 		newpath[pathlen + 1] = '\0';
-		current_file.name = newpath;
+		current_file.name = newpath.to!string;
 	} else {
-		STRDUP(current_file.name, path);
+		current_file.name = path.to!string;
 	}
 	current_file.size = archive_entry_size(entry);
 	current_file.mode = archive_entry_mode(entry);
@@ -531,7 +531,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 
 	/* throw away any files we loaded directly from the archive */
 	for(i = 0; i < pkg.files.count; i++) {
-		free(pkg.files.files[i].name);
+		free(cast(char*)pkg.files.files[i].name);
 	}
 	free(pkg.files.files);
 
@@ -545,7 +545,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 error:
 	/* throw away any files we loaded from the mtree */
 	for(i = 0; i < filelist.count; i++) {
-		free(filelist.files[i].name);
+		free(cast(char*)filelist.files[i].name);
 	}
 	free(filelist.files);
 

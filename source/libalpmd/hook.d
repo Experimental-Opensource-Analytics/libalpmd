@@ -314,11 +314,11 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 		alpm_filelist_t filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.count; f++) {
-			if(alpm_option_match_noextract(handle, filelist.files[f].name) == 0) {
+			if(alpm_option_match_noextract(handle, cast(char*)filelist.files[f].name) == 0) {
 				continue;
 			}
-			if(_alpm_fnmatch_patterns(t.targets, filelist.files[f].name) == 0) {
-				install = alpm_list_add(install, filelist.files[f].name);
+			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.files[f].name) == 0) {
+				install = alpm_list_add(install, cast(char*)filelist.files[f].name);
 				isize++;
 			}
 		}
@@ -332,8 +332,8 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 			alpm_filelist_t filelist = pkg.files;
 			size_t f = void;
 			for(f = 0; f < filelist.count; f++) {
-				if(_alpm_fnmatch_patterns(t.targets, filelist.files[f].name) == 0) {
-					remove = alpm_list_add(remove, filelist.files[f].name);
+				if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.files[f].name) == 0) {
+					remove = alpm_list_add(remove, cast(char*)filelist.files[f].name);
 					rsize++;
 				}
 			}
@@ -346,8 +346,8 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 		alpm_filelist_t filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.count; f++) {
-			if(_alpm_fnmatch_patterns(t.targets, filelist.files[f].name) == 0) {
-				remove = alpm_list_add(remove, filelist.files[f].name);
+			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.files[f].name) == 0) {
+				remove = alpm_list_add(remove, cast(char*)filelist.files[f].name);
 				rsize++;
 			}
 		}

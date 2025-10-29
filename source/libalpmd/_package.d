@@ -650,7 +650,7 @@ alpm_list_t * alpm_pkg_compute_optionalfor(AlpmPkg pkg)
 
 AlpmFile* _alpm_file_copy(AlpmFile* dest, AlpmFile* src)
 {
-	STRDUP(dest.name, src.name);
+	dest.name = src.name;
 	dest.size = src.size;
 	dest.mode = src.mode;
 
