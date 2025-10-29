@@ -100,7 +100,7 @@ class AlpmPkg {
 	c_ulong name_hash;
 	string filename;
 	char* base;
-	char* name;
+	string name;
 	char* version_;
 	char* desc;
 	char* url;
@@ -284,9 +284,7 @@ AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg)
 	return pkg.handle;
 }
 
-  char*alpm_pkg_get_name(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
+string alpm_pkg_get_name(AlpmPkg pkg) {
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.name;
 }
@@ -600,9 +598,9 @@ void find_requiredby(AlpmPkg pkg, AlpmDB db, alpm_list_t** reqs, int optional)
 
 		for(; j; j = j.next) {
 			if(_alpm_depcmp(pkg, cast(alpm_depend_t*)j.data)) {
-				  char*cachepkgname = cachepkg.name;
+				string cachepkgname = cachepkg.name;
 				if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
-					*reqs = alpm_list_add(*reqs, strdup(cachepkgname));
+					*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup);
 				}
 			}
 		}
@@ -707,7 +705,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.name_hash = pkg.name_hash;
 	newpkg.filename = pkg.filename.dup;
 	STRDUP(newpkg.base, pkg.base);
-	STRDUP(newpkg.name, pkg.name);
+	newpkg.name = pkg.name.dup;
 	STRDUP(newpkg.version_, pkg.version_);
 	STRDUP(newpkg.desc, pkg.desc);
 	STRDUP(newpkg.url, pkg.url);
@@ -865,7 +863,7 @@ int _alpm_pkg_cmp( void* p1,  void* p2)
 {
 	 AlpmPkg pkg1 = cast( AlpmPkg)p1;
 	 AlpmPkg pkg2 = cast( AlpmPkg)p2;
-	return strcmp(pkg1.name, pkg2.name);
+	return pkg1.name == pkg2.name;
 }
 
 /* Test for existence of a package in a alpm_list_t*
@@ -891,7 +889,7 @@ AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 			}
 
 			/* finally: we had hash match, verify string match */
-			if(strcmp(info.name, needle) == 0) {
+			if(strcmp(cast(char*)info.name, needle) == 0) {
 				return info;
 			}
 		}
@@ -904,7 +902,7 @@ int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
 	alpm_list_t* groups = null;
 
 	/* first see if the package is ignored */
-	if(alpm_list_find(handle.ignorepkg, pkg.name, &fnmatch_wrapper)) {
+	if(alpm_list_find(handle.ignorepkg, cast(char*)pkg.name, &fnmatch_wrapper)) {
 		return 1;
 	}
 
@@ -947,7 +945,7 @@ enum string EPKGMETA(string error) = `do {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package name cannot start with '.' or '-')\n")`));
 	}
-	if(_alpm_fnmatch(pkg.name, cast(char*)"[![:alnum:]+_.@-]") == 0) {
+	if(_alpm_fnmatch(cast(char*)pkg.name, cast(char*)"[![:alnum:]+_.@-]") == 0) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package name contains invalid characters)\n")`));
 	}
@@ -964,7 +962,7 @@ enum string EPKGMETA(string error) = `do {
 	}
 
 	/* local db entry is <pkgname>-<pkgver> */
-	if(strlen(pkg.name) + strlen(pkg.version_) + 1 > NAME_MAX) {
+	if(pkg.name.length + strlen(pkg.version_) + 1 > NAME_MAX) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package name and version too long)\n")`));
 	}

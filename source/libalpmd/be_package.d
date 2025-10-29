@@ -203,8 +203,10 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			*ptr = '\0';
 			ptr += 3;
 			if(strcmp(key, "pkgname") == 0) {
-				STRDUP(newpkg.name, ptr);
-				newpkg.name_hash = _alpm_hash_sdbm(newpkg.name);
+				char* tmp = null;
+				STRDUP(tmp, ptr);
+				newpkg.name = tmp.to!string;
+				newpkg.name_hash = _alpm_hash_sdbm(cast(char*)newpkg.name);
 			} else if(strcmp(key, "pkgbase") == 0) {
 				STRDUP(newpkg.base, ptr);
 			} else if(strcmp(key, "pkgver") == 0) {
@@ -612,7 +614,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 						pkgfile);
 				goto pkg_invalid;
 			}
-			if(newpkg.name == null || strlen(newpkg.name) == 0) {
+			if(newpkg.name == "") {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package name in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}

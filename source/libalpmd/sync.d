@@ -69,7 +69,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
 
 	for(i = dbs_sync; !spkg && i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
-		spkg = _alpm_db_get_pkgfromcache(db, pkg.name);
+		spkg = _alpm_db_get_pkgfromcache(db, cast(char*)pkg.name);
 	}
 
 	if(spkg is null) {
@@ -171,7 +171,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 
 			/* If spkg is already in the target list, we append lpkg to spkg's
 			 * removes list */
-			tpkg = alpm_pkg_find(handle.trans.add, spkg.name);
+			tpkg = alpm_pkg_find(handle.trans.add, cast(char*)spkg.name);
 			if(tpkg) {
 				/* sanity check, multiple repos can contain spkg->name */
 				if(tpkg.origin_data.db != sdb) {
@@ -214,12 +214,12 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	for(auto i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
 		AlpmPkg lpkg = cast(AlpmPkg)i.data;
 
-		if(alpm_pkg_find(trans.remove, lpkg.name)) {
+		if(alpm_pkg_find(trans.remove, cast(char*)lpkg.name)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "%s is marked for removal -- skipping\n", lpkg.name);
 			continue;
 		}
 
-		if(alpm_pkg_find(trans.add, lpkg.name)) {
+		if(alpm_pkg_find(trans.add, cast(char*)lpkg.name)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "%s is already in the target list -- skipping\n", lpkg.name);
 			continue;
 		}
@@ -240,7 +240,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 				/* jump to next local package */
 				break;
 			} else {
-				AlpmPkg spkg = _alpm_db_get_pkgfromcache(sdb, lpkg.name);
+				AlpmPkg spkg = _alpm_db_get_pkgfromcache(sdb, cast(char*)lpkg.name);
 				if(spkg) {
 					if(check_literal(handle, lpkg, spkg, enable_downgrade)) {
 						trans.add = alpm_list_add(trans.add, cast(void*)spkg);
@@ -271,11 +271,11 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			alpm_trans_t* trans = db.handle.trans;
 
-			if(alpm_pkg_find(ignorelist, pkg.name)) {
+			if(alpm_pkg_find(ignorelist, cast(char*)pkg.name)) {
 				continue;
 			}
 			if(trans != null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
-				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.db_local, pkg.name);
+				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.db_local, cast(char*)pkg.name);
 				if(local && _alpm_pkg_compare_versions(pkg, local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
 					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
@@ -296,7 +296,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 					continue;
 				}
 			}
-			if(!alpm_pkg_find(pkgs, pkg.name)) {
+			if(!alpm_pkg_find(pkgs, cast(char*)pkg.name)) {
 				pkgs = alpm_list_add(pkgs, cast(void*)pkg);
 			}
 		}
@@ -490,7 +490,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		/* Set DEPEND reason for pulled packages */
 		for(auto i = resolved; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			if(!alpm_pkg_find(trans.add, pkg.name)) {
+			if(!alpm_pkg_find(trans.add, cast(char*)pkg.name)) {
 				pkg.reason = ALPM_PKG_REASON_DEPEND;
 			}
 		}
@@ -521,13 +521,13 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		for(auto i = deps; i; i = i.next) {
 			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
-			  char*name1 = conflict.package1.name;
-			  char*name2 = conflict.package2.name;
+			string name1 = conflict.package1.name;
+			string name2 = conflict.package2.name;
 			AlpmPkg rsync = void, sync = void, sync1 = void, sync2 = void;
 
 			/* have we already removed one of the conflicting targets? */
-			sync1 = alpm_pkg_find(trans.add, name1);
-			sync2 = alpm_pkg_find(trans.add, name2);
+			sync1 = alpm_pkg_find(trans.add, cast(char*)name1);
+			sync2 = alpm_pkg_find(trans.add, cast(char*)name2);
 			if(!sync1 || !sync2) {
 				continue;
 			}
@@ -536,8 +536,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 					name1, name2);
 
 			/* if sync1 provides sync2, we remove sync2 from the targets, and vice versa */
-			alpm_depend_t* dep1 = alpm_dep_from_string(name1);
-			alpm_depend_t* dep2 = alpm_dep_from_string(name2);
+			alpm_depend_t* dep1 = alpm_dep_from_string(cast(char*)name1);
+			alpm_depend_t* dep2 = alpm_dep_from_string(cast(char*)name2);
 			if(_alpm_depcmp(sync1, dep2)) {
 				rsync = sync2;
 				sync = sync1;
@@ -587,18 +587,18 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				conflict: cast(alpm_conflict_t*)i.data
 			};
 			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
-			  char*name1 = conflict.package1.name;
-			  char*name2 = conflict.package2.name;
+			string name1 = conflict.package1.name;
+			string name2 = conflict.package2.name;
 			int found = 0;
 
 			/* if name2 (the local package) is not elected for removal,
 			   we ask the user */
-			if(alpm_pkg_find(trans.remove, name2)) {
+			if(alpm_pkg_find(trans.remove, cast(char*)name2)) {
 				found = 1;
 			}
 			for(j = trans.add; j && !found; j = j.next) {
 				AlpmPkg spkg = cast(AlpmPkg)j.data;
-				if(alpm_pkg_find(spkg.removes, name2)) {
+				if(alpm_pkg_find(spkg.removes, cast(char*)name2)) {
 					found = 1;
 				}
 			}
@@ -612,8 +612,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			QUESTION(handle, &question);
 			if(question.remove) {
 				/* append to the removes list */
-				AlpmPkg sync = alpm_pkg_find(trans.add, name1);
-				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.db_local, name2);
+				AlpmPkg sync = alpm_pkg_find(trans.add, cast(char*)name1);
+				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)name2);
 				_alpm_log(handle, ALPM_LOG_DEBUG, "electing '%s' for removal\n", name2);
 				sync.removes = alpm_list_add(sync.removes, cast(void*)local);
 			} else { /* abort */
@@ -642,7 +642,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		for(j = spkg.removes; j; j = j.next) {
 			AlpmPkg rpkg = cast(AlpmPkg)j.data;
-			if(!alpm_pkg_find(trans.remove, rpkg.name)) {
+			if(!alpm_pkg_find(trans.remove, cast(char*)rpkg.name)) {
 				AlpmPkg copy = void;
 				_alpm_log(handle, ALPM_LOG_DEBUG, "adding '%s' to remove list\n", rpkg.name);
 				if(_alpm_pkg_dup(rpkg, &copy) == -1) {
@@ -673,7 +673,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	for(auto i = trans.add; i; i = i.next) {
 		/* update download size field */
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
-		AlpmPkg lpkg = alpm_db_get_pkg(handle.db_local, spkg.name);
+		AlpmPkg lpkg = alpm_db_get_pkg(handle.db_local, cast(char*)spkg.name);
 		if(compute_download_size(spkg) < 0) {
 			ret = -1;
 			goto cleanup;
@@ -1051,7 +1051,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 							("%s: missing required signature\n"), v.pkg.name);
 					break;
 				case ALPM_ERR_PKG_INVALID_SIG:
-					_alpm_process_siglist(handle, v.pkg.name, v.siglist,
+					_alpm_process_siglist(handle, cast(char*)v.pkg.name, v.siglist,
 							v.siglevel & ALPM_SIG_PACKAGE_OPTIONAL,
 							v.siglevel & ALPM_SIG_PACKAGE_MARGINAL_OK,
 							v.siglevel & ALPM_SIG_PACKAGE_UNKNOWN_OK);
@@ -1122,7 +1122,7 @@ enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do {
 	} 
 } while(0);`;
 
-	if(strcmp(spkg.name, pkgfile.name) != 0) {
+	if(spkg.name != pkgfile.name) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				"internal package name mismatch, expected: '%s', actual: '%s'\n",
 				spkg.name, pkgfile.name);

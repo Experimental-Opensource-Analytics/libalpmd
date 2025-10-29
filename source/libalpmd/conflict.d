@@ -114,8 +114,8 @@ private int conflict_isin(alpm_conflict_t* needle, alpm_list_t* haystack)
 		alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
 		if(needle.package1.name_hash == conflict.package1.name_hash
 				&& needle.package2.name_hash == conflict.package2.name_hash
-				&& strcmp(needle.package1.name, conflict.package1.name) == 0
-				&& strcmp(needle.package2.name, conflict.package2.name) == 0) {
+				&& needle.package1.name == conflict.package1.name
+				&& needle.package2.name == conflict.package2.name) {
 			return 1;
 		}
 	}
@@ -185,7 +185,7 @@ private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* 
 				AlpmPkg pkg2 = cast(AlpmPkg)k.data;
 
 				if(pkg1.name_hash == pkg2.name_hash
-						&& strcmp(pkg1.name, pkg2.name) == 0) {
+						&& pkg1.name == pkg2.name) {
 					/* skip the package we're currently processing */
 					continue;
 				}
@@ -266,22 +266,22 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 	alpm_fileconflict_t* conflict = void;
 	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof);
 
-	STRDUP(conflict.target, pkg1.name);
+	STRDUP(conflict.target, cast(char*)pkg1.name);
 	STRDUP(conflict.file, filestr);
 	if(!pkg2) {
 		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
 		STRDUP(conflict.ctarget, cast(char*)"");
 	} else if(pkg2.origin == ALPM_PKG_FROM_LOCALDB) {
 		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
-		STRDUP(conflict.ctarget, pkg2.name);
+		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
 	} else {
 		conflict.type = ALPM_FILECONFLICT_TARGET;
-		STRDUP(conflict.ctarget, pkg2.name);
+		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
 	}
 
 	conflicts = alpm_list_add(conflicts, conflict);
 	_alpm_log(handle, ALPM_LOG_DEBUG, "found file conflict %s, packages %s and %s\n",
-	          filestr, pkg1.name, pkg2 ? pkg2.name : "(filesystem)");
+	          filestr, pkg1.name, pkg2 ? cast(char*)pkg2.name : "(filesystem)");
 
 	return conflicts;
 
@@ -479,7 +479,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		/* CHECK 2: check every target against the filesystem */
 		_alpm_log(handle, ALPM_LOG_DEBUG, "searching for filesystem conflicts: %s\n",
 				p1.name);
-		dbpkg = _alpm_db_get_pkgfromcache(handle.db_local, p1.name);
+		dbpkg = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)p1.name);
 
 		/* Do two different checks here. If the package is currently installed,
 		 * then only check files that are new in the new package. If the package
@@ -581,7 +581,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 					 * so they can be compared directly */
 					continue;
 				}
-				localp2 = _alpm_db_get_pkgfromcache(handle.db_local, p2.name);
+				localp2 = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)p2.name);
 
 				/* localp2->files will be removed (target conflicts are handled by CHECK 1) */
 				if(localp2 && alpm_filelist_contains(alpm_pkg_get_files(localp2), relative_path.to!string)) {

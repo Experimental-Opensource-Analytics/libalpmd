@@ -310,7 +310,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 
 	for(i = pkglist; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		if(alpm_pkg_find(rem, pkg.name) || alpm_pkg_find(upgrade, pkg.name)) {
+		if(alpm_pkg_find(rem, cast(char*)pkg.name) || alpm_pkg_find(upgrade, cast(char*)pkg.name)) {
 			modified = alpm_list_add(modified, cast(void*)pkg);
 		} else {
 			dblist = alpm_list_add(dblist, cast(void*)pkg);
@@ -343,7 +343,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 				_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: missing dependency '%s' for package '%s'\n",
 						missdepstring, tp.name);
 				free(missdepstring);
-				miss = depmiss_new(tp.name, depend, null);
+				miss = depmiss_new(cast(char*)tp.name, depend, null);
 				baddeps = alpm_list_add(baddeps, miss);
 			}
 			depend.mod = orig_mod;
@@ -375,7 +375,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 					_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: transaction would break '%s' dependency of '%s'\n",
 							missdepstring, lp.name);
 					free(missdepstring);
-					miss = depmiss_new(lp.name, depend, causingpkg.name);
+					miss = depmiss_new(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
 					baddeps = alpm_list_add(baddeps, miss);
 				}
 				depend.mod = orig_mod;
@@ -412,7 +412,7 @@ private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 int _alpm_depcmp_literal(AlpmPkg pkg, alpm_depend_t* dep)
 {
 	if(pkg.name_hash != dep.name_hash
-			|| strcmp(pkg.name, dep.name) != 0) {
+			|| strcmp(cast(char*)pkg.name, dep.name) != 0) {
 		/* skip more expensive checks */
 		return 0;
 	}
@@ -651,7 +651,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs
 
 		pkg = _alpm_db_get_pkgfromcache(db, dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
-				&& !alpm_pkg_find(excluding, pkg.name)) {
+				&& !alpm_pkg_find(excluding, cast(char*)pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
 				alpm_question_install_ignorepkg_t question = {
 					type: ALPM_QUESTION_INSTALL_IGNOREPKG,
@@ -680,9 +680,9 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs
 		}
 		for(auto j = _alpm_db_get_pkgcache(db); j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
-			if((pkg.name_hash != dep.name_hash || strcmp(pkg.name, dep.name) != 0)
+			if((pkg.name_hash != dep.name_hash || strcmp(cast(char*)pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg))
-					&& !alpm_pkg_find(excluding, pkg.name)) {
+					&& !alpm_pkg_find(excluding, cast(char*)pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
 					alpm_question_install_ignorepkg_t question = {
 						type: ALPM_QUESTION_INSTALL_IGNOREPKG,
@@ -704,7 +704,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs
 						pkg.name, dep.name);
 
 				/* provide is already installed so return early instead of prompting later */
-				if(_alpm_db_get_pkgfromcache(handle.db_local, pkg.name)) {
+				if(_alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkg.name)) {
 					alpm_list_free(providers);
 					return pkg;
 				}
@@ -791,7 +791,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	alpm_list_t* deps = null;
 	alpm_list_t* packages_copy = void;
 
-	if(alpm_pkg_find(*packages, pkg.name) !is null) {
+	if(alpm_pkg_find(*packages, cast(char*)pkg.name) !is null) {
 		return 0;
 	}
 

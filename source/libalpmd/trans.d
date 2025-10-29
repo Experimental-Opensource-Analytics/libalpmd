@@ -131,13 +131,13 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 		}
 
 		if(!found) {
-			char* string = void;
-			  char*pkgname = pkg.name;
+			char* _string = void;
+			string pkgname = pkg.name;
 			  char*pkgver = pkg.version_;
-			size_t len = strlen(pkgname) + strlen(pkgver) + strlen(pkgarch) + 3;
-			MALLOC(string, len);
-			snprintf(string, len, "%s-%s-%s", pkgname, pkgver, pkgarch);
-			invalid = alpm_list_add(invalid, string);
+			size_t len = pkgname.length + strlen(pkgver) + strlen(pkgarch) + 3;
+			MALLOC(_string, len);
+			snprintf(_string, len, "%s-%s-%s", cast(char*)pkgname, pkgver, pkgarch);
+			invalid = alpm_list_add(invalid, _string);
 		}
 	}
 	return invalid;

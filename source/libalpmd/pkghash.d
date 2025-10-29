@@ -284,7 +284,7 @@ alpm_pkghash_t* _alpm_pkghash_remove(alpm_pkghash_t* hash, AlpmPkg pkg, AlpmPkg*
 		AlpmPkg info = cast(AlpmPkg)i.data;
 
 		if(info.name_hash == pkg.name_hash &&
-					strcmp(info.name, pkg.name) == 0) {
+					info.name == pkg.name) {
 			uint stop = void, prev = void;
 
 			/* remove from list and hash */
@@ -360,7 +360,7 @@ AlpmPkg _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
 	while((lp = hash.hash_table[position]) != null) {
 		AlpmPkg info = cast(AlpmPkg)lp.data;
 
-		if(info.name_hash == name_hash && strcmp(info.name, name) == 0) {
+		if(info.name_hash == name_hash && strcmp(cast(char*)info.name, name) == 0) {
 			return info;
 		}
 

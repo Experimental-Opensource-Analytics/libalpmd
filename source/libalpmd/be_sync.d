@@ -327,7 +327,8 @@ int _sync_get_validation(AlpmPkg pkg)
 
 AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, AlpmPkg likely_pkg)
 {
-	char* pkgname = null, pkgver = null;
+	string pkgname = null;
+	char* pkgver = null;
 	c_ulong pkgname_hash = void;
 	AlpmPkg pkg = void;
 
@@ -340,17 +341,17 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 			*entry_filename = null;
 		}
 	}
-	if(_alpm_splitname(entryname, &pkgname, &pkgver, &pkgname_hash) != 0) {
+	if(_alpm_splitname(entryname, cast(char**)&pkgname, &pkgver, &pkgname_hash) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR,
 				("invalid name for database entry '%s'\n"), entryname);
 		return null;
 	}
 
 	if(likely_pkg && pkgname_hash == likely_pkg.name_hash
-			&& strcmp(likely_pkg.name, pkgname) == 0) {
+			&& likely_pkg.name == pkgname) {
 		pkg = likely_pkg;
 	} else {
-		pkg = _alpm_pkghash_find(db.pkgcache, pkgname);
+		pkg = _alpm_pkghash_find(db.pkgcache, cast(char*)pkgname);
 	}
 	if(pkg is null) {
 		pkg = _alpm_pkg_new();
@@ -380,7 +381,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
 		}
 	} else {
-		free(pkgname);
+		// free(pkgname);
 		free(pkgver);
 	}
 
@@ -612,7 +613,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 
 			if(strcmp(line, "%NAME%") == 0) {
 				mixin(READ_NEXT!());
-				if(strcmp(line, pkg.name) != 0) {
+				if(strcmp(line, cast(char*)pkg.name) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: name "
 								~ "mismatch on package %s\n"), db.treename, pkg.name);
 				}
@@ -625,7 +626,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%FILENAME%") == 0) {
 				auto pkgfilename = cast(char*)pkg.filename.ptr;
 				mixin(READ_AND_STORE!(`pkgfilename`));
-				if(_alpm_validate_filename(db, pkg.name, cast(char*)pkg.filename) < 0) {
+				if(_alpm_validate_filename(db, cast(char*)pkg.name, cast(char*)pkg.filename) < 0) {
 					return -1;
 				}
 			} else if(strcmp(line, "%BASE%") == 0) {

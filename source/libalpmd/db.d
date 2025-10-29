@@ -507,12 +507,12 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 		for(j = cast( alpm_list_t*) list; j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			  char*matched = null;
-			  char*name = pkg.name;
+			string name = pkg.name;
 			  char*desc = alpm_pkg_get_desc(pkg);
 
 			/* check name as plain text */
-			if(name && strstr(name, targ)) {
-				matched = name;
+			if(name && strstr(cast(char*)name, targ)) {
+				matched = cast(char*)name;
 			}
 			/* check desc */
 			else if(desc && strstr(desc, targ)) {

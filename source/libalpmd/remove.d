@@ -60,7 +60,8 @@ import libalpmd.be_local;
 
 int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
-	  char*pkgname = void;
+	auto pkgname = pkg.name;
+	// string pkgname = void;
 	alpm_trans_t* trans = void;
 	AlpmPkg copy = void;
 
@@ -74,9 +75,8 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(trans != null);
 	//ASSERT(trans.state == STATE_INITIALIZED);
 
-	pkgname = pkg.name;
 
-	if(alpm_pkg_find(trans.remove, pkgname)) {
+	if(alpm_pkg_find(trans.remove, cast(char*)pkgname)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
 		return 0;
 	}
@@ -109,7 +109,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 			AlpmPkg info = _alpm_db_get_pkgfromcache(handle.db_local, miss.target);
 			if(info) {
 				AlpmPkg copy = void;
-				if(!alpm_pkg_find(trans.remove, info.name)) {
+				if(!alpm_pkg_find(trans.remove, cast(char*)info.name)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG, "pulling %s in target list\n",
 							info.name);
 					if(_alpm_pkg_dup(info, &copy) == -1) {
@@ -180,7 +180,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		alpm_list_t* optdeps = alpm_pkg_get_optdepends(pkg);
 
-		if(optdeps && !alpm_pkg_find(lp, pkg.name)) {
+		if(optdeps && !alpm_pkg_find(lp, cast(char*)pkg.name)) {
 			alpm_list_t* j = void;
 			for(j = optdeps; j; j = alpm_list_next(j)) {
 				alpm_depend_t* optdep = cast(alpm_depend_t*)j.data;
@@ -510,7 +510,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 				/* we duplicated the package when we put it in the removal list, so we
 				 * so we can't use direct pointer comparison here. */
 				if(oldpkg.name_hash == local_pkg.name_hash
-						&& strcmp(oldpkg.name, local_pkg.name) == 0) {
+						&& oldpkg.name == local_pkg.name) {
 					continue;
 				}
 				filelist = alpm_pkg_get_files(local_pkg);
@@ -687,7 +687,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
  */
 int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg, size_t targ_count, size_t pkg_count)
 {
-	  char*pkgname = oldpkg.name;
+	 string pkgname = oldpkg.name;
 	  char*pkgver = oldpkg.version_;
 	alpm_event_package_operation_t event = {
 		type: ALPM_EVENT_PACKAGE_OPERATION_START,

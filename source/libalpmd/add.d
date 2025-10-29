@@ -32,7 +32,8 @@ import libalpmd.be_local;
 
 int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
-	  char*pkgname = void, pkgver = void;
+	string pkgname = pkg.name;
+	char* pkgver = void;
 	alpm_trans_t* trans = void;
 	AlpmPkg local = void;
 	AlpmPkg dup = void;
@@ -46,12 +47,11 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(trans != null);
 	//ASSERT(trans.state == STATE_INITIALIZED);
 
-	pkgname = pkg.name;
 	pkgver = pkg.version_;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package '%s'\n", pkgname);
 
-	if((dup = alpm_pkg_find(trans.add, pkgname)) !is null ) {
+	if((dup = alpm_pkg_find(trans.add, cast(char*)pkgname)) !is null ) {
 		if(dup == pkg) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
 			return 0;
@@ -60,8 +60,8 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 		RET_ERR(handle, ALPM_ERR_TRANS_DUP_TARGET, -1);
 	}
 
-	if((local = _alpm_db_get_pkgfromcache(handle.db_local, pkgname)) !is null) {
-		  char*localpkgname = local.name;
+	if((local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkgname)) !is null) {
+		string localpkgname = local.name;
 		  char*localpkgver = local.version_;
 		int cmp = _alpm_pkg_compare_versions(pkg, local);
 
@@ -163,7 +163,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			cast(char*)_alpm_db_path(handle.db_local), newpkg.name, newpkg.version_, dbfile);
+			cast(char*)_alpm_db_path(handle.db_local), cast(char*)newpkg.name, newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
@@ -410,7 +410,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	//ASSERT(trans != null);
 
 	/* see if this is an upgrade. if so, remove the old package first */
-	if(_alpm_db_get_pkgfromcache(db, newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
+	if(_alpm_db_get_pkgfromcache(db, cast(char*)newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
 		int cmp = _alpm_pkg_compare_versions(newpkg, oldpkg);
 		if(cmp < 0) {
 			log_msg = cast(char*)"downgrading";
