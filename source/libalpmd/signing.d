@@ -969,7 +969,7 @@ int _alpm_process_siglist(AlpmHandle handle,   char*identifier, alpm_siglist_t* 
 	return retry;
 }
 
-int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
+int  alpm_pkg_check_pgp_signature(AlpmPkg pkg, alpm_siglist_t* siglist)
 {
 	//ASSERT(pkg != null);
 	//ASSERT(siglist != null);

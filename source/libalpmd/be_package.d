@@ -65,7 +65,7 @@ struct package_changelog {
  * @param pkg the package (file) to read the changelog
  * @return a 'file stream' to the package changelog
  */
-private void* _package_changelog_open(alpm_pkg_t* pkg)
+private void* _package_changelog_open(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 
@@ -115,7 +115,7 @@ private void* _package_changelog_open(alpm_pkg_t* pkg)
  * @param fp a 'file stream' to the package changelog
  * @return the number of characters read, or 0 if there is no more data
  */
-private size_t _package_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg, void* fp)
+private size_t _package_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, void* fp)
 {
 	package_changelog* changelog = cast(package_changelog*)fp;
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
@@ -134,7 +134,7 @@ private size_t _package_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg,
  * @param fp a 'file stream' to the package changelog
  * @return whether closing the package changelog stream was successful
  */
-private int _package_changelog_close( alpm_pkg_t* pkg, void* fp)
+private int _package_changelog_close( AlpmPkg pkg, void* fp)
 {
 	int ret = void;
 	package_changelog* changelog = cast(package_changelog*)fp;
@@ -169,7 +169,7 @@ private const (pkg_operations)* get_file_pkg_ops()
  *
  * @return 0 on success, -1 on error
  */
-private int parse_descfile(AlpmHandle handle, archive* a, alpm_pkg_t* newpkg)
+private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 {
 	char* ptr = null;
 	char* key = null;
@@ -288,7 +288,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, alpm_pkg_t* newpkg)
  * @param validation successful validations performed on the package file
  * @return 0 if package is fully valid, -1 and pm_errno otherwise
  */
-int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, alpm_pkg_t* syncpkg, int level, alpm_siglist_t** sigdata, int* validation)
+int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncpkg, int level, alpm_siglist_t** sigdata, int* validation)
 {
 	int has_sig = void;
 	handle.pm_errno = ALPM_ERR_OK;
@@ -379,7 +379,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, alpm_pkg_t* s
  * @param path path to examine
  * @return 0 if path doesn't match any rule, 1 if it has been handled
  */
-private int handle_simple_path(alpm_pkg_t* pkg,   char*path)
+private int handle_simple_path(AlpmPkg pkg,   char*path)
 {
 	if(strcmp(path, ".INSTALL") == 0) {
 		pkg.scriptlet = 1;
@@ -452,7 +452,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
  * @param archive archive containing the mtree
  * @return 0 on success, <0 on error
  */
-private int build_filelist_from_mtree(AlpmHandle handle, alpm_pkg_t* pkg, archive* _archive)
+private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _archive)
 {
 	int ret = 0;
 	size_t i = void;
@@ -560,14 +560,14 @@ error:
  * @param full whether to stop the load after metadata is read or continue
  * through the full archive
  */
-alpm_pkg_t* _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
+AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 {
 	int ret = void, fd = void;
 	int config = 0;
 	int hit_mtree = 0;
 	archive* archive = void;
 	archive_entry* entry = void;
-	alpm_pkg_t* newpkg = void;
+	AlpmPkg newpkg = void;
 	stat_t st = void;
 	size_t files_size = 0;
 
@@ -588,7 +588,7 @@ alpm_pkg_t* _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	}
 
 	newpkg = _alpm_pkg_new();
-	if(newpkg == null) {
+	if(newpkg is null) {
 		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}
 	STRDUP(newpkg.filename, pkgfile);
@@ -729,11 +729,11 @@ private int read_sigfile(  char*sigpath, ubyte** sig)
 	return cast(int)st.st_size;
 }
 
-int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, alpm_pkg_t** pkg)
+int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, AlpmPkg* pkg)
 {
 	int validation = 0;
 	char* sigpath = void;
-	alpm_pkg_t* pkg_temp = void;
+	AlpmPkg pkg_temp = void;
 
 	CHECK_HANDLE(handle);
 	//ASSERT(pkg != null);
@@ -785,7 +785,7 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, alpm
 		return -1;
 	}
 	*pkg = _alpm_pkg_load_internal(handle, filename, full);
-	if(*pkg == null) {
+	if(*pkg is null) {
 		/* pm_errno is set by pkg_load */
 		return -1;
 	}

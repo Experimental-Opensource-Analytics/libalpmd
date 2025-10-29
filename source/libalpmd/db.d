@@ -375,9 +375,9 @@ int  alpm_db_get_valid(AlpmDB db)
 return db.ops.validate(db);
 }
 
-alpm_pkg_t * alpm_db_get_pkg(AlpmDB db,   char*name)
+AlpmPkg alpm_db_get_pkg(AlpmDB db,   char*name)
 {
-alpm_pkg_t* pkg = void;
+AlpmPkg pkg = void;
 //ASSERT(db != null);
 (cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 //ASSERT(name != null && strlen(name) != 0);
@@ -529,7 +529,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
 
 		for(j = cast( alpm_list_t*) list; j; j = j.next) {
-			alpm_pkg_t* pkg = cast(alpm_pkg_t*)j.data;
+			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			  char*matched = null;
 			  char*name = pkg.name;
 			  char*desc = alpm_pkg_get_desc(pkg);
@@ -569,7 +569,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 				_alpm_log(db.handle, ALPM_LOG_DEBUG,
 						"search target '%s' matched '%s' on package '%s'\n",
 						targ, matched, name);
-				*ret = alpm_list_add(*ret, pkg);
+				*ret = alpm_list_add(*ret, cast(void*)pkg);
 			}
 		}
 
@@ -670,11 +670,11 @@ alpm_list_t* _alpm_db_get_pkgcache(AlpmDB db)
 }
 
 /* "duplicate" pkg then add it to pkgcache */
-int _alpm_db_add_pkgincache(AlpmDB db, alpm_pkg_t* pkg)
+int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 {
-	alpm_pkg_t* newpkg = null;
+	AlpmPkg newpkg = null;
 
-	if(db is null || pkg == null || !(db.status & DB_STATUS_PKGCACHE)) {
+	if(db is null || pkg is null || !(db.status & DB_STATUS_PKGCACHE)) {
 		return -1;
 	}
 
@@ -703,11 +703,11 @@ int _alpm_db_add_pkgincache(AlpmDB db, alpm_pkg_t* pkg)
 	return 0;
 }
 
-int _alpm_db_remove_pkgfromcache(AlpmDB db, alpm_pkg_t* pkg)
+int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
 {
-	alpm_pkg_t* data = null;
+	AlpmPkg data = null;
 
-	if(db is null || pkg == null || !(db.status & DB_STATUS_PKGCACHE)) {
+	if(db is null || pkg is null || !(db.status & DB_STATUS_PKGCACHE)) {
 		return -1;
 	}
 
@@ -715,7 +715,7 @@ int _alpm_db_remove_pkgfromcache(AlpmDB db, alpm_pkg_t* pkg)
 						pkg.name, db.treename);
 
 	db.pkgcache = _alpm_pkghash_remove(db.pkgcache, pkg, &data);
-	if(data == null) {
+	if(data is null) {
 		/* package not found */
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "cannot remove entry '%s' from '%s' cache: not found\n",
 							pkg.name, db.treename);
@@ -729,7 +729,7 @@ int _alpm_db_remove_pkgfromcache(AlpmDB db, alpm_pkg_t* pkg)
 	return 0;
 }
 
-alpm_pkg_t* _alpm_db_get_pkgfromcache(AlpmDB db,   char*target)
+AlpmPkg _alpm_db_get_pkgfromcache(AlpmDB db,   char*target)
 {
 	if(db is null) {
 		return null;
@@ -758,7 +758,7 @@ private int load_grpcache(AlpmDB db)
 
 	for(lp = _alpm_db_get_pkgcache(db); lp; lp = lp.next) {
 		 alpm_list_t* i = void;
-		alpm_pkg_t* pkg = cast(alpm_pkg_t*)lp.data;
+		AlpmPkg pkg = cast(AlpmPkg)lp.data;
 
 		for(i = alpm_pkg_get_groups(pkg); i; i = i.next) {
 			  char*grpname =  cast(char*)i.data;
@@ -771,8 +771,8 @@ private int load_grpcache(AlpmDB db)
 				grp = cast(alpm_group_t*)j.data;
 
 				if(strcmp(grp.name, grpname) == 0
-						&& !alpm_list_find_ptr(grp.packages, pkg)) {
-					grp.packages = alpm_list_add(grp.packages, pkg);
+						&& !alpm_list_find_ptr(grp.packages, cast(void*)pkg)) {
+					grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
 					found = 1;
 					break;
 				}
@@ -786,7 +786,7 @@ private int load_grpcache(AlpmDB db)
 				free_groupcache(db);
 				return -1;
 			}
-			grp.packages = alpm_list_add(grp.packages, pkg);
+			grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
 			db.grpcache = alpm_list_add(db.grpcache, grp);
 		}
 	}

@@ -310,7 +310,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 
 	/* check if file will be installed */
 	for(i = handle.trans.add; i; i = i.next) {
-		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
+		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		alpm_filelist_t filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.count; f++) {
@@ -326,8 +326,8 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 
 	/* check if file will be removed due to package upgrade */
 	for(i = handle.trans.add; i; i = i.next) {
-		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
-		alpm_pkg_t* pkg = spkg.oldpkg;
+		AlpmPkg spkg = cast(AlpmPkg)i.data;
+		AlpmPkg pkg = spkg.oldpkg;
 		if(pkg) {
 			alpm_filelist_t filelist = pkg.files;
 			size_t f = void;
@@ -342,7 +342,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 
 	/* check if file will be removed due to package removal */
 	for(i = handle.trans.remove; i; i = i.next) {
-		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
+		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		alpm_filelist_t filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.count; f++) {
@@ -412,7 +412,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, 
 	if(t.op & ALPM_HOOK_OP_INSTALL || t.op & ALPM_HOOK_OP_UPGRADE) {
 		alpm_list_t* i = void;
 		for(i = handle.trans.add; i; i = i.next) {
-			alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
+			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			if(_alpm_fnmatch_patterns(t.targets, pkg.name) == 0) {
 				if(pkg.oldpkg) {
 					if(t.op & ALPM_HOOK_OP_UPGRADE) {
@@ -438,9 +438,9 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, 
 	if(t.op & ALPM_HOOK_OP_REMOVE) {
 		alpm_list_t* i = void;
 		for(i = handle.trans.remove; i; i = i.next) {
-			alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
+			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			if(pkg && _alpm_fnmatch_patterns(t.targets, pkg.name) == 0) {
-				if(!alpm_list_find(handle.trans.add, pkg, &_alpm_pkg_cmp)) {
+				if(!alpm_list_find(handle.trans.add, cast(void*)pkg, &_alpm_pkg_cmp)) {
 					if(hook.needs_targets) {
 						remove = alpm_list_add(remove, pkg.name);
 					} else {

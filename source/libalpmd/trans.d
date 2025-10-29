@@ -73,9 +73,9 @@ struct alpm_trans_t {
 	/* bitfield of alpm_transflag_t flags */
 	int flags;
 	alpm_transstate_t state;
-	alpm_list_t* unresolvable;  /* list of (alpm_pkg_t *) */
-	alpm_list_t* add;           /* list of (alpm_pkg_t *) */
-	alpm_list_t* remove;        /* list of (alpm_pkg_t *) */
+	alpm_list_t* unresolvable;  /* list of (AlpmPkg) */
+	alpm_list_t* add;           /* list of (AlpmPkg) */
+	alpm_list_t* remove;        /* list of (AlpmPkg) */
 	alpm_list_t* skip_remove;   /* list of (char *) */
 }
 
@@ -113,7 +113,7 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 		return null;
 	}
 	for(i = pkgs; i; i = i.next) {
-		alpm_pkg_t* pkg = cast(alpm_pkg_t*)i.data;
+		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		alpm_list_t* j = void;
 		int found = 0;
 		  char*pkgarch = alpm_pkg_get_arch(pkg);

@@ -79,139 +79,139 @@ enum string LAZY_LOAD(string info) = `
  * initialized.
  */
 
-  char*_cache_get_base(alpm_pkg_t* pkg)
+  char*_cache_get_base(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.base;
 }
 
-private   char*_cache_get_desc(alpm_pkg_t* pkg)
+private   char*_cache_get_desc(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.desc;
 }
 
-private   char*_cache_get_url(alpm_pkg_t* pkg)
+private   char*_cache_get_url(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.url;
 }
 
-private alpm_time_t _cache_get_builddate(alpm_pkg_t* pkg)
+private alpm_time_t _cache_get_builddate(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.builddate;
 }
 
-private alpm_time_t _cache_get_installdate(alpm_pkg_t* pkg)
+private alpm_time_t _cache_get_installdate(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.installdate;
 }
 
-private   char*_cache_get_packager(alpm_pkg_t* pkg)
+private   char*_cache_get_packager(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.packager;
 }
 
-private   char*_cache_get_arch(alpm_pkg_t* pkg)
+private   char*_cache_get_arch(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.arch;
 }
 
-private off_t _cache_get_isize(alpm_pkg_t* pkg)
+private off_t _cache_get_isize(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.isize;
 }
 
-private alpm_pkgreason_t _cache_get_reason(alpm_pkg_t* pkg)
+private alpm_pkgreason_t _cache_get_reason(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.reason;
 }
 
-private int _cache_get_validation(alpm_pkg_t* pkg)
+private int _cache_get_validation(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.validation;
 }
 
-alpm_list_t* _cache_get_licenses(alpm_pkg_t* pkg)
+alpm_list_t* _cache_get_licenses(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.licenses;
 }
 
-private alpm_list_t* _cache_get_groups(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_groups(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.groups;
 }
 
-private int _cache_has_scriptlet(alpm_pkg_t* pkg)
+private int _cache_has_scriptlet(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_SCRIPTLET`));
 	return pkg.scriptlet;
 }
 
-private alpm_list_t* _cache_get_depends(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_depends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.depends;
 }
 
-private alpm_list_t* _cache_get_optdepends(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_optdepends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.optdepends;
 }
 
-private alpm_list_t* _cache_get_makedepends(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_makedepends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.makedepends;
 }
 
-private alpm_list_t* _cache_get_checkdepends(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_checkdepends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.checkdepends;
 }
 
-private alpm_list_t* _cache_get_conflicts(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_conflicts(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.conflicts;
 }
 
-private alpm_list_t* _cache_get_provides(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_provides(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.provides;
 }
 
-private alpm_list_t* _cache_get_replaces(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_replaces(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.replaces;
 }
 
-private alpm_filelist_t* _cache_get_files(alpm_pkg_t* pkg)
+private alpm_filelist_t* _cache_get_files(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_FILES`));
 	return &(pkg.files);
 }
 
-private alpm_list_t* _cache_get_backup(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_backup(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_FILES`));
 	return pkg.backup;
 }
 
-private alpm_list_t* _cache_get_xdata(alpm_pkg_t* pkg)
+private alpm_list_t* _cache_get_xdata(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.xdata;
@@ -223,7 +223,7 @@ private alpm_list_t* _cache_get_xdata(alpm_pkg_t* pkg)
  * @param pkg the package (from db) to read the changelog
  * @return a 'file stream' to the package changelog
  */
-private void* _cache_changelog_open(alpm_pkg_t* pkg)
+private void* _cache_changelog_open(AlpmPkg pkg)
 {
 	AlpmDB db = alpm_pkg_get_db(pkg);
 	char* clfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"changelog");
@@ -241,7 +241,7 @@ private void* _cache_changelog_open(alpm_pkg_t* pkg)
  * @param fp a 'file stream' to the package changelog
  * @return the number of characters read, or 0 if there is no more data
  */
-private size_t _cache_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg, void* fp)
+private size_t _cache_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, void* fp)
 {
 	return fread(ptr, 1, size, cast(FILE*)fp);
 }
@@ -253,7 +253,7 @@ private size_t _cache_changelog_read(void* ptr, size_t size,  alpm_pkg_t* pkg, v
  * @param fp a 'file stream' to the package changelog
  * @return whether closing the package changelog stream was successful
  */
-private int _cache_changelog_close( alpm_pkg_t* pkg, void* fp)
+private int _cache_changelog_close( AlpmPkg pkg, void* fp)
 {
 	return fclose(cast(FILE*)fp);
 }
@@ -263,7 +263,7 @@ private int _cache_changelog_close( alpm_pkg_t* pkg, void* fp)
  * @param pkg the local package to read the changelog of
  * @return a archive structure for the package mtree file
  */
-private archive* _cache_mtree_open(alpm_pkg_t* pkg)
+private archive* _cache_mtree_open(AlpmPkg pkg)
 {
 	archive* mtree = void;
 
@@ -304,7 +304,7 @@ error:
  * @param entry an archive_entry to store the entry header information
  * @return 0 on success, 1 if end of archive is reached, -1 otherwise.
  */
-private int _cache_mtree_next( alpm_pkg_t* pkg, archive* mtree, archive_entry** entry)
+private int _cache_mtree_next( AlpmPkg pkg, archive* mtree, archive_entry** entry)
 {
 	int ret = void;
 	ret = archive_read_next_header(mtree, entry);
@@ -329,12 +329,12 @@ private int _cache_mtree_next( alpm_pkg_t* pkg, archive* mtree, archive_entry** 
  * @param mtree the archive structure use for reading from the mtree file
  * @return whether closing the package changelog stream was successful
  */
-private int _cache_mtree_close( alpm_pkg_t* pkg, archive* mtree)
+private int _cache_mtree_close( AlpmPkg pkg, archive* mtree)
 {
 	return _alpm_archive_read_free(mtree);
 }
 
-private int _cache_force_load(alpm_pkg_t* pkg)
+private int _cache_force_load(AlpmPkg pkg)
 {
 	return local_db_read(pkg, INFRQ_ALL);
 }
@@ -601,7 +601,7 @@ private int local_db_populate(AlpmDB db)
 	while((ent = readdir(dbdir)) != null) {
 		  char*name = ent.d_name.ptr;
 
-		alpm_pkg_t* pkg = void;
+		AlpmPkg pkg = void;
 
 		if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
 			continue;
@@ -611,7 +611,7 @@ private int local_db_populate(AlpmDB db)
 		}
 
 		pkg = _alpm_pkg_new();
-		if(pkg == null) {
+		if(pkg is null) {
 			closedir(dbdir);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 		}
@@ -679,7 +679,7 @@ private alpm_pkgreason_t _read_pkgreason(AlpmHandle handle,   char*pkgname,   ch
 }
 
 /* Note: the return value must be freed by the caller */
-char* _alpm_local_db_pkgpath(AlpmDB db, alpm_pkg_t* info,   char*filename)
+char* _alpm_local_db_pkgpath(AlpmDB db, AlpmPkg info,   char*filename)
 {
 	size_t len = void;
 	char* pkgpath = void;
@@ -722,7 +722,7 @@ enum string READ_AND_SPLITDEP(string f) = `do {
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, alpm_dep_from_string(line.ptr)); 
 } while(1); /* note the while(1) and not (0) */`;
 
-private int local_db_read(alpm_pkg_t* info, int inforeq)
+private int local_db_read(AlpmPkg info, int inforeq)
 {
 	FILE* fp = null;
 	char[1024] line = 0;
@@ -942,7 +942,7 @@ error:
 	return -1;
 }
 
-int _alpm_local_db_prepare(AlpmDB db, alpm_pkg_t* info)
+int _alpm_local_db_prepare(AlpmDB db, AlpmPkg info)
 {
 	mode_t oldmask = void;
 	int retval = 0;
@@ -983,14 +983,14 @@ private void write_deps(FILE* fp,   char*header, alpm_list_t* deplist)
 	fputc('\n', fp);
 }
 
-int _alpm_local_db_write(AlpmDB db, alpm_pkg_t* info, int inforeq)
+int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 {
 	FILE* fp = null;
 	mode_t oldmask = void;
 	alpm_list_t* lp = void;
 	int retval = 0;
 
-	if(db is null || info == null || !(db.status & DB_STATUS_LOCAL)) {
+	if(db is null || info is null || !(db.status & DB_STATUS_LOCAL)) {
 		return -1;
 	}
 
@@ -1148,7 +1148,7 @@ cleanup:
 	return retval;
 }
 
-int _alpm_local_db_remove(AlpmDB db, alpm_pkg_t* info)
+int _alpm_local_db_remove(AlpmDB db, AlpmPkg info)
 {
 	int ret = 0;
 	DIR* dirp = void;
@@ -1193,7 +1193,7 @@ int _alpm_local_db_remove(AlpmDB db, alpm_pkg_t* info)
 	return ret;
 }
 
-int  alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason)
+int  alpm_pkg_set_reason(AlpmPkg pkg, alpm_pkgreason_t reason)
 {
 	//ASSERT(pkg != null);
 	//ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);

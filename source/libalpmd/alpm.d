@@ -121,7 +121,7 @@ struct alpm_group_t {
  * IgnorePkg is also handled.
  * @param dbs the list of AlpmDB
  * @param name the name of the group
- * @return the list of alpm_pkg_t * (caller is responsible for alpm_list_free)
+ * @return the list of AlpmPkg (caller is responsible for alpm_list_free)
  */
 alpm_list_t* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name);
 
@@ -503,9 +503,9 @@ struct alpm_depmissing_t {
 /** A conflict that has occurred between two packages. */
 struct alpm_conflict_t {
 	/** The first package */
-	alpm_pkg_t* package1;
+	AlpmPkg package1;
 	/** The second package */
-	alpm_pkg_t* package2;
+	AlpmPkg package2;
 	/** The conflict */
 	alpm_depend_t* reason;
 }
@@ -594,8 +594,6 @@ struct alpm_fileconflict_t {
  * @ingroup libalpm_packages
  */
 import libalpmd._package;
-alias alpm_pkg_t = _alpm_pkg_t;
-
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
@@ -628,7 +626,7 @@ alias alpm_pkg_t = _alpm_pkg_t;
  * IgnorePkg is also handled.
  * @param dbs the list of AlpmDB
  * @param name the name of the group
- * @return the list of alpm_pkg_t * (caller is responsible for alpm_list_free)
+ * @return the list of AlpmPkg (caller is responsible for alpm_list_free)
  */
 alpm_list_t* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name);
 
@@ -689,7 +687,7 @@ int alpm_release(AlpmHandle handle);
  * @param siglist a pointer to storage for signature results
  * @return 0 on success, -1 if an error occurred or signature is missing
  */
-int alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist);
+int alpm_pkg_check_pgp_signature(AlpmPkg pkg, alpm_siglist_t* siglist);
 
 /**
  * Check the PGP signature for the given database.
@@ -741,14 +739,6 @@ int alpm_siglist_cleanup(alpm_siglist_t* siglist);
 // alpm_list_t* alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
 
 /** Find a package satisfying a specified dependency.
- * The dependency can include versions with depmod operators.
- * @param pkgs an alpm_list_t* of alpm_pkg_t where the satisfyer will be searched
- * @param depstring package or provision name, versioned or not
- * @return a alpm_pkg_t* satisfying depstring
- */
-// alpm_pkg_t* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
-
-/** Find a package satisfying a specified dependency.
  * First look for a literal, going through each db one by one. Then look for
  * providers. The first satisfyer that belongs to an installed package is
  * returned. If no providers belong to an installed package then an
@@ -758,9 +748,9 @@ int alpm_siglist_cleanup(alpm_siglist_t* siglist);
  * @param handle the context handle
  * @param dbs an alpm_list_t* of alpm_db_t where the satisfyer will be searched
  * @param depstring package or provision name, versioned or not
- * @return a alpm_pkg_t* satisfying depstring
+ * @return a AlpmPkg satisfying depstring
  */
-alpm_pkg_t* alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)* depstring);
+AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)* depstring);
 
 /** Check the package conflicts in a database
  *
@@ -972,9 +962,9 @@ struct alpm_event_package_operation_t {
 	/** Type of operation */
 	alpm_package_operation_t operation;
 	/** Old package */
-	alpm_pkg_t* oldpkg;
+	AlpmPkg oldpkg;
 	/** New package */
-	alpm_pkg_t* newpkg;
+	AlpmPkg newpkg;
 }
 
 /** An optional dependency was removed. */
@@ -982,7 +972,7 @@ struct alpm_event_optdep_removal_t {
 	/** Type of event */
 	alpm_event_type_t type;
 	/** Package with the optdep */
-	alpm_pkg_t* pkg;
+	AlpmPkg pkg;
 	/** Optdep being removed */
 	alpm_depend_t* optdep;
 }
@@ -1022,9 +1012,9 @@ struct alpm_event_pacnew_created_t {
 	/** Whether the creation was result of a NoUpgrade or not */
 	int from_noupgrade;
 	/** Old package */
-	alpm_pkg_t* oldpkg;
+	AlpmPkg oldpkg;
 	/** New Package */
-	alpm_pkg_t* newpkg;
+	AlpmPkg newpkg;
 	/** Filename of the file without the .pacnew suffix */
 	const(char)* file;
 }
@@ -1034,7 +1024,7 @@ struct alpm_event_pacsave_created_t {
 	/** Type of event */
 	alpm_event_type_t type;
 	/** Old package */
-	alpm_pkg_t* oldpkg;
+	AlpmPkg oldpkg;
 	/** Filename of the file without the .pacsave suffix */
 	const(char)* file;
 }
@@ -1167,7 +1157,7 @@ struct alpm_question_install_ignorepkg_t {
 	/** Answer: whether or not to install pkg anyway */
 	int install;
 	/** The ignored package that we are deciding whether to install */
-	alpm_pkg_t* pkg;
+	AlpmPkg pkg;
 }
 
 /** Should a package be replaced? */
@@ -1177,9 +1167,9 @@ struct alpm_question_replace_t {
 	/** Answer: whether or not to replace oldpkg with newpkg */
 	int replace;
 	/** Package to be replaced */
-	alpm_pkg_t* oldpkg;
+	AlpmPkg oldpkg;
 	/** Package to replace with.*/
-	alpm_pkg_t* newpkg;
+	AlpmPkg newpkg;
 	/** DB of newpkg */
 	AlpmDB newdb;
 }
@@ -1212,7 +1202,7 @@ struct alpm_question_remove_pkgs_t {
 	alpm_question_type_t type;
 	/** Answer: whether or not to skip packages */
 	int skip;
-	/** List of alpm_pkg_t* with unresolved dependencies */
+	/** List of AlpmPkg with unresolved dependencies */
 	alpm_list_t* packages;
 }
 
@@ -1222,7 +1212,7 @@ struct alpm_question_select_provider_t {
 	alpm_question_type_t type;
 	/** Answer: which provider to use (index from providers) */
 	int use_index;
-	/** List of alpm_pkg_t* as possible providers */
+	/** List of AlpmPkg as possible providers */
 	alpm_list_t* providers;
 	/** What providers provide for */
 	alpm_depend_t* depend;
@@ -2545,7 +2535,7 @@ alias ALPM_PKG_VALIDATION_SIGNATURE = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_S
  * @param pkg address of the package pointer
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_pkg_load(AlpmHandle handle, const(char)* filename, int full, int level, alpm_pkg_t** pkg);
+int alpm_pkg_load(AlpmHandle handle, const(char)* filename, int full, int level, AlpmPkg* pkg);
 
 /** Fetch a list of remote packages.
  * @param handle the context handle
@@ -2558,26 +2548,19 @@ int alpm_pkg_load(AlpmHandle handle, const(char)* filename, int full, int level,
  */
 int alpm_fetch_pkgurl(AlpmHandle handle, alpm_list_t* urls, alpm_list_t** fetched);
 
-/** Find a package in a list by name.
- * @param haystack a list of alpm_pkg_t
- * @param needle the package name
- * @return a pointer to the package if found or NULL
- */
-// alpm_pkg_t* alpm_pkg_find(alpm_list_t* haystack, const(char)* needle);
-
 /** Free a package.
  * Only packages loaded with \link alpm_pkg_load \endlink can be freed.
  * Packages from databases will be freed by libalpm when they are unregistered.
  * @param pkg package pointer to free
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_pkg_free(alpm_pkg_t* pkg);
+int alpm_pkg_free(AlpmPkg pkg);
 
 /** Check the integrity (with md5) of a package from the sync cache.
  * @param pkg package pointer
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_pkg_checkmd5sum(alpm_pkg_t* pkg);
+int alpm_pkg_checkmd5sum(AlpmPkg pkg);
 
 /** Compare two version strings and determine which one is 'newer'.
  * Returns a value comparable to the way strcmp works. Returns 1
@@ -2601,7 +2584,7 @@ int alpm_pkg_vercmp(const(char)* a, const(char)* b);
  * @param pkg a package
  * @return the list of packages requiring pkg
  */
-alpm_list_t* alpm_pkg_compute_requiredby(alpm_pkg_t* pkg);
+alpm_list_t* alpm_pkg_compute_requiredby(AlpmPkg pkg);
 
 /** Computes the list of packages optionally requiring a given package.
  * The return value of this function is a newly allocated
@@ -2609,16 +2592,7 @@ alpm_list_t* alpm_pkg_compute_requiredby(alpm_pkg_t* pkg);
  * @param pkg a package
  * @return the list of packages optionally requiring pkg
  */
-alpm_list_t* alpm_pkg_compute_optionalfor(alpm_pkg_t* pkg);
-
-/** Test if a package should be ignored.
- * Checks if the package is ignored via IgnorePkg, or if the package is
- * in a group ignored via IgnoreGroup.
- * @param handle the context handle
- * @param pkg the package to test
- * @return 1 if the package should be ignored, 0 otherwise
- */
-// int alpm_pkg_should_ignore(AlpmHandle handle, alpm_pkg_t* pkg);
+alpm_list_t* alpm_pkg_compute_optionalfor(AlpmPkg pkg);
 
 /** @name Package Property Accessors
  * Any pointer returned by these functions points to internal structures
@@ -2634,25 +2608,25 @@ alpm_list_t* alpm_pkg_compute_optionalfor(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return the alpm handle that the package belongs to
  */
-AlpmHandle alpm_pkg_get_handle(alpm_pkg_t* pkg);
+AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg);
 
 /** Gets the name of the file from which the package was loaded.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_filename(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_filename(AlpmPkg pkg);
 
 /** Returns the package base name.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_base(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_base(AlpmPkg pkg);
 
 /** Returns the package name.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_name(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_name(AlpmPkg pkg);
 
 /** Returns the package version as a string.
  * This includes all available epoch, version, and pkgrel components. Use
@@ -2660,156 +2634,80 @@ const(char)* alpm_pkg_get_name(alpm_pkg_t* pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_version(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_version(AlpmPkg pkg);
 
 /** Returns the origin of the package.
  * @return an alpm_pkgfrom_t constant, -1 on error
  */
-alpm_pkgfrom_t alpm_pkg_get_origin(alpm_pkg_t* pkg);
-
-/** Returns the package description.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-// const(char)* alpm_pkg_get_desc(alpm_pkg_t* pkg);
+alpm_pkgfrom_t alpm_pkg_get_origin(AlpmPkg pkg);
 
 /** Returns the package URL.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_url(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_url(AlpmPkg pkg);
 
 /** Returns the build timestamp of the package.
  * @param pkg a pointer to package
  * @return the timestamp of the build time
  */
-alpm_time_t alpm_pkg_get_builddate(alpm_pkg_t* pkg);
+alpm_time_t alpm_pkg_get_builddate(AlpmPkg pkg);
 
 /** Returns the install timestamp of the package.
  * @param pkg a pointer to package
  * @return the timestamp of the install time
  */
-alpm_time_t alpm_pkg_get_installdate(alpm_pkg_t* pkg);
+alpm_time_t alpm_pkg_get_installdate(AlpmPkg pkg);
 
 /** Returns the packager's name.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_packager(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_packager(AlpmPkg pkg);
 
 /** Returns the package's MD5 checksum as a string.
  * The returned string is a sequence of 32 lowercase hexadecimal digits.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_md5sum(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_md5sum(AlpmPkg pkg);
 
 /** Returns the package's SHA256 checksum as a string.
  * The returned string is a sequence of 64 lowercase hexadecimal digits.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_sha256sum(alpm_pkg_t* pkg);
-
-/** Returns the architecture for which the package was built.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-// const(char)* alpm_pkg_get_arch(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_sha256sum(AlpmPkg pkg);
 
 /** Returns the size of the package. This is only available for sync database
  * packages and package files, not those loaded from the local database.
  * @param pkg a pointer to package
  * @return the size of the package in bytes.
  */
-off_t alpm_pkg_get_size(alpm_pkg_t* pkg);
+off_t alpm_pkg_get_size(AlpmPkg pkg);
 
 /** Returns the installed size of the package.
  * @param pkg a pointer to package
  * @return the total size of files installed by the package.
  */
-off_t alpm_pkg_get_isize(alpm_pkg_t* pkg);
-
-/** Returns the package installation reason.
- * @param pkg a pointer to package
- * @return an enum member giving the install reason.
- */
-// alpm_pkgreason_t alpm_pkg_get_reason(alpm_pkg_t* pkg);
-
-/** Returns the list of package licenses.
- * @param pkg a pointer to package
- * @return a pointer to an internal list of strings.
- */
-// alpm_list_t* alpm_pkg_get_licenses(alpm_pkg_t* pkg);
-
-/** Returns the list of package groups.
- * @param pkg a pointer to package
- * @return a pointer to an internal list of strings.
- */
-// alpm_list_t* alpm_pkg_get_groups(alpm_pkg_t* pkg);
-
-/** Returns the list of package dependencies as alpm_depend_t.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
-// alpm_list_t* alpm_pkg_get_depends(alpm_pkg_t* pkg);
-
-/** Returns the list of package optional dependencies.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
-// alpm_list_t* alpm_pkg_get_optdepends(alpm_pkg_t* pkg);
-
+off_t alpm_pkg_get_isize(AlpmPkg pkg);
 /** Returns a list of package check dependencies
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_checkdepends(alpm_pkg_t* pkg);
+alpm_list_t* alpm_pkg_get_checkdepends(AlpmPkg pkg);
 
 /** Returns a list of package make dependencies
  * @param pkg a pointer to package
  * @return a reference to an internal list of alpm_depend_t structures.
  */
-alpm_list_t* alpm_pkg_get_makedepends(alpm_pkg_t* pkg);
-
-/** Returns the list of packages conflicting with pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
-// alpm_list_t* alpm_pkg_get_conflicts(alpm_pkg_t* pkg);
-
-/** Returns the list of packages provided by pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
-// alpm_list_t* alpm_pkg_get_provides(alpm_pkg_t* pkg);
-
-/** Returns the list of packages to be replaced by pkg.
- * @param pkg a pointer to package
- * @return a reference to an internal list of alpm_depend_t structures.
- */
-// alpm_list_t* alpm_pkg_get_replaces(alpm_pkg_t* pkg);
-
-/** Returns the list of files installed by pkg.
- * The filenames are relative to the install root,
- * and do not include leading slashes.
- * @param pkg a pointer to package
- * @return a pointer to a filelist object containing a count and an array of
- * package file objects
- */
-// alpm_filelist_t* alpm_pkg_get_files(alpm_pkg_t* pkg);
-
-/** Returns the list of files backed up when installing pkg.
- * @param pkg a pointer to package
- * @return a reference to a list of alpm_backup_t objects
- */
-// alpm_list_t* alpm_pkg_get_backup(alpm_pkg_t* pkg);
+alpm_list_t* alpm_pkg_get_makedepends(AlpmPkg pkg);
 
 /** Returns the base64 encoded package signature.
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_base64_sig(alpm_pkg_t* pkg);
+const(char)* alpm_pkg_get_base64_sig(AlpmPkg pkg);
 
 /** Extracts package signature either from embedded package signature
  * or if it is absent then reads data from detached signature file.
@@ -2820,31 +2718,26 @@ const(char)* alpm_pkg_get_base64_sig(alpm_pkg_t* pkg);
  * @param sig_len output parameter for the signature data length.
  * @return 0 on success, negative number on error.
  */
-int alpm_pkg_get_sig(alpm_pkg_t* pkg, ubyte** sig, size_t* sig_len);
+int alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len);
 
 /** Returns the method used to validate a package during install.
  * @param pkg a pointer to package
  * @return an enum member giving the validation method
  */
-int alpm_pkg_get_validation(alpm_pkg_t* pkg);
+int alpm_pkg_get_validation(AlpmPkg pkg);
 
 /** Gets the extended data field of a package.
  * @param pkg a pointer to package
  * @return a reference to a list of alpm_pkg_xdata_t objects
  */
-alpm_list_t* alpm_pkg_get_xdata(alpm_pkg_t* pkg);
-
-/** Returns whether the package has an install scriptlet.
- * @return 0 if FALSE, TRUE otherwise
- */
-// int alpm_pkg_has_scriptlet(alpm_pkg_t* pkg);
+alpm_list_t* alpm_pkg_get_xdata(AlpmPkg pkg);
 
 /** Returns the size of the files that will be downloaded to install a
  * package.
  * @param newpkg the new package to upgrade to
  * @return the size of the download
  */
-off_t alpm_pkg_download_size(alpm_pkg_t* newpkg);
+off_t alpm_pkg_download_size(AlpmPkg newpkg);
 
 /** Set install reason for a package in the local database.
  * The provided package object must be from the local database or this method
@@ -2853,7 +2746,7 @@ off_t alpm_pkg_download_size(alpm_pkg_t* newpkg);
  * @param reason the new install reason
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason);
+int alpm_pkg_set_reason(AlpmPkg pkg, alpm_pkgreason_t reason);
 
 
 /* End of libalpm_pkg_t accessors */
@@ -2871,7 +2764,7 @@ int alpm_pkg_set_reason(alpm_pkg_t* pkg, alpm_pkgreason_t reason);
  * @param pkg the package to read the changelog of (either file or db)
  * @return a 'file stream' to the package changelog
  */
-void* alpm_pkg_changelog_open(alpm_pkg_t* pkg);
+void* alpm_pkg_changelog_open(AlpmPkg pkg);
 
 /** Read data from an open changelog 'file stream'.
  * Similar to fread in functionality, this function takes a buffer and
@@ -2883,14 +2776,14 @@ void* alpm_pkg_changelog_open(alpm_pkg_t* pkg);
  * @return the number of characters read, or 0 if there is no more data or an
  * error occurred.
  */
-size_t alpm_pkg_changelog_read(void* ptr, size_t size, alpm_pkg_t* pkg, void* fp);
+size_t alpm_pkg_changelog_read(void* ptr, size_t size, AlpmPkg pkg, void* fp);
 
 /** Close a package changelog for reading.
  * @param pkg the package to close the changelog of (either file or db)
  * @param fp the 'file stream' to the package changelog to close
  * @return 0 on success, -1 on error
  */
-int alpm_pkg_changelog_close(alpm_pkg_t* pkg, void* fp);
+int alpm_pkg_changelog_close(AlpmPkg pkg, void* fp);
 
 /* End of changelog accessors */
 /** @} */
@@ -2905,7 +2798,7 @@ int alpm_pkg_changelog_close(alpm_pkg_t* pkg, void* fp);
  * @param pkg the local package to read the mtree of
  * @return an archive structure for the package mtree file
  */
-archive* alpm_pkg_mtree_open(alpm_pkg_t* pkg);
+archive* alpm_pkg_mtree_open(AlpmPkg pkg);
 
 /** Read next entry from a package mtree file.
  * @param pkg the package that the mtree file is being read from
@@ -2913,13 +2806,13 @@ archive* alpm_pkg_mtree_open(alpm_pkg_t* pkg);
  * @param entry an archive_entry to store the entry header information
  * @return 0 on success, 1 if end of archive is reached, -1 otherwise.
  */
-int alpm_pkg_mtree_next(alpm_pkg_t* pkg, archive* archive, archive_entry** entry);
+int alpm_pkg_mtree_next(AlpmPkg pkg, archive* archive, archive_entry** entry);
 
 /** Close a package mtree file.
  * @param pkg the local package to close the mtree of
  * @param archive the archive to close
  */
-int alpm_pkg_mtree_close(alpm_pkg_t* pkg, archive* archive);
+int alpm_pkg_mtree_close(AlpmPkg pkg, archive* archive);
 
 /* End of mtree accessors */
 /** @} */
@@ -3073,14 +2966,14 @@ int alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade);
  * @param pkg the package to add
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_add_pkg(AlpmHandle handle, alpm_pkg_t* pkg);
+int alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg);
 
 /** Add a package removal to the transaction.
  * @param handle the context handle
  * @param pkg the package to uninstall
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_remove_pkg(AlpmHandle handle, alpm_pkg_t* pkg);
+int alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg);
 
 /* End of add/remove packages */
 /** @} */
@@ -3102,7 +2995,7 @@ int alpm_remove_pkg(AlpmHandle handle, alpm_pkg_t* pkg);
  * This only checks the syncdb for a newer version. It does not access the network at all.
  * See \link alpm_db_update \endlink to update a database.
  */
-alpm_pkg_t* alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync);
+AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync);
 
 /** Get the md5 sum of file.
  * @param filename name of the file
@@ -3180,9 +3073,9 @@ int alpm_sandbox_setup_child(AlpmHandle handle, const(char)* sandboxuser, const(
  * The dependency can include versions with depmod operators.
  * @param pkgs an alpm_list_t* of alpm_pkg_t where the satisfyer will be searched
  * @param depstring package or provision name, versioned or not
- * @return a alpm_pkg_t* satisfying depstring
+ * @return a AlpmPkg satisfying depstring
  */
-alpm_pkg_t* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
+AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
 
 /** Find a package satisfying a specified dependency.
  * First look for a literal, going through each db one by one. Then look for
@@ -3194,9 +3087,9 @@ alpm_pkg_t* alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
  * @param handle the context handle
  * @param dbs an alpm_list_t* of alpm_db_t where the satisfyer will be searched
  * @param depstring package or provision name, versioned or not
- * @return a alpm_pkg_t* satisfying depstring
+ * @return a AlpmPkg satisfying depstring
  */
-alpm_pkg_t* alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)* depstring);
+AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)* depstring);
 
 /** Check the package conflicts in a database
  *

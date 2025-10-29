@@ -166,7 +166,7 @@ private alpm_pkghash_t* rehash(alpm_pkghash_t* oldhash)
 
 	for(i = 0; i < oldhash.buckets; i++) {
 		if(oldhash.hash_table[i] != null) {
-			alpm_pkg_t* package_ = cast(alpm_pkg_t*)oldhash.hash_table[i].data;
+			AlpmPkg package_ = cast(AlpmPkg)oldhash.hash_table[i].data;
 			uint position = get_hash_position(package_.name_hash, newhash);
 
 			newhash.hash_table[position] = oldhash.hash_table[i];
@@ -181,13 +181,13 @@ private alpm_pkghash_t* rehash(alpm_pkghash_t* oldhash)
 	return newhash;
 }
 
-private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, alpm_pkg_t* pkg, int sorted)
+private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, AlpmPkg pkg, int sorted)
 {
 	alpm_list_t* ptr = void;
 	uint position = void;
 	alpm_pkghash_t* hash = void;
 
-	if(pkg == null || hashref == null || *hashref == null) {
+	if(pkg is null || hashref == null || *hashref == null) {
 		return null;
 	}
 	hash = *hashref;
@@ -204,7 +204,7 @@ private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, alpm_pkg_t* pk
 
 	MALLOC(ptr, alpm_list_t.sizeof);
 
-	ptr.data = pkg;
+	ptr.data = cast(void*)pkg;
 	ptr.prev = ptr;
 	ptr.next = null;
 
@@ -219,12 +219,12 @@ private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, alpm_pkg_t* pk
 	return hash;
 }
 
-alpm_pkghash_t* _alpm_pkghash_add(alpm_pkghash_t** hash, alpm_pkg_t* pkg)
+alpm_pkghash_t* _alpm_pkghash_add(alpm_pkghash_t** hash, AlpmPkg pkg)
 {
 	return pkghash_add_pkg(hash, pkg, 0);
 }
 
-alpm_pkghash_t* _alpm_pkghash_add_sorted(alpm_pkghash_t** hash, alpm_pkg_t* pkg)
+alpm_pkghash_t* _alpm_pkghash_add_sorted(alpm_pkghash_t** hash, AlpmPkg pkg)
 {
 	return pkghash_add_pkg(hash, pkg, 1);
 }
@@ -240,7 +240,7 @@ private uint move_one_entry(alpm_pkghash_t* hash, uint start, uint end)
 	 * 'start' we can stop this madness. */
 	while(end != start) {
 		alpm_list_t* i = hash.hash_table[end];
-		alpm_pkg_t* info = cast(alpm_pkg_t*)i.data;
+		AlpmPkg info = cast(AlpmPkg)i.data;
 		uint new_position = get_hash_position(info.name_hash, hash);
 
 		if(new_position == start) {
@@ -266,7 +266,7 @@ private uint move_one_entry(alpm_pkghash_t* hash, uint start, uint end)
  *
  * @return the resultant hash
  */
-alpm_pkghash_t* _alpm_pkghash_remove(alpm_pkghash_t* hash, alpm_pkg_t* pkg, alpm_pkg_t** data)
+alpm_pkghash_t* _alpm_pkghash_remove(alpm_pkghash_t* hash, AlpmPkg pkg, AlpmPkg* data)
 {
 	alpm_list_t* i = void;
 	uint position = void;
@@ -275,13 +275,13 @@ alpm_pkghash_t* _alpm_pkghash_remove(alpm_pkghash_t* hash, alpm_pkg_t* pkg, alpm
 		*data = null;
 	}
 
-	if(pkg == null || hash == null) {
+	if(pkg is null || hash == null) {
 		return hash;
 	}
 
 	position = pkg.name_hash % hash.buckets;
 	while((i = hash.hash_table[position]) != null) {
-		alpm_pkg_t* info = cast(alpm_pkg_t*)i.data;
+		AlpmPkg info = cast(AlpmPkg)i.data;
 
 		if(info.name_hash == pkg.name_hash &&
 					strcmp(info.name, pkg.name) == 0) {
@@ -343,7 +343,7 @@ void _alpm_pkghash_free(alpm_pkghash_t* hash)
 	free(hash);
 }
 
-alpm_pkg_t* _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
+AlpmPkg _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
 {
 	alpm_list_t* lp = void;
 	c_ulong name_hash = void;
@@ -358,7 +358,7 @@ alpm_pkg_t* _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
 	position = name_hash % hash.buckets;
 
 	while((lp = hash.hash_table[position]) != null) {
-		alpm_pkg_t* info = cast(alpm_pkg_t*)lp.data;
+		AlpmPkg info = cast(AlpmPkg)lp.data;
 
 		if(info.name_hash == name_hash && strcmp(info.name, name) == 0) {
 			return info;

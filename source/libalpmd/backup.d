@@ -62,11 +62,11 @@ int _alpm_split_backup(  char*_string, alpm_backup_t** backup)
 /* Look for a filename in a alpm_pkg_t.backup list. If we find it,
  * then we return the full backup entry.
  */
-alpm_backup_t* _alpm_needbackup(  char*file, alpm_pkg_t* pkg)
+alpm_backup_t* _alpm_needbackup(  char*file, AlpmPkg pkg)
 {
 	alpm_list_t* lp = void;
 
-	if(file == null || pkg == null) {
+	if(file == null || pkg is null) {
 		return null;
 	}
 

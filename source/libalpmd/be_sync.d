@@ -286,7 +286,7 @@ cleanup:
 /* Forward decl so I don't reorganize the whole file right now */
 
 
-int _sync_get_validation(alpm_pkg_t* pkg)
+int _sync_get_validation(AlpmPkg pkg)
 {
 	if(pkg.validation) {
 		return pkg.validation;
@@ -325,11 +325,11 @@ int _sync_get_validation(alpm_pkg_t* pkg)
 	return &sync_pkg_ops;
 }
 
-alpm_pkg_t* load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, alpm_pkg_t* likely_pkg)
+AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, AlpmPkg likely_pkg)
 {
 	char* pkgname = null, pkgver = null;
 	c_ulong pkgname_hash = void;
-	alpm_pkg_t* pkg = void;
+	AlpmPkg pkg = void;
 
 	/* get package and db file names */
 	if(entry_filename) {
@@ -352,9 +352,9 @@ alpm_pkg_t* load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filena
 	} else {
 		pkg = _alpm_pkghash_find(db.pkgcache, pkgname);
 	}
-	if(pkg == null) {
+	if(pkg is null) {
 		pkg = _alpm_pkg_new();
-		if(pkg == null) {
+		if(pkg is null) {
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
 		}
 
@@ -433,7 +433,7 @@ int sync_db_populate(AlpmDB db)
 	stat_t buf = void;
 	archive* archive = void;
 	archive_entry* entry = void;
-	alpm_pkg_t* pkg = null;
+	AlpmPkg pkg = null;
 
 	if(db.status & DB_STATUS_INVALID) {
 		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, -1);
@@ -564,10 +564,10 @@ enum string READ_AND_SPLITDEP(string f) = `do {
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, alpm_dep_from_string(line)); 
 } while(1); /* note the while(1) and not (0) */`;
 
-int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, alpm_pkg_t** likely_pkg)
+int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* likely_pkg)
 {
 	  char*entryname = void, filename = void;
-	alpm_pkg_t* pkg = void;
+	AlpmPkg pkg = void;
 	archive_read_buffer buf;
 
 	entryname = cast(char*)archive_entry_pathname(entry);
@@ -585,7 +585,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, alpm_pkg_t**
 
 	pkg = load_pkg_for_entry(db, entryname, &filename, *likely_pkg);
 
-	if(pkg == null) {
+	if(pkg is null) {
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"entry %s could not be loaded into %s sync database\n",
 				entryname, db.treename);

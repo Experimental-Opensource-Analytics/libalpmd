@@ -309,7 +309,7 @@ private alpm_mountpoint_t* match_mount_point( alpm_list_t* mount_points,   char*
 	return null;
 }
 
-private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points, alpm_pkg_t* pkg)
+private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points, AlpmPkg pkg)
 {
 	size_t i = void;
 	alpm_filelist_t* filelist = alpm_pkg_get_files(pkg);
@@ -370,7 +370,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 	return 0;
 }
 
-private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_points, alpm_pkg_t* pkg)
+private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_points, AlpmPkg pkg)
 {
 	size_t i = void;
 	alpm_filelist_t* filelist = alpm_pkg_get_files(pkg);
@@ -535,23 +535,23 @@ int _alpm_check_diskspace(AlpmHandle handle)
 	if(replaces) {
 		numtargs += replaces;
 		for(targ = trans.remove; targ; targ = targ.next, current++) {
-			alpm_pkg_t* local_pkg = void;
+			AlpmPkg local_pkg = void;
 			int percent = cast(int)((current * 100) / numtargs);
 			PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
 					numtargs, current);
 
-			local_pkg = cast(alpm_pkg_t*)targ.data;
+			local_pkg = cast(AlpmPkg)targ.data;
 			calculate_removed_size(handle, mount_points, local_pkg);
 		}
 	}
 
 	for(targ = trans.add; targ; targ = targ.next, current++) {
-		alpm_pkg_t* pkg = void, local_pkg = void;
+		AlpmPkg pkg = void, local_pkg = void;
 		int percent = cast(int)((current * 100) / numtargs);
 		PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
 				numtargs, current);
 
-		pkg = cast(alpm_pkg_t*)targ.data;
+		pkg = cast(AlpmPkg)targ.data;
 		/* is this package already installed? */
 		local_pkg = _alpm_db_get_pkgfromcache(handle.db_local, pkg.name);
 		if(local_pkg) {

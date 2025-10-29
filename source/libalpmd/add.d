@@ -30,12 +30,12 @@ import libalpmd.handle;
 
 import libalpmd.be_local;
 
-int  alpm_add_pkg(AlpmHandle handle, alpm_pkg_t* pkg)
+int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
 	  char*pkgname = void, pkgver = void;
 	alpm_trans_t* trans = void;
-	alpm_pkg_t* local = void;
-	alpm_pkg_t* dup = void;
+	AlpmPkg local = void;
+	AlpmPkg dup = void;
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -51,7 +51,7 @@ int  alpm_add_pkg(AlpmHandle handle, alpm_pkg_t* pkg)
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package '%s'\n", pkgname);
 
-	if(cast(bool)(dup = alpm_pkg_find(trans.add, pkgname))) {
+	if((dup = alpm_pkg_find(trans.add, pkgname)) !is null ) {
 		if(dup == pkg) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
 			return 0;
@@ -60,7 +60,7 @@ int  alpm_add_pkg(AlpmHandle handle, alpm_pkg_t* pkg)
 		RET_ERR(handle, ALPM_ERR_TRANS_DUP_TARGET, -1);
 	}
 
-	if(cast(bool)(local = _alpm_db_get_pkgfromcache(handle.db_local, pkgname))) {
+	if((local = _alpm_db_get_pkgfromcache(handle.db_local, pkgname)) !is null) {
 		  char*localpkgname = local.name;
 		  char*localpkgver = local.version_;
 		int cmp = _alpm_pkg_compare_versions(pkg, local);
@@ -86,7 +86,7 @@ int  alpm_add_pkg(AlpmHandle handle, alpm_pkg_t* pkg)
 	pkg.reason = ALPM_PKG_REASON_EXPLICIT;
 	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package %s-%s to the transaction add list\n",
 						pkgname, pkgver);
-	trans.add = alpm_list_add(trans.add, pkg);
+	trans.add = alpm_list_add(trans.add, cast(void*)pkg);
 
 	return 0;
 }
@@ -145,7 +145,7 @@ private int try_rename(AlpmHandle handle,   char*src,   char*dest)
 	return 0;
 }
 
-private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg,   char*entryname)
+private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* entry, AlpmPkg newpkg,   char*entryname)
 {
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
 	  char*dbfile = null;
@@ -167,7 +167,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
-int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entry, alpm_pkg_t* newpkg, alpm_pkg_t* oldpkg)
+int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entry, AlpmPkg newpkg, AlpmPkg oldpkg)
 {
 	char*entryname = cast(char*)archive_entry_pathname(entry);
 	mode_t entrymode = archive_entry_mode(entry);
@@ -391,11 +391,11 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 	return errors;
 }
 
-int commit_single_pkg(AlpmHandle handle, alpm_pkg_t* newpkg, size_t pkg_current, size_t pkg_count)
+int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, size_t pkg_count)
 {
 	int ret = 0, errors = 0;
 	int is_upgrade = 0;
-	alpm_pkg_t* oldpkg = null;
+	AlpmPkg oldpkg = null;
 	AlpmDB db = handle.db_local;
 	alpm_trans_t* trans = handle.trans;
 	alpm_progress_t progress = ALPM_PROGRESS_ADD_START;
@@ -410,7 +410,7 @@ int commit_single_pkg(AlpmHandle handle, alpm_pkg_t* newpkg, size_t pkg_current,
 	//ASSERT(trans != null);
 
 	/* see if this is an upgrade. if so, remove the old package first */
-	if(_alpm_db_get_pkgfromcache(db, newpkg.name) && cast(bool)(oldpkg = newpkg.oldpkg)) {
+	if(_alpm_db_get_pkgfromcache(db, newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
 		int cmp = _alpm_pkg_compare_versions(newpkg, oldpkg);
 		if(cmp < 0) {
 			log_msg = cast(char*)"downgrading";
@@ -646,7 +646,7 @@ int _alpm_upgrade_packages(AlpmHandle handle)
 
 	/* loop through our package list adding/upgrading one at a time */
 	for(targ = trans.add; targ; targ = targ.next) {
-		alpm_pkg_t* newpkg = cast(alpm_pkg_t*)targ.data;
+		AlpmPkg newpkg = cast(AlpmPkg)targ.data;
 
 		if(handle.trans.state == STATE_INTERRUPTED) {
 			return ret;
