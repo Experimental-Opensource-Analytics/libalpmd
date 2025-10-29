@@ -35,9 +35,15 @@ import libalpmd.util;
 import libalpmd.alpm;
 import libalpmd._package;
 
-
+/** Local package or package file backup entry */
+class AlpmBackup {
+       /** Name of the file (without .pacsave extension) */
+       char* name;
+       /** Hash of the filename (used internally) */
+       char* hash;
+}
 /* split a backup string "file\thash" into the relevant components */
-int _alpm_split_backup(  char*_string, alpm_backup_t** backup)
+int _alpm_split_backup(  char*_string, AlpmBackup* backup)
 {
 	char* str = void, ptr = void;
 
@@ -62,7 +68,7 @@ int _alpm_split_backup(  char*_string, alpm_backup_t** backup)
 /* Look for a filename in a alpm_pkg_t.backup list. If we find it,
  * then we return the full backup entry.
  */
-alpm_backup_t* _alpm_needbackup(  char*file, AlpmPkg pkg)
+AlpmBackup _alpm_needbackup(  char*file, AlpmPkg pkg)
 {
 	alpm_list_t* lp = void;
 
@@ -71,7 +77,7 @@ alpm_backup_t* _alpm_needbackup(  char*file, AlpmPkg pkg)
 	}
 
 	for(lp = alpm_pkg_get_backup(pkg); lp; lp = lp.next) {
-		alpm_backup_t* backup = cast(alpm_backup_t*)lp.data;
+		AlpmBackup backup = cast(AlpmBackup)lp.data;
 
 		if(strcmp(file, backup.name) == 0) {
 			return backup;
@@ -81,7 +87,7 @@ alpm_backup_t* _alpm_needbackup(  char*file, AlpmPkg pkg)
 	return null;
 }
 
-void _alpm_backup_free(alpm_backup_t* backup)
+void _alpm_backup_free(AlpmBackup backup)
 {
 	//ASSERT(backup != null);
 	FREE(backup.name);
@@ -89,10 +95,10 @@ void _alpm_backup_free(alpm_backup_t* backup)
 	FREE(backup);
 }
 
-alpm_backup_t* _alpm_backup_dup(alpm_backup_t* backup)
+AlpmBackup _alpm_backup_dup(AlpmBackup backup)
 {
-	alpm_backup_t* newbackup = void;
-	CALLOC(newbackup, 1, alpm_backup_t.sizeof);
+	AlpmBackup newbackup = void;
+	CALLOC(newbackup, 1, AlpmBackup.sizeof);
 
 	STRDUP(newbackup.name, backup.name);
 	STRDUP(newbackup.hash, backup.hash);
@@ -101,6 +107,6 @@ alpm_backup_t* _alpm_backup_dup(alpm_backup_t* backup)
 
 error:
 	free(newbackup.name);
-	free(newbackup);
+	free(cast(void*)newbackup);
 	return null;
 }

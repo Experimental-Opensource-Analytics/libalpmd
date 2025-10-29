@@ -171,7 +171,7 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 {
 	char*entryname = cast(char*)archive_entry_pathname(entry);
 	mode_t entrymode = archive_entry_mode(entry);
-	alpm_backup_t* backup = _alpm_needbackup(entryname, newpkg);
+	AlpmBackup backup = _alpm_needbackup(entryname, newpkg);
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
 	int needbackup = 0, notouch = 0;
 	  char*hash_orig = null;
@@ -281,7 +281,7 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 // 		if(_alpm_fnmatch_patterns(handle.noupgrade, entryname) == 0) {
 // 			notouch = 1;
 // 		} else {
-// 			alpm_backup_t* oldbackup = void;
+// 			AlpmBackup oldbackup = void;
 // 			if(oldpkg && cast(bool)(oldbackup = _alpm_needbackup(entryname, oldpkg))) {
 // 				hash_orig = oldbackup.hash;
 // 				needbackup = 1;

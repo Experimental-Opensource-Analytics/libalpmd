@@ -54,6 +54,8 @@ import libalpmd.filelist;
 import libalpmd.util;
 import derelict.libarchive;
 import libalpmd.db;
+import libalpmd.backup;
+
 
 struct package_changelog {
 	archive* _archive;
@@ -252,10 +254,10 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				alpm_depend_t* provide = alpm_dep_from_string(ptr);
 				newpkg.provides = alpm_list_add(newpkg.provides, provide);
 			} else if(strcmp(key, "backup") == 0) {
-				alpm_backup_t* backup = void;
-				CALLOC(backup, 1, alpm_backup_t.sizeof);
+				AlpmBackup backup = void;
+				CALLOC(backup, 1, AlpmBackup.sizeof);
 				STRDUP(backup.name, ptr);
-				newpkg.backup = alpm_list_add(newpkg.backup, backup);
+				newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				alpm_pkg_xdata_t* pd = _alpm_pkg_parse_xdata(ptr);
 				if(pd == null || !alpm_list_append(&newpkg.xdata, pd)) {

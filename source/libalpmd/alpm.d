@@ -64,14 +64,6 @@ alias alpm_time_t = long;
  * @{
  */
 
-/** Local package or package file backup entry */
-struct alpm_backup_t {
-       /** Name of the file (without .pacsave extension) */
-       char* name;
-       /** Hash of the filename (used internally) */
-       char* hash;
-}
-
 /** @addtogroup libalpm_groups Groups
  * @brief Functions for package groups
  * @{

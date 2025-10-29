@@ -907,13 +907,13 @@ nomem:
 				goto error;
 			} else if(strcmp(line.ptr, "%BACKUP%") == 0) {
 				while( fgets(line.ptr, line.sizeof, fp) && _alpm_strip_newline(line.ptr, 0)) {
-					alpm_backup_t* backup = void;
-					CALLOC(backup, 1, alpm_backup_t.sizeof);
+					AlpmBackup backup = void;
+					CALLOC(backup, 1, AlpmBackup.sizeof);
 					if(_alpm_split_backup(line.ptr, &backup)) {
 						FREE(backup);
 						goto error;
 					}
-					info.backup = alpm_list_add(info.backup, backup);
+					info.backup = alpm_list_add(info.backup, cast(void*)backup);
 				}
 			}
 		}
@@ -1131,7 +1131,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		if(info.backup) {
 			fputs("%BACKUP%\n", fp);
 			for(lp = info.backup; lp; lp = lp.next) {
-				 alpm_backup_t* backup = cast( alpm_backup_t*)lp.data;
+				 AlpmBackup backup = cast( AlpmBackup)lp.data;
 				fprintf(fp, "%s\t%s\n", backup.name, backup.hash);
 			}
 			fputc('\n', fp);
