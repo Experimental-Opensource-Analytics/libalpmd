@@ -111,9 +111,10 @@ class AlpmDB {
 	int usage;
 }
 
+alias AlpmDBList = AlpmList!AlpmDB;
+
 AlpmDB alpm_register_syncdb(AlpmHandle handle,   char*treename, int siglevel)
 {
-	alpm_list_t* i = void;
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -126,7 +127,7 @@ AlpmDB alpm_register_syncdb(AlpmHandle handle,   char*treename, int siglevel)
 	if(strcmp(treename, "local") == 0) {
 		RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
 	}
-	for(i = handle.dbs_sync; i; i = i.next) {
+	for(auto i = handle.dbs_sync; i; i = i.next) {
 		AlpmDB d = cast(AlpmDB)i.data;
 		if(treename.to!string == d.treename) {
 			RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
@@ -149,7 +150,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 int  alpm_unregister_all_syncdbs(AlpmHandle handle)
 {
-	alpm_list_t* i = void;
 	AlpmDB db = void;
 
 	/* Sanity checks */
@@ -158,12 +158,12 @@ int  alpm_unregister_all_syncdbs(AlpmHandle handle)
 	//ASSERT(handle.trans == null);
 
 	/* unregister all sync dbs */
-	for(i = handle.dbs_sync; i; i = i.next) {
+	for(auto i = handle.dbs_sync; i; i = i.next) {
 		db = cast(AlpmDB)i.data;
 		db.ops.unregister(db);
 		i.data = null;
 	}
-	FREELIST(handle.dbs_sync);
+	handle.dbs_sync = null;
 	return 0;
 }
 
@@ -188,8 +188,8 @@ int  alpm_db_unregister(AlpmDB db)
 		 * alpm_get_syncdbs, because the db is removed from that list here.
 		 */
 		void* data = void;
-		handle.dbs_sync = alpm_list_remove(handle.dbs_sync,
-				&db, &_alpm_db_cmp, &data);
+		handle.dbs_sync = alpmList_remove(handle.dbs_sync,
+				db, &_alpm_db_cmp, &data);
 		if(data) {
 			found = 1;
 		}

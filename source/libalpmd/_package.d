@@ -155,7 +155,7 @@ class AlpmPkg {
 	int validation;
 }
 
-// alias alpm_pkg_t = _alpm_pkg_t;
+// alias AlpmPkgList = AlpmList!AlpmPkg;
 
 int  alpm_pkg_free(AlpmPkg pkg)
 {
@@ -611,7 +611,6 @@ void find_requiredby(AlpmPkg pkg, AlpmDB db, alpm_list_t** reqs, int optional)
 
 alpm_list_t* compute_requiredby(AlpmPkg pkg, int optional)
 {
-	 alpm_list_t* i = void;
 	alpm_list_t* reqs = null;
 	AlpmDB db = void;
 
@@ -628,7 +627,7 @@ alpm_list_t* compute_requiredby(AlpmPkg pkg, int optional)
 		if(db.status & DB_STATUS_LOCAL) {
 			find_requiredby(pkg, db, &reqs, optional);
 		} else {
-			for(i = pkg.handle.dbs_sync; i; i = i.next) {
+			for(auto i = pkg.handle.dbs_sync; i; i = i.next) {
 				db = cast(AlpmDB)i.data;
 				find_requiredby(pkg, db, &reqs, optional);
 			}

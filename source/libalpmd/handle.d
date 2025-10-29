@@ -67,7 +67,7 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 class AlpmHandle {
 	/* internal usage */
 	AlpmDB db_local;    /* local db pointer */
-	alpm_list_t* dbs_sync;  /* List of (AlpmDB) */
+	AlpmDBList dbs_sync;  /* List of (AlpmDB) */
 	FILE* logstream;        /* log file stream pointer */
 	alpm_trans_t* trans;
 
@@ -183,7 +183,6 @@ version (HAVE_LIBGPGME) {
 /* free all in-memory resources */
 void _alpm_handle_free(AlpmHandle handle)
 {
-	alpm_list_t* i = void;
 	AlpmDB db = void;
 
 	if(handle is null) {
@@ -196,11 +195,11 @@ void _alpm_handle_free(AlpmHandle handle)
 	}
 
 	/* unregister all sync dbs */
-	for(i = handle.dbs_sync; i; i = i.next) {
+	for(auto i = handle.dbs_sync; i; i = i.next) {
 		db = cast(AlpmDB)i.data;
 		db.ops.unregister(db);
 	}
-	alpm_list_free(handle.dbs_sync);
+	handle.dbs_sync = null;
 
 	/* close logfile */
 	if(handle.logstream) {
@@ -923,7 +922,7 @@ AlpmDB alpm_get_localdb(AlpmHandle handle)
 	return handle.db_local;
 }
 
-alpm_list_t * alpm_get_syncdbs(AlpmHandle handle)
+AlpmDBList alpm_get_syncdbs(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.dbs_sync;

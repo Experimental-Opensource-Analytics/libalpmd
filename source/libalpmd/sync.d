@@ -203,7 +203,6 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 
 int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 {
-	alpm_list_t* i = void, j = void;
 	alpm_trans_t* trans = void;
 
 	CHECK_HANDLE(handle);
@@ -212,7 +211,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	//ASSERT(trans.state == STATE_INITIALIZED);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "checking for package upgrades\n");
-	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
+	for(auto i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
 		AlpmPkg lpkg = cast(AlpmPkg)i.data;
 
 		if(alpm_pkg_find(trans.remove, lpkg.name)) {
@@ -226,7 +225,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 		}
 
 		/* Search for replacers then literal (if no replacer) in each sync database. */
-		for(j = handle.dbs_sync; j; j = j.next) {
+		for(auto j = handle.dbs_sync; j; j = j.next) {
 			AlpmDB sdb = cast(AlpmDB)j.data;
 			alpm_list_t* replacers = void;
 
@@ -369,7 +368,7 @@ finish:
 
 int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 {
-	alpm_list_t* i = void, j = void;
+	alpm_list_t* j = void;
 	alpm_list_t* deps = null;
 	alpm_list_t* unresolvable = null;
 	int from_sync = 0;
@@ -381,7 +380,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		*data = null;
 	}
 
-	for(i = trans.add; i; i = i.next) {
+	for(auto i = trans.add; i; i = i.next) {
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		if (spkg.origin == ALPM_PKG_FROM_SYNCDB){
 			from_sync = 1;
@@ -390,7 +389,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	/* ensure all sync database are valid if we will be using them */
-	for(i = handle.dbs_sync; i; i = i.next) {
+	for(auto i = handle.dbs_sync; i; i = i.next) {
 		  AlpmDB db = cast(AlpmDB)i.data;
 		if(db.status & DB_STATUS_INVALID) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
@@ -413,7 +412,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		_alpm_log(handle, ALPM_LOG_DEBUG, "resolving target's dependencies\n");
 
 		/* build remove list for resolvedeps */
-		for(i = trans.add; i; i = i.next) {
+		for(auto i = trans.add; i; i = i.next) {
 			AlpmPkg spkg = cast(AlpmPkg)i.data;
 			for(j = spkg.removes; j; j = j.next) {
 				remove = alpm_list_add(remove, j.data);
@@ -427,7 +426,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* Resolve packages in the transaction one at a time, in addition
 		   building up a list of packages which could not be resolved. */
-		for(i = trans.add; i; i = i.next) {
+		for(auto i = trans.add; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			if(_alpm_resolvedeps(handle, localpkgs, pkg, trans.add,
 						&resolved, remove, data) == -1) {
@@ -470,7 +469,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		}
 
 		/* Ensure two packages don't have the same filename */
-		for(i = resolved; i; i = i.next) {
+		for(auto i = resolved; i; i = i.next) {
 			AlpmPkg pkg1 = cast(AlpmPkg)i.data;
 			for(j = i.next; j; j = j.next) {
 				AlpmPkg pkg2 = cast(AlpmPkg)j.data;
@@ -489,7 +488,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		}
 
 		/* Set DEPEND reason for pulled packages */
-		for(i = resolved; i; i = i.next) {
+		for(auto i = resolved; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			if(!alpm_pkg_find(trans.add, pkg.name)) {
 				pkg.reason = ALPM_PKG_REASON_DEPEND;
@@ -520,7 +519,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs targets\n");
 		deps = _alpm_innerconflicts(handle, trans.add);
 
-		for(i = deps; i; i = i.next) {
+		for(auto i = deps; i; i = i.next) {
 			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
 			  char*name1 = conflict.package1.name;
 			  char*name2 = conflict.package2.name;
@@ -581,7 +580,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs db and db vs targets\n");
 		deps = _alpm_outerconflicts(handle.db_local, trans.add);
 
-		for(i = deps; i; i = i.next) {
+		for(auto i = deps; i; i = i.next) {
 			alpm_question_conflict_t question = {
 				type: ALPM_QUESTION_CONFLICT_PKG,
 				remove: 0,
@@ -639,7 +638,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	/* Build trans->remove list */
-	for(i = trans.add; i; i = i.next) {
+	for(auto i = trans.add; i; i = i.next) {
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		for(j = spkg.removes; j; j = j.next) {
 			AlpmPkg rpkg = cast(AlpmPkg)j.data;
@@ -671,7 +670,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			goto cleanup;
 		}
 	}
-	for(i = trans.add; i; i = i.next) {
+	for(auto i = trans.add; i; i = i.next) {
 		/* update download size field */
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		AlpmPkg lpkg = alpm_db_get_pkg(handle.db_local, spkg.name);

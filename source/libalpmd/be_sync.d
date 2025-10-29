@@ -763,6 +763,6 @@ version (HAVE_LIBGPGME) {} else {
 
 	sync_db_validate(db);
 
-	handle.dbs_sync = alpm_list_add(handle.dbs_sync, &db);
+	handle.dbs_sync = alpmList_add(handle.dbs_sync, db);
 	return db;
 }

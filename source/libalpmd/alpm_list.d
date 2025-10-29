@@ -36,6 +36,112 @@ import libalpmd.alpm_list;
 
 /* Allocation */
 
+
+class AlpmList(T) {
+	alias IT = T;
+	IT data;
+	AlpmList!IT prev;
+	AlpmList!IT next;
+}
+
+List alpmList_add(List, IT = List.IT)(List list, IT data)
+{
+	alpmList_append(&list, data);
+	return list;
+}
+
+List alpmList_append(List, IT = List.IT)(List* list, IT data)
+{
+	List ptr = new List;
+
+	ptr.data = data;
+	ptr.next = null;
+
+	/* Special case: the input list is empty */
+	if(*list is null) {
+		*list = ptr;
+		ptr.prev = ptr;
+	} else {
+		List lp = alpmList_last(*list);
+		lp.next = ptr;
+		ptr.prev = lp;
+		(*list).prev = ptr;
+	}
+
+	return ptr;
+}
+
+List alpmList_last(List)(List list)
+{
+	if(list) {
+		return list.prev;
+	} else {
+		return null;
+	}
+}
+
+List alpmList_remove(List, IT = List.IT)(List haystack, IT needle, alpm_list_fn_cmp fn, void** data)
+{
+	List i = haystack;
+
+	if(data) {
+		(*data) = null;
+	}
+
+	if(needle is null) {
+		return haystack;
+	}
+
+	while(i) {
+		if(i.data is null) {
+			i = i.next;
+			continue;
+		}
+		if(fn(cast(void*)i.data, cast(void*)needle) == 0) {
+			haystack = alpmList_remove_item(haystack, i);
+
+			if(data) {
+				*data = cast(void*)i.data;
+			}
+			// free(i);
+			break;
+		} else {
+			i = i.next;
+		}
+	}
+
+	return haystack;
+}
+
+List alpmList_remove_item(List, IT = List.IT)(List haystack, List item)
+{
+	if(item.prev) {
+		item.prev.next = item.next;
+	} else {
+		haystack = item.next;
+	}
+
+	if(item.next) {
+		item.next.prev = item.prev;
+	} else {
+		haystack.prev = item.prev;
+	}
+
+	return haystack;
+}
+
+void * alpmList_find(List, IT = List.IT)(alpm_list_t* haystack, void* needle)
+{
+	alpm_list_t* lp = haystack;
+	while(lp) {
+		if(lp.data && lp.data != null && lp.data == needle) {
+			return lp.data;
+		}
+		lp = lp.next;
+	}
+	return null;
+}
+
 struct _alpm_list_t {
 	/** data held by the list node */
 	void* data;

@@ -633,16 +633,15 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
  *        packages.
  * @return the resolved package
  **/
-private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, alpm_list_t* dbs, alpm_list_t* excluding, int prompt)
+private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs, alpm_list_t* excluding, int prompt)
 {
-	alpm_list_t* i = void, j = void;
 	int ignored = 0;
 
 	alpm_list_t* providers = null;
 	int count = void;
 
 	/* 1. literals */
-	for(i = dbs; i; i = i.next) {
+	for(auto i = dbs; i; i = i.next) {
 		AlpmPkg pkg = void;
 		AlpmDB db = cast(AlpmDB)i.data;
 
@@ -674,12 +673,12 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, alpm_list_t* d
 		}
 	}
 	/* 2. satisfiers (skip literals here) */
-	for(i = dbs; i; i = i.next) {
+	for(auto i = dbs; i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
 		}
-		for(j = _alpm_db_get_pkgcache(db); j; j = j.next) {
+		for(auto j = _alpm_db_get_pkgcache(db); j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.name_hash != dep.name_hash || strcmp(pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg))
@@ -747,7 +746,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, alpm_list_t* d
 	return null;
 }
 
-AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs,   char*depstring)
+AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBList dbs,   char*depstring)
 {
 	alpm_depend_t* dep = void;
 	AlpmPkg pkg = void;
@@ -788,6 +787,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	int ret = 0;
 	alpm_list_t* j = void;
 	alpm_list_t* targ = void;
+	AlpmDBList dbs = void;
 	alpm_list_t* deps = null;
 	alpm_list_t* packages_copy = void;
 
@@ -829,7 +829,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 					"pulling dependency %s (needed by %s)\n",
 					spkg.name, pkg.name);
 			alpm_depmissing_free(miss);
-		} else if(resolvedep(handle, missdep, (targ = alpm_list_add(null, cast(void*)handle.db_local)), rem, 0)) {
+		} else if(resolvedep(handle, missdep, (dbs = alpmList_add(cast(AlpmDBList)null, handle.db_local)), rem, 0)) {
 			alpm_depmissing_free(miss);
 		} else {
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
