@@ -751,7 +751,7 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 			 */
 			if(!need_download && (siglevel & ALPM_SIG_PACKAGE)) {
 				char* sig_filename = null;
-				int len = spkg.filename.length + 5;
+				int len = cast(int)spkg.filename.length + 5;
 
 				MALLOC(sig_filename, len);
 				snprintf(sig_filename, len, "%s.sig", cast(char*)spkg.filename);
