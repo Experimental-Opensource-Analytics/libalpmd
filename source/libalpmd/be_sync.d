@@ -92,7 +92,7 @@ int sync_db_validate(AlpmDB db)
 		return -1;
 	}
 
-	dbpath = _alpm_db_path(db);
+	dbpath = cast(char*)_alpm_db_path(db);
 	if(!dbpath) {
 		/* pm_errno set in _alpm_db_path() */
 		return -1;
@@ -441,7 +441,7 @@ int sync_db_populate(AlpmDB db)
 	if(db.status & DB_STATUS_MISSING) {
 		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
 	}
-	dbpath = _alpm_db_path(db);
+	dbpath = cast(char*)_alpm_db_path(db);
 	if(!dbpath) {
 		/* pm_errno set in _alpm_db_path() */
 		return -1;

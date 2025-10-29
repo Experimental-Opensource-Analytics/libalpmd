@@ -163,7 +163,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			_alpm_db_path(handle.db_local), newpkg.name, newpkg.version_, dbfile);
+			cast(char*)_alpm_db_path(handle.db_local), newpkg.name, newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 

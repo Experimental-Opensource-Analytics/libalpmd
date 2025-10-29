@@ -95,7 +95,7 @@ class AlpmDB {
 	AlpmHandle handle;
 	string treename;
 	/* do not access directly, use _alpm_db_path(db) for lazy access */
-	char* _path;
+	string _path;
 	alpm_pkghash_t* pkgcache;
 	alpm_list_t* grpcache;
 	alpm_list_t* cache_servers;
@@ -467,7 +467,7 @@ void _alpm_db_free(AlpmDB db)
 	return;
 }
 
-  char*_alpm_db_path(AlpmDB db)
+string _alpm_db_path(AlpmDB db)
 {
 	if(!db) {
 		return null;
@@ -484,15 +484,15 @@ void _alpm_db_free(AlpmDB db)
 
 		if(db.status & DB_STATUS_LOCAL) {
 			pathsize = strlen(dbpath) + db.treename.length + 2;
-			CALLOC(db._path, 1, pathsize);
-			snprintf(db._path, pathsize, "%s%s/", dbpath, cast(char*)db.treename);
+			db._path = "";
+			snprintf(cast(char*)db._path, pathsize, "%s%s/", dbpath, cast(char*)db.treename);
 		} else {
 			  char*dbext = db.handle.dbext;
 
 			pathsize = strlen(dbpath) + 5 + db.treename.length + strlen(dbext) + 1;
-			CALLOC(db._path, 1, pathsize);
+			db._path = "";
 			/* all sync DBs now reside in the sync/ subdir of the dbpath */
-			snprintf(db._path, pathsize, "%ssync/%s%s", dbpath, cast(char*)db.treename, dbext);
+			snprintf(cast(char*)db._path, pathsize, "%ssync/%s%s", dbpath, cast(char*)db.treename, dbext);
 		}
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
 				db.treename, db._path);

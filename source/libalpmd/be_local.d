@@ -383,7 +383,7 @@ private const (pkg_operations) local_pkg_ops = {
 private int checkdbdir(AlpmDB db)
 {
 	stat_t buf = void;
-	  char*path = _alpm_db_path(db);
+	  char*path = cast(char*)_alpm_db_path(db);
 
 	if(stat(path, &buf) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
@@ -471,7 +471,7 @@ private int local_db_validate(AlpmDB db)
 		return -1;
 	}
 
-	dbpath = _alpm_db_path(db);
+	dbpath = cast(char*)_alpm_db_path(db);
 	if(dbpath == null) {
 		RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
 	}
@@ -559,7 +559,7 @@ private int local_db_populate(AlpmDB db)
 		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
 	}
 
-	dbpath = _alpm_db_path(db);
+	dbpath = cast(char*)_alpm_db_path(db);
 	if(dbpath == null) {
 		/* pm_errno set in _alpm_db_path() */
 		return -1;
@@ -685,7 +685,7 @@ char* _alpm_local_db_pkgpath(AlpmDB db, alpm_pkg_t* info,   char*filename)
 	char* pkgpath = void;
 	  char*dbpath = void;
 
-	dbpath = _alpm_db_path(db);
+	dbpath = cast(char*)_alpm_db_path(db);
 	len = strlen(dbpath) + strlen(info.name) + strlen(info.version_) + 3;
 	len += filename ? strlen(filename) : 0;
 	MALLOC(pkgpath, len);
