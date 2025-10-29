@@ -32,6 +32,7 @@ import std.regex;
 /* libalpm */
 // import libalpmd.db;
 import libalpmd.alpm_list;
+import std.conv;
 import libalpmd.log;
 import libalpmd.util;
 import libalpmd.handle;
@@ -92,7 +93,7 @@ struct db_operations {
 /* Database */
 class AlpmDB {
 	AlpmHandle handle;
-	char* treename;
+	string treename;
 	/* do not access directly, use _alpm_db_path(db) for lazy access */
 	char* _path;
 	alpm_pkghash_t* pkgcache;
@@ -127,7 +128,7 @@ AlpmDB alpm_register_syncdb(AlpmHandle handle,   char*treename, int siglevel)
 	}
 	for(i = handle.dbs_sync; i; i = i.next) {
 		AlpmDB d = cast(AlpmDB)i.data;
-		if(strcmp(treename, d.treename) == 0) {
+		if(treename.to!string == d.treename) {
 			RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
 		}
 	}
@@ -351,7 +352,7 @@ AlpmHandle alpm_db_get_handle(AlpmDB db)
 	return db.handle;
 }
 
-  char*alpm_db_get_name(  AlpmDB db)
+string alpm_db_get_name(  AlpmDB db)
 {
 	//ASSERT(db != null);
 	return db.treename;
@@ -440,7 +441,7 @@ AlpmDB _alpm_db_new(  char*treename, int is_local)
 	AlpmDB db = void;
 
 	CALLOC(db, 1, AlpmDB.sizeof);
-	STRDUP(db.treename, treename);
+	db.treename = treename.to!string;
 	if(is_local) {
 		db.status |= DB_STATUS_LOCAL;
 	} else {
@@ -482,16 +483,16 @@ void _alpm_db_free(AlpmDB db)
 		}
 
 		if(db.status & DB_STATUS_LOCAL) {
-			pathsize = strlen(dbpath) + strlen(db.treename) + 2;
+			pathsize = strlen(dbpath) + db.treename.length + 2;
 			CALLOC(db._path, 1, pathsize);
-			snprintf(db._path, pathsize, "%s%s/", dbpath, db.treename);
+			snprintf(db._path, pathsize, "%s%s/", dbpath, cast(char*)db.treename);
 		} else {
 			  char*dbext = db.handle.dbext;
 
-			pathsize = strlen(dbpath) + 5 + strlen(db.treename) + strlen(dbext) + 1;
+			pathsize = strlen(dbpath) + 5 + db.treename.length + strlen(dbext) + 1;
 			CALLOC(db._path, 1, pathsize);
 			/* all sync DBs now reside in the sync/ subdir of the dbpath */
-			snprintf(db._path, pathsize, "%ssync/%s%s", dbpath, db.treename, dbext);
+			snprintf(db._path, pathsize, "%ssync/%s%s", dbpath, cast(char*)db.treename, dbext);
 		}
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
 				db.treename, db._path);
@@ -503,7 +504,7 @@ int _alpm_db_cmp( void* d1,  void* d2)
 {
 	  AlpmDB db1 = cast(AlpmDB)d1;
 	  AlpmDB db2 = cast(AlpmDB)d2;
-	return strcmp(db1.treename, db2.treename);
+	return db1.treename == db2.treename;
 }
 
 int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)

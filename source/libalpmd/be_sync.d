@@ -102,7 +102,7 @@ int sync_db_validate(AlpmDB db)
 	if(_alpm_access(db.handle, null, dbpath, R_OK) != 0 && errno == ENOENT) {
 		alpm_event_database_missing_t event = {
 			type: ALPM_EVENT_DATABASE_MISSING,
-			dbname: db.treename
+			dbname: cast(char*)db.treename
 		};
 		db.status &= ~DB_STATUS_EXISTS;
 		db.status |= DB_STATUS_MISSING;
@@ -126,7 +126,7 @@ int sync_db_validate(AlpmDB db)
 					siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
 					siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK, &siglist);
 			if(ret) {
-				retry = _alpm_process_siglist(db.handle, db.treename, siglist,
+				retry = _alpm_process_siglist(db.handle, cast(char*)db.treename, siglist,
 						siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
 						siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK);
 			}
@@ -200,9 +200,9 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 		CALLOC(payload, 1, typeof(*payload).sizeof);
 		payload.servers = db.servers;
 		/* print server + filename into a buffer */
-		len = strlen(db.treename) + strlen(dbext) + 1;
+		len = db.treename.length + strlen(dbext) + 1;
 		MALLOC(payload.filepath, len);
-		snprintf(payload.filepath, len, "%s%s", db.treename, dbext);
+		snprintf(payload.filepath, len, "%s%s", db.treename.ptr, dbext);
 
 		STRDUP(payload.remote_name, payload.filepath);
 		payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)"");
