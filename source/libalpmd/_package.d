@@ -153,14 +153,15 @@ class AlpmPkg {
 	int infolevel;
 	/* Bitfield from alpm_pkgvalidation_t */
 	int validation;
+
+	string alpm_pkg_get_filename() => this.filename;
+	string alpm_pkg_get_name() => this.name; 
 }
 
 // alias AlpmPkgList = AlpmList!AlpmPkg;
 
 int  alpm_pkg_free(AlpmPkg pkg)
 {
-	//ASSERT(pkg != null);
-
 	/* Only free packages loaded in user space */
 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
 		_alpm_pkg_free(pkg);
@@ -261,16 +262,6 @@ int _pkg_force_load(AlpmPkg pkg) { return 0; }
  * struct itself with no abstraction layer or any type of lazy loading.
  */
 
-/* Public functions for getting package information. These functions
- * delegate the hard work to the function callbacks attached to each
- * package, which depend on where the package was loaded from. */
-string alpm_pkg_get_filename(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.filename;
-}
-
   char*alpm_pkg_get_base(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
@@ -282,11 +273,6 @@ AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	return pkg.handle;
-}
-
-string alpm_pkg_get_name(AlpmPkg pkg) {
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.name;
 }
 
   char*alpm_pkg_get_version(AlpmPkg pkg)
