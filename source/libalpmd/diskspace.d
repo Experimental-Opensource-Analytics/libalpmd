@@ -515,7 +515,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 	size_t replaces = 0, current = 0, numtargs = void;
 	int error = 0;
 	alpm_list_t* targ = void;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 
 	numtargs = alpm_list_count(trans.add);
 	mount_points = mount_point_list(handle);

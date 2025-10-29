@@ -72,7 +72,7 @@ class AlpmHandle {
 	AlpmDB db_local;    /* local db pointer */
 	AlpmDBList dbs_sync;  /* List of (AlpmDB) */
 	File logstream;        /* log file stream pointer */
-	alpm_trans_t* trans;
+	AlpmTrans trans;
 
 version (HAVE_LIBCURL) {
 	/* libcurl handle */

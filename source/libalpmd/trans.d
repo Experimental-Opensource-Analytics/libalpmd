@@ -69,7 +69,7 @@ alias STATE_INTERRUPTED = alpm_transstate_t.STATE_INTERRUPTED;
 
 
 /* Transaction */
-struct alpm_trans_t {
+class AlpmTrans {
 	/* bitfield of alpm_transflag_t flags */
 	int flags;
 	alpm_transstate_t state;
@@ -81,7 +81,7 @@ struct alpm_trans_t {
 
 int  alpm_trans_init(AlpmHandle handle, int flags)
 {
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -94,7 +94,7 @@ int  alpm_trans_init(AlpmHandle handle, int flags)
 		}
 	}
 
-	CALLOC(trans, 1, alpm_trans_t.sizeof);
+	trans = new AlpmTrans;
 	trans.flags = flags;
 	trans.state = STATE_INITIALIZED;
 
@@ -145,7 +145,7 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 
 int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 {
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -203,7 +203,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 
 int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 {
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 	alpm_event_any_t event = void;
 
 	/* Sanity checks */
@@ -283,7 +283,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 
 int  alpm_trans_interrupt(AlpmHandle handle)
 {
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -299,7 +299,7 @@ int  alpm_trans_interrupt(AlpmHandle handle)
 
 int  alpm_trans_release(AlpmHandle handle)
 {
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 
 	/* Sanity checks */
 	CHECK_HANDLE(handle);
@@ -321,9 +321,9 @@ int  alpm_trans_release(AlpmHandle handle)
 	return 0;
 }
 
-void _alpm_trans_free(alpm_trans_t* trans)
+void _alpm_trans_free(AlpmTrans trans)
 {
-	if(trans == null) {
+	if(trans is null) {
 		return;
 	}
 

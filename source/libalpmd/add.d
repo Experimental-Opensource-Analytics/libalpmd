@@ -34,7 +34,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
 	string pkgname = pkg.name;
 	char* pkgver = void;
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 	AlpmPkg local = void;
 	AlpmPkg dup = void;
 
@@ -397,7 +397,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	int is_upgrade = 0;
 	AlpmPkg oldpkg = null;
 	AlpmDB db = handle.db_local;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 	alpm_progress_t progress = ALPM_PROGRESS_ADD_START;
 	alpm_event_package_operation_t event = void;
 	  char*log_msg = cast(char*)"adding";
@@ -635,7 +635,7 @@ int _alpm_upgrade_packages(AlpmHandle handle)
 	size_t pkg_count = void, pkg_current = void;
 	int skip_ldconfig = 0, ret = 0;
 	alpm_list_t* targ = void;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 
 	if(trans.add == null) {
 		return 0;

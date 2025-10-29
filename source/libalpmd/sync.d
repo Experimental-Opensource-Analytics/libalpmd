@@ -203,7 +203,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 
 int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 {
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 
 	CHECK_HANDLE(handle);
 	trans = handle.trans;
@@ -269,12 +269,12 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 
 		for(j = grp.packages; j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
-			alpm_trans_t* trans = db.handle.trans;
+			AlpmTrans trans = db.handle.trans;
 
 			if(alpm_pkg_find(ignorelist, cast(char*)pkg.name)) {
 				continue;
 			}
-			if(trans != null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
+			if(trans !is null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
 				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.db_local, cast(char*)pkg.name);
 				if(local && _alpm_pkg_compare_versions(pkg, local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
@@ -373,7 +373,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	alpm_list_t* unresolvable = null;
 	int from_sync = 0;
 	int ret = 0;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 	alpm_event_t event = void;
 
 	if(data) {
@@ -1242,7 +1242,7 @@ int _alpm_sync_load(AlpmHandle handle, alpm_list_t** data)
 	alpm_list_t* i = void;
 	size_t total = 0;
 	ulong total_bytes = 0;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 
 	if(download_files(handle) == -1) {
 		return -1;
@@ -1284,7 +1284,7 @@ version (HAVE_LIBGPGME) {
 
 int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 {
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 	alpm_event_t event = void;
 
 	/* fileconflict check */
@@ -1330,7 +1330,7 @@ int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 
 int _alpm_sync_commit(AlpmHandle handle)
 {
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 
 	/* remove conflicting and to-be-replaced packages */
 	if(trans.remove) {

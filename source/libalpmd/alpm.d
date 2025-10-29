@@ -357,9 +357,9 @@ struct alpm_pgpkey_t {
 	/** Email of the key's owner */
 	char* email;
 	/** When the key was created */
-	alpm_time_t created;
+	AlpmTime created;
 	/** When the key expires */
-	alpm_time_t expires;
+	AlpmTime expires;
 	/** The length of the key */
 	uint length;
 	/** has the key been revoked */
@@ -553,7 +553,7 @@ import libalpmd._package;
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
-// alias alpm_time_t = long;
+// alias AlpmTime = long;
 
 /** @addtogroup libalpm_groups Groups
  * @brief Functions for package groups
@@ -2591,13 +2591,13 @@ const(char)* alpm_pkg_get_url(AlpmPkg pkg);
  * @param pkg a pointer to package
  * @return the timestamp of the build time
  */
-alpm_time_t alpm_pkg_get_builddate(AlpmPkg pkg);
+AlpmTime alpm_pkg_get_builddate(AlpmPkg pkg);
 
 /** Returns the install timestamp of the package.
  * @param pkg a pointer to package
  * @return the timestamp of the install time
  */
-alpm_time_t alpm_pkg_get_installdate(AlpmPkg pkg);
+AlpmTime alpm_pkg_get_installdate(AlpmPkg pkg);
 
 /** Returns the packager's name.
  * @param pkg a pointer to package

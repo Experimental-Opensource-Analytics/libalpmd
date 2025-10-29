@@ -62,7 +62,7 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
 	auto pkgname = pkg.name;
 	// string pkgname = void;
-	alpm_trans_t* trans = void;
+	AlpmTrans trans = void;
 	AlpmPkg copy = void;
 
 	/* Sanity checks */
@@ -100,7 +100,7 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
  */
 private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 {
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 
 	while(lp) {
 		alpm_list_t* i = void;
@@ -138,7 +138,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
  */
 private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 {
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 
 	/* Remove needed packages (which break dependencies) from target list */
 	while(lp != null) {
@@ -214,7 +214,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_list_t* lp = void;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 	AlpmDB db = handle.db_local;
 	alpm_event_t event = void;
 
@@ -766,7 +766,7 @@ int _alpm_remove_packages(AlpmHandle handle, int run_ldconfig)
 {
 	alpm_list_t* targ = void;
 	size_t pkg_count = void, targ_count = void;
-	alpm_trans_t* trans = handle.trans;
+	AlpmTrans trans = handle.trans;
 	int ret = 0;
 
 	pkg_count = alpm_list_count(trans.remove);
