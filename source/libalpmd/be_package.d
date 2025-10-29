@@ -202,8 +202,8 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			/* NULL the end of the key portion, move ptr to start of value */
 			*ptr = '\0';
 			ptr += 3;
+			char* tmp = null;
 			if(strcmp(key, "pkgname") == 0) {
-				char* tmp = null;
 				STRDUP(tmp, ptr);
 				newpkg.name = tmp.to!string;
 				newpkg.name_hash = _alpm_hash_sdbm(cast(char*)newpkg.name);
@@ -216,13 +216,12 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			} else if(strcmp(key, "pkgdesc") == 0) {
 				STRDUP(newpkg.desc, ptr);
 			} else if(strcmp(key, "group") == 0) {
-				char* tmp = null;
 				STRDUP(tmp, ptr);
 				newpkg.groups = alpm_list_add(newpkg.groups, tmp);
 			} else if(strcmp(key, "url") == 0) {
-				STRDUP(newpkg.url, ptr);
+				STRDUP(tmp, ptr);
+				newpkg.url = tmp.to!string;
 			} else if(strcmp(key, "license") == 0) {
-				char* tmp = null;
 				STRDUP(tmp, ptr);
 				newpkg.licenses = alpm_list_add(newpkg.licenses, tmp);
 			} else if(strcmp(key, "builddate") == 0) {

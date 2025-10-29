@@ -56,7 +56,7 @@ import libalpmd.filelist;
 struct pkg_operations {
 	  char*function(AlpmPkg) get_base;
 	  char*function(AlpmPkg) get_desc;
-	  char*function(AlpmPkg) get_url;
+	string function(AlpmPkg) get_url;
 	alpm_time_t function(AlpmPkg) get_builddate;
 	alpm_time_t function(AlpmPkg) get_installdate;
 	  char*function(AlpmPkg) get_packager;
@@ -110,7 +110,7 @@ class AlpmPkg {
 	string name;
 	char* version_;
 	char* desc;
-	char* url;
+	string url;
 	char* packager;
 	char* md5sum;
 	char* sha256sum;
@@ -161,8 +161,9 @@ class AlpmPkg {
 	/* Bitfield from alpm_pkgvalidation_t */
 	int validation;
 
-	string getFilename() => this.filename;
-	string getName() => this.name; 
+	auto getFilename() => this.filename;
+	auto getName() => this.name; 
+	auto getUrl() => this.ops.get_url(this);
 }
 
 // alias AlpmPkgList = AlpmList!AlpmPkg;
@@ -208,7 +209,7 @@ int  alpm_pkg_checkmd5sum(AlpmPkg pkg)
  * populated package structures. */
   char*_pkg_get_base(AlpmPkg pkg)        { return pkg.base; }
   char*_pkg_get_desc(AlpmPkg pkg)        { return pkg.desc; }
-  char*_pkg_get_url(AlpmPkg pkg)         { return pkg.url; }
+string _pkg_get_url(AlpmPkg pkg)         { return pkg.url; }
 alpm_time_t _pkg_get_builddate(AlpmPkg pkg)   { return pkg.builddate; }
 alpm_time_t _pkg_get_installdate(AlpmPkg pkg) { return pkg.installdate; }
   char*_pkg_get_packager(AlpmPkg pkg)    { return pkg.packager; }
@@ -301,13 +302,6 @@ alpm_pkgfrom_t  alpm_pkg_get_origin(AlpmPkg pkg)
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_desc(pkg);
-}
-
-  char*alpm_pkg_get_url(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_url(pkg);
 }
 
 alpm_time_t  alpm_pkg_get_builddate(AlpmPkg pkg)
@@ -701,7 +695,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.name = pkg.name.dup;
 	STRDUP(newpkg.version_, pkg.version_);
 	STRDUP(newpkg.desc, pkg.desc);
-	STRDUP(newpkg.url, pkg.url);
+	newpkg.url = pkg.url.dup;
 	newpkg.builddate = pkg.builddate;
 	newpkg.installdate = pkg.installdate;
 	STRDUP(newpkg.packager, pkg.packager);

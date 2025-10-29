@@ -548,7 +548,9 @@ enum string READ_NEXT() = `do {
 
 enum string READ_AND_STORE(string f) = `do { 
 	` ~ READ_NEXT!() ~ `; 
-	STRDUP(` ~ f ~ `, line); 
+	char* tmp = null;
+	STRDUP(tmp, line);
+	`~f~` = tmp.to!(typeof(`~f~`));
 } while(0);`;
 
 enum string READ_AND_STORE_ALL(string f) = `do { 

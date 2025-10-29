@@ -91,7 +91,7 @@ private   char*_cache_get_desc(AlpmPkg pkg)
 	return pkg.desc;
 }
 
-private   char*_cache_get_url(AlpmPkg pkg)
+private string _cache_get_url(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.url;
@@ -701,7 +701,9 @@ enum string READ_NEXT() = `do {
 
 enum string READ_AND_STORE(string f) = `do { 
 	` ~ READ_NEXT!() ~ `; 
-	STRDUP(` ~ f ~ `, line.ptr); 
+	char* tmp = null;
+	STRDUP(tmp, line.ptr);
+	`~f~` = tmp.to!(typeof(`~f~`));
 } while(0);`;
 
 enum string READ_AND_STORE_ALL(string f) = `do { 
@@ -1024,7 +1026,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		if(info.url) {
 			fprintf(fp, "%%URL%%\n"
-							~ "%s\n\n", info.url);
+							~ "%s\n\n", cast(char*)info.url);
 		}
 		if(info.arch) {
 			fprintf(fp, "%%ARCH%%\n"
