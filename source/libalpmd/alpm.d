@@ -50,11 +50,6 @@ import libalpmd.log;
 import libalpmd.util;
 import libalpmd.filelist;
 
-struct alpm_pkg_xdata_t {
-	char* name;
-	char* value;
-}
-
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
 alias alpm_time_t = long;
@@ -2673,7 +2668,7 @@ int alpm_pkg_get_validation(AlpmPkg pkg);
 
 /** Gets the extended data field of a package.
  * @param pkg a pointer to package
- * @return a reference to a list of alpm_pkg_xdata_t objects
+ * @return a reference to a list of AlpmPkgXData objects
  */
 alpm_list_t* alpm_pkg_get_xdata(AlpmPkg pkg);
 

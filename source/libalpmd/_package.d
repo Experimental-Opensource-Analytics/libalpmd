@@ -46,6 +46,8 @@ import libalpmd.signing;
 import libalpmd.backup;
 import std.conv;
 import std.string;
+import std.array;
+
 import libalpmd.filelist;
 
 
@@ -95,6 +97,11 @@ struct pkg_operations {
  * default accessor functions which are defined there.
  */
 extern const(pkg_operations) default_pkg_ops;
+
+struct AlpmPkgXData {
+	string name;
+	string value;
+}
 
 class AlpmPkg {
 	c_ulong name_hash;
@@ -154,8 +161,8 @@ class AlpmPkg {
 	/* Bitfield from alpm_pkgvalidation_t */
 	int validation;
 
-	string alpm_pkg_get_filename() => this.filename;
-	string alpm_pkg_get_name() => this.name; 
+	string getFilename() => this.filename;
+	string getName() => this.name; 
 }
 
 // alias AlpmPkgList = AlpmList!AlpmPkg;
@@ -744,26 +751,24 @@ void free_deplist(alpm_list_t* deps)
 	alpm_list_free(deps);
 }
 
-alpm_pkg_xdata_t* _alpm_pkg_parse_xdata(char* _string)
+AlpmPkgXData* _alpm_pkg_parse_xdata(string data)
 {
-	alpm_pkg_xdata_t* pd = void;
-	char* sep = void;
-	if(_string == null || (sep = strchr(_string, '=')) == null) {
+	AlpmPkgXData* pd = void;
+	string[] splited;
+	if(data == "" || (splited = data.split('=')).length == 0) {
 		return null;
 	}
 
-	CALLOC(pd, 1, alpm_pkg_xdata_t.sizeof);
-	STRNDUP(pd.name, _string, sep - _string);
-	STRDUP(pd.value, sep + 1);
+	pd = new AlpmPkgXData;
+	pd.name = splited[0];
+	pd.value = splited[1];
 
 	return pd;
 }
 
-void _alpm_pkg_xdata_free(alpm_pkg_xdata_t* pd)
+void _alpm_pkg_xdata_free(AlpmPkgXData* pd)
 {
 	if(pd) {
-		free(pd.name);
-		free(pd.value);
 		free(pd);
 	}
 }

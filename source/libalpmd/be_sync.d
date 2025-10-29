@@ -706,7 +706,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				alpm_list_t* i = void, lines = null;
 				mixin(READ_AND_STORE_ALL!(`lines`));
 				for(i = lines; i; i = i.next) {
-					alpm_pkg_xdata_t* pd = _alpm_pkg_parse_xdata(cast(char*)i.data);
+					AlpmPkgXData* pd = _alpm_pkg_parse_xdata(i.data.to!string);
 					if(pd == null || !alpm_list_append(&pkg.xdata, pd)) {
 						_alpm_pkg_xdata_free(pd);
 						FREELIST(lines);
