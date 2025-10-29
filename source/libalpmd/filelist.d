@@ -42,18 +42,20 @@ struct AlpmFile {
        mode_t mode;
 }
 
+alias AlpmFileList = AlpmFile[];
+
 /* Returns the difference of the provided two lists of files.
  * Pre-condition: both lists are sorted!
  * When done, free the list but NOT the contained data.
  */
-alpm_list_t* _alpm_filelist_difference(alpm_filelist_t* filesA, alpm_filelist_t* filesB)
+alpm_list_t* _alpm_filelist_difference(AlpmFileList filesA, AlpmFileList filesB)
 {
 	alpm_list_t* ret = null;
 	size_t ctrA = 0, ctrB = 0;
 
-	while(ctrA < filesA.count && ctrB < filesB.count) {
-		string strA = filesA.files[ctrA].name;
-		string strB = filesB.files[ctrB].name;
+	while(ctrA < filesA.length && ctrB < filesB.length) {
+		string strA = filesA[ctrA].name;
+		string strB = filesB[ctrB].name;
 
 		int cmp = strA == strB;
 		if(cmp < 0) {
@@ -69,8 +71,8 @@ alpm_list_t* _alpm_filelist_difference(alpm_filelist_t* filesA, alpm_filelist_t*
 	}
 
 	/* ensure we have completely emptied pA */
-	while(ctrA < filesA.count) {
-		ret = alpm_list_add(ret, cast(char*)filesA.files[ctrA].name);
+	while(ctrA < filesA.length) {
+		ret = alpm_list_add(ret, cast(char*)filesA[ctrA].name);
 		ctrA++;
 	}
 
@@ -98,13 +100,13 @@ private int _alpm_filelist_pathcmp(  char*p1,   char*p2)
  * Pre-condition: both lists are sorted!
  * When done, free the list but NOT the contained data.
  */
-alpm_list_t* _alpm_filelist_intersection(alpm_filelist_t* filesA, alpm_filelist_t* filesB)
+alpm_list_t* _alpm_filelist_intersection(AlpmFileList filesA, AlpmFileList filesB)
 {
 	alpm_list_t* ret = null;
 	size_t ctrA = 0, ctrB = 0;
-	AlpmFile* arrA = filesA.files, arrB = filesB.files;
+	AlpmFile* arrA = filesA.ptr, arrB = filesB.ptr;
 
-	while(ctrA < filesA.count && ctrB < filesB.count) {
+	while(ctrA < filesA.length && ctrB < filesB.length) {
 		string strA = arrA[ctrA].name, strB = arrB[ctrB].name;
 		int cmp = _alpm_filelist_pathcmp(cast(char*)strA, cast(char*)strB);
 		if(cmp < 0) {
@@ -133,27 +135,27 @@ extern (C) int _alpm_files_cmp(const void* f1, const void* f2)
 	return strcmp(cast(char*)file1.name, cast(char*)file2.name);
 }
 
-AlpmFile * alpm_filelist_contains( alpm_filelist_t* filelist, string path)
+AlpmFile* alpm_filelist_contains( AlpmFileList filelist, string path)
 {
 	AlpmFile key = AlpmFile.init;
 
-	if(!filelist || filelist.count == 0) {
+	if(!filelist || filelist.length == 0) {
 		return null;
 	}
 
 	key.name = path.to!string;
 
-	return cast(AlpmFile*)bsearch(cast(const void*)&key, cast(void*)filelist.files, filelist.count,
+	return cast(AlpmFile*)bsearch(cast(const void*)&key, cast(void*)filelist, filelist.length,
 			AlpmFile.sizeof, &_alpm_files_cmp);
 }
 
-void _alpm_filelist_sort(alpm_filelist_t* filelist)
+void _alpm_filelist_sort(AlpmFileList filelist)
 {
 	size_t i = 0;
-	for(i = 1; i < filelist.count; i++) {
-		if(filelist.files[i - 1].name == filelist.files[i].name) {
+	for(i = 1; i < filelist.length; i++) {
+		if(filelist[i - 1].name == filelist[i].name) {
 			/* filelist is not pre-sorted */
-			qsort(filelist.files, filelist.count,
+			qsort(filelist.ptr, filelist.length,
 					AlpmFile.sizeof, &_alpm_files_cmp);
 			return;
 		}

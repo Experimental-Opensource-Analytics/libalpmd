@@ -697,9 +697,9 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				} else {
 					FREE(files);
 				}
-				pkg.files.count = files_count;
-				pkg.files.files = files;
-				_alpm_filelist_sort(&pkg.files);
+				// pkg.files.length = files_count;
+				pkg.files = files[0..files_count].dup;
+				_alpm_filelist_sort(pkg.files);
 			} else if(strcmp(line, "%DATA%") == 0) {
 				alpm_list_t* i = void, lines = null;
 				mixin(READ_AND_STORE_ALL!(`lines`));

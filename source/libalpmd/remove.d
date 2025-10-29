@@ -505,7 +505,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 			local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
 			for(local = local_pkgs; local && !found; local = local.next) {
 				AlpmPkg local_pkg = cast(AlpmPkg)local.data;
-				alpm_filelist_t* filelist = void;
+				AlpmFileList filelist;
 
 				/* we duplicated the package when we put it in the removal list, so we
 				 * so we can't use direct pointer comparison here. */
@@ -615,14 +615,14 @@ private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
  */
 private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg, size_t targ_count, size_t pkg_count)
 {
-	alpm_filelist_t* filelist = void;
+	AlpmFileList filelist;
 	size_t i = void;
 	int err = 0;
 	int nosave = handle.trans.flags & ALPM_TRANS_FLAG_NOSAVE;
 
 	filelist = alpm_pkg_get_files(oldpkg);
-	for(i = 0; i < filelist.count; i++) {
-		AlpmFile* file = filelist.files + i;
+	for(i = 0; i < filelist.length; i++) {
+		AlpmFile* file = filelist.ptr + i;
 		if(!should_skip_file(handle, newpkg, cast(char*)file.name)
 				&& !can_remove_file(handle, file)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -632,7 +632,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 		}
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "removing %zu files\n", filelist.count);
+	_alpm_log(handle, ALPM_LOG_DEBUG, "removing %zu files\n", filelist.length);
 
 	if(!newpkg) {
 		/* init progress bar, but only on true remove transactions */
@@ -641,8 +641,8 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 	}
 
 	/* iterate through the list backwards, unlinking files */
-	for(i = filelist.count; i > 0; i--) {
-		AlpmFile* file = filelist.files + i - 1;
+	for(i = filelist.length; i > 0; i--) {
+		AlpmFile* file = filelist.ptr + i - 1;
 
 		/* check the remove skip list before removing the file.
 		 * see the big comment block in db_find_fileconflicts() for an
@@ -659,7 +659,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 
 		if(!newpkg) {
 			/* update progress bar after each file */
-			int percent = cast(int)(((filelist.count - i) * 100) / filelist.count);
+			int percent = cast(int)(((filelist.length - i) * 100) / filelist.length);
 			PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.name,
 					percent, pkg_count, targ_count);
 		}

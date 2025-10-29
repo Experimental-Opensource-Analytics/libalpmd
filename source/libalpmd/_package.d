@@ -73,7 +73,7 @@ struct pkg_operations {
 	alpm_list_t* function(AlpmPkg) get_conflicts;
 	alpm_list_t* function(AlpmPkg) get_provides;
 	alpm_list_t* function(AlpmPkg) get_replaces;
-	alpm_filelist_t* function(AlpmPkg) get_files;
+	AlpmFileList function(AlpmPkg) get_files;
 	alpm_list_t* function(AlpmPkg) get_backup;
 
 	alpm_list_t* function(AlpmPkg) get_xdata;
@@ -134,7 +134,7 @@ class AlpmPkg {
 
 	const (pkg_operations)* ops;
 
-	alpm_filelist_t files;
+	AlpmFileList files;
 
 	/* origin == PKG_FROM_FILE, use pkg->origin_data.file
 	 * origin == PKG_FROM_*DB, use pkg->origin_data.db */
@@ -219,7 +219,7 @@ alpm_list_t* _pkg_get_makedepends(AlpmPkg pkg) { return pkg.makedepends; }
 alpm_list_t* _pkg_get_conflicts(AlpmPkg pkg)  { return pkg.conflicts; }
 alpm_list_t* _pkg_get_provides(AlpmPkg pkg)   { return pkg.provides; }
 alpm_list_t* _pkg_get_replaces(AlpmPkg pkg)   { return pkg.replaces; }
-alpm_filelist_t* _pkg_get_files(AlpmPkg pkg)  { return &(pkg.files); }
+AlpmFileList _pkg_get_files(AlpmPkg pkg)  { return pkg.files; }
 alpm_list_t* _pkg_get_backup(AlpmPkg pkg)     { return pkg.backup; }
 alpm_list_t* _pkg_get_xdata(AlpmPkg pkg)      { return pkg.xdata; }
 
@@ -497,7 +497,7 @@ alpm_list_t * alpm_pkg_get_replaces(AlpmPkg pkg)
 	return pkg.ops.get_replaces(pkg);
 }
 
-alpm_filelist_t * alpm_pkg_get_files(AlpmPkg pkg)
+AlpmFileList alpm_pkg_get_files(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -735,19 +735,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.conflicts  = list_depdup(pkg.conflicts);
 	newpkg.provides   = list_depdup(pkg.provides);
 
-	if(pkg.files.count) {
-		size_t filenum = void;
-		size_t len = ((AlpmFile).sizeof * pkg.files.count).sizeof;
-		MALLOC(newpkg.files.files, len);
-		for(filenum = 0; filenum < pkg.files.count; filenum++) {
-			if(!_alpm_file_copy(newpkg.files.files + filenum,
-						pkg.files.files + filenum)) {
-				goto cleanup;
-			}
-		}
-		newpkg.files.count = pkg.files.count;
-	}
-
+	newpkg.files = pkg.files.dup;
 	/* internal */
 	newpkg.infolevel = pkg.infolevel;
 	newpkg.origin = pkg.origin;
@@ -821,9 +809,9 @@ void _alpm_pkg_free(AlpmPkg pkg)
 	if(pkg.files.count) {
 		size_t i = void;
 		for(i = 0; i < pkg.files.count; i++) {
-			FREE(pkg.files.files[i].name);
+			FREE(pkg.files.ptr[i].name);
 		}
-		free(pkg.files.files);
+		free(pkg.files.ptr);
 	}
 	alpm_list_free_inner(pkg.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
 	alpm_list_free(pkg.backup);

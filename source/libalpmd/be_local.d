@@ -199,10 +199,10 @@ private alpm_list_t* _cache_get_replaces(AlpmPkg pkg)
 	return pkg.replaces;
 }
 
-private alpm_filelist_t* _cache_get_files(AlpmPkg pkg)
+private AlpmFileList _cache_get_files(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_FILES`));
-	return &(pkg.files);
+	return pkg.files;
 }
 
 private alpm_list_t* _cache_get_backup(AlpmPkg pkg)
@@ -895,9 +895,9 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				} else {
 					FREE(files);
 				}
-				info.files.count = files_count;
-				info.files.files = files;
-				_alpm_filelist_sort(&info.files);
+				// info.files.count = files_count;
+				info.files = files[0..files_count];
+				_alpm_filelist_sort(info.files[]);
 				continue;
 nomem:
 				while(files_count > 0) {
@@ -1122,7 +1122,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			size_t i = void;
 			fputs("%FILES%\n", fp);
 			for(i = 0; i < info.files.count; i++) {
-				AlpmFile* file = info.files.files + i;
+				AlpmFile* file = info.files.ptr + i;
 				fputs(cast(char*)file.name, fp);
 				fputc('\n', fp);
 			}

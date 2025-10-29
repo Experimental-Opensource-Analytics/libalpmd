@@ -403,14 +403,14 @@ private int handle_simple_path(AlpmPkg pkg,   char*path)
  * @param path path of the file to be added
  * @return <0 on error, 0 on success
  */
-private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_size, archive_entry* entry,   char*path)
+private int add_entry_to_files_list(AlpmFileList filelist, size_t* files_size, archive_entry* entry,   char*path)
 {
-	size_t files_count = filelist.count;
+	size_t files_count = filelist.length;
 	AlpmFile* current_file = void;
 	mode_t type = void;
 	size_t pathlen = void;
 
-	if(!_alpm_greedy_grow(cast(void**)&filelist.files,
+	if(!_alpm_greedy_grow(cast(void**)&filelist,
 				files_size, (files_count + 1) * AlpmFile.sizeof)) {
 		return -1;
 	}
@@ -419,7 +419,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
 
 	pathlen = strlen(path);
 
-	current_file = filelist.files + files_count;
+	current_file = filelist.ptr + files_count;
 
 	/* mtree paths don't contain a tailing slash, those we get from
 	 * the archive directly do (expensive way)
@@ -437,7 +437,7 @@ private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_siz
 	}
 	current_file.size = archive_entry_size(entry);
 	current_file.mode = archive_entry_mode(entry);
-	filelist.count++;
+	filelist.length++;
 	return 0;
 }
 
@@ -463,7 +463,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	char* mtree_data = null;
 	archive* mtree = void;
 	archive_entry* mtree_entry = null;
-	alpm_filelist_t filelist = {0};
+	AlpmFileList filelist = [];
 
 	_alpm_log(handle, ALPM_LOG_DEBUG,
 			"found mtree for package %s, getting file list\n", pkg.filename);
@@ -518,7 +518,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 			continue;
 		}
 
-		if(add_entry_to_files_list(&filelist, &files_size, mtree_entry, path) < 0) {
+		if(add_entry_to_files_list(filelist, &files_size, mtree_entry, path) < 0) {
 			goto error;
 		}
 	}
@@ -530,13 +530,13 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	}
 
 	/* throw away any files we loaded directly from the archive */
-	for(i = 0; i < pkg.files.count; i++) {
-		free(cast(char*)pkg.files.files[i].name);
+	for(i = 0; i < pkg.files.length; i++) {
+		free(cast(char*)pkg.files[i].name);
 	}
-	free(pkg.files.files);
+	free(pkg.files.ptr);
 
 	/* copy over new filelist */
-	memcpy(&pkg.files, &filelist, alpm_filelist_t.sizeof);
+	memcpy(&pkg.files, &filelist, AlpmFileList.sizeof);
 
 	free(mtree_data);
 	_alpm_archive_read_free(mtree);
@@ -544,10 +544,10 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	return 0;
 error:
 	/* throw away any files we loaded from the mtree */
-	for(i = 0; i < filelist.count; i++) {
-		free(cast(char*)filelist.files[i].name);
+	for(i = 0; i < filelist.length; i++) {
+		free(cast(char*)filelist.ptr[i].name);
 	}
-	free(filelist.files);
+	free(filelist.ptr);
 
 	free(mtree_data);
 	_alpm_archive_read_free(mtree);
@@ -634,7 +634,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 			continue;
 		} else if(full && !hit_mtree) {
 			/* building the file list: expensive way */
-			if(add_entry_to_files_list(&newpkg.files, &files_size, entry, entry_name) < 0) {
+			if(add_entry_to_files_list(newpkg.files, &files_size, entry, entry_name) < 0) {
 				goto error;
 			}
 		}
@@ -671,14 +671,13 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	newpkg.validation = ALPM_PKG_VALIDATION_NONE;
 
 	if(full) {
-		if(newpkg.files.files) {
+		if(newpkg.files.length > 0) {
 			/* attempt to hand back any memory we don't need */
-			REALLOC(newpkg.files.files, (AlpmFile.sizeof * newpkg.files.count));
 			/* "checking for conflicts" requires a sorted list, ensure that here */
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"sorting package filelist for %s\n", pkgfile);
 
-			_alpm_filelist_sort(&newpkg.files);
+			_alpm_filelist_sort(newpkg.files);
 		}
 		newpkg.infolevel |= INFRQ_FILES;
 	}

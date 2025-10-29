@@ -36,6 +36,7 @@ import libalpmd.util_common;
 import libalpmd._package;
 import libalpmd.conf;
 import libalpmd.db;
+import libalpmd.filelist;
 
 
 import core.stdc.stdio;
@@ -311,14 +312,14 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 	/* check if file will be installed */
 	for(i = handle.trans.add; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		alpm_filelist_t filelist = pkg.files;
+		AlpmFileList filelist = pkg.files;
 		size_t f = void;
-		for(f = 0; f < filelist.count; f++) {
-			if(alpm_option_match_noextract(handle, cast(char*)filelist.files[f].name) == 0) {
+		for(f = 0; f < filelist.length; f++) {
+			if(alpm_option_match_noextract(handle, cast(char*)filelist[f].name) == 0) {
 				continue;
 			}
-			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.files[f].name) == 0) {
-				install = alpm_list_add(install, cast(char*)filelist.files[f].name);
+			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist[f].name) == 0) {
+				install = alpm_list_add(install, cast(char*)filelist[f].name);
 				isize++;
 			}
 		}
@@ -329,11 +330,11 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		AlpmPkg pkg = spkg.oldpkg;
 		if(pkg) {
-			alpm_filelist_t filelist = pkg.files;
+			AlpmFileList filelist = pkg.files;
 			size_t f = void;
-			for(f = 0; f < filelist.count; f++) {
-				if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.files[f].name) == 0) {
-					remove = alpm_list_add(remove, cast(char*)filelist.files[f].name);
+			for(f = 0; f < filelist.length; f++) {
+				if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.ptr[f].name) == 0) {
+					remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
 					rsize++;
 				}
 			}
@@ -343,11 +344,11 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 	/* check if file will be removed due to package removal */
 	for(i = handle.trans.remove; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		alpm_filelist_t filelist = pkg.files;
+		AlpmFileList filelist = pkg.files;
 		size_t f = void;
-		for(f = 0; f < filelist.count; f++) {
-			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.files[f].name) == 0) {
-				remove = alpm_list_add(remove, cast(char*)filelist.files[f].name);
+		for(f = 0; f < filelist.length; f++) {
+			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.ptr[f].name) == 0) {
+				remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
 				rsize++;
 			}
 		}

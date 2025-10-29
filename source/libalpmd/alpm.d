@@ -64,14 +64,6 @@ alias alpm_time_t = long;
  * @{
  */
 
-/** Package filelist container */
-struct alpm_filelist_t {
-       /** Amount of files in the array */
-       size_t count;
-       /** An array of files */
-       AlpmFile* files;
-}
-
 /** Local package or package file backup entry */
 struct alpm_backup_t {
        /** Name of the file (without .pacsave extension) */
@@ -79,20 +71,6 @@ struct alpm_backup_t {
        /** Hash of the filename (used internally) */
        char* hash;
 }
-
-/** Determines whether a package filelist contains a given path.
- * The provided path should be relative to the install root with no leading
- * slashes, e.g. "etc/localtime". When searching for directories, the path must
- * have a trailing slash.
- * @param filelist a pointer to a package filelist
- * @param path the path to search for in the package
- * @return a pointer to the matching file or NULL if not found
- */
-// AlpmFile* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
-
-/* End of libalpm_files */
-/** @} */
-
 
 /** @addtogroup libalpm_groups Groups
  * @brief Functions for package groups

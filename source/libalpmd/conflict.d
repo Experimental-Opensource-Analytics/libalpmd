@@ -438,8 +438,8 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			alpm_list_t* common_files = void;
 			AlpmPkg p2 = cast(AlpmPkg)j.data;
 
-			alpm_filelist_t* p1_files = alpm_pkg_get_files(p1);
-			alpm_filelist_t* p2_files = alpm_pkg_get_files(p2);
+			AlpmFileList p1_files = alpm_pkg_get_files(p1);
+			AlpmFileList p2_files = alpm_pkg_get_files(p2);
 
 			common_files = _alpm_filelist_intersection(p1_files, p2_files);
 
@@ -492,10 +492,10 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 					alpm_pkg_get_files(dbpkg));
 		} else {
 			/* no version of package currently installed */
-			alpm_filelist_t* fl = alpm_pkg_get_files(p1);
+			AlpmFileList fl = alpm_pkg_get_files(p1);
 			size_t filenum = void;
-			for(filenum = 0; filenum < fl.count; filenum++) {
-				newfiles = alpm_list_add(newfiles, cast(char*)fl.files[filenum].name);
+			for(filenum = 0; filenum < fl.length; filenum++) {
+				newfiles = alpm_list_add(newfiles, cast(char*)fl[filenum].name);
 			}
 		}
 
