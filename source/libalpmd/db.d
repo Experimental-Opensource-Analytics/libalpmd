@@ -113,30 +113,6 @@ class AlpmDB {
 
 alias AlpmDBList = AlpmList!AlpmDB;
 
-AlpmDB alpm_register_syncdb(AlpmHandle handle,   char*treename, int siglevel)
-{
-
-	/* Sanity checks */
-	CHECK_HANDLE(handle);
-	//ASSERT(treename != null && strlen(treename) != 0);
-	//ASSERT(!strchr(treename, '/'));
-	/* Do not register a database if a transaction is on-going */
-	//ASSERT(handle.trans == null);
-
-	/* ensure database name is unique */
-	if(strcmp(treename, "local") == 0) {
-		RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
-	}
-	for(auto i = handle.dbs_sync; i; i = i.next) {
-		AlpmDB d = cast(AlpmDB)i.data;
-		if(treename.to!string == d.treename) {
-			RET_ERR(handle, ALPM_ERR_DB_NOT_NULL, null);
-		}
-	}
-
-	return _alpm_db_register_sync(handle, treename, siglevel);
-}
-
 /* Helper function for alpm_db_unregister{_all} */
 void _alpm_db_unregister(AlpmDB db)
 {

@@ -45,6 +45,8 @@ import libalpmd.alpm;
 import libalpmd.deps;
 import core.stdc.stdio;
 import libalpmd.db;
+import libalpmd.be_sync;
+import std.exception;
 
 
 void EVENT(h, e)(h handle, e event) { 
@@ -177,6 +179,25 @@ version (HAVE_LIBGPGME) {
 		} else {
 			return 0;
 		}
+	}
+
+	AlpmDB register_syncdb(string treename, int siglevel) {
+		assert(treename.length != 0);
+		/* Do not register a database if a transaction is on-going */
+		enforce(this.trans !is null, "Can't register db, the thansaction is on-going,");
+
+		/* ensure database name is unique */
+		if(treename == "local") {
+			RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
+		}
+		for(auto i = this.dbs_sync; i; i = i.next) {
+			AlpmDB d = i.data;
+			if(treename == d.treename) {
+				RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
+			}
+		}
+
+		return _alpm_db_register_sync(this, cast(char*)treename, siglevel);
 	}
 }
 
