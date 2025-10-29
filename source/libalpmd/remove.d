@@ -213,7 +213,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_list_t* lp = void;
 	alpm_trans_t* trans = handle.trans;
-	alpm_db_t* db = handle.db_local;
+	AlpmDB db = handle.db_local;
 	alpm_event_t event = void;
 
 	if((trans.flags & ALPM_TRANS_FLAG_RECURSE)

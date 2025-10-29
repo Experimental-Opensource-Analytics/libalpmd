@@ -119,7 +119,7 @@ struct alpm_group_t {
 /** Find group members across a list of databases.
  * If a member exists in several databases, only the first database is used.
  * IgnorePkg is also handled.
- * @param dbs the list of alpm_db_t *
+ * @param dbs the list of AlpmDB
  * @param name the name of the group
  * @return the list of alpm_pkg_t * (caller is responsible for alpm_list_free)
  */
@@ -582,8 +582,6 @@ struct alpm_fileconflict_t {
  * @ingroup libalpm_databases
  */
  import libalpmd.db;
-alias alpm_db_t = _alpm_db_t;
-
 
 /** A package.
  *
@@ -628,7 +626,7 @@ alias alpm_pkg_t = _alpm_pkg_t;
 /** Find group members across a list of databases.
  * If a member exists in several databases, only the first database is used.
  * IgnorePkg is also handled.
- * @param dbs the list of alpm_db_t *
+ * @param dbs the list of AlpmDB
  * @param name the name of the group
  * @return the list of alpm_pkg_t * (caller is responsible for alpm_list_free)
  */
@@ -699,7 +697,7 @@ int alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist);
  * @param siglist a pointer to storage for signature results
  * @return 0 on success, -1 if an error occurred or signature is missing
  */
-int alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist);
+int alpm_db_check_pgp_signature(AlpmDB db, alpm_siglist_t* siglist);
 
 /**
  * Clean up and free a signature result list.
@@ -1183,7 +1181,7 @@ struct alpm_question_replace_t {
 	/** Package to replace with.*/
 	alpm_pkg_t* newpkg;
 	/** DB of newpkg */
-	alpm_db_t* newdb;
+	AlpmDB newdb;
 }
 
 /** Should a conflicting package be removed? */
@@ -1417,7 +1415,7 @@ alias alpm_cb_fetch = int function(void* ctx, const(char)* url, const(char)* loc
  * libalpm functions.
  * @return a reference to the local database
  */
-alpm_db_t* alpm_get_localdb(AlpmHandle handle);
+AlpmDB alpm_get_localdb(AlpmHandle handle);
 
 /** Get the list of sync databases.
  * Returns a list of alpm_db_t structures, one for each registered
@@ -1435,9 +1433,9 @@ alpm_list_t* alpm_get_syncdbs(AlpmHandle handle);
  * @param treename the name of the sync repository
  * @param level what level of signature checking to perform on the
  * database; note that this must be a '.sig' file type verification
- * @return an alpm_db_t* on success (the value), NULL on error
+ * @return an AlpmDB on success (the value), NULL on error
  */
-alpm_db_t* alpm_register_syncdb(AlpmHandle handle, const(char)* treename, int level);
+AlpmDB alpm_register_syncdb(AlpmHandle handle, const(char)* treename, int level);
 
 /** Unregister all package databases.
  * Databases can not be unregistered while there is an active transaction.
@@ -1453,27 +1451,19 @@ int alpm_unregister_all_syncdbs(AlpmHandle handle);
  * @param db pointer to the package database to unregister
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_unregister(alpm_db_t* db);
+int alpm_db_unregister(AlpmDB db);
 
 /** Get the handle of a package database.
  * @param db pointer to the package database
  * @return the alpm handle that the package database belongs to
  */
-AlpmHandle alpm_db_get_handle(alpm_db_t* db);
+AlpmHandle alpm_db_get_handle(AlpmDB db);
 
 /** Get the name of a package database.
  * @param db pointer to the package database
  * @return the name of the package database, NULL on error
  */
-const(char)* alpm_db_get_name( alpm_db_t*db);
-
-/** Get the signature verification level for a database.
- * Will return the default verification level if this database is set up
- * with ALPM_SIG_USE_DEFAULT.
- * @param db pointer to the package database
- * @return the signature verification level
- */
-// int alpm_db_get_siglevel(alpm_db_t* db);
+const(char)* alpm_db_get_name( AlpmDB db);
 
 /** Check the validity of a database.
  * This is most useful for sync databases and verifying signature status.
@@ -1481,7 +1471,7 @@ const(char)* alpm_db_get_name( alpm_db_t*db);
  * @param db pointer to the package database
  * @return 0 if valid, -1 if invalid (pm_errno is set accordingly)
  */
-int alpm_db_get_valid(alpm_db_t* db);
+int alpm_db_get_valid(AlpmDB db);
 
 /** @name Server accessors
  * @{
@@ -1491,21 +1481,21 @@ int alpm_db_get_valid(alpm_db_t* db);
  * @param db pointer to the database to get the servers from
  * @return a char* list of servers
  */
-alpm_list_t* alpm_db_get_servers( alpm_db_t*db);
+alpm_list_t* alpm_db_get_servers( AlpmDB db);
 
 /** Sets the list of servers for the database to use.
  * @param db the database to set the servers. The list will be duped and
  * the original will still need to be freed by the caller.
  * @param servers a char* list of servers.
  */
-int alpm_db_set_servers(alpm_db_t* db, alpm_list_t* servers);
+int alpm_db_set_servers(AlpmDB db, alpm_list_t* servers);
 
 /** Add a download server to a database.
  * @param db database pointer
  * @param url url of the server
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_add_server(alpm_db_t* db, const(char)* url);
+int alpm_db_add_server(AlpmDB db, const(char)* url);
 
 /** Remove a download server from a database.
  * @param db database pointer
@@ -1513,27 +1503,27 @@ int alpm_db_add_server(alpm_db_t* db, const(char)* url);
  * @return 0 on success, 1 on server not present,
  * -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_remove_server(alpm_db_t* db, const(char)* url);
+int alpm_db_remove_server(AlpmDB db, const(char)* url);
 
 /** Get the list of cache servers assigned to this db.
  * @param db pointer to the database to get the servers from
  * @return a char* list of servers
  */
-alpm_list_t* alpm_db_get_cache_servers( alpm_db_t*db);
+alpm_list_t* alpm_db_get_cache_servers( AlpmDB db);
 
 /** Sets the list of cache servers for the database to use.
  * @param db the database to set the servers. The list will be duped and
  * the original will still need to be freed by the caller.
  * @param servers a char* list of servers.
  */
-int alpm_db_set_cache_servers(alpm_db_t* db, alpm_list_t* servers);
+int alpm_db_set_cache_servers(AlpmDB db, alpm_list_t* servers);
 
 /** Add a download cache server to a database.
  * @param db database pointer
  * @param url url of the server
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_add_cache_server(alpm_db_t* db, const(char)* url);
+int alpm_db_add_cache_server(AlpmDB db, const(char)* url);
 
 /** Remove a download cache server from a database.
  * @param db database pointer
@@ -1541,7 +1531,7 @@ int alpm_db_add_cache_server(alpm_db_t* db, const(char)* url);
  * @return 0 on success, 1 on server not present,
  * -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url);
+int alpm_db_remove_cache_server(AlpmDB db, const(char)* url);
 
 /* End of server accessors */
 /** @} */
@@ -1576,36 +1566,11 @@ int alpm_db_remove_cache_server(alpm_db_t* db, const(char)* url);
  */
 int alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force);
 
-/** Get a package entry from a package database.
- * Looking up a package is O(1) and will be significantly faster than
- * iterating over the pkgcahe.
- * @param db pointer to the package database to get the package from
- * @param name of the package
- * @return the package entry on success, NULL on error
- */
-// alpm_pkg_t* alpm_db_get_pkg(alpm_db_t* db, const(char)* name);
-
-/** Get the package cache of a package database.
- * This is a list of all packages the db contains.
- * @param db pointer to the package database to get the package from
- * @return the list of packages on success, NULL on error
- */
-// alpm_list_t* alpm_db_get_pkgcache(alpm_db_t* db);
-
-/** Get a group entry from a package database.
- * Looking up a group is O(1) and will be significantly faster than
- * iterating over the groupcahe.
- * @param db pointer to the package database to get the group from
- * @param name of the group
- * @return the groups entry on success, NULL on error
- */
-// alpm_group_t* alpm_db_get_group(alpm_db_t* db, const(char)* name);
-
 /** Get the group cache of a package database.
  * @param db pointer to the package database to get the group from
  * @return the list of groups on success, NULL on error
  */
-alpm_list_t* alpm_db_get_groupcache(alpm_db_t* db);
+alpm_list_t* alpm_db_get_groupcache(AlpmDB db);
 
 /** Searches a database with regular expressions.
  * @param db pointer to the package database to search in
@@ -1614,7 +1579,7 @@ alpm_list_t* alpm_db_get_groupcache(alpm_db_t* db);
  * regular expressions - must point to an empty (NULL) alpm_list_t *.
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_search(alpm_db_t* db, alpm_list_t* needles, alpm_list_t** ret);
+int alpm_db_search(AlpmDB db, alpm_list_t* needles, alpm_list_t** ret);
 
 /** The usage level of a database. */
 enum alpm_db_usage_t {
@@ -1645,14 +1610,14 @@ alias ALPM_DB_USAGE_ALL = alpm_db_usage_t.ALPM_DB_USAGE_ALL;
  * @param usage a bitmask of alpm_db_usage_t values
  * @return 0 on success, or -1 on error
  */
-int alpm_db_set_usage(alpm_db_t* db, int usage);
+int alpm_db_set_usage(AlpmDB db, int usage);
 
 /** Gets the usage of a database.
  * @param db pointer to the package database to get the status of
  * @param usage pointer to an alpm_db_usage_t to store db's status
  * @return 0 on success, or -1 on error
  */
-int alpm_db_get_usage(alpm_db_t* db, int* usage);
+int alpm_db_get_usage(AlpmDB db, int* usage);
 
 /* End of usage accessors */
 /** @} */
@@ -2840,14 +2805,6 @@ alpm_list_t* alpm_pkg_get_makedepends(alpm_pkg_t* pkg);
  */
 // alpm_list_t* alpm_pkg_get_backup(alpm_pkg_t* pkg);
 
-/** Returns the database containing pkg.
- * Returns a pointer to the alpm_db_t structure the package is
- * originating from, or NULL if the package was loaded from a file.
- * @param pkg a pointer to package
- * @return a pointer to the DB containing pkg, or NULL.
- */
-// alpm_db_t* alpm_pkg_get_db(alpm_pkg_t* pkg);
-
 /** Returns the base64 encoded package signature.
  * @param pkg a pointer to package
  * @return a reference to an internal string
@@ -3353,7 +3310,7 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	MALLOC(myhandle.lockfile, lockfilelen);
 	snprintf(myhandle.lockfile, lockfilelen, "%s%s", myhandle.dbpath, lf);
 
-	if(_alpm_db_register_local(myhandle) == null) {
+	if(_alpm_db_register_local(myhandle) is null) {
 		myerr = myhandle.pm_errno;
 		goto cleanup;
 	}

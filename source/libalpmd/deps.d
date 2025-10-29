@@ -576,11 +576,11 @@ private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, alpm_pkg
  * @param include_explicit if 0, explicitly installed packages are not included
  * @return 0 on success, -1 on errors
  */
-int _alpm_recursedeps(alpm_db_t* db, alpm_list_t** targs, int include_explicit)
+int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
 {
 	alpm_list_t* i = void, keep = void, rem = null;
 
-	if(db == null || targs == null) {
+	if(db is null || targs is null) {
 		return -1;
 	}
 
@@ -644,7 +644,7 @@ private alpm_pkg_t* resolvedep(AlpmHandle handle, alpm_depend_t* dep, alpm_list_
 	/* 1. literals */
 	for(i = dbs; i; i = i.next) {
 		alpm_pkg_t* pkg = void;
-		alpm_db_t* db = cast(alpm_db_t*)i.data;
+		AlpmDB db = cast(AlpmDB)i.data;
 
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
@@ -675,7 +675,7 @@ private alpm_pkg_t* resolvedep(AlpmHandle handle, alpm_depend_t* dep, alpm_list_
 	}
 	/* 2. satisfiers (skip literals here) */
 	for(i = dbs; i; i = i.next) {
-		alpm_db_t* db = cast(alpm_db_t*)i.data;
+		AlpmDB db = cast(AlpmDB)i.data;
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
 		}
@@ -829,7 +829,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, alpm_pkg_t* pkg
 					"pulling dependency %s (needed by %s)\n",
 					spkg.name, pkg.name);
 			alpm_depmissing_free(miss);
-		} else if(resolvedep(handle, missdep, (targ = alpm_list_add(null, handle.db_local)), rem, 0)) {
+		} else if(resolvedep(handle, missdep, (targ = alpm_list_add(null, cast(void*)handle.db_local)), rem, 0)) {
 			alpm_depmissing_free(miss);
 		} else {
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;

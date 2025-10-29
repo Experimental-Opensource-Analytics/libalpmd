@@ -138,7 +138,7 @@ struct _alpm_pkg_t {
 	/* origin == PKG_FROM_FILE, use pkg->origin_data.file
 	 * origin == PKG_FROM_*DB, use pkg->origin_data.db */
 	union _Origin_data {
-		alpm_db_t* db;
+		AlpmDB db;
 		char* file;
 	}_Origin_data origin_data;
 
@@ -510,7 +510,7 @@ alpm_list_t * alpm_pkg_get_backup(alpm_pkg_t* pkg)
 	return pkg.ops.get_backup(pkg);
 }
 
-alpm_db_t * alpm_pkg_get_db(alpm_pkg_t* pkg)
+AlpmDB alpm_pkg_get_db(alpm_pkg_t* pkg)
 {
 	/* Sanity checks */
 	//ASSERT(pkg != null);
@@ -582,7 +582,7 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-void find_requiredby(alpm_pkg_t* pkg, alpm_db_t* db, alpm_list_t** reqs, int optional)
+void find_requiredby(alpm_pkg_t* pkg, AlpmDB db, alpm_list_t** reqs, int optional)
 {
 	 alpm_list_t* i = void;
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -612,7 +612,7 @@ alpm_list_t* compute_requiredby(alpm_pkg_t* pkg, int optional)
 {
 	 alpm_list_t* i = void;
 	alpm_list_t* reqs = null;
-	alpm_db_t* db = void;
+	AlpmDB db = void;
 
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -628,7 +628,7 @@ alpm_list_t* compute_requiredby(alpm_pkg_t* pkg, int optional)
 			find_requiredby(pkg, db, &reqs, optional);
 		} else {
 			for(i = pkg.handle.dbs_sync; i; i = i.next) {
-				db = cast(alpm_db_t*)i.data;
+				db = cast(AlpmDB)i.data;
 				find_requiredby(pkg, db, &reqs, optional);
 			}
 			reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp);

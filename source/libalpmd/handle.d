@@ -44,6 +44,8 @@ import libalpmd.trans;
 import libalpmd.alpm;
 import libalpmd.deps;
 import core.stdc.stdio;
+import libalpmd.db;
+
 
 void EVENT(h, e)(h handle, e event) { 
 	if(handle.eventcb) { 
@@ -64,8 +66,8 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 
 class AlpmHandle {
 	/* internal usage */
-	alpm_db_t* db_local;    /* local db pointer */
-	alpm_list_t* dbs_sync;  /* List of (alpm_db_t *) */
+	AlpmDB db_local;    /* local db pointer */
+	alpm_list_t* dbs_sync;  /* List of (AlpmDB) */
 	FILE* logstream;        /* log file stream pointer */
 	alpm_trans_t* trans;
 
@@ -182,20 +184,20 @@ version (HAVE_LIBGPGME) {
 void _alpm_handle_free(AlpmHandle handle)
 {
 	alpm_list_t* i = void;
-	alpm_db_t* db = void;
+	AlpmDB db = void;
 
 	if(handle is null) {
 		return;
 	}
 
 	/* close local database */
-	if(cast(bool)(db = handle.db_local)) {
+	if((db = handle.db_local) !is null) {
 		db.ops.unregister(db);
 	}
 
 	/* unregister all sync dbs */
 	for(i = handle.dbs_sync; i; i = i.next) {
-		db = cast(alpm_db_t*)i.data;
+		db = cast(AlpmDB)i.data;
 		db.ops.unregister(db);
 	}
 	alpm_list_free(handle.dbs_sync);
@@ -915,7 +917,7 @@ int  alpm_option_remove_architecture(AlpmHandle handle, char* arch)
 	return 0;
 }
 
-alpm_db_t * alpm_get_localdb(AlpmHandle handle)
+AlpmDB alpm_get_localdb(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.db_local;

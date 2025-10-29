@@ -396,7 +396,7 @@ int commit_single_pkg(AlpmHandle handle, alpm_pkg_t* newpkg, size_t pkg_current,
 	int ret = 0, errors = 0;
 	int is_upgrade = 0;
 	alpm_pkg_t* oldpkg = null;
-	alpm_db_t* db = handle.db_local;
+	AlpmDB db = handle.db_local;
 	alpm_trans_t* trans = handle.trans;
 	alpm_progress_t progress = ALPM_PROGRESS_ADD_START;
 	alpm_event_package_operation_t event = void;

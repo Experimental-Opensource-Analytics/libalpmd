@@ -68,7 +68,7 @@ alpm_pkg_t * alpm_sync_get_new_version(alpm_pkg_t* pkg, alpm_list_t* dbs_sync)
 	pkg.handle.pm_errno = ALPM_ERR_OK;
 
 	for(i = dbs_sync; !spkg && i; i = i.next) {
-		alpm_db_t* db = cast(alpm_db_t*)i.data;
+		AlpmDB db = cast(AlpmDB)i.data;
 		spkg = _alpm_db_get_pkgfromcache(db, pkg.name);
 	}
 
@@ -118,7 +118,7 @@ private int check_literal(AlpmHandle handle, alpm_pkg_t* lpkg, alpm_pkg_t* spkg,
 				return 1;
 			}
 		} else {
-			alpm_db_t* sdb = alpm_pkg_get_db(spkg);
+			AlpmDB sdb = alpm_pkg_get_db(spkg);
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: local (%s) is newer than %s (%s)\n",
 					lpkg.name, lpkg.version_, sdb.treename, spkg.version_);
 		}
@@ -126,7 +126,7 @@ private int check_literal(AlpmHandle handle, alpm_pkg_t* lpkg, alpm_pkg_t* spkg,
 	return 0;
 }
 
-private alpm_list_t* check_replacers(AlpmHandle handle, alpm_pkg_t* lpkg, alpm_db_t* sdb)
+private alpm_list_t* check_replacers(AlpmHandle handle, alpm_pkg_t* lpkg, AlpmDB sdb)
 {
 	/* 2. search for replacers in sdb */
 	alpm_list_t* replacers = null;
@@ -227,7 +227,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 
 		/* Search for replacers then literal (if no replacer) in each sync database. */
 		for(j = handle.dbs_sync; j; j = j.next) {
-			alpm_db_t* sdb = cast(alpm_db_t*)j.data;
+			AlpmDB sdb = cast(AlpmDB)j.data;
 			alpm_list_t* replacers = void;
 
 			if(!(sdb.usage & ALPM_DB_USAGE_UPGRADE)) {
@@ -261,7 +261,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 	alpm_list_t* i = void, j = void, pkgs = null, ignorelist = null;
 
 	for(i = dbs; i; i = i.next) {
-		alpm_db_t* db = cast(alpm_db_t*)i.data;
+		AlpmDB db = cast(AlpmDB)i.data;
 		alpm_group_t* grp = alpm_db_get_group(db, name);
 
 		if(!grp) {
@@ -391,7 +391,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	/* ensure all sync database are valid if we will be using them */
 	for(i = handle.dbs_sync; i; i = i.next) {
-		  alpm_db_t* db = cast(alpm_db_t*)i.data;
+		  AlpmDB db = cast(AlpmDB)i.data;
 		if(db.status & DB_STATUS_INVALID) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
@@ -732,7 +732,7 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 		alpm_pkg_t* spkg = cast(alpm_pkg_t*)i.data;
 
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
-			alpm_db_t* repo = spkg.origin_data.db;
+			AlpmDB repo = spkg.origin_data.db;
 			bool need_download = void;
 			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(spkg));
 

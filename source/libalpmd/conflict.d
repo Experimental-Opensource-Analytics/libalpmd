@@ -221,11 +221,11 @@ alpm_list_t* _alpm_innerconflicts(AlpmHandle handle, alpm_list_t* packages)
 /**
  * @brief Returns a list of conflicts between a db and a list of packages.
  */
-alpm_list_t* _alpm_outerconflicts(alpm_db_t* db, alpm_list_t* packages)
+alpm_list_t* _alpm_outerconflicts(AlpmDB db, alpm_list_t* packages)
 {
 	alpm_list_t* baddeps = null;
 
-	if(db == null) {
+	if(db is null) {
 		return null;
 	}
 
@@ -361,7 +361,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 	return 1;
 }
 
-private alpm_list_t* alpm_db_find_file_owners(alpm_db_t* db,   char*path)
+private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 {
 	alpm_list_t* i = void, owners = null;
 	for(i = alpm_db_get_pkgcache(db); i; i = i.next) {

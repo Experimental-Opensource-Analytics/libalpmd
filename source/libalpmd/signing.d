@@ -980,7 +980,7 @@ int  alpm_pkg_check_pgp_signature(alpm_pkg_t* pkg, alpm_siglist_t* siglist)
 			pkg.base64_sig, siglist);
 }
 
-int  alpm_db_check_pgp_signature(alpm_db_t* db, alpm_siglist_t* siglist)
+int  alpm_db_check_pgp_signature(AlpmDB db, alpm_siglist_t* siglist)
 {
 	//ASSERT(db != null);
 	//ASSERT(siglist != null);

@@ -225,7 +225,7 @@ private alpm_list_t* _cache_get_xdata(alpm_pkg_t* pkg)
  */
 private void* _cache_changelog_open(alpm_pkg_t* pkg)
 {
-	alpm_db_t* db = alpm_pkg_get_db(pkg);
+	AlpmDB db = alpm_pkg_get_db(pkg);
 	char* clfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"changelog");
 	FILE* f = fopen(clfile, "r");
 	free(clfile);
@@ -267,7 +267,7 @@ private archive* _cache_mtree_open(alpm_pkg_t* pkg)
 {
 	archive* mtree = void;
 
-	alpm_db_t* db = alpm_pkg_get_db(pkg);
+	AlpmDB db = alpm_pkg_get_db(pkg);
 	char* mtfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"mtree");
 
 	if(access(mtfile, F_OK) != 0) {
@@ -380,7 +380,7 @@ private const (pkg_operations) local_pkg_ops = {
 	force_load: &_cache_force_load,
 };
 
-private int checkdbdir(alpm_db_t* db)
+private int checkdbdir(AlpmDB db)
 {
 	stat_t buf = void;
 	  char*path = _alpm_db_path(db);
@@ -421,7 +421,7 @@ version (HAVE_STRUCT_DIRENT_D_TYPE) {
 	return 0;
 }
 
-private int local_db_add_version(alpm_db_t* db,   char*dbpath)
+private int local_db_add_version(AlpmDB db,   char*dbpath)
 {
 	char[PATH_MAX] dbverpath = void;
 	FILE* dbverfile = void;
@@ -440,7 +440,7 @@ private int local_db_add_version(alpm_db_t* db,   char*dbpath)
 	return 0;
 }
 
-private int local_db_create(alpm_db_t* db,   char*dbpath)
+private int local_db_create(AlpmDB db,   char*dbpath)
 {
 	if(mkdir(dbpath, octal!"0755") != 0) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not create directory %s: %s\n"),
@@ -454,7 +454,7 @@ private int local_db_create(alpm_db_t* db,   char*dbpath)
 	return 0;
 }
 
-private int local_db_validate(alpm_db_t* db)
+private int local_db_validate(AlpmDB db)
 {
 	dirent* ent = null;
 	  char*dbpath = void;
@@ -543,7 +543,7 @@ version_error:
 	return -1;
 }
 
-private int local_db_populate(alpm_db_t* db)
+private int local_db_populate(AlpmDB db)
 {
 	size_t est_count = void;
 	size_t count = 0;
@@ -679,7 +679,7 @@ private alpm_pkgreason_t _read_pkgreason(AlpmHandle handle,   char*pkgname,   ch
 }
 
 /* Note: the return value must be freed by the caller */
-char* _alpm_local_db_pkgpath(alpm_db_t* db, alpm_pkg_t* info,   char*filename)
+char* _alpm_local_db_pkgpath(AlpmDB db, alpm_pkg_t* info,   char*filename)
 {
 	size_t len = void;
 	char* pkgpath = void;
@@ -726,7 +726,7 @@ private int local_db_read(alpm_pkg_t* info, int inforeq)
 {
 	FILE* fp = null;
 	char[1024] line = 0;
-	alpm_db_t* db = info.origin_data.db;
+	AlpmDB db = info.origin_data.db;
 
 	/* bitmask logic here:
 	 * infolevel: 00001111
@@ -942,7 +942,7 @@ error:
 	return -1;
 }
 
-int _alpm_local_db_prepare(alpm_db_t* db, alpm_pkg_t* info)
+int _alpm_local_db_prepare(AlpmDB db, alpm_pkg_t* info)
 {
 	mode_t oldmask = void;
 	int retval = 0;
@@ -983,14 +983,14 @@ private void write_deps(FILE* fp,   char*header, alpm_list_t* deplist)
 	fputc('\n', fp);
 }
 
-int _alpm_local_db_write(alpm_db_t* db, alpm_pkg_t* info, int inforeq)
+int _alpm_local_db_write(AlpmDB db, alpm_pkg_t* info, int inforeq)
 {
 	FILE* fp = null;
 	mode_t oldmask = void;
 	alpm_list_t* lp = void;
 	int retval = 0;
 
-	if(db == null || info == null || !(db.status & DB_STATUS_LOCAL)) {
+	if(db is null || info == null || !(db.status & DB_STATUS_LOCAL)) {
 		return -1;
 	}
 
@@ -1148,7 +1148,7 @@ cleanup:
 	return retval;
 }
 
-int _alpm_local_db_remove(alpm_db_t* db, alpm_pkg_t* info)
+int _alpm_local_db_remove(AlpmDB db, alpm_pkg_t* info)
 {
 	int ret = 0;
 	DIR* dirp = void;
@@ -1221,14 +1221,14 @@ private  const(db_operations) local_db_ops = {
 	unregister: &_alpm_db_unregister,
 };
 
-alpm_db_t* _alpm_db_register_local(AlpmHandle handle)
+AlpmDB _alpm_db_register_local(AlpmHandle handle)
 {
-	alpm_db_t* db = void;
+	AlpmDB db = void;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "registering local database\n");
 
 	db = _alpm_db_new(cast(char*)"local", 1);
-	if(db == null) {
+	if(db is null) {
 		handle.pm_errno = ALPM_ERR_DB_CREATE;
 		return null;
 	}

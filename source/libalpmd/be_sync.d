@@ -79,7 +79,7 @@ char* get_sync_dir(AlpmHandle handle)
 	return syncpath;
 }
 
-int sync_db_validate(alpm_db_t* db)
+int sync_db_validate(AlpmDB db)
 {
 	int siglevel = void;
 	  char*dbpath = void;
@@ -177,7 +177,7 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 	}
 
 	for(i = dbs; i; i = i.next) {
-		alpm_db_t* db = cast(alpm_db_t*)i.data;
+		AlpmDB db = cast(AlpmDB)i.data;
 		int dbforce = force;
 		dload_payload* payload = null;
 		size_t len = void;
@@ -239,7 +239,7 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 	EVENT(handle, &event);
 
 	for(i = dbs; i; i = i.next) {
-		alpm_db_t* db = cast(alpm_db_t*)i.data;
+		AlpmDB db = cast(AlpmDB)i.data;
 		if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
 			continue;
 		}
@@ -325,7 +325,7 @@ int _sync_get_validation(alpm_pkg_t* pkg)
 	return &sync_pkg_ops;
 }
 
-alpm_pkg_t* load_pkg_for_entry(alpm_db_t* db,   char*entryname,  char** entry_filename, alpm_pkg_t* likely_pkg)
+alpm_pkg_t* load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, alpm_pkg_t* likely_pkg)
 {
 	char* pkgname = null, pkgver = null;
 	c_ulong pkgname_hash = void;
@@ -423,7 +423,7 @@ version (ARCHIVE_COMPRESSION_UU) {
 	return cast(size_t)((st.st_size / per_package) + 1);
 }
 
-int sync_db_populate(alpm_db_t* db)
+int sync_db_populate(AlpmDB db)
 {
 	  char*dbpath = void;
 	size_t est_count = void, count = void;
@@ -515,7 +515,7 @@ cleanup:
 
 /* This function validates %FILENAME%. filename must be between 3 and
  * PATH_MAX characters and cannot be contain a path */
-int _alpm_validate_filename(alpm_db_t* db,   char*pkgname,   char*filename)
+int _alpm_validate_filename(AlpmDB db,   char*pkgname,   char*filename)
 {
 	size_t len = strlen(filename);
 
@@ -564,7 +564,7 @@ enum string READ_AND_SPLITDEP(string f) = `do {
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, alpm_dep_from_string(line)); 
 } while(1); /* note the while(1) and not (0) */`;
 
-int sync_db_read(alpm_db_t* db, archive* archive, archive_entry* entry, alpm_pkg_t** likely_pkg)
+int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, alpm_pkg_t** likely_pkg)
 {
 	  char*entryname = void, filename = void;
 	alpm_pkg_t* pkg = void;
@@ -741,9 +741,9 @@ db_operations sync_db_ops = {
 	unregister: &_alpm_db_unregister,
 };
 
-alpm_db_t* _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
+AlpmDB _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
 {
-	alpm_db_t* db = void;
+	AlpmDB db = void;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "registering sync database '%s'\n", treename);
 
@@ -754,7 +754,7 @@ version (HAVE_LIBGPGME) {} else {
 }
 
 	db = _alpm_db_new(treename, 0);
-	if(db == null) {
+	if(db is null) {
 		RET_ERR(handle, ALPM_ERR_DB_CREATE, null);
 	}
 	db.ops = &sync_db_ops;
@@ -763,6 +763,6 @@ version (HAVE_LIBGPGME) {} else {
 
 	sync_db_validate(db);
 
-	handle.dbs_sync = alpm_list_add(handle.dbs_sync, db);
+	handle.dbs_sync = alpm_list_add(handle.dbs_sync, &db);
 	return db;
 }
