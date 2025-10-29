@@ -32,7 +32,7 @@ import core.sys.posix.sys.types;
 import core.sys.posix.syslog;
 import core.sys.posix.sys.stat;
 import core.sys.posix.fcntl;
-import core.sys.posix.unistd;;
+import core.sys.posix.unistd;
 
 
 /* libalpm */

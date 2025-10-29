@@ -594,7 +594,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	if(newpkg is null) {
 		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}
-	STRDUP(newpkg.filename, pkgfile);
+	newpkg.filename = pkgfile.to!string;
 	newpkg.size = st.st_size;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "starting package load for %s\n", pkgfile);

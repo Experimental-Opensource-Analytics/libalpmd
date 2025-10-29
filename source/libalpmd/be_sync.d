@@ -623,8 +623,9 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 								~ "mismatch on package %s\n"), db.treename, pkg.name);
 				}
 			} else if(strcmp(line, "%FILENAME%") == 0) {
-				mixin(READ_AND_STORE!(`pkg.filename`));
-				if(_alpm_validate_filename(db, pkg.name, pkg.filename) < 0) {
+				auto pkgfilename = cast(char*)pkg.filename.ptr;
+				mixin(READ_AND_STORE!(`pkgfilename`));
+				if(_alpm_validate_filename(db, pkg.name, cast(char*)pkg.filename) < 0) {
 					return -1;
 				}
 			} else if(strcmp(line, "%BASE%") == 0) {

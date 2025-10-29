@@ -98,7 +98,7 @@ extern const(pkg_operations) default_pkg_ops;
 
 class AlpmPkg {
 	c_ulong name_hash;
-	char* filename;
+	string filename;
 	char* base;
 	char* name;
 	char* version_;
@@ -180,7 +180,7 @@ int  alpm_pkg_checkmd5sum(AlpmPkg pkg)
 	//ASSERT(pkg.origin == ALPM_PKG_FROM_SYNCDB,
 			// RET_ERR(cast(AlpmHandle)pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
 
-	fpath = _alpm_filecache_find(pkg.handle, pkg.filename);
+	fpath = _alpm_filecache_find(pkg.handle, cast(char*)pkg.filename);
 
 	retval = _alpm_test_checksum(fpath, pkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
 
@@ -264,7 +264,7 @@ int _pkg_force_load(AlpmPkg pkg) { return 0; }
 /* Public functions for getting package information. These functions
  * delegate the hard work to the function callbacks attached to each
  * package, which depend on where the package was loaded from. */
-  char*alpm_pkg_get_filename(AlpmPkg pkg)
+string alpm_pkg_get_filename(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -376,7 +376,7 @@ int  alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len)
 		alpm_errno_t err = void;
 		int ret = -1;
 
-		pkgpath = _alpm_filecache_find(pkg.handle, pkg.filename);
+		pkgpath = _alpm_filecache_find(pkg.handle, cast(char*)pkg.filename);
 		if(!pkgpath) {
 			GOTO_ERR(pkg.handle, ALPM_ERR_PKG_NOT_FOUND, "cleanup");
 		}
@@ -705,7 +705,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	CALLOC(newpkg, 1, AlpmPkg.sizeof);
 
 	newpkg.name_hash = pkg.name_hash;
-	STRDUP(newpkg.filename, pkg.filename);
+	newpkg.filename = pkg.filename.dup;
 	STRDUP(newpkg.base, pkg.base);
 	STRDUP(newpkg.name, pkg.name);
 	STRDUP(newpkg.version_, pkg.version_);
