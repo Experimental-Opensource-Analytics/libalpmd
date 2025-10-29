@@ -59,7 +59,7 @@ struct pkg_operations {
 	string function(AlpmPkg) get_url;
 	alpm_time_t function(AlpmPkg) get_builddate;
 	alpm_time_t function(AlpmPkg) get_installdate;
-	  char*function(AlpmPkg) get_packager;
+	string function(AlpmPkg) get_packager;
 	  char*function(AlpmPkg) get_arch;
 	off_t function(AlpmPkg) get_isize;
 	alpm_pkgreason_t function(AlpmPkg) get_reason;
@@ -111,7 +111,7 @@ class AlpmPkg {
 	char* version_;
 	char* desc;
 	string url;
-	char* packager;
+	string packager;
 	char* md5sum;
 	char* sha256sum;
 	char* base64_sig;
@@ -164,6 +164,7 @@ class AlpmPkg {
 	auto getFilename() => this.filename;
 	auto getName() => this.name; 
 	auto getUrl() => this.ops.get_url(this);
+	auto getPackager() => this.ops.get_packager(this);
 }
 
 // alias AlpmPkgList = AlpmList!AlpmPkg;
@@ -212,7 +213,7 @@ int  alpm_pkg_checkmd5sum(AlpmPkg pkg)
 string _pkg_get_url(AlpmPkg pkg)         { return pkg.url; }
 alpm_time_t _pkg_get_builddate(AlpmPkg pkg)   { return pkg.builddate; }
 alpm_time_t _pkg_get_installdate(AlpmPkg pkg) { return pkg.installdate; }
-  char*_pkg_get_packager(AlpmPkg pkg)    { return pkg.packager; }
+string _pkg_get_packager(AlpmPkg pkg)    { return pkg.packager; }
   char*_pkg_get_arch(AlpmPkg pkg)        { return pkg.arch; }
 off_t _pkg_get_isize(AlpmPkg pkg)             { return pkg.isize; }
 alpm_pkgreason_t _pkg_get_reason(AlpmPkg pkg) { return pkg.reason; }
@@ -316,13 +317,6 @@ alpm_time_t  alpm_pkg_get_installdate(AlpmPkg pkg)
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_installdate(pkg);
-}
-
-  char*alpm_pkg_get_packager(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_packager(pkg);
 }
 
   char*alpm_pkg_get_md5sum(AlpmPkg pkg)
@@ -698,7 +692,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.url = pkg.url.dup;
 	newpkg.builddate = pkg.builddate;
 	newpkg.installdate = pkg.installdate;
-	STRDUP(newpkg.packager, pkg.packager);
+	newpkg.packager = pkg.packager.dup;
 	STRDUP(newpkg.md5sum, pkg.md5sum);
 	STRDUP(newpkg.sha256sum, pkg.sha256sum);
 	STRDUP(newpkg.arch, pkg.arch);

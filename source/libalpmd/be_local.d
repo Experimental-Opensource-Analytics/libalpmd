@@ -109,7 +109,7 @@ private alpm_time_t _cache_get_installdate(AlpmPkg pkg)
 	return pkg.installdate;
 }
 
-private   char*_cache_get_packager(AlpmPkg pkg)
+private string _cache_get_packager(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.packager;
@@ -1042,7 +1042,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		if(info.packager) {
 			fprintf(fp, "%%PACKAGER%%\n"
-							~ "%s\n\n", info.packager);
+							~ "%s\n\n", cast(char*)info.packager);
 		}
 		if(info.isize) {
 			/* only write installed size, csize is irrelevant once installed */

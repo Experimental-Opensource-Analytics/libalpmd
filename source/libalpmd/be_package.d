@@ -227,7 +227,8 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			} else if(strcmp(key, "builddate") == 0) {
 				newpkg.builddate = _alpm_parsedate(ptr);
 			} else if(strcmp(key, "packager") == 0) {
-				STRDUP(newpkg.packager, ptr);
+				STRDUP(tmp, ptr);
+				newpkg.packager = tmp.to!string;
 			} else if(strcmp(key, "arch") == 0) {
 				STRDUP(newpkg.arch, ptr);
 			} else if(strcmp(key, "size") == 0) {
