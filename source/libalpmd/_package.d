@@ -46,6 +46,7 @@ import libalpmd.signing;
 import libalpmd.backup;
 import std.conv;
 import std.string;
+import libalpmd.filelist;
 
 
 
@@ -647,7 +648,7 @@ alpm_list_t * alpm_pkg_compute_optionalfor(AlpmPkg pkg)
 	return compute_requiredby(pkg, 1);
 }
 
-alpm_file_t* _alpm_file_copy(alpm_file_t* dest, alpm_file_t* src)
+AlpmFile* _alpm_file_copy(AlpmFile* dest, AlpmFile* src)
 {
 	STRDUP(dest.name, src.name);
 	dest.size = src.size;
@@ -736,7 +737,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 
 	if(pkg.files.count) {
 		size_t filenum = void;
-		size_t len = ((alpm_file_t).sizeof * pkg.files.count).sizeof;
+		size_t len = ((AlpmFile).sizeof * pkg.files.count).sizeof;
 		MALLOC(newpkg.files.files, len);
 		for(filenum = 0; filenum < pkg.files.count; filenum++) {
 			if(!_alpm_file_copy(newpkg.files.files + filenum,

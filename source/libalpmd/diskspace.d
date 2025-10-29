@@ -319,7 +319,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 	}
 
 	for(i = 0; i < filelist.count; i++) {
-		alpm_file_t* file = filelist.files + i;
+		AlpmFile* file = filelist.files + i;
 		alpm_mountpoint_t* mp = void;
 		stat_t st = void;
 		char[PATH_MAX] path = void;
@@ -380,7 +380,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 	}
 
 	for(i = 0; i < filelist.count; i++) {
-		alpm_file_t* file = filelist.files + i;
+		AlpmFile* file = filelist.files + i;
 		alpm_mountpoint_t* mp = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t install_size = void;

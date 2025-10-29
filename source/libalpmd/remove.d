@@ -325,7 +325,7 @@ private int dir_is_mountpoint(AlpmHandle handle,   char*directory,  stat_t* stbu
  *
  * @return 1 if the file can be deleted, 0 if it cannot be deleted
  */
-private int can_remove_file(AlpmHandle handle,  alpm_file_t* file)
+private int can_remove_file(AlpmHandle handle,  AlpmFile* file)
 {
 	char[PATH_MAX] filepath = void;
 
@@ -443,7 +443,7 @@ cleanup:
  * @return 0 on success, -1 if there was an error unlinking the file, 1 if the
  * file was skipped or did not exist
  */
-private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  alpm_file_t* fileobj, int nosave)
+private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  AlpmFile* fileobj, int nosave)
 {
 	stat_t buf = void;
 	char[PATH_MAX] file = void;
@@ -620,7 +620,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 
 	filelist = alpm_pkg_get_files(oldpkg);
 	for(i = 0; i < filelist.count; i++) {
-		alpm_file_t* file = filelist.files + i;
+		AlpmFile* file = filelist.files + i;
 		if(!should_skip_file(handle, newpkg, file.name)
 				&& !can_remove_file(handle, file)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -640,7 +640,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 
 	/* iterate through the list backwards, unlinking files */
 	for(i = filelist.count; i > 0; i--) {
-		alpm_file_t* file = filelist.files + i - 1;
+		AlpmFile* file = filelist.files + i - 1;
 
 		/* check the remove skip list before removing the file.
 		 * see the big comment block in db_find_fileconflicts() for an

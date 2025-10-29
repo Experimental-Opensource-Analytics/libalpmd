@@ -31,7 +31,15 @@ import libalpmd.util;
 import libalpmd.alpm_list;
 import libalpmd.alpm;
 
-
+/** File in a package */
+struct AlpmFile {
+       /** Name of the file */
+       char* name;
+       /** Size of the file */
+       off_t size;
+       /** The file's permissions */
+       mode_t mode;
+}
 
 /* Returns the difference of the provided two lists of files.
  * Pre-condition: both lists are sorted!
@@ -93,7 +101,7 @@ alpm_list_t* _alpm_filelist_intersection(alpm_filelist_t* filesA, alpm_filelist_
 {
 	alpm_list_t* ret = null;
 	size_t ctrA = 0, ctrB = 0;
-	alpm_file_t* arrA = filesA.files, arrB = filesB.files;
+	AlpmFile* arrA = filesA.files, arrB = filesB.files;
 
 	while(ctrA < filesA.count && ctrB < filesB.count) {
 		  char*strA = arrA[ctrA].name, strB = arrB[ctrB].name;
@@ -119,14 +127,14 @@ alpm_list_t* _alpm_filelist_intersection(alpm_filelist_t* filesA, alpm_filelist_
  */
 extern (C) int _alpm_files_cmp(const void* f1, const void* f2)
 {
-	const(alpm_file_t)* file1 = cast(const(alpm_file_t)*)f1;
-	const(alpm_file_t)* file2 = cast(const(alpm_file_t)*)f2;
+	const(AlpmFile)* file1 = cast(const(AlpmFile)*)f1;
+	const(AlpmFile)* file2 = cast(const(AlpmFile)*)f2;
 	return strcmp(cast(char*)file1.name, cast(char*)file2.name);
 }
 
-alpm_file_t * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
+AlpmFile * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
 {
-	alpm_file_t key = alpm_file_t.init;
+	AlpmFile key = AlpmFile.init;
 
 	if(!filelist || filelist.count == 0) {
 		return null;
@@ -134,8 +142,8 @@ alpm_file_t * alpm_filelist_contains( alpm_filelist_t* filelist,   char*path)
 
 	key.name = cast(char*)path;
 
-	return cast(alpm_file_t*)bsearch(cast(const void*)&key, cast(void*)filelist.files, filelist.count,
-			alpm_file_t.sizeof, &_alpm_files_cmp);
+	return cast(AlpmFile*)bsearch(cast(const void*)&key, cast(void*)filelist.files, filelist.count,
+			AlpmFile.sizeof, &_alpm_files_cmp);
 }
 
 void _alpm_filelist_sort(alpm_filelist_t* filelist)
@@ -145,7 +153,7 @@ void _alpm_filelist_sort(alpm_filelist_t* filelist)
 		if(strcmp(filelist.files[i - 1].name, filelist.files[i].name) > 0) {
 			/* filelist is not pre-sorted */
 			qsort(filelist.files, filelist.count,
-					alpm_file_t.sizeof, &_alpm_files_cmp);
+					AlpmFile.sizeof, &_alpm_files_cmp);
 			return;
 		}
 	}

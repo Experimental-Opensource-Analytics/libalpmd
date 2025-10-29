@@ -874,12 +874,12 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			_alpm_strip_newline(line.ptr, 0);
 			if(strcmp(line.ptr, "%FILES%") == 0) {
 				size_t files_count = 0, files_size = 0, len = void;
-				alpm_file_t* files = null;
+				AlpmFile* files = null;
 
 				while( fgets(line.ptr, line.sizeof, fp) &&
 						(cast(bool)(len = _alpm_strip_newline(line.ptr, 0)))) {
 					if(!_alpm_greedy_grow(cast(void**)&files, &files_size,
-								(files_count ? (files_count + 1) * alpm_file_t.sizeof : 8 * alpm_file_t.sizeof))) {
+								(files_count ? (files_count + 1) * AlpmFile.sizeof : 8 * AlpmFile.sizeof))) {
 						goto nomem;
 					}
 					/* since we know the length of the file string already,
@@ -891,7 +891,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				}
 				/* attempt to hand back any memory we don't need */
 				if(files_count > 0) {
-					REALLOC(files, ((alpm_file_t).sizeof * files_count));
+					REALLOC(files, ((AlpmFile).sizeof * files_count));
 				} else {
 					FREE(files);
 				}
@@ -1122,7 +1122,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			size_t i = void;
 			fputs("%FILES%\n", fp);
 			for(i = 0; i < info.files.count; i++) {
-				alpm_file_t* file = info.files.files + i;
+				AlpmFile* file = info.files.files + i;
 				fputs(file.name, fp);
 				fputc('\n', fp);
 			}

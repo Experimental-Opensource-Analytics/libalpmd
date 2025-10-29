@@ -673,7 +673,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%FILES%") == 0) {
 				/* TODO: this could lazy load if there is future demand */
 				size_t files_count = 0, files_size = 0;
-				alpm_file_t* files = null;
+				AlpmFile* files = null;
 
 				while(1) {
 					if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) {
@@ -685,7 +685,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 					}
 
 					if(!_alpm_greedy_grow(cast(void**)&files, &files_size,
-								(files_count ? (files_count + 1) * alpm_file_t.sizeof : 8 * alpm_file_t.sizeof))) {
+								(files_count ? (files_count + 1) * AlpmFile.sizeof : 8 * AlpmFile.sizeof))) {
 						goto error;
 					}
 					STRDUP(files[files_count].name, line);
@@ -693,7 +693,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				}
 				/* attempt to hand back any memory we don't need */
 				if(files_count > 0) {
-					REALLOC(files, ((alpm_file_t).sizeof * files_count));
+					REALLOC(files, ((AlpmFile).sizeof * files_count));
 				} else {
 					FREE(files);
 				}

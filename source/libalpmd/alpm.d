@@ -48,6 +48,7 @@ import libalpmd.alpm_list;
 import libalpmd.handle;
 import libalpmd.log;
 import libalpmd.util;
+import libalpmd.filelist;
 
 struct alpm_pkg_xdata_t {
 	char* name;
@@ -63,22 +64,12 @@ alias alpm_time_t = long;
  * @{
  */
 
-/** File in a package */
-struct alpm_file_t {
-       /** Name of the file */
-       char* name;
-       /** Size of the file */
-       off_t size;
-       /** The file's permissions */
-       mode_t mode;
-}
-
 /** Package filelist container */
 struct alpm_filelist_t {
        /** Amount of files in the array */
        size_t count;
        /** An array of files */
-       alpm_file_t* files;
+       AlpmFile* files;
 }
 
 /** Local package or package file backup entry */
@@ -97,7 +88,7 @@ struct alpm_backup_t {
  * @param path the path to search for in the package
  * @return a pointer to the matching file or NULL if not found
  */
-// alpm_file_t* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
+// AlpmFile* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
 
 /* End of libalpm_files */
 /** @} */
@@ -598,22 +589,6 @@ import libalpmd._package;
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
 // alias alpm_time_t = long;
-
-
-
-/** Determines whether a package filelist contains a given path.
- * The provided path should be relative to the install root with no leading
- * slashes, e.g. "etc/localtime". When searching for directories, the path must
- * have a trailing slash.
- * @param filelist a pointer to a package filelist
- * @param path the path to search for in the package
- * @return a pointer to the matching file or NULL if not found
- */
-// alpm_file_t* alpm_filelist_contains(const(alpm_filelist_t)* filelist, const(char)* path);
-
-/* End of libalpm_files */
-/** @} */
-
 
 /** @addtogroup libalpm_groups Groups
  * @brief Functions for package groups

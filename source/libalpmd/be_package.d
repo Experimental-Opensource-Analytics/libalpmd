@@ -32,6 +32,7 @@ import core.sys.posix.fcntl;
 import core.stdc.limits;
 import core.stdc.stdio;;
 import std.conv;
+import libalpmd.alpm_list;
 
 
 
@@ -405,12 +406,12 @@ private int handle_simple_path(AlpmPkg pkg,   char*path)
 private int add_entry_to_files_list(alpm_filelist_t* filelist, size_t* files_size, archive_entry* entry,   char*path)
 {
 	size_t files_count = filelist.count;
-	alpm_file_t* current_file = void;
+	AlpmFile* current_file = void;
 	mode_t type = void;
 	size_t pathlen = void;
 
 	if(!_alpm_greedy_grow(cast(void**)&filelist.files,
-				files_size, (files_count + 1) * alpm_file_t.sizeof)) {
+				files_size, (files_count + 1) * AlpmFile.sizeof)) {
 		return -1;
 	}
 
@@ -672,7 +673,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	if(full) {
 		if(newpkg.files.files) {
 			/* attempt to hand back any memory we don't need */
-			REALLOC(newpkg.files.files, (alpm_file_t.sizeof * newpkg.files.count));
+			REALLOC(newpkg.files.files, (AlpmFile.sizeof * newpkg.files.count));
 			/* "checking for conflicts" requires a sorted list, ensure that here */
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"sorting package filelist for %s\n", pkgfile);
