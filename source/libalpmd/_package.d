@@ -47,8 +47,12 @@ import libalpmd.backup;
 import std.conv;
 import std.string;
 import std.array;
+import core.stdc.errno;
 
 import libalpmd.filelist;
+import libalpmd.be_package;
+import libalpmd.libarchive_compat;
+
 
 
 
@@ -165,6 +169,44 @@ class AlpmPkg {
 	auto getName() => this.name; 
 	auto getUrl() => this.ops.get_url(this);
 	auto getPackager() => this.ops.get_packager(this);
+
+	void* openChangelog() {
+		AlpmPkgChangelog changelog;
+		archive* _archive;
+		archive_entry* entry;
+		char*pkgfile = this.origin_data.file;
+		stat_t buf = void;
+		int fd = void;
+
+		fd = _alpm_open_archive(this.handle, pkgfile, &buf,
+				&_archive, ALPM_ERR_PKG_OPEN);
+		if(fd < 0) {
+			return null;
+		}
+
+		while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
+			char*entry_name = cast(char*)archive_entry_pathname(entry);
+
+			if(strcmp(entry_name, ".CHANGELOG") == 0) {
+				changelog = new AlpmPkgChangelog;
+				if(!changelog) {
+					(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_MEMORY;
+					_alpm_archive_read_free(_archive);
+					close(fd);
+					return null;
+				}
+				changelog._archive = _archive;
+				changelog.fd = fd;
+				return cast(void*)changelog;
+			}
+		}
+		/* we didn't find a changelog */
+		_alpm_archive_read_free(_archive);
+		close(fd);
+		errno = ENOENT;
+
+		return null;
+	}
 }
 
 // alias AlpmPkgList = AlpmList!AlpmPkg;

@@ -57,56 +57,9 @@ import libalpmd.db;
 import libalpmd.backup;
 
 
-class AlpmPackageChangelog {
+class AlpmPkgChangelog {
 	archive* _archive;
 	int fd;
-}
-
-/**
- * Open a package changelog for reading. Similar to fopen in functionality,
- * except that the returned 'file stream' is from an archive.
- * @param pkg the package (file) to read the changelog
- * @return a 'file stream' to the package changelog
- */
-private void* _package_changelog_open(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-
-	AlpmPackageChangelog changelog = void;
-	archive* _archive = void;
-	archive_entry* entry = void;
-	  char*pkgfile = pkg.origin_data.file;
-	stat_t buf = void;
-	int fd = void;
-
-	fd = _alpm_open_archive(pkg.handle, pkgfile, &buf,
-			&_archive, ALPM_ERR_PKG_OPEN);
-	if(fd < 0) {
-		return null;
-	}
-
-	while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
-		  char*entry_name = cast(char*)archive_entry_pathname(entry);
-
-		if(strcmp(entry_name, ".CHANGELOG") == 0) {
-			changelog = new AlpmPackageChangelog;
-			if(!changelog) {
-				(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_MEMORY;
-				_alpm_archive_read_free(_archive);
-				close(fd);
-				return null;
-			}
-			changelog._archive = _archive;
-			changelog.fd = fd;
-			return cast(void*)changelog;
-		}
-	}
-	/* we didn't find a changelog */
-	_alpm_archive_read_free(_archive);
-	close(fd);
-	errno = ENOENT;
-
-	return null;
 }
 
 /**
@@ -120,7 +73,7 @@ private void* _package_changelog_open(AlpmPkg pkg)
  */
 private size_t _package_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, void* fp)
 {
-	AlpmPackageChangelog changelog = cast(AlpmPackageChangelog)fp;
+	AlpmPkgChangelog changelog = cast(AlpmPkgChangelog)fp;
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
@@ -140,7 +93,7 @@ private size_t _package_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, voi
 private int _package_changelog_close( AlpmPkg pkg, void* fp)
 {
 	int ret = void;
-	AlpmPackageChangelog changelog = cast(AlpmPackageChangelog)fp;
+	AlpmPkgChangelog changelog = cast(AlpmPkgChangelog)fp;
 	ret = _alpm_archive_read_free(changelog._archive);
 	close(changelog.fd);
 	destroy(changelog);
@@ -157,7 +110,7 @@ private const (pkg_operations)* get_file_pkg_ops()
 	static int file_pkg_ops_initialized = 0;
 	if(!file_pkg_ops_initialized) {
 		file_pkg_ops = default_pkg_ops;
-		file_pkg_ops.changelog_open  = &_package_changelog_open;
+		// file_pkg_ops.changelog_open  = &_package_changelog_open;
 		file_pkg_ops.changelog_read  = &_package_changelog_read;
 		file_pkg_ops.changelog_close = &_package_changelog_close;
 		file_pkg_ops_initialized = 1;
