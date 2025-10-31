@@ -103,7 +103,7 @@ version (HAVE_LIBGPGME) {
 	void* progresscb_ctx;
 
 	/* filesystem paths */
-	char* root;              /* Root path, default '/' */
+	string root;              /* Root path, default '/' */
 	char* dbpath;            /* Base path to pacman's DBs */
 	char* logfile;           /* Name of the log file */
 	char* lockfile;          /* Name of the lock file */
@@ -136,6 +136,8 @@ version (HAVE_LIBGPGME) {
 
 	/* lock file descriptor */
 	int lockfd;
+
+	string getRoot() => this.root;
 
 	this() {
 		this.lockfd = -1;
@@ -370,12 +372,6 @@ void * alpm_option_get_progresscb_ctx(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.progresscb_ctx;
-}
-
-char* alpm_option_get_root(AlpmHandle handle)
-{
-	CHECK_HANDLE(handle);
-	return handle.root;
 }
 
 char* alpm_option_get_dbpath(AlpmHandle handle)

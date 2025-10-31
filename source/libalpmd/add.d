@@ -489,7 +489,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	}
 
 	/* libarchive requires this for extracting hard links */
-	if(chdir(handle.root) != 0) {
+	if(chdir(handle.root.ptr) != 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not change directory to %s (%s)\n"),
 				handle.root, strerror(errno));
 		_alpm_archive_read_free(archive);

@@ -904,7 +904,7 @@ enum TAIL = 0;
 	}
 
 	/* just in case our cwd was removed in the upgrade operation */
-	if(chdir(handle.root) != 0) {
+	if(chdir(handle.root.ptr) != 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not change directory to %s (%s)\n"),
 				handle.root, strerror(errno));
 		goto cleanup;
@@ -955,7 +955,7 @@ enum TAIL = 0;
 		/* use fprintf instead of _alpm_log to send output through the parent */
 		/* don't chroot() to "/": this allows running with less caps when the
 		 * caller puts us in the right root */
-		if(strcmp(handle.root, "/") != 0 && chroot(handle.root) != 0) {
+		if(handle.root != "/" && chroot(handle.root.ptr) != 0) {
 			fprintf(stderr, ("could not change the root directory (%s)\n"), strerror(errno));
 			exit(1);
 		}
@@ -1098,9 +1098,9 @@ int _alpm_ldconfig(AlpmHandle handle)
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "running ldconfig\n");
 
-	snprintf(line.ptr, PATH_MAX, "%setc/ld.so.conf", handle.root);
+	snprintf(line.ptr, PATH_MAX, "%setc/ld.so.conf", handle.root.ptr);
 		if(access(line.ptr, F_OK) == 0) {
-			snprintf(line.ptr, PATH_MAX, "%s%s", handle.root, "/sbin/ldconfig".ptr);
+			snprintf(line.ptr, PATH_MAX, "%s%s", handle.root.ptr, "/sbin/ldconfig".ptr);
 			if(access(line.ptr, X_OK) == 0) {
 				char[32] arg0 = void;
 				char*[2] argv = [ arg0.ptr, null ];

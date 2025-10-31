@@ -393,13 +393,13 @@ int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char
 	strcpy(arg1.ptr, "-c");
 
 	/* create a directory in $root/tmp/ for copying/extracting the scriptlet */
-	len = strlen(handle.root) + strlen("tmp/alpm_XXXXXX") + 1;
+	len = handle.root.length + strlen("tmp/alpm_XXXXXX") + 1;
 	MALLOC(tmpdir, len);
-	snprintf(tmpdir, len, "%stmp/", handle.root);
+	snprintf(tmpdir, len, "%stmp/", handle.root.ptr);
 	if(access(tmpdir, F_OK) != 0) {
 		_alpm_makepath_mode(tmpdir, octal!"01777");
 	}
-	snprintf(tmpdir, len, "%stmp/alpm_XXXXXX", handle.root);
+	snprintf(tmpdir, len, "%stmp/alpm_XXXXXX", handle.root.ptr);
 	if(mkdtemp(tmpdir) == null) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not create temp directory\n"));
 		free(tmpdir);
@@ -430,7 +430,7 @@ int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char
 	}
 
 	/* chop off the root so we can find the tmpdir in the chroot */
-	scriptpath = scriptfn + strlen(handle.root) - 1;
+	scriptpath = scriptfn + handle.root.length - 1;
 
 	if(oldver) {
 		snprintf(cmdline.ptr, PATH_MAX, ". %s; %s %s %s",

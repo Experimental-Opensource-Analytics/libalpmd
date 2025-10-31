@@ -331,7 +331,7 @@ private int can_remove_file(AlpmHandle handle,  AlpmFile* file)
 {
 	char[PATH_MAX] filepath = void;
 
-	snprintf(filepath.ptr, PATH_MAX, "%s%s", handle.root, cast(char*)file.name);
+	snprintf(filepath.ptr, PATH_MAX, "%s%s", handle.root.ptr, cast(char*)file.name);
 
 	if(file.name[$ - 1] == '/' &&
 			dir_is_mountpoint(handle, filepath.ptr, null)) {
@@ -451,7 +451,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 	char[PATH_MAX] file = void;
 	int file_len = void;
 
-	file_len = snprintf(file.ptr, PATH_MAX, "%s%s", handle.root, cast(char*)fileobj.name);
+	file_len = snprintf(file.ptr, PATH_MAX, "%s%s", handle.root.ptr, cast(char*)fileobj.name);
 	if(file_len <= 0 || file_len >= PATH_MAX) {
 		/* 0 is a valid value from snprintf, but should be impossible here */
 		_alpm_log(handle, ALPM_LOG_DEBUG, "path too long to unlink %s%s\n",

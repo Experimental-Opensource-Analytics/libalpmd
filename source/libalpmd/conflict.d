@@ -315,7 +315,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 	DIR* dir = void;
 	dirent* ent = null;
 
-	snprintf(full_path.ptr, PATH_MAX, "%s%s", handle.root, dirpath);
+	snprintf(full_path.ptr, PATH_MAX, "%s%s", handle.root.ptr, dirpath);
 	dir = opendir(full_path.ptr);
 	if(dir == null) {
 		return 0;
@@ -331,7 +331,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 			continue;
 		}
 
-		snprintf(full_path.ptr, PATH_MAX, "%s%s%s", handle.root, dirpath, name);
+		snprintf(full_path.ptr, PATH_MAX, "%s%s%s", handle.root.ptr, dirpath, name);
 
 		if(lstat(full_path.ptr, &sbuf) != 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "could not stat %s\n", full_path.ptr);
@@ -415,7 +415,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		return null;
 	}
 
-	rootlen = strlen(handle.root);
+	rootlen = handle.root.length;
 
 	/* TODO this whole function needs a huge change, which hopefully will
 	 * be possible with real transactions. Right now we only do half as much
@@ -448,7 +448,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				char[PATH_MAX] path = void;
 				for(k = common_files; k; k = k.next) {
 					char* filename = cast(char*)k.data;
-					snprintf(path.ptr, PATH_MAX, "%s%s", handle.root, filename);
+					snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename);
 
 					/* can skip file-file conflicts when forced *
 					 * checking presence in p2_files detects dir-file or file-dir
@@ -510,7 +510,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			size_t pathlen = void;
 			int pfile_isdir = void;
 
-			pathlen = snprintf(path.ptr, PATH_MAX, "%s%s", handle.root, filestr);
+			pathlen = snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filestr);
 			relative_path = path.ptr + rootlen;
 
 			/* stat the file - if it exists, do some checks */

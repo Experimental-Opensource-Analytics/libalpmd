@@ -3113,7 +3113,7 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	const(passwd)* pw = null;
 	AlpmHandle myhandle = new AlpmHandle();
 	
-	if(cast(bool)(myerr = _alpm_set_directory_option(root, &(myhandle.root), 1))) {
+	if(cast(bool)(myerr = _alpm_set_directory_option(root, cast(char**)myhandle.root.ptr, 1))) {
 		goto cleanup;
 	}
 	if(cast(bool)(myerr = _alpm_set_directory_option(dbpath, &(myhandle.dbpath), 1))) {
@@ -3123,9 +3123,9 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	/* to concatenate myhandle->root (ends with a slash) with SYSHOOKDIR (starts
 	 * with a slash) correctly, we skip SYSHOOKDIR[0]; the regular +1 therefore
 	 * disappears from the allocation */
-	hookdirlen = strlen(myhandle.root) + strlen(SYSHOOKDIR);
+	hookdirlen = myhandle.root.length + strlen(SYSHOOKDIR);
 	MALLOC(hookdir, hookdirlen);
-	snprintf(hookdir, hookdirlen, "%s%s", myhandle.root, &SYSHOOKDIR[1]);
+	snprintf(hookdir, hookdirlen, "%s%s", myhandle.root.ptr, &SYSHOOKDIR[1]);
 	myhandle.hookdirs = alpm_list_add(null, hookdir);
 
 	/* set default database extension */

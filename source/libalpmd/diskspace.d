@@ -326,7 +326,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 		blkcnt_t remove_size = void;
 		  char*filename = cast(char*)file.name;
 
-		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root, filename);
+		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename);
 
 		if(lstat(path.ptr, &st) == -1) {
 			if(alpm_option_match_noextract(handle, filename)) {
@@ -398,7 +398,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 			filename = handle.dbpath;
 		}
 
-		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root, filename);
+		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename);
 
 		mp = match_mount_point(mount_points, path.ptr);
 		if(mp == null) {
@@ -523,7 +523,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine filesystem mount points\n"));
 		return -1;
 	}
-	root_mp = match_mount_point(mount_points, handle.root);
+	root_mp = match_mount_point(mount_points, cast(char*)handle.root.ptr);
 	if(root_mp == null) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine root mount point %s\n"),
 				handle.root);
