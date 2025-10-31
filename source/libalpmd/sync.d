@@ -53,6 +53,8 @@ import libalpmd.remove;
 import libalpmd.diskspace;
 import libalpmd.signing;
 import libalpmd.be_package;
+import libalpmd.group;
+
 
 struct keyinfo_t {
        char* uid;
@@ -261,7 +263,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 
 	for(i = dbs; i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
-		alpm_group_t* grp = alpm_db_get_group(db, name);
+		AlpmGroup grp = alpm_db_get_group(db, name);
 
 		if(!grp) {
 			continue;

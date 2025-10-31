@@ -64,14 +64,6 @@ alias alpm_time_t = long;
  * @{
  */
 
-/** Package group */
-struct alpm_group_t {
-	/** group name */
-	char* name;
-	/** list of alpm_pkg_t packages */
-	alpm_list_t* packages;
-}
-
 /** Find group members across a list of databases.
  * If a member exists in several databases, only the first database is used.
  * IgnorePkg is also handled.
@@ -223,7 +215,7 @@ alias ALPM_ERR_DISK_SPACE = alpm_errno_t.ALPM_ERR_DISK_SPACE;
 alias ALPM_ERR_HANDLE_NULL = alpm_errno_t.ALPM_ERR_HANDLE_NULL;
 alias ALPM_ERR_HANDLE_NOT_NULL = alpm_errno_t.ALPM_ERR_HANDLE_NOT_NULL;
 alias ALPM_ERR_HANDLE_LOCK = alpm_errno_t.ALPM_ERR_HANDLE_LOCK;
-alias ALPM_ERR_DB_OPEN = alpm_errno__pkg_get_filest.ALPM_ERR_DB_OPEN;
+alias ALPM_ERR_DB_OPEN = alpm_errno_t.ALPM_ERR_DB_OPEN;
 alias ALPM_ERR_DB_CREATE = alpm_errno_t.ALPM_ERR_DB_CREATE;
 alias ALPM_ERR_DB_NULL = alpm_errno_t.ALPM_ERR_DB_NULL;
 alias ALPM_ERR_DB_NOT_NULL = alpm_errno_t.ALPM_ERR_DB_NOT_NULL;

@@ -372,7 +372,7 @@ alpm_list_t * alpm_db_get_pkgcache(AlpmDB db)
 	return _alpm_db_get_pkgcache(db);
 }
 
-alpm_group_t * alpm_db_get_group(AlpmDB db,   char*name)
+AlpmGroup alpm_db_get_group(AlpmDB db,   char*name)
 {
 	//ASSERT(db != null);
 	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
@@ -589,7 +589,7 @@ private void free_groupcache(AlpmDB db)
 			"freeing group cache for repository '%s'\n", db.treename);
 
 	for(lg = db.grpcache; lg; lg = lg.next) {
-		_alpm_group_free(cast(alpm_group_t*)lg.data);
+		destroy(cast(AlpmGroup)lg.data);
 		lg.data = null;
 	}
 	FREELIST(db.grpcache);
@@ -739,14 +739,14 @@ private int load_grpcache(AlpmDB db)
 		for(i = alpm_pkg_get_groups(pkg); i; i = i.next) {
 			  char*grpname =  cast(char*)i.data;
 			alpm_list_t* j = void;
-			alpm_group_t* grp = null;
+			AlpmGroup grp = null;
 			int found = 0;
 
 			/* first look through the group cache for a group with this name */
 			for(j = db.grpcache; j; j = j.next) {
-				grp = cast(alpm_group_t*)j.data;
+				grp = cast(AlpmGroup)j.data;
 
-				if(strcmp(grp.name, grpname) == 0
+				if(strcmp(cast(char*)grp.name, grpname) == 0
 						&& !alpm_list_find_ptr(grp.packages, cast(void*)pkg)) {
 					grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
 					found = 1;
@@ -757,13 +757,13 @@ private int load_grpcache(AlpmDB db)
 				continue;
 			}
 			/* we didn't find the group, so create a new one with this name */
-			grp = _alpm_group_new(grpname);
+			grp = new AlpmGroup(grpname.to!string);
 			if(!grp) {
 				free_groupcache(db);
 				return -1;
 			}
 			grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
-			db.grpcache = alpm_list_add(db.grpcache, grp);
+			db.grpcache = alpm_list_add(db.grpcache, cast(void*)grp);
 		}
 	}
 
@@ -788,7 +788,7 @@ alpm_list_t* _alpm_db_get_groupcache(AlpmDB db)
 	return db.grpcache;
 }
 
-alpm_group_t* _alpm_db_get_groupfromcache(AlpmDB db,   char*target)
+AlpmGroup _alpm_db_get_groupfromcache(AlpmDB db,   char*target)
 {
 	alpm_list_t* i = void;
 
@@ -797,9 +797,9 @@ alpm_group_t* _alpm_db_get_groupfromcache(AlpmDB db,   char*target)
 	}
 
 	for(i = _alpm_db_get_groupcache(db); i; i = i.next) {
-		alpm_group_t* info = cast(alpm_group_t*)i.data;
+		AlpmGroup info = cast(AlpmGroup)i.data;
 
-		if(strcmp(info.name, target) == 0) {
+		if(strcmp(cast(char*)info.name, target) == 0) {
 			return info;
 		}
 	}

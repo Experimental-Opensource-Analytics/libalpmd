@@ -31,24 +31,18 @@ import libalpmd.util;
 import libalpmd.log;
 import libalpmd.alpm;
 
-alpm_group_t* _alpm_group_new(  char*name)
-{
-	alpm_group_t* grp = void;
+/** Package group */
+class AlpmGroup {
+	/** group name */
+	string name;
+	/** list of alpm_pkg_t packages */
+	alpm_list_t* packages;
 
-	CALLOC(grp, 1, alpm_group_t.sizeof);
-	STRDUP(grp.name, name);
-
-	return grp;
-}
-
-void _alpm_group_free(alpm_group_t* grp)
-{
-	if(grp == null) {
-		return;
+	this(string name) {
+		this.name = name;
 	}
 
-	FREE(grp.name);
-	/* do NOT free the contents of the list, just the nodes */
-	alpm_list_free(grp.packages);
-	FREE(grp);
+	~this() {
+		packages = null;
+	}
 }
