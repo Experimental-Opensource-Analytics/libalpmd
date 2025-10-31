@@ -57,7 +57,7 @@ import libalpmd.db;
 import libalpmd.backup;
 
 
-struct package_changelog {
+class AlpmPackageChangelog {
 	archive* _archive;
 	int fd;
 }
@@ -72,7 +72,7 @@ private void* _package_changelog_open(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 
-	package_changelog* changelog = void;
+	AlpmPackageChangelog changelog = void;
 	archive* _archive = void;
 	archive_entry* entry = void;
 	  char*pkgfile = pkg.origin_data.file;
@@ -89,7 +89,7 @@ private void* _package_changelog_open(AlpmPkg pkg)
 		  char*entry_name = cast(char*)archive_entry_pathname(entry);
 
 		if(strcmp(entry_name, ".CHANGELOG") == 0) {
-			changelog = cast(package_changelog*) malloc(package_changelog.sizeof);
+			changelog = new AlpmPackageChangelog;
 			if(!changelog) {
 				(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_MEMORY;
 				_alpm_archive_read_free(_archive);
@@ -98,7 +98,7 @@ private void* _package_changelog_open(AlpmPkg pkg)
 			}
 			changelog._archive = _archive;
 			changelog.fd = fd;
-			return changelog;
+			return cast(void*)changelog;
 		}
 	}
 	/* we didn't find a changelog */
@@ -120,7 +120,7 @@ private void* _package_changelog_open(AlpmPkg pkg)
  */
 private size_t _package_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, void* fp)
 {
-	package_changelog* changelog = cast(package_changelog*)fp;
+	AlpmPackageChangelog changelog = cast(AlpmPackageChangelog)fp;
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
@@ -140,10 +140,10 @@ private size_t _package_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, voi
 private int _package_changelog_close( AlpmPkg pkg, void* fp)
 {
 	int ret = void;
-	package_changelog* changelog = cast(package_changelog*)fp;
+	AlpmPackageChangelog changelog = cast(AlpmPackageChangelog)fp;
 	ret = _alpm_archive_read_free(changelog._archive);
 	close(changelog.fd);
-	free(changelog);
+	destroy(changelog);
 	return ret;
 }
 
