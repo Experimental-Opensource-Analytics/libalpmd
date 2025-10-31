@@ -223,7 +223,7 @@ alias ALPM_ERR_DISK_SPACE = alpm_errno_t.ALPM_ERR_DISK_SPACE;
 alias ALPM_ERR_HANDLE_NULL = alpm_errno_t.ALPM_ERR_HANDLE_NULL;
 alias ALPM_ERR_HANDLE_NOT_NULL = alpm_errno_t.ALPM_ERR_HANDLE_NOT_NULL;
 alias ALPM_ERR_HANDLE_LOCK = alpm_errno_t.ALPM_ERR_HANDLE_LOCK;
-alias ALPM_ERR_DB_OPEN = alpm_errno_t.ALPM_ERR_DB_OPEN;
+alias ALPM_ERR_DB_OPEN = alpm_errno__pkg_get_filest.ALPM_ERR_DB_OPEN;
 alias ALPM_ERR_DB_CREATE = alpm_errno_t.ALPM_ERR_DB_CREATE;
 alias ALPM_ERR_DB_NULL = alpm_errno_t.ALPM_ERR_DB_NULL;
 alias ALPM_ERR_DB_NOT_NULL = alpm_errno_t.ALPM_ERR_DB_NOT_NULL;
@@ -553,7 +553,7 @@ import libalpmd._package;
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
-// alias AlpmTime = long;
+alias AlpmTime = long;
 
 /** @addtogroup libalpm_groups Groups
  * @brief Functions for package groups
