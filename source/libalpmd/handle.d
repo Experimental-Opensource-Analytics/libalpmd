@@ -200,6 +200,18 @@ version (HAVE_LIBGPGME) {
 
 		return _alpm_db_register_sync(this, cast(char*)treename, siglevel);
 	}
+
+	void unregisterAllSyncDBs() {
+		enforce(this.trans !is null, "The transaction is going-on");
+
+		/* unregister all sync dbs */
+		for(auto i = this.dbs_sync; i; i = i.next) {
+			auto db = i.data;
+			db.ops.unregister(db);
+			i.data = null;
+		}
+		this.dbs_sync = null;
+	}
 }
 
 /* free all in-memory resources */

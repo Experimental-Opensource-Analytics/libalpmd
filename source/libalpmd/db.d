@@ -124,25 +124,6 @@ void _alpm_db_unregister(AlpmDB db)
 	_alpm_db_free(db);
 }
 
-int  alpm_unregister_all_syncdbs(AlpmHandle handle)
-{
-	AlpmDB db = void;
-
-	/* Sanity checks */
-	CHECK_HANDLE(handle);
-	/* Do not unregister a database if a transaction is on-going */
-	//ASSERT(handle.trans == null);
-
-	/* unregister all sync dbs */
-	for(auto i = handle.dbs_sync; i; i = i.next) {
-		db = cast(AlpmDB)i.data;
-		db.ops.unregister(db);
-		i.data = null;
-	}
-	handle.dbs_sync = null;
-	return 0;
-}
-
 int  alpm_db_unregister(AlpmDB db)
 {
 	int found = 0;
