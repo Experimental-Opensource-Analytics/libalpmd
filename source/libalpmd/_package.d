@@ -151,7 +151,7 @@ class AlpmPkg {
 	 * origin == PKG_FROM_*DB, use pkg->origin_data.db */
 	union _Origin_data {
 		AlpmDB db;
-		char* file;
+		string file;
 	}_Origin_data origin_data;
 
 	alpm_pkgfrom_t origin;
@@ -174,7 +174,7 @@ class AlpmPkg {
 		AlpmPkgChangelog changelog;
 		archive* _archive;
 		archive_entry* entry;
-		char*pkgfile = this.origin_data.file;
+		char*pkgfile = cast(char*)this.origin_data.file;
 		stat_t buf = void;
 		int fd = void;
 
@@ -760,7 +760,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.infolevel = pkg.infolevel;
 	newpkg.origin = pkg.origin;
 	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-		STRDUP(newpkg.origin_data.file, pkg.origin_data.file);
+		newpkg.origin_data.file = pkg.origin_data.file.idup;
 	} else {
 		newpkg.origin_data.db = pkg.origin_data.db;
 	}

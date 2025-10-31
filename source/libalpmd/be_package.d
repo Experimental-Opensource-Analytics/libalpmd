@@ -621,7 +621,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 
 	/* internal fields for package struct */
 	newpkg.origin = ALPM_PKG_FROM_FILE;
-	STRDUP(newpkg.origin_data.file, pkgfile);
+	newpkg.origin_data.file = pkgfile.to!string;
 	newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
 	newpkg.infolevel = INFRQ_BASE | INFRQ_DESC | INFRQ_SCRIPTLET;

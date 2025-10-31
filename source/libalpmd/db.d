@@ -663,7 +663,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding entry '%s' in '%s' cache\n",
 						newpkg.name, db.treename);
 	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-		free(newpkg.origin_data.file);
+		free(cast(void*)newpkg.origin_data.file);
 	}
 	newpkg.origin = (db.status & DB_STATUS_LOCAL)
 		? ALPM_PKG_FROM_LOCALDB

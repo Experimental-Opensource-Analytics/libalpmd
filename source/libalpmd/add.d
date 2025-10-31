@@ -438,7 +438,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	event.newpkg = newpkg;
 	EVENT(handle, &event);
 
-	pkgfile = newpkg.origin_data.file;
+	pkgfile = cast(char*)newpkg.origin_data.file;
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "%s package %s-%s\n",
 			log_msg, newpkg.name, newpkg.version_);
