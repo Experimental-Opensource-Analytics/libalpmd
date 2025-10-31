@@ -170,34 +170,27 @@ class AlpmPkg {
 	auto getUrl() => this.ops.get_url(this);
 	auto getPackager() => this.ops.get_packager(this);
 
-	void* openChangelog() {
+	AlpmPkgChangelog openChangelog() {
 		AlpmPkgChangelog changelog;
 		archive* _archive;
 		archive_entry* entry;
-		char*pkgfile = cast(char*)this.origin_data.file;
 		stat_t buf = void;
 		int fd = void;
 
-		fd = _alpm_open_archive(this.handle, pkgfile, &buf,
+		fd = _alpm_open_archive(this.handle, cast(char*)origin_data.file, &buf,
 				&_archive, ALPM_ERR_PKG_OPEN);
 		if(fd < 0) {
 			return null;
 		}
 
 		while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
-			char*entry_name = cast(char*)archive_entry_pathname(entry);
+			string entry_name = archive_entry_pathname(entry).to!string;
 
-			if(strcmp(entry_name, ".CHANGELOG") == 0) {
+			if(entry_name == ".CHANGELOG") {
 				changelog = new AlpmPkgChangelog;
-				if(!changelog) {
-					(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_MEMORY;
-					_alpm_archive_read_free(_archive);
-					close(fd);
-					return null;
-				}
 				changelog._archive = _archive;
 				changelog.fd = fd;
-				return cast(void*)changelog;
+				return changelog;
 			}
 		}
 		/* we didn't find a changelog */
