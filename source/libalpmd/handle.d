@@ -37,6 +37,8 @@ import core.sys.posix.unistd;
 
 /* libalpm */
 import libalpmd.handle;
+import std.conv;
+
 import libalpmd.alpm_list;
 import libalpmd.util;
 import libalpmd.log;
@@ -105,7 +107,7 @@ version (HAVE_LIBGPGME) {
 	/* filesystem paths */
 	string root;              /* Root path, default '/' */
 	string dbpath;            /* Base path to pacman's DBs */
-	char* logfile;           /* Name of the log file */
+	string logfile;           /* Name of the log file */
 	char* lockfile;          /* Name of the lock file */
 	char* gpgdir;            /* Directory where GnuPG files are stored */
 	char* sandboxuser;       /* User to switch to for sensitive operations */
@@ -139,6 +141,7 @@ version (HAVE_LIBGPGME) {
 
 	string getRoot() => this.root;
 	string getDBPath() => this.dbpath;
+	string getLogfile() => this.logfile;
 
 	this() {
 		this.lockfd = -1;
@@ -385,12 +388,6 @@ alpm_list_t * alpm_option_get_cachedirs(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.cachedirs;
-}
-
-char* alpm_option_get_logfile(AlpmHandle handle)
-{
-	CHECK_HANDLE(handle);
-	return handle.logfile;
 }
 
 char* alpm_option_get_lockfile(AlpmHandle handle)
@@ -679,7 +676,7 @@ int  alpm_option_remove_cachedir(AlpmHandle handle,   char*cachedir)
 
 int  alpm_option_set_logfile(AlpmHandle handle,   char*logfile)
 {
-	char* oldlogfile = handle.logfile;
+	char* oldlogfile = cast(char*)handle.logfile;
 
 	CHECK_HANDLE(handle);
 	if(!logfile) {
@@ -687,7 +684,9 @@ int  alpm_option_set_logfile(AlpmHandle handle,   char*logfile)
 		return -1;
 	}
 
-	STRDUP(handle.logfile, logfile);
+	char* tmp;
+	STRDUP(tmp, logfile);
+	handle.logfile = tmp.to!string;
 
 	/* free the old logfile path string, and close the stream so logaction
 	 * will reopen a new stream on the new logfile */

@@ -104,7 +104,7 @@ int  alpm_logaction(AlpmHandle handle,   char*prefix,   char*fmt, ...)
 	if(!(handle.logstream.isOpen) && handle.logfile != null) {
 		int fd = void;
 		do {
-			fd = open(handle.logfile, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC,
+			fd = open(cast(char*)handle.logfile.ptr, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC,
 					octal!"0644");
 		} while(fd == -1 && errno == EINTR);
 		/* if we couldn't open it, we have an issue */
