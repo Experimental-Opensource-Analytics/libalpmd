@@ -104,7 +104,7 @@ version (HAVE_LIBGPGME) {
 
 	/* filesystem paths */
 	string root;              /* Root path, default '/' */
-	char* dbpath;            /* Base path to pacman's DBs */
+	string dbpath;            /* Base path to pacman's DBs */
 	char* logfile;           /* Name of the log file */
 	char* lockfile;          /* Name of the lock file */
 	char* gpgdir;            /* Directory where GnuPG files are stored */
@@ -138,6 +138,7 @@ version (HAVE_LIBGPGME) {
 	int lockfd;
 
 	string getRoot() => this.root;
+	string getDBPath() => this.dbpath;
 
 	this() {
 		this.lockfd = -1;
@@ -372,12 +373,6 @@ void * alpm_option_get_progresscb_ctx(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.progresscb_ctx;
-}
-
-char* alpm_option_get_dbpath(AlpmHandle handle)
-{
-	CHECK_HANDLE(handle);
-	return handle.dbpath;
 }
 
 alpm_list_t * alpm_option_get_hookdirs(AlpmHandle handle)

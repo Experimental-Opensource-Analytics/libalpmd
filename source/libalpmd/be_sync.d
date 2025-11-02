@@ -54,12 +54,12 @@ import libalpmd.pkghash;
 
 char* get_sync_dir(AlpmHandle handle)
 {
-	size_t len = strlen(handle.dbpath) + 6;
+	size_t len = handle.dbpath.length + 6;
 	char* syncpath = void;
 	stat_t buf = void;
 
 	MALLOC(syncpath, len);
-	snprintf(syncpath, len, "%s%s", handle.dbpath, "sync/".ptr);
+	snprintf(syncpath, len, "%s%s", handle.dbpath.ptr, "sync/".ptr);
 
 	if(stat(syncpath, &buf) != 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",

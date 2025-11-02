@@ -3116,7 +3116,7 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	if(cast(bool)(myerr = _alpm_set_directory_option(root, cast(char**)myhandle.root.ptr, 1))) {
 		goto cleanup;
 	}
-	if(cast(bool)(myerr = _alpm_set_directory_option(dbpath, &(myhandle.dbpath), 1))) {
+	if(cast(bool)(myerr = _alpm_set_directory_option(dbpath, cast(char**)myhandle.dbpath.ptr, 1))) {
 		goto cleanup;
 	}
 
@@ -3131,9 +3131,9 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	/* set default database extension */
 	STRDUP(myhandle.dbext, cast(char*)".db");
 
-	lockfilelen = strlen(myhandle.dbpath) + strlen(lf) + 1;
+	lockfilelen = myhandle.dbpath.length + strlen(lf) + 1;
 	MALLOC(myhandle.lockfile, lockfilelen);
-	snprintf(myhandle.lockfile, lockfilelen, "%s%s", myhandle.dbpath, lf);
+	snprintf(myhandle.lockfile, lockfilelen, "%s%s", myhandle.dbpath.ptr, lf);
 
 	if(_alpm_db_register_local(myhandle) is null) {
 		myerr = myhandle.pm_errno;

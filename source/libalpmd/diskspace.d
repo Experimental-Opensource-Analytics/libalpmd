@@ -384,7 +384,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 		alpm_mountpoint_t* mp = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t install_size = void;
-		  char*filename = cast(char*)file.name;
+		string filename = file.name;
 
 		/* libarchive reports these as zero size anyways */
 		/* NOTE: if we do start accounting for directory size, a dir matching a
@@ -398,12 +398,12 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 			filename = handle.dbpath;
 		}
 
-		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename);
+		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename.ptr);
 
 		mp = match_mount_point(mount_points, path.ptr);
 		if(mp == null) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
-					("could not determine mount point for file %s\n"), filename);
+					("could not determine mount point for file %s\n"), filename.ptr);
 			continue;
 		}
 

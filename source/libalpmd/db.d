@@ -430,10 +430,10 @@ string _alpm_db_path(AlpmDB db)
 		return null;
 	}
 	if(!db._path) {
-		  char*dbpath = void;
+		char*dbpath = void;
 		size_t pathsize = void;
 
-		dbpath = db.handle.dbpath;
+		dbpath = cast(char*)db.handle.dbpath;
 		if(!dbpath) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
 			RET_ERR(db.handle, ALPM_ERR_DB_OPEN, null);
