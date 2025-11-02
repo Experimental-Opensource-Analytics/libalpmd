@@ -522,20 +522,12 @@ int  alpm_option_set_progresscb(AlpmHandle handle, alpm_cb_progress cb, void* ct
 	return 0;
 }
 
-char* canonicalize_path(char* path)
-{
-	char* new_path = void;
-	size_t len = void;
-
-	/* verify path ends in a '/' */
-	len = strlen(path);
-	if(path[len - 1] != '/') {
-		len += 1;
+string canonicalizePath(string path) {	
+	if(path[$-1] != '/') {
+		path ~= '/';
 	}
-	CALLOC(new_path, len + 1, char.sizeof);
-	strcpy(new_path, path);
-	new_path[len - 1] = '/';
-	return new_path;
+
+	return path;
 }
 
 alpm_errno_t _alpm_set_directory_option(char* value, char** storage, int must_exist)
@@ -561,7 +553,7 @@ alpm_errno_t _alpm_set_directory_option(char* value, char** storage, int must_ex
 	if(*storage) {
 		FREE(*storage);
 	}
-	*storage = canonicalize_path(path);
+	*storage = cast(char*)canonicalizePath(path.to!string).ptr;
 	if(!*storage) {
 		return ALPM_ERR_MEMORY;
 	}
@@ -575,7 +567,7 @@ int  alpm_option_add_hookdir(AlpmHandle handle, char* hookdir)
 	CHECK_HANDLE(handle);
 	//ASSERT(hookdir != null);
 
-	newhookdir = canonicalize_path(hookdir);
+	newhookdir = cast(char*)canonicalizePath(hookdir.to!string).ptr;
 	if(!newhookdir) {
 		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
 	}
@@ -607,7 +599,7 @@ int  alpm_option_remove_hookdir(AlpmHandle handle, char* hookdir)
 	CHECK_HANDLE(handle);
 	//ASSERT(hookdir != null);
 
-	newhookdir = canonicalize_path(hookdir);
+	newhookdir = cast(char*)canonicalizePath(hookdir.to!string).ptr;
 	if(!newhookdir) {
 		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
 	}
@@ -629,7 +621,7 @@ int  alpm_option_add_cachedir(AlpmHandle handle,  char*cachedir)
 	/* don't stat the cachedir yet, as it may not even be needed. we can
 	 * fail later if it is needed and the path is invalid. */
 
-	newcachedir = canonicalize_path(cachedir);
+		newcachedir = cast(char*)canonicalizePath(cachedir.to!string).ptr;
 	if(!newcachedir) {
 		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
 	}
@@ -661,7 +653,7 @@ int  alpm_option_remove_cachedir(AlpmHandle handle,   char*cachedir)
 	CHECK_HANDLE(handle);
 	//ASSERT(cachedir != null);
 
-	newcachedir = canonicalize_path(cachedir);
+		newcachedir = cast(char*)canonicalizePath(cachedir.to!string).ptr;
 	if(!newcachedir) {
 		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
 	}
