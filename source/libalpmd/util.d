@@ -312,6 +312,10 @@ void STRDUP(ref char* str,   char* _str) {
 	str = cast(char*)strdup(_str);
 }
 
+void STRDUP(char** str,   char* _str) {
+	*str = cast(char*)strdup(_str);
+}
+
 void CHECK_HANDLE(T) (T t) {
 	assert(t !is null);
 }

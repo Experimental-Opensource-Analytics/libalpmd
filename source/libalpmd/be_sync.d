@@ -151,7 +151,7 @@ valid:
 int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 	char* syncpath = void;
 	char* temporary_syncpath = void;
-	  char*dbext = handle.dbext;
+	  char*dbext = cast(char*)handle.dbext;
 	alpm_list_t* i = void;
 	int ret = -1;
 	mode_t oldmask = void;
@@ -165,7 +165,7 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 
 	syncpath = get_sync_dir(handle);
 	//ASSERT(syncpath != null);
-	temporary_syncpath = _alpm_temporary_download_dir_setup(syncpath, handle.sandboxuser);
+	temporary_syncpath = _alpm_temporary_download_dir_setup(syncpath, cast(char*)handle.sandboxuser);
 	//ASSERT(temporary_syncpath != null);
 
 	/* make sure we have a sane umask */
@@ -458,7 +458,7 @@ int sync_db_populate(AlpmDB db)
 	est_count = estimate_package_count(&buf, archive);
 
 	/* currently only .files dbs contain file lists - make flexible when required*/
-	if(strcmp(db.handle.dbext, ".files") == 0) {
+	if(strcmp(cast(char*)db.handle.dbext, ".files") == 0) {
 		/* files databases are about four times larger on average */
 		est_count /= 4;
 	}

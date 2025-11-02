@@ -108,9 +108,9 @@ version (HAVE_LIBGPGME) {
 	string root;              /* Root path, default '/' */
 	string dbpath;            /* Base path to pacman's DBs */
 	string logfile;           /* Name of the log file */
-	char* lockfile;          /* Name of the lock file */
-	char* gpgdir;            /* Directory where GnuPG files are stored */
-	char* sandboxuser;       /* User to switch to for sensitive operations */
+	string lockfile;          /* Name of the lock file */
+	string gpgdir;            /* Directory where GnuPG files are stored */
+	string sandboxuser;       /* User to switch to for sensitive operations */
 	alpm_list_t* cachedirs;  /* Paths to pacman cache directories */
 	alpm_list_t* hookdirs;   /* Paths to hook directories */
 	alpm_list_t* overwrite_files; /* Paths that may be overwritten */
@@ -126,7 +126,7 @@ version (HAVE_LIBGPGME) {
 	alpm_list_t* architectures; /* Architectures of packages we should allow */
 	int usesyslog;           /* Use syslog instead of logfile? */ /* TODO move to frontend */
 	int checkspace;          /* Check disk space before installing */
-	char* dbext;             /* Sync DB extension */
+	string dbext;             /* Sync DB extension */
 	int siglevel;            /* Default signature verification level */
 	int localfilesiglevel;   /* Signature verification level for local file
 	                                       upgrade operations */
@@ -155,7 +155,7 @@ version (HAVE_LIBGPGME) {
 		assert(this.lockfd < 0);
 
 		/* create the dir of the lockfile first */
-		STRDUP(dir, this.lockfile);
+		STRDUP(dir, cast(char*)this.lockfile);
 		ptr = strrchr(dir, '/');
 		if(ptr) {
 			*ptr = '\0';
@@ -167,7 +167,7 @@ version (HAVE_LIBGPGME) {
 		FREE(dir);
 
 		do {
-			this.lockfd = open(this.lockfile, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
+			this.lockfd = open(cast(char*)this.lockfile, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
 		} while(this.lockfd == -1 && errno == EINTR);
 
 		return (this.lockfd >= 0 ? 0 : -1);
@@ -180,7 +180,7 @@ version (HAVE_LIBGPGME) {
 		close(this.lockfd);
 		this.lockfd = -1;
 
-		if(unlink(this.lockfile) != 0) {
+		if(unlink(cast(char*)this.lockfile) != 0) {
 			RET_ERR_ASYNC_SAFE(this, ALPM_ERR_SYSTEM, -1);
 			assert(0);
 		} else {
@@ -390,19 +390,19 @@ alpm_list_t * alpm_option_get_cachedirs(AlpmHandle handle)
 	return handle.cachedirs;
 }
 
-char* alpm_option_get_lockfile(AlpmHandle handle)
+string alpm_option_get_lockfile(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.lockfile;
 }
 
-char* alpm_option_get_gpgdir(AlpmHandle handle)
+string alpm_option_get_gpgdir(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.gpgdir;
 }
 
-char* alpm_option_get_sandboxuser(AlpmHandle handle)
+string alpm_option_get_sandboxuser(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.sandboxuser;
@@ -462,7 +462,7 @@ int  alpm_option_get_checkspace(AlpmHandle handle)
 	return handle.checkspace;
 }
 
-char* alpm_option_get_dbext(AlpmHandle handle)
+string alpm_option_get_dbext(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.dbext;
@@ -704,7 +704,7 @@ int  alpm_option_set_gpgdir(AlpmHandle handle,   char*gpgdir)
 {
 	int err = void;
 	CHECK_HANDLE(handle);
-	if(cast(bool)(err = _alpm_set_directory_option(gpgdir, &(handle.gpgdir), 0))) {
+	if(cast(bool)(err = _alpm_set_directory_option(gpgdir, cast(char**)handle.gpgdir.ptr, 0))) {
 		RET_ERR(handle, err, -1);
 	}
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'gpgdir' = %s\n", handle.gpgdir);
@@ -718,7 +718,7 @@ int  alpm_option_set_sandboxuser(AlpmHandle handle,   char*sandboxuser)
 		FREE(handle.sandboxuser);
 	}
 
-	STRDUP(handle.sandboxuser, sandboxuser);
+	STRDUP(cast(char**)handle.sandboxuser.ptr, sandboxuser);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'sandboxuser' = %s\n", handle.sandboxuser);
 	return 0;
@@ -966,7 +966,7 @@ int  alpm_option_set_dbext(AlpmHandle handle, char* dbext)
 		FREE(handle.dbext);
 	}
 
-	STRDUP(handle.dbext, dbext);
+	STRDUP(cast(char**)handle.dbext.ptr, dbext);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'dbext' = %s\n", handle.dbext);
 	return 0;

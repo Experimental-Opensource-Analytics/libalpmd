@@ -444,7 +444,7 @@ string _alpm_db_path(AlpmDB db)
 			db._path = "";
 			snprintf(cast(char*)db._path, pathsize, "%s%s/", dbpath, cast(char*)db.treename);
 		} else {
-			  char*dbext = db.handle.dbext;
+			  char*dbext = cast(char*)db.handle.dbext;
 
 			pathsize = strlen(dbpath) + 5 + db.treename.length + strlen(dbext) + 1;
 			db._path = "";

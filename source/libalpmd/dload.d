@@ -1237,7 +1237,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 	int ret = void;
 	int finalize_ret = void;
 	int childsig = 0;
-	prepare_resumable_downloads(payloads, localpath, handle.sandboxuser);
+	prepare_resumable_downloads(payloads, localpath, cast(char*)handle.sandboxuser);
 
 	if(handle.fetchcb == null) {
 version (HAVE_LIBCURL) {
@@ -1361,7 +1361,7 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 
 	/* find a valid cache dir to download to */
 	cachedir = _alpm_filecache_setup(handle);
-	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, handle.sandboxuser);
+	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, cast(char*)handle.sandboxuser);
 	//ASSERT(temporary_cachedir != null);
 
 	for(i = urls; i; i = i.next) {

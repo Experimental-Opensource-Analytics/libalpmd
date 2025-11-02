@@ -9,6 +9,8 @@ import derelict.libarchive;
 import core.stdc.string;
 import core.stdc.stdio;
 import libalpmd.be_local;
+import std.conv;
+
 
 /*
  *  alpm.c
@@ -3112,12 +3114,16 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	size_t hookdirlen = void, lockfilelen = void;
 	const(passwd)* pw = null;
 	AlpmHandle myhandle = new AlpmHandle();
+	char* tmp;
+
 	
 	if(cast(bool)(myerr = _alpm_set_directory_option(root, cast(char**)myhandle.root.ptr, 1))) {
 		goto cleanup;
+		// assert(0);
 	}
 	if(cast(bool)(myerr = _alpm_set_directory_option(dbpath, cast(char**)myhandle.dbpath.ptr, 1))) {
 		goto cleanup;
+		// assert(0);
 	}
 
 	/* to concatenate myhandle->root (ends with a slash) with SYSHOOKDIR (starts
@@ -3129,11 +3135,12 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	myhandle.hookdirs = alpm_list_add(null, hookdir);
 
 	/* set default database extension */
-	STRDUP(myhandle.dbext, cast(char*)".db");
+	STRDUP(tmp, cast(char*)".db");
+	myhandle.dbext = tmp.to!string;
 
 	lockfilelen = myhandle.dbpath.length + strlen(lf) + 1;
-	MALLOC(myhandle.lockfile, lockfilelen);
-	snprintf(myhandle.lockfile, lockfilelen, "%s%s", myhandle.dbpath.ptr, lf);
+	MALLOC(myhandle.lockfile.ptr, lockfilelen);
+	snprintf(cast(char*)myhandle.lockfile.ptr, lockfilelen, "%s%s", myhandle.dbpath.ptr, lf);
 
 	if(_alpm_db_register_local(myhandle) is null) {
 		myerr = myhandle.pm_errno;
@@ -3149,7 +3156,7 @@ version (HAVE_LIBCURL) {
 
 	/* set default sandboxuser */
 	//ASSERT((pw = getpwuid(0)) != null);
-	STRDUP(myhandle.sandboxuser, cast(char*)pw.pw_name);
+	STRDUP(cast(char**)myhandle.sandboxuser.ptr, cast(char*)pw.pw_name);
 	
 version (ENABLE_NLS) {
 	bindtextdomain("libalpm", LOCALEDIR);

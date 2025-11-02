@@ -783,7 +783,7 @@ private int download_files(AlpmHandle handle)
 	alpm_list_t* payloads = null;
 
 	cachedir = _alpm_filecache_setup(handle);
-	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, handle.sandboxuser);
+	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, cast(char*)handle.sandboxuser);
 	if(temporary_cachedir == null) {
 		ret = -1;
 		goto finish;
