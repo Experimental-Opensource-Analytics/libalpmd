@@ -1130,7 +1130,7 @@ enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do {
 				spkg.name, pkgfile.name);
 		error = 1;
 	}
-	if(strcmp(spkg.version_, pkgfile.version_) != 0) {
+	if(strcmp(cast(char*)spkg.version_, cast(char*)pkgfile.version_) != 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				"internal package version mismatch, expected: '%s', actual: '%s'\n",
 				spkg.version_, pkgfile.version_);

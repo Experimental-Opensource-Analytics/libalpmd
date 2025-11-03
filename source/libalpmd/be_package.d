@@ -161,13 +161,15 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.name = tmp.to!string;
 				newpkg.name_hash = _alpm_hash_sdbm(cast(char*)newpkg.name);
 			} else if(strcmp(key, "pkgbase") == 0) {
-				STRDUP(newpkg.base, ptr);
+				newpkg.base = ptr.to!string;
 			} else if(strcmp(key, "pkgver") == 0) {
-				STRDUP(newpkg.version_, ptr);
+				STRDUP(tmp, ptr);
+				newpkg.version_ = tmp.to!string;
 			} else if(strcmp(key, "basever") == 0) {
 				/* not used atm */
 			} else if(strcmp(key, "pkgdesc") == 0) {
-				STRDUP(newpkg.desc, ptr);
+				STRDUP(tmp, ptr);
+				newpkg.desc = tmp.to!string;
 			} else if(strcmp(key, "group") == 0) {
 				STRDUP(tmp, ptr);
 				newpkg.groups = alpm_list_add(newpkg.groups, tmp);
@@ -183,7 +185,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				STRDUP(tmp, ptr);
 				newpkg.packager = tmp.to!string;
 			} else if(strcmp(key, "arch") == 0) {
-				STRDUP(newpkg.arch, ptr);
+				newpkg.arch = ptr.to!string;
 			} else if(strcmp(key, "size") == 0) {
 				/* size in the raw package is uncompressed (installed) size */
 				newpkg.isize = _alpm_strtoofft(ptr);
@@ -285,7 +287,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 		if(syncpkg.md5sum && !syncpkg.sha256sum) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "md5sum: %s\n", syncpkg.md5sum);
 			_alpm_log(handle, ALPM_LOG_DEBUG, "checking md5sum for %s\n", pkgfile);
-			if(_alpm_test_checksum(pkgfile, syncpkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM) != 0) {
+			if(_alpm_test_checksum(pkgfile, cast(char*)syncpkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM) != 0) {
 				RET_ERR(handle, ALPM_ERR_PKG_INVALID_CHECKSUM, -1);
 			}
 			if(validation) {
@@ -296,7 +298,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 		if(syncpkg.sha256sum) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "sha256sum: %s\n", syncpkg.sha256sum);
 			_alpm_log(handle, ALPM_LOG_DEBUG, "checking sha256sum for %s\n", pkgfile);
-			if(_alpm_test_checksum(pkgfile, syncpkg.sha256sum, ALPM_PKG_VALIDATION_SHA256SUM) != 0) {
+			if(_alpm_test_checksum(cast(char*)pkgfile, cast(char*)syncpkg.sha256sum, ALPM_PKG_VALIDATION_SHA256SUM) != 0) {
 				RET_ERR(handle, ALPM_ERR_PKG_INVALID_CHECKSUM, -1);
 			}
 			if(validation) {
@@ -307,7 +309,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 
 	/* even if we don't have a sig, run the check code if level tells us to */
 	if(level & ALPM_SIG_PACKAGE) {
-		  char*sig = syncpkg ? syncpkg.base64_sig : null;
+		  char*sig = syncpkg ? cast(char*)syncpkg.base64_sig : null;
 		_alpm_log(handle, ALPM_LOG_DEBUG, "sig data: %s\n", sig ? sig : "<from .sig>");
 		if(!has_sig && !(level & ALPM_SIG_PACKAGE_OPTIONAL)) {
 			handle.pm_errno = ALPM_ERR_PKG_MISSING_SIG;
@@ -571,11 +573,11 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package name in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
-			if(newpkg.version_ == null || strlen(newpkg.version_) == 0) {
+			if(newpkg.version_ == null || newpkg.version_.length == 0) {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package version in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
-			if(strchr(newpkg.version_, '-') == null) {
+			if(strchr(cast(char*)newpkg.version_, '-') == null) {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("invalid package version in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}

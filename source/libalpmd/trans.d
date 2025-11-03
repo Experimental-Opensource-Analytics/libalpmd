@@ -133,7 +133,7 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 		if(!found) {
 			char* _string = void;
 			string pkgname = pkg.name;
-			  char*pkgver = pkg.version_;
+			char*pkgver = cast(char*)pkg.version_;
 			size_t len = pkgname.length + strlen(pkgver) + strlen(pkgarch) + 3;
 			MALLOC(_string, len);
 			snprintf(_string, len, "%s-%s-%s", cast(char*)pkgname, pkgver, pkgarch);

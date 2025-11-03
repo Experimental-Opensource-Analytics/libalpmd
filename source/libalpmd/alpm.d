@@ -2510,7 +2510,7 @@ int alpm_pkg_checkmd5sum(AlpmPkg pkg);
  * -1 as expected. This is mainly for supporting versioned dependencies
  * that do not include the pkgrel.
  */
-int alpm_pkg_vercmp(const(char)* a, const(char)* b);
+// int alpm_pkg_vercmp(const(char)* a, const(char)* b);
 
 /** Computes the list of packages requiring a given package.
  * The return value of this function is a newly allocated
@@ -2568,7 +2568,7 @@ const(char)* alpm_pkg_get_name(AlpmPkg pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_version(AlpmPkg pkg);
+// const(char)* alpm_pkg_get_version(AlpmPkg pkg);
 
 /** Returns the origin of the package.
  * @return an alpm_pkgfrom_t constant, -1 on error

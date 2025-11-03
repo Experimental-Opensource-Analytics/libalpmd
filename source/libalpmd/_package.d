@@ -52,6 +52,7 @@ import core.stdc.errno;
 import libalpmd.filelist;
 import libalpmd.be_package;
 import libalpmd.libarchive_compat;
+import libalpmd._version;
 
 
 
@@ -110,16 +111,16 @@ struct AlpmPkgXData {
 class AlpmPkg {
 	c_ulong name_hash;
 	string filename;
-	char* base;
+	string base;
 	string name;
-	char* version_;
-	char* desc;
+	string version_;
+	string desc;
 	string url;
 	string packager;
-	char* md5sum;
-	char* sha256sum;
-	char* base64_sig;
-	char* arch;
+	string md5sum;
+	string sha256sum;
+	string base64_sig;
+	string arch;
 
 	alpm_time_t builddate;
 	alpm_time_t installdate;
@@ -169,6 +170,9 @@ class AlpmPkg {
 	auto getName() => this.name; 
 	auto getUrl() => this.ops.get_url(this);
 	auto getPackager() => this.ops.get_packager(this);
+	auto getBase() => this.ops.get_base(this);
+	auto getVersion() => this.version_;
+
 
 	AlpmPkgChangelog openChangelog() {
 		AlpmPkgChangelog changelog;
@@ -227,7 +231,7 @@ int  alpm_pkg_checkmd5sum(AlpmPkg pkg)
 
 	fpath = _alpm_filecache_find(pkg.handle, cast(char*)pkg.filename);
 
-	retval = _alpm_test_checksum(fpath, pkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
+	retval = _alpm_test_checksum(fpath, cast(char*)pkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
 
 	FREE(fpath);
 
@@ -243,13 +247,13 @@ int  alpm_pkg_checkmd5sum(AlpmPkg pkg)
  * backend logic that needs lazy access, such as the local database through
  * a lazy-load cache. However, the defaults will work just fine for fully-
  * populated package structures. */
-  char*_pkg_get_base(AlpmPkg pkg)        { return pkg.base; }
-  char*_pkg_get_desc(AlpmPkg pkg)        { return pkg.desc; }
+string _pkg_get_base(AlpmPkg pkg)        { return pkg.base; }
+string _pkg_get_desc(AlpmPkg pkg)        { return pkg.desc; }
 string _pkg_get_url(AlpmPkg pkg)         { return pkg.url; }
 alpm_time_t _pkg_get_builddate(AlpmPkg pkg)   { return pkg.builddate; }
 alpm_time_t _pkg_get_installdate(AlpmPkg pkg) { return pkg.installdate; }
 string _pkg_get_packager(AlpmPkg pkg)    { return pkg.packager; }
-  char*_pkg_get_arch(AlpmPkg pkg)        { return pkg.arch; }
+string _pkg_get_arch(AlpmPkg pkg)        { return pkg.arch; }
 off_t _pkg_get_isize(AlpmPkg pkg)             { return pkg.isize; }
 alpm_pkgreason_t _pkg_get_reason(AlpmPkg pkg) { return pkg.reason; }
 int _pkg_get_validation(AlpmPkg pkg) { return pkg.validation; }
@@ -306,25 +310,18 @@ int _pkg_force_load(AlpmPkg pkg) { return 0; }
  * struct itself with no abstraction layer or any type of lazy loading.
  */
 
-  char*alpm_pkg_get_base(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_base(pkg);
-}
-
 AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	return pkg.handle;
 }
 
-  char*alpm_pkg_get_version(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.version_;
-}
+//   char*alpm_pkg_get_version(AlpmPkg pkg)
+// {
+// 	//ASSERT(pkg != null);
+// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
+// 	return pkg.version_;
+// }
 
 alpm_pkgfrom_t  alpm_pkg_get_origin(AlpmPkg pkg)
 {
@@ -354,21 +351,21 @@ alpm_time_t  alpm_pkg_get_installdate(AlpmPkg pkg)
 	return pkg.ops.get_installdate(pkg);
 }
 
-  char*alpm_pkg_get_md5sum(AlpmPkg pkg)
+string alpm_pkg_get_md5sum(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.md5sum;
 }
 
-  char*alpm_pkg_get_sha256sum(AlpmPkg pkg)
+string alpm_pkg_get_sha256sum(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.sha256sum;
 }
 
-  char*alpm_pkg_get_base64_sig(AlpmPkg pkg)
+string alpm_pkg_get_base64_sig(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -380,7 +377,7 @@ int  alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len)
 	//ASSERT(pkg != null);
 
 	if(pkg.base64_sig) {
-		int ret = alpm_decode_signature(pkg.base64_sig, sig, sig_len);
+		int ret = alpm_decode_signature(cast(char*)pkg.base64_sig, sig, sig_len);
 		if(ret != 0) {
 			RET_ERR(pkg.handle, ALPM_ERR_SIG_INVALID, -1);
 		}
@@ -720,17 +717,17 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 
 	newpkg.name_hash = pkg.name_hash;
 	newpkg.filename = pkg.filename.dup;
-	STRDUP(newpkg.base, pkg.base);
+	newpkg.base = pkg.base.dup;
 	newpkg.name = pkg.name.dup;
-	STRDUP(newpkg.version_, pkg.version_);
-	STRDUP(newpkg.desc, pkg.desc);
+	newpkg.version_ = pkg.version_.dup;
+	newpkg.desc = pkg.desc.dup;
 	newpkg.url = pkg.url.dup;
 	newpkg.builddate = pkg.builddate;
 	newpkg.installdate = pkg.installdate;
 	newpkg.packager = pkg.packager.dup;
-	STRDUP(newpkg.md5sum, pkg.md5sum);
-	STRDUP(newpkg.sha256sum, pkg.sha256sum);
-	STRDUP(newpkg.arch, pkg.arch);
+	newpkg.md5sum = pkg.md5sum.dup;
+	newpkg.sha256sum = pkg.sha256sum.dup;
+	newpkg.arch = pkg.arch.dup;
 	newpkg.size = pkg.size;
 	newpkg.isize = pkg.isize;
 	newpkg.scriptlet = pkg.scriptlet;
@@ -868,15 +865,15 @@ void _alpm_pkg_free_trans(AlpmPkg pkg)
 /* Is spkg an upgrade for localpkg? */
 int _alpm_pkg_compare_versions(AlpmPkg spkg, AlpmPkg localpkg)
 {
-	return alpm_pkg_vercmp(spkg.version_, localpkg.version_);
+	return alpm_pkg_vercmp(cast(char*)spkg.version_.toStringz, cast(char*)localpkg.version_.toStringz);
 }
 
 /* Helper function for comparing packages
  */
 int _alpm_pkg_cmp( void* p1,  void* p2)
 {
-	 AlpmPkg pkg1 = cast( AlpmPkg)p1;
-	 AlpmPkg pkg2 = cast( AlpmPkg)p2;
+	AlpmPkg pkg1 = cast( AlpmPkg)p1;
+	AlpmPkg pkg2 = cast( AlpmPkg)p2;
 	return pkg1.name == pkg2.name;
 }
 
@@ -966,17 +963,17 @@ enum string EPKGMETA(string error) = `do {
 
 	/* multiple '-' in pkgver can cause local db entries for different packages
 	 * to overlap (e.g. foo-1=2-3 and foo=1-2-3 both give foo-1-2-3) */
-	if((c = strchr(pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
+	if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package version contains invalid characters)\n")`));
 	}
-	if(strchr(pkg.version_, '/')) {
+	if(strchr(cast(char*)pkg.version_, '/')) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package version contains invalid characters)\n")`));
 	}
 
 	/* local db entry is <pkgname>-<pkgver> */
-	if(pkg.name.length + strlen(pkg.version_) + 1 > NAME_MAX) {
+	if(pkg.name.length + pkg.version_.length + 1 > NAME_MAX) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package name and version too long)\n")`));
 	}

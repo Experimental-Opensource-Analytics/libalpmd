@@ -22,6 +22,8 @@ import core.stdc.string;
 import core.stdc.ctype;
 import core.stdc.stdlib;
 
+import std.string;
+
 
 /* libalpm */
 import libalpmd.util;

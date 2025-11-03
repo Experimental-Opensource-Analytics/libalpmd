@@ -82,13 +82,13 @@ enum string LAZY_LOAD(string info) = `
   char*_cache_get_base(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.base;
+	return cast(char*)pkg.base;
 }
 
-private   char*_cache_get_desc(AlpmPkg pkg)
+private char* _cache_get_desc(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.desc;
+	return cast(char*)pkg.desc;
 }
 
 private string _cache_get_url(AlpmPkg pkg)
@@ -115,10 +115,10 @@ private string _cache_get_packager(AlpmPkg pkg)
 	return pkg.packager;
 }
 
-private   char*_cache_get_arch(AlpmPkg pkg)
+private char* _cache_get_arch(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.arch;
+	return cast(char*)pkg.arch;
 }
 
 private off_t _cache_get_isize(AlpmPkg pkg)
@@ -616,7 +616,7 @@ private int local_db_populate(AlpmDB db)
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 		}
 		/* split the db entry name */
-		if(_alpm_splitname(name, cast(char**)&(pkg.name), &(pkg.version_),
+		if(_alpm_splitname(name, cast(char**)&(pkg.name), cast(char**)&(pkg.version_),
 					&(pkg.name_hash)) != 0) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
 					name);
@@ -686,10 +686,10 @@ char* _alpm_local_db_pkgpath(AlpmDB db, AlpmPkg info,   char*filename)
 	  char*dbpath = void;
 
 	dbpath = cast(char*)_alpm_db_path(db);
-	len = strlen(dbpath) + info.name.length + strlen(info.version_) + 3;
+	len = strlen(dbpath) + info.name.length + info.version_.length + 3;
 	len += filename ? strlen(filename) : 0;
 	MALLOC(pkgpath, len);
-	snprintf(pkgpath, len, "%s%s-%s/%s", dbpath, cast(char*)info.name.ptr, info.version_,
+	snprintf(pkgpath, len, "%s%s-%s/%s", dbpath, cast(char*)info.name.ptr, cast(char*)info.version_,
 			filename ? filename : "");
 	return pkgpath;
 }
@@ -775,7 +775,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				}
 			} else if(strcmp(line.ptr, "%VERSION%") == 0) {
 				mixin(READ_NEXT!());
-				if(strcmp(line.ptr, info.version_) != 0) {
+				if(strcmp(line.ptr, cast(char*)info.version_) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: version "
 								~ "mismatch on package %s\n"), db.treename, info.name);
 				}
@@ -1015,14 +1015,14 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		free(path);
 		fprintf(fp, "%%NAME%%\n%s\n\n"
-						~ "%%VERSION%%\n%s\n\n", cast(char*)info.name.ptr, info.version_);
+						~ "%%VERSION%%\n%s\n\n", cast(char*)info.name.ptr, cast(char*)info.version_);
 		if(info.base) {
 			fprintf(fp, "%%BASE%%\n"
-							~ "%s\n\n", info.base);
+							~ "%s\n\n", info.base.ptr);
 		}
 		if(info.desc) {
 			fprintf(fp, "%%DESC%%\n"
-							~ "%s\n\n", info.desc);
+							~ "%s\n\n", cast(char*)info.desc);
 		}
 		if(info.url) {
 			fprintf(fp, "%%URL%%\n"
@@ -1030,7 +1030,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		if(info.arch) {
 			fprintf(fp, "%%ARCH%%\n"
-							~ "%s\n\n", info.arch);
+							~ "%s\n\n", cast(char*)info.arch);
 		}
 		if(info.builddate) {
 			fprintf(fp, "%%BUILDDATE%%\n"

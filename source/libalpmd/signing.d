@@ -977,7 +977,7 @@ int  alpm_pkg_check_pgp_signature(AlpmPkg pkg, alpm_siglist_t* siglist)
 	handle.pm_errno = ALPM_ERR_OK;
 
 	return _alpm_gpgme_checksig(pkg.handle, cast(char*)pkg.filename,
-			pkg.base64_sig, siglist);
+			cast(char*)pkg.base64_sig, siglist);
 }
 
 int  alpm_db_check_pgp_signature(AlpmDB db, alpm_siglist_t* siglist)

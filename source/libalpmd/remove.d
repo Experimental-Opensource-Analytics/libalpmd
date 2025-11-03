@@ -688,7 +688,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg, size_t targ_count, size_t pkg_count)
 {
 	 string pkgname = oldpkg.name;
-	  char*pkgver = oldpkg.version_;
+	  char*pkgver = cast(char*)oldpkg.version_;
 	alpm_event_package_operation_t event = {
 		type: ALPM_EVENT_PACKAGE_OPERATION_START,
 		operation: ALPM_PACKAGE_REMOVE,

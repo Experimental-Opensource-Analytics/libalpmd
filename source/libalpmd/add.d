@@ -33,7 +33,7 @@ import libalpmd.be_local;
 int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
 	string pkgname = pkg.name;
-	char* pkgver = void;
+	string pkgver = void;
 	AlpmTrans trans = void;
 	AlpmPkg local = void;
 	AlpmPkg dup = void;
@@ -62,7 +62,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	if((local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkgname)) !is null) {
 		string localpkgname = local.name;
-		  char*localpkgver = local.version_;
+		string localpkgver = local.version_;
 		int cmp = _alpm_pkg_compare_versions(pkg, local);
 
 		if(cmp == 0) {
@@ -163,7 +163,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			cast(char*)_alpm_db_path(handle.db_local), cast(char*)newpkg.name, newpkg.version_, dbfile);
+			cast(char*)_alpm_db_path(handle.db_local), cast(char*)newpkg.name, cast(char*)newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
@@ -448,7 +448,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "pre_upgrade" : "pre_install");
 
 		_alpm_runscriptlet(handle, pkgfile, scriptlet_name,
-				newpkg.version_, oldpkg ? oldpkg.version_ : null, 1);
+				cast(char*)newpkg.version_, oldpkg ? cast(char*)oldpkg.version_ : null, 1);
 	}
 
 	/* we override any pre-set reason if we have alldeps or allexplicit set */
@@ -620,7 +620,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "post_upgrade" : "post_install");
 
 		_alpm_runscriptlet(handle, scriptlet, scriptlet_name,
-				newpkg.version_, oldpkg ? oldpkg.version_ : null, 0);
+				cast(char*)newpkg.version_, oldpkg ? cast(char*)oldpkg.version_ : null, 0);
 		free(scriptlet);
 	}
 

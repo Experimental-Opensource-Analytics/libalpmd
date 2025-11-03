@@ -38,6 +38,8 @@ import libalpmd.db;
 import libalpmd.handle;
 import libalpmd.trans;
 import libalpmd.alpm;
+import libalpmd._version;
+
 
 
 void  alpm_dep_free(void* _dep)
@@ -416,7 +418,7 @@ int _alpm_depcmp_literal(AlpmPkg pkg, alpm_depend_t* dep)
 		/* skip more expensive checks */
 		return 0;
 	}
-	return dep_vercmp(pkg.version_, dep.mod, dep.version_);
+	return dep_vercmp(cast(char*)pkg.version_, dep.mod, cast(char*)dep.version_);
 }
 
 /**

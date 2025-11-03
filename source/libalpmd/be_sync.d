@@ -360,7 +360,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		}
 
 		pkg.name = pkgname;
-		pkg.version_ = pkgver;
+		pkg.version_ = pkgver.to!string;
 		pkg.name_hash = pkgname_hash;
 
 		pkg.origin = ALPM_PKG_FROM_SYNCDB;
@@ -621,7 +621,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				}
 			} else if(strcmp(line, "%VERSION%") == 0) {
 				mixin(READ_NEXT!());
-				if(strcmp(line, pkg.version_) != 0) {
+				if(strcmp(line, cast(char*)pkg.version_) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: version "
 								~ "mismatch on package %s\n"), db.treename, pkg.name);
 				}
