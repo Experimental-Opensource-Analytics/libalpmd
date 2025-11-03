@@ -198,12 +198,16 @@ version (HAVE_LIBGPGME) {
 		if(treename == "local") {
 			RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
-		for(auto i = this.dbs_sync; i; i = i.next) {
-			AlpmDB d = i.data;
-			if(treename == d.treename) {
+		foreach(i; dbs_sync.AlpmInputRange) {
+			if(treename == i.data.treename)
 				RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
-			}
 		}
+		// for(auto i = this.dbs_sync; i; i = i.next) {
+		// 	AlpmDB d = i.data;
+		// 	if(treename == d.treename) {
+		// 		RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
+		// 	}
+		// }
 
 		return _alpm_db_register_sync(this, cast(char*)treename, siglevel);
 	}
@@ -535,7 +539,7 @@ alpm_errno_t setDirectoryOption(string value, string* storage, bool mustExist)
 {
 	stat_t st = void;
 	char[PATH_MAX] real_ = void;
-	auto canonicalPath = value.dup;
+	auto canonicalPath = value.idup;
 	if(mustExist) {
 		if(stat(canonicalPath.toStringz(), &st) == -1 || !S_ISDIR(st.st_mode)) {
 			return ALPM_ERR_NOT_A_DIR;

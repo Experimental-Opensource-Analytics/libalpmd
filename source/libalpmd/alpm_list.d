@@ -44,6 +44,18 @@ class AlpmList(T) {
 	AlpmList!IT next;
 }
 
+auto AlpmInputRange(List)(List list) {
+	struct Range {
+		List current;
+
+		List front() => current;
+		void popFront() { current = current.next;}
+		bool empty() => current is null;
+	}
+
+	return Range(list);
+}
+
 List alpmList_add(List, IT = List.IT)(List list, IT data)
 {
 	alpmList_append(&list, data);
