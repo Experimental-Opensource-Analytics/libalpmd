@@ -202,12 +202,6 @@ version (HAVE_LIBGPGME) {
 			if(treename == i.data.treename)
 				RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
-		// for(auto i = this.dbs_sync; i; i = i.next) {
-		// 	AlpmDB d = i.data;
-		// 	if(treename == d.treename) {
-		// 		RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
-		// 	}
-		// }
 
 		return _alpm_db_register_sync(this, cast(char*)treename, siglevel);
 	}
