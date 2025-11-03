@@ -50,6 +50,7 @@ import libalpmd.db;
 import libalpmd.be_sync;
 import std.exception;
 import std.stdio;
+import std.string;
 
 
 void EVENT(h, e)(h handle, e event) { 
@@ -524,39 +525,29 @@ int  alpm_option_set_progresscb(AlpmHandle handle, alpm_cb_progress cb, void* ct
 
 string canonicalizePath(string path) {	
 	if(path[$-1] != '/') {
-		path ~= '/';
+		return path ~ '/';
 	}
 
 	return path;
 }
 
-alpm_errno_t _alpm_set_directory_option(char* value, char** storage, int must_exist)
+alpm_errno_t setDirectoryOption(string value, string* storage, bool mustExist)
 {
 	stat_t st = void;
 	char[PATH_MAX] real_ = void;
-	char* path = void;
-
-	path = value;
-	if(!path) {
-		return ALPM_ERR_WRONG_ARGS;
-	}
-	if(must_exist) {
-		if(stat(path, &st) == -1 || !S_ISDIR(st.st_mode)) {
+	auto canonicalPath = value.dup;
+	if(mustExist) {
+		if(stat(canonicalPath.toStringz(), &st) == -1 || !S_ISDIR(st.st_mode)) {
 			return ALPM_ERR_NOT_A_DIR;
 		}
-		if(!realpath(path, real_.ptr)) {
+		if(!realpath(canonicalPath.toStringz(), real_.ptr)) {
 			return ALPM_ERR_NOT_A_DIR;
 		}
-		path = real_.ptr;
+		canonicalPath = real_.to!string;
 	}
 
-	if(*storage) {
-		FREE(*storage);
-	}
-	*storage = cast(char*)canonicalizePath(path.to!string).ptr;
-	if(!*storage) {
-		return ALPM_ERR_MEMORY;
-	}
+	*storage = canonicalizePath(canonicalPath);
+
 	return cast(alpm_errno_t)0;
 }
 
@@ -696,7 +687,7 @@ int  alpm_option_set_gpgdir(AlpmHandle handle,   char*gpgdir)
 {
 	int err = void;
 	CHECK_HANDLE(handle);
-	if(cast(bool)(err = _alpm_set_directory_option(gpgdir, cast(char**)handle.gpgdir.ptr, 0))) {
+	if(cast(bool)(err = setDirectoryOption(gpgdir.to!string, &handle.gpgdir, 0))) {
 		RET_ERR(handle, err, -1);
 	}
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'gpgdir' = %s\n", handle.gpgdir);

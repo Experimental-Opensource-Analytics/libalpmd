@@ -3117,13 +3117,11 @@ AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 	char* tmp;
 
 	
-	if(cast(bool)(myerr = _alpm_set_directory_option(root, cast(char**)myhandle.root.ptr, 1))) {
+	if(cast(bool)(myerr = setDirectoryOption(root.to!string, &myhandle.root, 1))) {
 		goto cleanup;
-		// assert(0);
 	}
-	if(cast(bool)(myerr = _alpm_set_directory_option(dbpath, cast(char**)myhandle.dbpath.ptr, 1))) {
+	if(cast(bool)(myerr = setDirectoryOption(dbpath.to!string, &myhandle.dbpath, 1))) {
 		goto cleanup;
-		// assert(0);
 	}
 
 	/* to concatenate myhandle->root (ends with a slash) with SYSHOOKDIR (starts
