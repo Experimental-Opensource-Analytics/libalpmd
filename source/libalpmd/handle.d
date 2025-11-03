@@ -143,6 +143,7 @@ version (HAVE_LIBGPGME) {
 	string getRoot() => this.root;
 	string getDBPath() => this.dbpath;
 	string getLogfile() => this.logfile;
+	auto getSyncDBs() => this.dbs_sync;
 
 	this() {
 		this.lockfd = -1;
@@ -923,12 +924,6 @@ AlpmDB alpm_get_localdb(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.db_local;
-}
-
-AlpmDBList alpm_get_syncdbs(AlpmHandle handle)
-{
-	CHECK_HANDLE(handle);
-	return handle.dbs_sync;
 }
 
 int  alpm_option_set_checkspace(AlpmHandle handle, int checkspace)

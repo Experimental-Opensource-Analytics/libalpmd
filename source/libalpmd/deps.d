@@ -640,10 +640,9 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs
 	alpm_list_t* providers = null;
 	int count = void;
 
-	/* 1. literals */
-	for(auto i = dbs; i; i = i.next) {
+	foreach(i; dbs.AlpmInputRange) {
 		AlpmPkg pkg = void;
-		AlpmDB db = cast(AlpmDB)i.data;
+		AlpmDB db = i.data;
 
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
