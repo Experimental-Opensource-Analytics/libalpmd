@@ -9,6 +9,7 @@ import derelict.libarchive;
 import core.stdc.string;
 import core.stdc.stdio;
 import libalpmd.be_local;
+import libalpmd.deps;
 import std.conv;
 
 
@@ -422,29 +423,12 @@ alias ALPM_FILECONFLICT_TARGET = alpm_fileconflicttype_t.ALPM_FILECONFLICT_TARGE
 alias ALPM_FILECONFLICT_FILESYSTEM = alpm_fileconflicttype_t.ALPM_FILECONFLICT_FILESYSTEM;
 
 
-/** The basic dependency type.
- *
- * This type is used throughout libalpm, not just for dependencies
- * but also conflicts and providers. */
-struct alpm_depend_t {
-	/**  Name of the provider to satisfy this dependency */
-	char* name;
-	/**  Version of the provider to match against (optional) */
-	char* version_;
-	/** A description of why this dependency is needed (optional) */
-	char* desc;
-	/** A hash of name (used internally to speed up conflict checks) */
-	c_ulong name_hash;
-	/** How the version should match against the provider */
-	alpm_depmod_t mod;
-}
-
 /** Missing dependency. */
 struct alpm_depmissing_t {
 	/** Name of the package that has the dependency */
 	char* target;
 	/** The dependency that was wanted */
-	alpm_depend_t* depend;
+	AlpmDepend depend;
 	/** If the depmissing was caused by a conflict, the name of the package
 	 * that would be installed, causing the satisfying package to be removed */
 	char* causingpkg;
@@ -457,7 +441,7 @@ struct alpm_conflict_t {
 	/** The second package */
 	AlpmPkg package2;
 	/** The conflict */
-	alpm_depend_t* reason;
+	AlpmDepend reason;
 }
 
 /** File conflict.
@@ -699,19 +683,19 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
  * @param dep a dependency info structure
  * @return a formatted string, e.g. "glibc>=2.12"
  */
-// char* alpm_dep_compute_string(alpm_depend_t* dep);
+// char* alpm_dep_compute_string(AlpmDepend dep);
 
 /** Return a newly allocated dependency information parsed from a string
  *\link alpm_dep_free should be used to free the dependency \endlink
  * @param depstring a formatted string, e.g. "glibc=2.12"
  * @return a dependency info structure
  */
-// alpm_depend_t* alpm_dep_from_string(const(char)* depstring);
+// AlpmDepend alpm_dep_from_string(const(char)* depstring);
 
 /** Free a dependency info structure
  * @param dep struct to free
  */
-// void alpm_dep_free(alpm_depend_t* dep);
+// void alpm_dep_free(AlpmDepend dep);
 
 /** Free a fileconflict and its members.
  * @param conflict the fileconflict to free
@@ -908,7 +892,7 @@ struct alpm_event_optdep_removal_t {
 	/** Package with the optdep */
 	AlpmPkg pkg;
 	/** Optdep being removed */
-	alpm_depend_t* optdep;
+	AlpmDepend optdep;
 }
 
 /** A scriptlet was ran. */
@@ -1149,7 +1133,7 @@ struct alpm_question_select_provider_t {
 	/** List of AlpmPkg as possible providers */
 	alpm_list_t* providers;
 	/** What providers provide for */
-	alpm_depend_t* depend;
+	AlpmDepend depend;
 }
 
 /** Should a key be imported? */
@@ -2165,7 +2149,7 @@ int alpm_option_remove_ignoregroup(AlpmHandle handle, const(char)* grp);
 
 /** Gets the list of dependencies that are assumed to be met
  * @param handle the context handle
- * @return a list of alpm_depend_t*
+ * @return a list of AlpmDepend 
  */
 alpm_list_t* alpm_option_get_assumeinstalled(AlpmHandle handle);
 
@@ -2174,7 +2158,7 @@ alpm_list_t* alpm_option_get_assumeinstalled(AlpmHandle handle);
  * @param dep the dependency to add
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_option_add_assumeinstalled(AlpmHandle handle, alpm_depend_t* dep);
+int alpm_option_add_assumeinstalled(AlpmHandle handle, AlpmDepend dep);
 
 /** Sets the list of dependencies that are assumed to be met
  * @param handle the context handle
@@ -2189,7 +2173,7 @@ int alpm_option_set_assumeinstalled(AlpmHandle handle, alpm_list_t* deps);
  * @param dep the dep to remove
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_option_remove_assumeinstalled(AlpmHandle handle, alpm_depend_t* dep);
+int alpm_option_remove_assumeinstalled(AlpmHandle handle, AlpmDepend dep);
 /* End of assunmeinstalled accessors */
 /** @} */
 
@@ -3038,19 +3022,19 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
  * @param dep a dependency info structure
  * @return a formatted string, e.g. "glibc>=2.12"
  */
-// char* alpm_dep_compute_string(alpm_depend_t* dep);
+// char* alpm_dep_compute_string(AlpmDepend dep);
 
 /** Return a newly allocated dependency information parsed from a string
  *\link alpm_dep_free should be used to free the dependency \endlink
  * @param depstring a formatted string, e.g. "glibc=2.12"
  * @return a dependency info structure
  */
-// alpm_depend_t* alpm_dep_from_string(const(char)* depstring);
+// AlpmDepend alpm_dep_from_string(const(char)* depstring);
 
 /** Free a dependency info structure
  * @param dep struct to free
  */
-// void alpm_dep_free(alpm_depend_t* dep);
+// void alpm_dep_free(AlpmDepend dep);
 
 /** Free a fileconflict and its members.
  * @param conflict the fileconflict to free

@@ -26,6 +26,8 @@ module libalpmd.deps;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 import core.stdc.string;
+import core.stdc.config;
+
 
 /* libalpm */
 import libalpmd.deps;
@@ -41,10 +43,27 @@ import libalpmd.alpm;
 import libalpmd._version;
 
 
+/** The basic dependency type.
+ *
+ * This type is used throughout libalpm, not just for dependencies
+ * but also conflicts and providers. */
+class AlpmDepend {
+	/**  Name of the provider to satisfy this dependency */
+	char* name;
+	/**  Version of the provider to match against (optional) */
+	char* version_;
+	/** A description of why this dependency is needed (optional) */
+	char* desc;
+	/** A hash of name (used internally to speed up conflict checks) */
+	c_ulong name_hash;
+	/** How the version should match against the provider */
+	alpm_depmod_t mod;
+}
+
 
 void  alpm_dep_free(void* _dep)
 {
-	auto dep = cast(alpm_depend_t*) _dep;
+	auto dep = cast(AlpmDepend ) _dep;
 	//ASSERT(dep != null);
 	FREE(dep.name);
 	FREE(dep.version_);
@@ -52,7 +71,7 @@ void  alpm_dep_free(void* _dep)
 	FREE(dep);
 }
 
-private alpm_depmissing_t* depmiss_new(  char*target, alpm_depend_t* dep,   char*causingpkg)
+private alpm_depmissing_t* depmiss_new(  char*target, AlpmDepend dep,   char*causingpkg)
 {
 	alpm_depmissing_t* miss = void;
 
@@ -72,7 +91,7 @@ error:
 void  alpm_depmissing_free(alpm_depmissing_t* miss)
 {
 	//ASSERT(miss != null);
-	alpm_dep_free(miss.depend);
+	alpm_dep_free(cast(void*)miss.depend);
 	FREE(miss.target);
 	FREE(miss.causingpkg);
 	FREE(miss);
@@ -83,14 +102,14 @@ private int _alpm_pkg_depends_on(AlpmPkg pkg1, AlpmPkg pkg2)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_pkg_get_depends(pkg1); i; i = i.next) {
-		if(_alpm_depcmp(pkg2, cast(alpm_depend_t*)i.data)) {
+		if(_alpm_depcmp(pkg2, cast(AlpmDepend )i.data)) {
 			return 1;
 		}
 	}
 	return 0;
 }
 
-private AlpmPkg find_dep_satisfier(alpm_list_t* pkgs, alpm_depend_t* dep)
+private AlpmPkg find_dep_satisfier(alpm_list_t* pkgs, AlpmDepend dep)
 {
 	alpm_list_t* i = void;
 
@@ -292,12 +311,12 @@ private int no_dep_version(AlpmHandle handle)
 
 AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs,   char*depstring)
 {
-	alpm_depend_t* dep = alpm_dep_from_string(depstring);
+	AlpmDepend dep = alpm_dep_from_string(depstring);
 	if(!dep) {
 		return null;
 	}
 	AlpmPkg pkg = find_dep_satisfier(pkgs, dep);
-	alpm_dep_free(dep);
+	alpm_dep_free(cast(void*)dep);
 	return pkg;
 }
 
@@ -328,7 +347,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 				tp.name, tp.version_);
 
 		for(j = alpm_pkg_get_depends(tp); j; j = j.next) {
-			alpm_depend_t* depend = cast(alpm_depend_t*)j.data;
+			AlpmDepend depend = cast(AlpmDepend )j.data;
 			alpm_depmod_t orig_mod = depend.mod;
 			if(nodepversion) {
 				depend.mod = ALPM_DEP_MOD_ANY;
@@ -358,7 +377,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 		for(i = dblist; i; i = i.next) {
 			AlpmPkg lp = cast(AlpmPkg)i.data;
 			for(j = alpm_pkg_get_depends(lp); j; j = j.next) {
-				alpm_depend_t* depend = cast(alpm_depend_t*)j.data;
+				AlpmDepend depend = cast(AlpmDepend )j.data;
 				alpm_depmod_t orig_mod = depend.mod;
 				if(nodepversion) {
 					depend.mod = ALPM_DEP_MOD_ANY;
@@ -411,7 +430,7 @@ private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 	return equal;
 }
 
-int _alpm_depcmp_literal(AlpmPkg pkg, alpm_depend_t* dep)
+int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
 {
 	if(pkg.name_hash != dep.name_hash
 			|| strcmp(cast(char*)pkg.name, dep.name) != 0) {
@@ -426,14 +445,14 @@ int _alpm_depcmp_literal(AlpmPkg pkg, alpm_depend_t* dep)
  * @param provisions provision list
  * @return 1 if provider is found, 0 otherwise
  */
-int _alpm_depcmp_provides(alpm_depend_t* dep, alpm_list_t* provisions)
+int _alpm_depcmp_provides(AlpmDepend dep, alpm_list_t* provisions)
 {
 	int satisfy = 0;
 	alpm_list_t* i = void;
 
 	/* check provisions, name and version if available */
 	for(i = provisions; i && !satisfy; i = i.next) {
-		alpm_depend_t* provision = cast(alpm_depend_t*)i.data;
+		AlpmDepend provision = cast(AlpmDepend )i.data;
 
 		if(dep.mod == ALPM_DEP_MOD_ANY) {
 			/* any version will satisfy the requirement */
@@ -450,15 +469,15 @@ int _alpm_depcmp_provides(alpm_depend_t* dep, alpm_list_t* provisions)
 	return satisfy;
 }
 
-int _alpm_depcmp(AlpmPkg pkg, alpm_depend_t* dep)
+int _alpm_depcmp(AlpmPkg pkg, AlpmDepend dep)
 {
 	return _alpm_depcmp_literal(pkg, dep)
 		|| _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg));
 }
 
-alpm_depend_t * alpm_dep_from_string(  char*depstring)
+AlpmDepend alpm_dep_from_string(  char*depstring)
 {
-	alpm_depend_t* depend = void;
+	AlpmDepend depend = void;
 	  char*ptr = void, version_ = void, desc = void;
 	size_t deplen = void;
 
@@ -466,7 +485,8 @@ alpm_depend_t * alpm_dep_from_string(  char*depstring)
 		return null;
 	}
 
-	CALLOC(depend, 1, alpm_depend_t.sizeof);
+	// CALLOC(depend, 1, alpm_depend_t.sizeof);
+	depend = new AlpmDepend;
 
 	/* Note the extra space in ": " to avoid matching the epoch */
 	if((desc = strstr(depstring, ": ")) != null) {
@@ -521,14 +541,14 @@ alpm_depend_t * alpm_dep_from_string(  char*depstring)
 	return depend;
 
 error:
-	alpm_dep_free(depend);
+	alpm_dep_free(cast(void*)depend);
 	return null;
 }
 
-alpm_depend_t* _alpm_dep_dup( alpm_depend_t* dep)
+AlpmDepend _alpm_dep_dup( AlpmDepend dep)
 {
-	alpm_depend_t* newdep = void;
-	CALLOC(newdep, 1, alpm_depend_t.sizeof);
+	AlpmDepend newdep = new AlpmDepend;
+	// CALLOC(newdep, 1, AlpmDepend.sizeof);
 
 	STRNDUP(newdep.name, dep.name, strlen(dep.name));
 	STRNDUP(newdep.version_, dep.version_, strlen(dep.version_));
@@ -539,7 +559,7 @@ alpm_depend_t* _alpm_dep_dup( alpm_depend_t* dep)
 	return newdep;
 
 error:
-	alpm_dep_free(newdep);
+	alpm_dep_free(cast(void*)newdep);
 	return null;
 }
 
@@ -635,7 +655,7 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
  *        packages.
  * @return the resolved package
  **/
-private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs, alpm_list_t* excluding, int prompt)
+private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, alpm_list_t* excluding, int prompt)
 {
 	int ignored = 0;
 
@@ -749,7 +769,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, alpm_depend_t* dep, AlpmDBList dbs
 
 AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBList dbs,   char*depstring)
 {
-	alpm_depend_t* dep = void;
+	AlpmDepend dep = void;
 	AlpmPkg pkg = void;
 
 	CHECK_HANDLE(handle);
@@ -758,7 +778,7 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBList dbs,   char*depstr
 	dep = alpm_dep_from_string(depstring);
 	//ASSERT(dep !is null);
 	pkg = resolvedep(handle, dep, dbs, null, 1);
-	alpm_dep_free(dep);
+	alpm_dep_free(cast(void*)dep);
 	return pkg;
 }
 
@@ -811,7 +831,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 
 	for(j = deps; j; j = j.next) {
 		alpm_depmissing_t* miss = cast(alpm_depmissing_t*)j.data;
-		alpm_depend_t* missdep = miss.depend;
+		AlpmDepend missdep = miss.depend;
 		/* check if one of the packages in the [*packages] list already satisfies
 		 * this dependency */
 		if(find_dep_satisfier(*packages, missdep)) {
@@ -859,7 +879,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	return ret;
 }
 
-char * alpm_dep_compute_string( alpm_depend_t* dep)
+char * alpm_dep_compute_string( AlpmDepend dep)
 {
 	  char*name = void, opr = void, ver = void, desc_delim = void, desc = void;
 	char* str = void;

@@ -604,7 +604,7 @@ void find_requiredby(AlpmPkg pkg, AlpmDB db, alpm_list_t** reqs, int optional)
 		}
 
 		for(; j; j = j.next) {
-			if(_alpm_depcmp(pkg, cast(alpm_depend_t*)j.data)) {
+			if(_alpm_depcmp(pkg, cast(AlpmDepend )j.data)) {
 				string cachepkgname = cachepkg.name;
 				if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
 					*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup);
@@ -665,7 +665,7 @@ alpm_list_t* list_depdup(alpm_list_t* old)
 {
 	alpm_list_t* i = void, new_ = null;
 	for(i = old; i; i = i.next) {
-		new_ = alpm_list_add(new_, _alpm_dep_dup(cast(alpm_depend_t*)i.data));
+		new_ = alpm_list_add(new_, cast(void*)_alpm_dep_dup(cast(AlpmDepend )i.data));
 	}
 	return new_;
 }

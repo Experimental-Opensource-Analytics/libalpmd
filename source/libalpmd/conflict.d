@@ -46,6 +46,8 @@ import libalpmd._package;
 import libalpmd.backup;
 
 import libalpmd.db;
+import libalpmd.deps;
+
 
 import std.conv;
 
@@ -54,7 +56,7 @@ import std.conv;
 /**
  * @brief Creates a new conflict.
  */
-private alpm_conflict_t* conflict_new(AlpmPkg pkg1, AlpmPkg pkg2, alpm_depend_t* reason)
+private alpm_conflict_t* conflict_new(AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
 {
 	alpm_conflict_t* conflict = void;
 
@@ -134,7 +136,7 @@ private int conflict_isin(alpm_conflict_t* needle, alpm_list_t* haystack)
  *
  * @return 0 on success, -1 on error
  */
-private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1, AlpmPkg pkg2, alpm_depend_t* reason)
+private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
 {
 	alpm_conflict_t* conflict = conflict_new(pkg1, pkg2, reason);
 	if(!conflict) {
@@ -178,7 +180,7 @@ private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* 
 		alpm_list_t* j = void;
 
 		for(j = alpm_pkg_get_conflicts(pkg1); j; j = j.next) {
-			alpm_depend_t* conflict = cast(alpm_depend_t*)j.data;
+			AlpmDepend conflict = cast(AlpmDepend )j.data;
 			alpm_list_t* k = void;
 
 			for(k = list2; k; k = k.next) {

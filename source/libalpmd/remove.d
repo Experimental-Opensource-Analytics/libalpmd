@@ -183,7 +183,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 		if(optdeps && !alpm_pkg_find(lp, cast(char*)pkg.name)) {
 			alpm_list_t* j = void;
 			for(j = optdeps; j; j = alpm_list_next(j)) {
-				alpm_depend_t* optdep = cast(alpm_depend_t*)j.data;
+				AlpmDepend optdep = cast(AlpmDepend)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
 				if(libalpmd.deps.alpm_find_satisfier(lp, optstring)) {
 					alpm_event_optdep_removal_t event = {

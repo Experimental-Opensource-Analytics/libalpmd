@@ -41,6 +41,8 @@ import libalpmd._package;
 import libalpmd.group;
 import libalpmd.pkghash;
 import libalpmd.be_sync;
+import libalpmd.deps;
+
 
 
 enum alpm_dbinfrq_t {
@@ -504,7 +506,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 			if(!matched) {
 				/* check provides */
 				for(k = alpm_pkg_get_provides(pkg); k; k = k.next) {
-					alpm_depend_t* provide = cast(alpm_depend_t*)k.data;
+					AlpmDepend provide = cast(AlpmDepend )k.data;
 					if(strstr(provide.name, targ)) {
 						matched = provide.name;
 						break;

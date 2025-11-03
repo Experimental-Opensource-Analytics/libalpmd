@@ -190,26 +190,26 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				/* size in the raw package is uncompressed (installed) size */
 				newpkg.isize = _alpm_strtoofft(ptr);
 			} else if(strcmp(key, "depend") == 0) {
-				alpm_depend_t* dep = alpm_dep_from_string(ptr);
-				newpkg.depends = alpm_list_add(newpkg.depends, dep);
+				AlpmDepend dep = alpm_dep_from_string(ptr);
+				newpkg.depends = alpm_list_add(newpkg.depends, cast(void*)dep);
 			} else if(strcmp(key, "optdepend") == 0) {
-				alpm_depend_t* optdep = alpm_dep_from_string(ptr);
-				newpkg.optdepends = alpm_list_add(newpkg.optdepends, optdep);
+				AlpmDepend optdep = alpm_dep_from_string(ptr);
+				newpkg.optdepends = alpm_list_add(newpkg.optdepends, cast(void*)optdep);
 			} else if(strcmp(key, "makedepend") == 0) {
-				alpm_depend_t* makedep = alpm_dep_from_string(ptr);
-				newpkg.makedepends = alpm_list_add(newpkg.makedepends, makedep);
+				AlpmDepend makedep = alpm_dep_from_string(ptr);
+				newpkg.makedepends = alpm_list_add(newpkg.makedepends, cast(void*)makedep);
 			} else if(strcmp(key, "checkdepend") == 0) {
-				alpm_depend_t* checkdep = alpm_dep_from_string(ptr);
-				newpkg.checkdepends = alpm_list_add(newpkg.checkdepends, checkdep);
+				AlpmDepend checkdep = alpm_dep_from_string(ptr);
+				newpkg.checkdepends = alpm_list_add(newpkg.checkdepends, cast(void*)checkdep);
 			} else if(strcmp(key, "conflict") == 0) {
-				alpm_depend_t* conflict = alpm_dep_from_string(ptr);
-				newpkg.conflicts = alpm_list_add(newpkg.conflicts, conflict);
+				AlpmDepend conflict = alpm_dep_from_string(ptr);
+				newpkg.conflicts = alpm_list_add(newpkg.conflicts, cast(void*)conflict);
 			} else if(strcmp(key, "replaces") == 0) {
-				alpm_depend_t* replace = alpm_dep_from_string(ptr);
-				newpkg.replaces = alpm_list_add(newpkg.replaces, replace);
+				AlpmDepend replace = alpm_dep_from_string(ptr);
+				newpkg.replaces = alpm_list_add(newpkg.replaces, cast(void*)replace);
 			} else if(strcmp(key, "provides") == 0) {
-				alpm_depend_t* provide = alpm_dep_from_string(ptr);
-				newpkg.provides = alpm_list_add(newpkg.provides, provide);
+				AlpmDepend provide = alpm_dep_from_string(ptr);
+				newpkg.provides = alpm_list_add(newpkg.provides, cast(void*)provide);
 			} else if(strcmp(key, "backup") == 0) {
 				AlpmBackup backup = void;
 				CALLOC(backup, 1, AlpmBackup.sizeof);

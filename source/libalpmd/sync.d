@@ -54,6 +54,8 @@ import libalpmd.diskspace;
 import libalpmd.signing;
 import libalpmd.be_package;
 import libalpmd.group;
+import libalpmd.deps;
+
 
 
 struct keyinfo_t {
@@ -141,7 +143,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 		AlpmPkg spkg = cast(AlpmPkg)k.data;
 		alpm_list_t* l = void;
 		for(l = alpm_pkg_get_replaces(spkg); l; l = l.next) {
-			alpm_depend_t* replace = cast(alpm_depend_t*)l.data;
+			AlpmDepend replace = cast(AlpmDepend)l.data;
 			/* we only want to consider literal matches at this point. */
 			if(_alpm_depcmp_literal(lpkg, replace)) {
 				found = 1;
@@ -538,8 +540,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 					name1, name2);
 
 			/* if sync1 provides sync2, we remove sync2 from the targets, and vice versa */
-			alpm_depend_t* dep1 = alpm_dep_from_string(cast(char*)name1);
-			alpm_depend_t* dep2 = alpm_dep_from_string(cast(char*)name2);
+			AlpmDepend dep1 = alpm_dep_from_string(cast(char*)name1);
+			AlpmDepend dep2 = alpm_dep_from_string(cast(char*)name2);
 			if(_alpm_depcmp(sync1, dep2)) {
 				rsync = sync2;
 				sync = sync1;
@@ -558,12 +560,12 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				}
 				alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 				alpm_list_free(deps);
-				alpm_dep_free(dep1);
-				alpm_dep_free(dep2);
+				alpm_dep_free(cast(void*)dep1);
+				alpm_dep_free(cast(void*)dep2);
 				goto cleanup;
 			}
-			alpm_dep_free(dep1);
-			alpm_dep_free(dep2);
+			alpm_dep_free(cast(void*)dep1);
+			alpm_dep_free(cast(void*)dep2);
 
 			/* Prints warning */
 			_alpm_log(handle, ALPM_LOG_WARNING,
@@ -1087,7 +1089,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 	return 0;
 }
 
-private int dep_not_equal( alpm_depend_t* left,  alpm_depend_t* right)
+private int dep_not_equal( AlpmDepend left,  AlpmDepend right)
 {
 	return left.name_hash != right.name_hash
 		|| strcmp(left.name, right.name) != 0

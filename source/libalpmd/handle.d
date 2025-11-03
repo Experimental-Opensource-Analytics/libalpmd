@@ -51,6 +51,8 @@ import libalpmd.be_sync;
 import std.exception;
 import std.stdio;
 import std.string;
+import libalpmd.deps;
+
 
 
 void EVENT(h, e)(h handle, e event) { 
@@ -827,16 +829,16 @@ int  alpm_option_remove_overwrite_file(AlpmHandle handle, char* glob)
 	return _alpm_option_strlist_rem(handle, &(handle.overwrite_files), glob);
 }
 
-int  alpm_option_add_assumeinstalled(AlpmHandle handle, alpm_depend_t* dep)
+int  alpm_option_add_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 {
-	alpm_depend_t* depcpy = void;
+	AlpmDepend depcpy = void;
 	CHECK_HANDLE(handle);
 	//ASSERT(dep.mod == ALPM_DEP_MOD_EQ || dep.mod == ALPM_DEP_MOD_ANY);
 	// //ASSERT((depcpy = _alpm_dep_dup(dep)));
 
 	/* fill in name_hash in case dep was built by hand */
 	depcpy.name_hash = _alpm_hash_sdbm(dep.name);
-	handle.assumeinstalled = alpm_list_add(handle.assumeinstalled, depcpy);
+	handle.assumeinstalled = alpm_list_add(handle.assumeinstalled, cast(void*)depcpy);
 	return 0;
 }
 
@@ -849,7 +851,7 @@ int  alpm_option_set_assumeinstalled(AlpmHandle handle, alpm_list_t* deps)
 		handle.assumeinstalled = null;
 	}
 	while(deps) {
-		if(alpm_option_add_assumeinstalled(handle, cast(alpm_depend_t*)deps.data) != 0) {
+		if(alpm_option_add_assumeinstalled(handle, cast(AlpmDepend )deps.data) != 0) {
 			return -1;
 		}
 		deps = deps.next;
@@ -859,8 +861,8 @@ int  alpm_option_set_assumeinstalled(AlpmHandle handle, alpm_list_t* deps)
 
 int assumeinstalled_cmp( void* d1,  void* d2)
 {
-	 alpm_depend_t* dep1 = cast(alpm_depend_t*)d1;
-	 alpm_depend_t* dep2 = cast(alpm_depend_t*)d2;
+	 AlpmDepend dep1 = cast(AlpmDepend )d1;
+	 AlpmDepend dep2 = cast(AlpmDepend )d2;
 
 	if(dep1.name_hash != dep2.name_hash
 			|| strcmp(dep1.name, dep2.name) != 0) {
@@ -880,14 +882,14 @@ int assumeinstalled_cmp( void* d1,  void* d2)
 	return -1;
 }
 
-int  alpm_option_remove_assumeinstalled(AlpmHandle handle, alpm_depend_t* dep)
+int  alpm_option_remove_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 {
-	alpm_depend_t* vdata = null;
+	AlpmDepend vdata = null;
 	CHECK_HANDLE(handle);
 
-	handle.assumeinstalled = alpm_list_remove(handle.assumeinstalled, dep, &assumeinstalled_cmp, cast(void**)&vdata);
-	if(vdata != null) {
-		alpm_dep_free(vdata);
+	handle.assumeinstalled = alpm_list_remove(handle.assumeinstalled, cast(void*)dep, &assumeinstalled_cmp, cast(void**)&vdata);
+	if(vdata !is null) {
+		alpm_dep_free(cast(void*)vdata);
 		return 1;
 	}
 

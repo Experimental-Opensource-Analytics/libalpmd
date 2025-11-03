@@ -731,7 +731,7 @@ enum string READ_AND_SPLITDEP(string f) = `do {
 		if(!feof(fp)) goto error; else break; 
 	} 
 	if(_alpm_strip_newline(line.ptr, 0) == 0) break; 
-	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, alpm_dep_from_string(line.ptr)); 
+	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, cast(void*)alpm_dep_from_string(line.ptr)); 
 } while(1); /* note the while(1) and not (0) */`;
 
 private int local_db_read(AlpmPkg info, int inforeq)
@@ -987,7 +987,7 @@ private void write_deps(FILE* fp,   char*header, alpm_list_t* deplist)
 	fputs(header, fp);
 	fputc('\n', fp);
 	for(lp = deplist; lp; lp = lp.next) {
-		char* depstring = alpm_dep_compute_string(cast(alpm_depend_t*)lp.data);
+		char* depstring = alpm_dep_compute_string(cast(AlpmDepend )lp.data);
 		fputs(depstring, fp);
 		fputc('\n', fp);
 		free(depstring);
