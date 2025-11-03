@@ -211,7 +211,7 @@ private alpm_list_t* _cache_get_backup(AlpmPkg pkg)
 	return pkg.backup;
 }
 
-private alpm_list_t* _cache_get_xdata(AlpmPkg pkg)
+private auto _cache_get_xdata(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.xdata;
@@ -854,7 +854,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				mixin(READ_AND_STORE_ALL!(`lines`));
 				for(i = lines; i; i = i.next) {
 					AlpmPkgXData* pd = _alpm_pkg_parse_xdata(i.data.to!string);
-					if(pd == null || !alpm_list_append(&info.xdata, pd)) {
+					if(pd == null || !alpmList_append(&info.xdata, *pd)) {
 						_alpm_pkg_xdata_free(pd);
 						FREELIST(lines);
 						goto error;
@@ -1104,8 +1104,8 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 
 		if(info.xdata) {
 			fputs("%XDATA%\n", fp);
-			for(lp = info.xdata; lp; lp = lp.next) {
-				AlpmPkgXData* pd = cast(AlpmPkgXData*)lp.data;
+			for(auto _lp = info.xdata; _lp; _lp = _lp.next) {
+				AlpmPkgXData* pd = cast(AlpmPkgXData*)&_lp.data;
 				fprintf(fp, "%s=%s\n", cast(char*)pd.name, cast(char*)pd.value.ptr);
 			}
 			fputc('\n', fp);

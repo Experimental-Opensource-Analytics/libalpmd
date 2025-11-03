@@ -83,7 +83,7 @@ struct pkg_operations {
 	AlpmFileList function(AlpmPkg) get_files;
 	alpm_list_t* function(AlpmPkg) get_backup;
 
-	alpm_list_t* function(AlpmPkg) get_xdata;
+	AlpmXDataList function(AlpmPkg) get_xdata;
 
 	void* function(AlpmPkg) changelog_open;
 	size_t function(void*, size_t, AlpmPkg, void*) changelog_read;
@@ -107,6 +107,8 @@ struct AlpmPkgXData {
 	string name;
 	string value;
 }
+
+alias AlpmXDataList = AlpmList!AlpmPkgXData;
 
 class AlpmPkg {
 	c_ulong name_hash;
@@ -159,7 +161,7 @@ class AlpmPkg {
 	alpm_pkgreason_t reason;
 	int scriptlet;
 
-	alpm_list_t* xdata;
+	AlpmXDataList xdata;
 
 	/* Bitfield from alpm_dbinfrq_t */
 	int infolevel;
@@ -175,6 +177,8 @@ class AlpmPkg {
 	auto getVersion() => this.version_;
 	auto getLicenses() => this.licenses;
 	auto getDesc() => this.desc;
+
+	auto getXData() => this.xdata;
 
 
 	AlpmPkgChangelog openChangelog() {
@@ -272,7 +276,7 @@ alpm_list_t* _pkg_get_provides(AlpmPkg pkg)   { return pkg.provides; }
 alpm_list_t* _pkg_get_replaces(AlpmPkg pkg)   { return pkg.replaces; }
 AlpmFileList _pkg_get_files(AlpmPkg pkg)  { return pkg.files; }
 alpm_list_t* _pkg_get_backup(AlpmPkg pkg)     { return pkg.backup; }
-alpm_list_t* _pkg_get_xdata(AlpmPkg pkg)      { return pkg.xdata; }
+auto _pkg_get_xdata(AlpmPkg pkg)      { return pkg.xdata; }
 
 void* _pkg_changelog_open(AlpmPkg pkg)
 {
@@ -576,12 +580,12 @@ int  alpm_pkg_has_scriptlet(AlpmPkg pkg)
 	return pkg.ops.has_scriptlet(pkg);
 }
 
-alpm_list_t * alpm_pkg_get_xdata(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_xdata(pkg);
-}
+// alpm_list_t * alpm_pkg_get_xdata(AlpmPkg pkg)
+// {
+// 	//ASSERT(pkg != null);
+// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
+// 	return pkg.ops.get_xdata(pkg);
+// }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
 private int fnmatch_wrapper( void* pattern,  void* _string)
@@ -810,8 +814,8 @@ void _alpm_pkg_free(AlpmPkg pkg)
 	}
 	alpm_list_free_inner(pkg.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
 	alpm_list_free(pkg.backup);
-	alpm_list_free_inner(pkg.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
-	alpm_list_free(pkg.xdata);
+	// alpm_list_free_inner(pkg.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
+	// alpm_list_free(pkg.xdata);
 	free_deplist(pkg.depends);
 	free_deplist(pkg.optdepends);
 	free_deplist(pkg.checkdepends);

@@ -217,7 +217,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				AlpmPkgXData* pd = _alpm_pkg_parse_xdata(ptr.to!string);
-				if(pd == null || !alpm_list_append(&newpkg.xdata, pd)) {
+				if(pd == null || !alpmList_append(&newpkg.xdata, *pd)) {
 					_alpm_pkg_xdata_free(pd);
 					return -1;
 				}
