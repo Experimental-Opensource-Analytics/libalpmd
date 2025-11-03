@@ -491,7 +491,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			  char*matched = null;
 			string name = pkg.name;
-			  char*desc = alpm_pkg_get_desc(pkg);
+			char*desc = cast(char*)pkg.getDesc();
 
 			/* check name as plain text */
 			if(name && strstr(cast(char*)name, targ)) {

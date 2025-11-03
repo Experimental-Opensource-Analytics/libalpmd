@@ -174,6 +174,7 @@ class AlpmPkg {
 	auto getBase() => this.ops.get_base(this);
 	auto getVersion() => this.version_;
 	auto getLicenses() => this.licenses;
+	auto getDesc() => this.desc;
 
 
 	AlpmPkgChangelog openChangelog() {
@@ -324,12 +325,12 @@ alpm_pkgfrom_t  alpm_pkg_get_origin(AlpmPkg pkg)
 	return pkg.origin;
 }
 
-  char*alpm_pkg_get_desc(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_desc(pkg);
-}
+// alpm_pkg_get_desc(AlpmPkg pkg)
+// {
+// 	//ASSERT(pkg != null);
+// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
+// 	return pkg.ops.get_desc(pkg);
+// }
 
 alpm_time_t  alpm_pkg_get_builddate(AlpmPkg pkg)
 {
