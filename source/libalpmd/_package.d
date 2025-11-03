@@ -204,6 +204,30 @@ class AlpmPkg {
 
 		return null;
 	}
+
+	int  checkMD5Sum() {
+		char* fpath = void;
+		int retval = void;
+
+		handle.pm_errno = ALPM_ERR_OK;
+		if(this.origin != ALPM_PKG_FROM_SYNCDB) {
+			handle.pm_errno = ALPM_ERR_WRONG_ARGS;
+			return -1;
+		}
+
+		fpath = _alpm_filecache_find(this.handle, cast(char*)this.filename);
+
+		retval = _alpm_test_checksum(fpath, cast(char*)this.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
+
+		FREE(fpath);
+
+		if(retval == 1) {
+			this.handle.pm_errno = ALPM_ERR_PKG_INVALID;
+			retval = -1;
+		}
+
+		return retval;
+	}
 }
 
 // alias AlpmPkgList = AlpmList!AlpmPkg;
@@ -216,31 +240,6 @@ int  alpm_pkg_free(AlpmPkg pkg)
 	}
 
 	return 0;
-}
-
-int  alpm_pkg_checkmd5sum(AlpmPkg pkg)
-{
-	char* fpath = void;
-	int retval = void;
-
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	/* We only inspect packages from sync repositories */
-	//ASSERT(pkg.origin == ALPM_PKG_FROM_SYNCDB,
-			// RET_ERR(cast(AlpmHandle)pkg.handle, ALPM_ERR_WRONG_ARGS, -1));
-
-	fpath = _alpm_filecache_find(pkg.handle, cast(char*)pkg.filename);
-
-	retval = _alpm_test_checksum(fpath, cast(char*)pkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
-
-	FREE(fpath);
-
-	if(retval == 1) {
-		pkg.handle.pm_errno = ALPM_ERR_PKG_INVALID;
-		retval = -1;
-	}
-
-	return retval;
 }
 
 /* Default package accessor functions. These will get overridden by any
@@ -315,13 +314,6 @@ AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg)
 	//ASSERT(pkg != null);
 	return pkg.handle;
 }
-
-//   char*alpm_pkg_get_version(AlpmPkg pkg)
-// {
-// 	//ASSERT(pkg != null);
-// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-// 	return pkg.version_;
-// }
 
 alpm_pkgfrom_t  alpm_pkg_get_origin(AlpmPkg pkg)
 {
