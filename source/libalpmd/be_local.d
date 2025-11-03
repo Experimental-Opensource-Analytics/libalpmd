@@ -610,7 +610,7 @@ private int local_db_populate(AlpmDB db)
 			continue;
 		}
 
-		pkg = _alpm_pkg_new();
+		pkg = new AlpmPkg();
 		if(pkg is null) {
 			closedir(dbdir);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);

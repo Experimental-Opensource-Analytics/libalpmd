@@ -547,7 +547,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 		return null;
 	}
 
-	newpkg = _alpm_pkg_new();
+	newpkg = new AlpmPkg();
 	if(newpkg is null) {
 		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}

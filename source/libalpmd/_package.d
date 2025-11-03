@@ -166,6 +166,7 @@ class AlpmPkg {
 	/* Bitfield from alpm_pkgvalidation_t */
 	int validation;
 
+	this() {}
 	auto getFilename() => this.filename;
 	auto getName() => this.name; 
 	auto getUrl() => this.ops.get_url(this);
@@ -657,15 +658,6 @@ AlpmFile* _alpm_file_copy(AlpmFile* dest, AlpmFile* src)
 	dest.mode = src.mode;
 
 	return dest;
-}
-
-AlpmPkg _alpm_pkg_new()
-{
-	AlpmPkg pkg = void;
-
-	CALLOC(pkg, 1, AlpmPkg.sizeof);
-
-	return pkg;
 }
 
 alpm_list_t* list_depdup(alpm_list_t* old)

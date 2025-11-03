@@ -354,7 +354,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		pkg = _alpm_pkghash_find(db.pkgcache, cast(char*)pkgname);
 	}
 	if(pkg is null) {
-		pkg = _alpm_pkg_new();
+		pkg = new AlpmPkg();
 		if(pkg is null) {
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
 		}
