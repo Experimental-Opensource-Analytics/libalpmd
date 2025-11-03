@@ -26,17 +26,6 @@ import core.stdc.string;
 
 import std.conv; 
 
-/* Note: alpm_list.{c,h} are intended to be standalone files. Do not include
- * any other libalpm headers.
- */
-
-/* libalpm */
-import libalpmd.alpm_list;
-
-/* check exported library symbols with: nm -C -D <lib> */
-// enum  = __attribute_((visibility("default")));
-
-/* Allocation */
 alias AlpmStringList = AlpmList!string;
 
 class AlpmList(T) {
