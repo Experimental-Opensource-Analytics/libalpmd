@@ -178,7 +178,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.url = tmp.to!string;
 			} else if(strcmp(key, "license") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.licenses = alpm_list_add(newpkg.licenses, tmp);
+				newpkg.licenses = alpmList_add(newpkg.licenses, tmp.to!string);
 			} else if(strcmp(key, "builddate") == 0) {
 				newpkg.builddate = _alpm_parsedate(ptr);
 			} else if(strcmp(key, "packager") == 0) {

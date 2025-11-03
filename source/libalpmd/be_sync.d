@@ -553,6 +553,14 @@ enum string READ_AND_STORE(string f) = `do {
 	`~f~` = tmp.to!(typeof(`~f~`));
 } while(0);`;
 
+enum string READ_AND_STORE_ALL_L(string f) = `do { 
+	char* linedup = void; 
+	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
+	if(_alpm_strip_newline(buf.line, buf.real_line_size) == 0) break; 
+	STRDUP(linedup, buf.line); 
+	` ~ f ~ ` = alpmList_add(` ~ f ~ `, linedup.to!string); 
+} while(1); /* note the while(1) and not (0) */`;
+
 enum string READ_AND_STORE_ALL(string f) = `do { 
 	char* linedup = void; 
 	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
@@ -560,6 +568,7 @@ enum string READ_AND_STORE_ALL(string f) = `do {
 	STRDUP(linedup, buf.line); 
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, linedup); 
 } while(1); /* note the while(1) and not (0) */`;
+
 
 enum string READ_AND_SPLITDEP(string f) = `do { 
 	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
@@ -640,7 +649,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%URL%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.url`));
 			} else if(strcmp(line, "%LICENSE%") == 0) {
-				mixin(READ_AND_STORE_ALL!(`pkg.licenses`));
+				mixin(READ_AND_STORE_ALL_L!(`pkg.licenses`));
 			} else if(strcmp(line, "%ARCH%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.arch`));
 			} else if(strcmp(line, "%BUILDDATE%") == 0) {

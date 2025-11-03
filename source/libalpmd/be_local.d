@@ -139,7 +139,7 @@ private int _cache_get_validation(AlpmPkg pkg)
 	return pkg.validation;
 }
 
-alpm_list_t* _cache_get_licenses(AlpmPkg pkg)
+auto _cache_get_licenses(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.licenses;
@@ -706,6 +706,16 @@ enum string READ_AND_STORE(string f) = `do {
 	`~f~` = tmp.to!(typeof(`~f~`));
 } while(0);`;
 
+enum string READ_AND_STORE_ALL_L(string f) = `do { 
+	char* linedup = void; 
+	if(fgets(line.ptr, line.sizeof, fp) == null) {
+		if(!feof(fp)) goto error; else break; 
+	} 
+	if(_alpm_strip_newline(line.ptr, 0) == 0) break; 
+	STRDUP(linedup, line.ptr); 
+	` ~ f ~ ` = alpmList_add(` ~ f ~ `, linedup.to!string); 
+} while(1); /* note the while(1) and not (0) */`;
+
 enum string READ_AND_STORE_ALL(string f) = `do { 
 	char* linedup = void; 
 	if(fgets(line.ptr, line.sizeof, fp) == null) {
@@ -788,7 +798,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			} else if(strcmp(line.ptr, "%URL%") == 0) {
 				mixin(READ_AND_STORE!(`info.url`));
 			} else if(strcmp(line.ptr, "%LICENSE%") == 0) {
-				mixin(READ_AND_STORE_ALL!(`info.licenses`));
+				mixin(READ_AND_STORE_ALL_L!(`info.licenses`));
 			} else if(strcmp(line.ptr, "%ARCH%") == 0) {
 				mixin(READ_AND_STORE!(`info.arch`));
 			} else if(strcmp(line.ptr, "%BUILDDATE%") == 0) {
@@ -1063,8 +1073,8 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		if(info.licenses) {
 			fputs("%LICENSE%\n", fp);
-			for(lp = info.licenses; lp; lp = lp.next) {
-				fputs(cast(  char*)lp.data, fp);
+			for(auto _lp = info.licenses; lp; _lp = _lp.next) {
+				fputs(cast(  char*)_lp.data, fp);
 				fputc('\n', fp);
 			}
 			fputc('\n', fp);

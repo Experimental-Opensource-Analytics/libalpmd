@@ -24,6 +24,8 @@ module libalpmd.alpm_list;
 import core.stdc.stdlib;
 import core.stdc.string;
 
+import std.conv; 
+
 /* Note: alpm_list.{c,h} are intended to be standalone files. Do not include
  * any other libalpm headers.
  */
@@ -35,7 +37,7 @@ import libalpmd.alpm_list;
 // enum  = __attribute_((visibility("default")));
 
 /* Allocation */
-
+alias AlpmStringList = AlpmList!string;
 
 class AlpmList(T) {
 	alias IT = T;
@@ -54,6 +56,30 @@ auto AlpmInputRange(List)(List list) {
 	}
 
 	return Range(list);
+}
+
+AlpmStringList alpmList_strdup(AlpmStringList list) {
+	auto lp = list;
+	AlpmStringList newlist = null;
+	foreach(line; lp.AlpmInputRange) {
+		if(alpmList_append_strdup(&newlist, lp.data) is null) {
+			// FREELIST(newlist);
+			return null;
+		}
+		// lp = lp.next;
+	}
+	return newlist;
+}
+
+AlpmStringList alpmList_append_strdup(AlpmStringList* list, string data) {
+	AlpmStringList ret = void;
+	string dup = void;
+	if((dup = data.idup) != "" && (ret = alpmList_append(list, dup)) !is null) {
+		return ret;
+	} else {
+		// free(dup);
+		return null;
+	}
 }
 
 List alpmList_add(List, IT = List.IT)(List list, IT data)
