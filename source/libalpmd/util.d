@@ -1651,11 +1651,11 @@ off_t _alpm_strtoofft(  char*line)
 	return cast(off_t)result;
 }
 
-/** Parses a date into an alpm_time_t struct.
+/** Parses a date into an AlpmTime struct.
  * @param line date to parse
  * @return time struct on success, 0 on error
  */
-alpm_time_t _alpm_parsedate(  char*line)
+AlpmTime _alpm_parsedate(  char*line)
 {
 	char* end = void;
 	long result = void;
@@ -1675,7 +1675,7 @@ alpm_time_t _alpm_parsedate(  char*line)
 		return 0;
 	}
 
-	return cast(alpm_time_t)result;
+	return cast(AlpmTime)result;
 }
 
 /** Wrapper around access() which takes a dir and file argument

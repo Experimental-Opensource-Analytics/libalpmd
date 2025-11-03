@@ -97,13 +97,13 @@ private string _cache_get_url(AlpmPkg pkg)
 	return pkg.url;
 }
 
-private alpm_time_t _cache_get_builddate(AlpmPkg pkg)
+private AlpmTime _cache_get_builddate(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.builddate;
 }
 
-private alpm_time_t _cache_get_installdate(AlpmPkg pkg)
+private AlpmTime _cache_get_installdate(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.installdate;

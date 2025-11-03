@@ -55,7 +55,7 @@ import libalpmd.filelist;
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
-alias alpm_time_t = long;
+alias AlpmTime = long;
 
 /** @addtogroup libalpm_files Files
  * @brief Functions for package files

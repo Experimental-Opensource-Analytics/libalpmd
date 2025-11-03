@@ -62,8 +62,8 @@ struct pkg_operations {
 	  char*function(AlpmPkg) get_base;
 	  char*function(AlpmPkg) get_desc;
 	string function(AlpmPkg) get_url;
-	alpm_time_t function(AlpmPkg) get_builddate;
-	alpm_time_t function(AlpmPkg) get_installdate;
+	AlpmTime function(AlpmPkg) get_builddate;
+	AlpmTime function(AlpmPkg) get_installdate;
 	string function(AlpmPkg) get_packager;
 	  char*function(AlpmPkg) get_arch;
 	off_t function(AlpmPkg) get_isize;
@@ -122,8 +122,8 @@ class AlpmPkg {
 	string base64_sig;
 	string arch;
 
-	alpm_time_t builddate;
-	alpm_time_t installdate;
+	AlpmTime builddate;
+	AlpmTime installdate;
 
 	off_t size;
 	off_t isize;
@@ -252,8 +252,8 @@ int  alpm_pkg_free(AlpmPkg pkg)
 string _pkg_get_base(AlpmPkg pkg)        { return pkg.base; }
 string _pkg_get_desc(AlpmPkg pkg)        { return pkg.desc; }
 string _pkg_get_url(AlpmPkg pkg)         { return pkg.url; }
-alpm_time_t _pkg_get_builddate(AlpmPkg pkg)   { return pkg.builddate; }
-alpm_time_t _pkg_get_installdate(AlpmPkg pkg) { return pkg.installdate; }
+AlpmTime _pkg_get_builddate(AlpmPkg pkg)   { return pkg.builddate; }
+AlpmTime _pkg_get_installdate(AlpmPkg pkg) { return pkg.installdate; }
 string _pkg_get_packager(AlpmPkg pkg)    { return pkg.packager; }
 string _pkg_get_arch(AlpmPkg pkg)        { return pkg.arch; }
 off_t _pkg_get_isize(AlpmPkg pkg)             { return pkg.isize; }
@@ -332,14 +332,14 @@ alpm_pkgfrom_t  alpm_pkg_get_origin(AlpmPkg pkg)
 // 	return pkg.ops.get_desc(pkg);
 // }
 
-alpm_time_t  alpm_pkg_get_builddate(AlpmPkg pkg)
+AlpmTime  alpm_pkg_get_builddate(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_builddate(pkg);
 }
 
-alpm_time_t  alpm_pkg_get_installdate(AlpmPkg pkg)
+AlpmTime  alpm_pkg_get_installdate(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
