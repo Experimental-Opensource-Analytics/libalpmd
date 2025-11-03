@@ -23,6 +23,7 @@ import core.stdc.ctype;
 import core.stdc.stdlib;
 
 import std.string;
+import std.conv;
 
 
 /* libalpm */
@@ -43,41 +44,17 @@ import libalpmd.util;
  * @retval *vp		pointer to version
  * @retval *rp		pointer to release
  */
-private void parseEVR(char* evr,  char** ep,  char** vp,  char** rp)
-{
-	  char*epoch = void;
-	  char*version_ = void;
-	  char*release = void;
-	char* s = void, se = void;
+void parseEVR(string evr,  out string ep, out string vp, out string rp){
+	auto splitted = evr.split(":");
+	string epoch = splitted[0];
 
-	s = evr;
-	/* s points to epoch terminator */
-	while (*s && isdigit(*s)) s++;
-	/* se points to version terminator */
-	se = strrchr(s, '-');
-
-	if(*s == ':') {
-		epoch = evr;
-		*s++ = '\0';
-		version_ = s;
-		if(*epoch == '\0') {
-			epoch = cast(char*)"0";
-		}
-	} else {
-		/* different from RPM- always assume 0 epoch */
-		epoch = cast(char*)"0";
-		version_ = evr;
-	}
-	if(se) {
-		*se++ = '\0';
-		release = cast( char*) se;
-	} else {
-		release = null;
-	}
-
-	if(ep) *ep = epoch;
-	if(vp) *vp = version_;
-	if(rp) *rp = release;
+	string ver_rel = splitted[1];
+	auto ver_rel_splitted = ver_rel.split("-");
+	string rel = ver_rel_splitted[1];
+	string _version = ver_rel_splitted[0];
+	ep = epoch;
+	vp = _version;
+	rp = rel;
 }
 
 /**
@@ -225,8 +202,8 @@ cleanup:
 int  alpm_pkg_vercmp(  char*a,   char*b)
 {
 	char* full1 = void, full2 = void;
-	  char*epoch1 = void, ver1 = void, rel1 = void;
-	  char*epoch2 = void, ver2 = void, rel2 = void;
+	string epoch1 = void, ver1 = void, rel1 = void;
+	string epoch2 = void, ver2 = void, rel2 = void;
 	int ret = void;
 
 	/* ensure our strings are not null */
@@ -249,14 +226,14 @@ int  alpm_pkg_vercmp(  char*a,   char*b)
 	full2 = strdup(b);
 
 	/* parseEVR modifies passed in version, so have to dupe it first */
-	parseEVR(full1, &epoch1, &ver1, &rel1);
-	parseEVR(full2, &epoch2, &ver2, &rel2);
+	parseEVR(full1.to!string, epoch1, ver1, rel1);
+	parseEVR(full2.to!string, epoch2, ver2, rel2);
 
-	ret = rpmvercmp(epoch1, epoch2);
+	ret = rpmvercmp(cast(char*)epoch1, cast(char*)epoch2);
 	if(ret == 0) {
-		ret = rpmvercmp(ver1, ver2);
+		ret = rpmvercmp(cast(char*)ver1, cast(char*)ver2);
 		if(ret == 0 && rel1 && rel2) {
-			ret = rpmvercmp(rel1, rel2);
+			ret = rpmvercmp(cast(char*)rel1, cast(char*)rel2);
 		}
 	}
 
