@@ -213,7 +213,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			} else if(strcmp(key, "backup") == 0) {
 				AlpmBackup backup = void;
 				CALLOC(backup, 1, AlpmBackup.sizeof);
-				STRDUP(backup.name, ptr);
+				backup.name = ptr.to!string;
 				newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				AlpmPkgXData* pd = _alpm_pkg_parse_xdata(ptr.to!string);

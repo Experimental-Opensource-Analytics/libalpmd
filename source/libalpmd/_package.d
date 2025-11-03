@@ -729,7 +729,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.replaces   = list_depdup(pkg.replaces);
 	newpkg.groups     = alpm_list_strdup(pkg.groups);
 	for(i = pkg.backup; i; i = i.next) {
-		newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)_alpm_backup_dup(cast(AlpmBackup)i.data));
+		newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
 	}
 	newpkg.depends    = list_depdup(pkg.depends);
 	newpkg.optdepends = list_depdup(pkg.optdepends);

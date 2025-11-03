@@ -34,35 +34,29 @@ import libalpmd.log;
 import libalpmd.util;
 import libalpmd.alpm;
 import libalpmd._package;
+import std.string;
 
 /** Local package or package file backup entry */
 class AlpmBackup {
-       /** Name of the file (without .pacsave extension) */
-       char* name;
-       /** Hash of the filename (used internally) */
-       char* hash;
-}
-/* split a backup string "file\thash" into the relevant components */
-int _alpm_split_backup(  char*_string, AlpmBackup* backup)
-{
-	char* str = void, ptr = void;
+       	/** Name of the file (without .pacsave extension) */
+       	string name;
+       	/** Hash of the filename (used internally) */
+		string hash;	
 
-	STRDUP(str, _string);
+	   	AlpmBackup dup() {
+			auto newBackup = new AlpmBackup;
+			newBackup.name = name.dup;
+			newBackup.hash = hash.dup;
+			return newBackup;
+		}
 
-	/* tab delimiter */
-	ptr = str ? strchr(str, '\t') : null;
-	if(ptr == null) {
-		(*backup).name = str;
-		(*backup).hash = null;
-		return 0;
-	}
-	*ptr = '\0';
-	ptr++;
-	/* now str points to the filename and ptr points to the hash */
-	STRDUP((*backup).name, str);
-	STRDUP((*backup).hash, ptr);
-	FREE(str);
-	return 0;
+		int splitString(string _string) {
+			auto splitter = _string.split('\t');
+			this.name = splitter[0].dup;
+			this.hash = splitter[1].dup;
+
+			return 0;
+		}
 }
 
 /* Look for a filename in a alpm_pkg_t.backup list. If we find it,
@@ -79,7 +73,7 @@ AlpmBackup _alpm_needbackup(  char*file, AlpmPkg pkg)
 	for(lp = alpm_pkg_get_backup(pkg); lp; lp = lp.next) {
 		AlpmBackup backup = cast(AlpmBackup)lp.data;
 
-		if(strcmp(file, backup.name) == 0) {
+		if(strcmp(file, cast(char*)backup.name) == 0) {
 			return backup;
 		}
 	}
@@ -93,20 +87,4 @@ void _alpm_backup_free(AlpmBackup backup)
 	FREE(backup.name);
 	FREE(backup.hash);
 	FREE(backup);
-}
-
-AlpmBackup _alpm_backup_dup(AlpmBackup backup)
-{
-	AlpmBackup newbackup = void;
-	CALLOC(newbackup, 1, AlpmBackup.sizeof);
-
-	STRDUP(newbackup.name, backup.name);
-	STRDUP(newbackup.hash, backup.hash);
-
-	return newbackup;
-
-error:
-	free(newbackup.name);
-	free(cast(void*)newbackup);
-	return null;
 }

@@ -921,7 +921,7 @@ nomem:
 				while( fgets(line.ptr, line.sizeof, fp) && _alpm_strip_newline(line.ptr, 0)) {
 					AlpmBackup backup = void;
 					CALLOC(backup, 1, AlpmBackup.sizeof);
-					if(_alpm_split_backup(line.ptr, &backup)) {
+					if(backup.splitString(line.to!string)) {
 						FREE(backup);
 						goto error;
 					}
@@ -1144,7 +1144,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			fputs("%BACKUP%\n", fp);
 			for(lp = info.backup; lp; lp = lp.next) {
 				 AlpmBackup backup = cast( AlpmBackup)lp.data;
-				fprintf(fp, "%s\t%s\n", backup.name, backup.hash);
+				fprintf(fp, "%s\t%s\n", cast(char*)backup.name, cast(char*)backup.hash);
 			}
 			fputc('\n', fp);
 		}

@@ -539,7 +539,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 				_alpm_log(handle, ALPM_LOG_DEBUG, "transaction is set to NOSAVE, not backing up '%s'\n", file.ptr);
 			} else {
 				char* filehash = alpm_compute_md5sum(file.ptr);
-				int cmp = filehash ? strcmp(filehash, backup.hash) : 0;
+				int cmp = filehash ? strcmp(filehash, cast(char*)backup.hash) : 0;
 				FREE(filehash);
 				if(cmp != 0) {
 					alpm_event_pacsave_created_t event = {
