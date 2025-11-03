@@ -531,7 +531,7 @@ import libalpmd._package;
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */
-alias AlpmTime = long;
+// alias AlpmTime = long;
 
 /** @addtogroup libalpm_groups Groups
  * @brief Functions for package groups
