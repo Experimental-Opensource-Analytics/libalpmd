@@ -201,7 +201,7 @@ version (HAVE_LIBGPGME) {
 		if(treename == "local") {
 			RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
-		foreach(i; dbs_sync.AlpmInputRange) {
+		foreach(i; dbs_sync.toInputRange) {
 			if(treename == i.data.treename)
 				RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}

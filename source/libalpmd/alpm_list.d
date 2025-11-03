@@ -46,7 +46,7 @@ class AlpmList(T) {
 	AlpmList!IT next;
 }
 
-auto AlpmInputRange(List)(List list) {
+auto toInputRange(List)(List list) {
 	struct Range {
 		List current;
 
@@ -61,7 +61,7 @@ auto AlpmInputRange(List)(List list) {
 AlpmStringList alpmList_strdup(AlpmStringList list) {
 	auto lp = list;
 	AlpmStringList newlist = null;
-	foreach(line; lp.AlpmInputRange) {
+	foreach(line; lp.toInputRange) {
 		if(alpmList_append_strdup(&newlist, lp.data) is null) {
 			// FREELIST(newlist);
 			return null;

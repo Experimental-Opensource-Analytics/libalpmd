@@ -662,7 +662,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, al
 	alpm_list_t* providers = null;
 	int count = void;
 
-	foreach(i; dbs.AlpmInputRange) {
+	foreach(i; dbs.toInputRange) {
 		AlpmPkg pkg = void;
 		AlpmDB db = i.data;
 
