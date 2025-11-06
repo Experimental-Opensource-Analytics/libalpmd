@@ -20,6 +20,7 @@ dub.selections.json
 docs.json
 __dummy.html
 docs/
+libalpmd-test-library
 
 # Code coverage
 *.lst

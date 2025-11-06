@@ -37,6 +37,8 @@ import libalpmd._package;
 import libalpmd.conf;
 import libalpmd.db;
 import libalpmd.filelist;
+import libalpmd.deps;
+
 
 
 import core.stdc.stdio;

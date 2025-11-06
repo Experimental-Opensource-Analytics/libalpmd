@@ -55,6 +55,8 @@ import libalpmd.signing;
 import libalpmd.be_package;
 import libalpmd.group;
 import libalpmd.deps;
+import libalpmd.error;
+
 
 
 

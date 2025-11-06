@@ -562,7 +562,7 @@ alpm_errno_t alpm_errno(AlpmHandle handle);
  * @param err the error code to get the string for
  * @return the string relating to the given error code
  */
-const(char)* alpm_strerror(alpm_errno_t err);
+// const(char)* alpm_strerror(alpm_errno_t err);
 
 /* End of libalpm_errors */
 /** @} */
@@ -2993,7 +2993,7 @@ int alpm_sandbox_setup_child(AlpmHandle handle, const(char)* sandboxuser, const(
  * @param depstring package or provision name, versioned or not
  * @return a AlpmPkg satisfying depstring
  */
-AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
+// AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
 
 /** Find a package satisfying a specified dependency.
  * First look for a literal, going through each db one by one. Then look for

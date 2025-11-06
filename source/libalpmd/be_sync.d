@@ -49,6 +49,8 @@ import libalpmd.filelist;
 import libalpmd.db;
 import core.stdc.stdlib;
 import libalpmd.pkghash;
+import libalpmd.error;
+
 
 
 

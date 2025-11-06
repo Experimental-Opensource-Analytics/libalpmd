@@ -288,7 +288,7 @@ version (HAVE_LIBCURL) {
 
 int _alpm_handle_unlock(AlpmHandle handle)
 {
-	if(alpm_unlock(handle) != 0) {
+	if(handle.unlock() != 0) {
 		if(errno == ENOENT) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("lock file missing %s\n"), handle.lockfile);

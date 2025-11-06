@@ -101,7 +101,7 @@ struct pkg_operations {
  * The actual definition is in package.c so it can have access to the
  * default accessor functions which are defined there.
  */
-extern const(pkg_operations) default_pkg_ops;
+const(pkg_operations) default_pkg_ops;
 
 struct AlpmPkgXData {
 	string name;

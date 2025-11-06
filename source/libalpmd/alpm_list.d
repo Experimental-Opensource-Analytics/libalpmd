@@ -23,8 +23,39 @@ module libalpmd.alpm_list;
 
 import core.stdc.stdlib;
 import core.stdc.string;
+import std.container.dlist;
 
 import std.conv; 
+
+// alias AlpmList(T) = DList!T;
+
+alias AlpmStrings = DList!string;
+
+struct LazySortedRange(T) {
+    T list;
+    auto front() => list[].minElement();
+    void popFront() { 
+        list.linearRemoveElement(list[].minElement);
+    }
+
+    @property bool empty() => list.empty;  
+
+    this(T _list) {list = _list.dup;}
+}
+
+auto lazySort(T) (T _list) {
+    return LazySortedRange!T(_list);
+}
+
+auto alpmStringsDup(AlpmStrings strings) {
+    AlpmStrings copy;
+
+    foreach(item; strings[]) {
+        copy.insertBack(item.idup);
+    }
+
+    return copy;
+}
 
 alias AlpmStringList = AlpmList!string;
 

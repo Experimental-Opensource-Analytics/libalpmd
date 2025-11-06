@@ -1,4 +1,5 @@
 {
+	"name": "libalpmd",
 	"authors": [
 		"Roman Vlasov"
 	],
@@ -10,9 +11,10 @@
 	},
 	"description": "Port of libalpm to D language",
 	"license": "MIT",
-	"name": "libalpmd",
+	"targetName": "libalpmd",
 	"dflags" : [
 		"-verrors=0",
-		"-version=HAVE_LIBSSL"
+		"-version=HAVE_LIBSSL",
+		"-unittest"
 	]
 }

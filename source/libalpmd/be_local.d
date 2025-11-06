@@ -57,7 +57,8 @@ import std.string;
 import libalpmd.pkghash;
 import libalpmd.backup;
 
-
+pragma(mangle, "dirfd")
+                        extern(C) nothrow @nogc int dirfd(DIR* dir);
 
 
 /* local database format version */

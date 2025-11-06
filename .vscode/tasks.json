@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "dub",
+			"test": false,
+			"cwd": "${workspaceFolder}",
+			"compiler": "$current",
+			"archType": "$current",
+			"buildType": "unittest",
+			"configuration": "unittest",
+			"problemMatcher": [
+				"$dmd"
+			],
+			"group": "build",
+			"label": "dub: Just unittest libalpmd",
+			"detail": "dub build --config=unittest --build=unittest --compiler=dmd -a=x86_64 -b=debug -c=library"
+		}
+	]
+}
