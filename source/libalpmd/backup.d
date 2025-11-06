@@ -88,3 +88,5 @@ void _alpm_backup_free(AlpmBackup backup)
 	FREE(backup.hash);
 	FREE(backup);
 }
+
+alias AlpmBackups = DList!AlpmBackup;

@@ -200,7 +200,7 @@ private AlpmFileList _cache_get_files(AlpmPkg pkg)
 	return pkg.files;
 }
 
-private alpm_list_t* _cache_get_backup(AlpmPkg pkg)
+private auto _cache_get_backup(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_FILES`));
 	return pkg.backup;
@@ -361,7 +361,7 @@ private const (pkg_operations) local_pkg_ops = {
 	get_provides: &_cache_get_provides,
 	// get_replaces: &_cache_get_replaces,
 	get_files: &_cache_get_files,
-	get_backup: &_cache_get_backup,
+	// get_backup: &_cache_get_backup,
 	get_xdata: &_cache_get_xdata,
 
 	changelog_open: &_cache_changelog_open,
@@ -928,7 +928,7 @@ nomem:
 						FREE(backup);
 						goto error;
 					}
-					info.backup = alpm_list_add(info.backup, cast(void*)backup);
+					info.backup.insertFront(backup);
 				}
 			}
 		}
@@ -1160,10 +1160,10 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			}
 			fputc('\n', fp);
 		}
-		if(info.backup) {
+		if(!info.backup.empty) {
 			fputs("%BACKUP%\n", fp);
-			for(lp = info.backup; lp; lp = lp.next) {
-				 AlpmBackup backup = cast( AlpmBackup)lp.data;
+			foreach(backup; info.backup) {
+				//  AlpmBackup backup = lpa;
 				fprintf(fp, "%s\t%s\n", cast(char*)backup.name, cast(char*)backup.hash);
 			}
 			fputc('\n', fp);

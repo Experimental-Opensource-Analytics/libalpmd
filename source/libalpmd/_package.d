@@ -137,7 +137,7 @@ class AlpmPkg {
 	AlpmStrings licenses;
 	AlpmDeps replaces;
 	AlpmStrings groups;
-	alpm_list_t* backup;
+	AlpmBackups backup;
 	alpm_list_t* depends;
 	alpm_list_t* optdepends;
 	alpm_list_t* checkdepends;
@@ -180,6 +180,8 @@ class AlpmPkg {
 	auto getDesc() => this.desc;
 	auto getReplaces() => this.replaces;
 	auto getGroups() => this.groups;
+	auto getBackups() => this.backup;
+
 
 	auto getXData() => this.xdata;
 
@@ -276,7 +278,7 @@ alpm_list_t* _pkg_get_conflicts(AlpmPkg pkg)  { return pkg.conflicts; }
 alpm_list_t* _pkg_get_provides(AlpmPkg pkg)   { return pkg.provides; }
 // alpm_list_t* _pkg_get_replaces(AlpmPkg pkg)   { return pkg.replaces; }
 AlpmFileList _pkg_get_files(AlpmPkg pkg)  { return pkg.files; }
-alpm_list_t* _pkg_get_backup(AlpmPkg pkg)     { return pkg.backup; }
+auto _pkg_get_backup(AlpmPkg pkg)     { return pkg.backup; }
 auto _pkg_get_xdata(AlpmPkg pkg)      { return pkg.xdata; }
 
 void* _pkg_changelog_open(AlpmPkg pkg)
@@ -729,8 +731,11 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	newpkg.licenses = alpmStringsDup(pkg.licenses);
 	newpkg.replaces   = alpmDepsDup(pkg.replaces);
 	newpkg.groups     = alpmStringsDup(pkg.groups);
-	for(i = pkg.backup; i; i = i.next) {
-		newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
+	// for(i = pkg.backup; i; i = i.next) {
+	// 	newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
+	// }
+	foreach(_i; pkg.backup[]) {
+		newpkg.backup.insertFront(_i.dup);
 	}
 	newpkg.depends    = list_depdup(pkg.depends);
 	newpkg.optdepends = list_depdup(pkg.optdepends);
@@ -813,8 +818,8 @@ void _alpm_pkg_free(AlpmPkg pkg)
 		}
 		free(pkg.files.ptr);
 	}
-	alpm_list_free_inner(pkg.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
-	alpm_list_free(pkg.backup);
+	// alpm_list_free_inner(pkg.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
+	// alpm_list_free(pkg.backup);
 	// alpm_list_free_inner(pkg.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
 	// alpm_list_free(pkg.xdata);
 	free_deplist(pkg.depends);
