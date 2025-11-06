@@ -42,7 +42,6 @@ import libalpmd.trans;
 import libalpmd.alpm;
 import libalpmd._version;
 
-
 /** The basic dependency type.
  *
  * This type is used throughout libalpm, not just for dependencies
@@ -58,8 +57,39 @@ class AlpmDepend {
 	c_ulong name_hash;
 	/** How the version should match against the provider */
 	alpm_depmod_t mod;
+
+	this(char* name, char* version_, char* desc, c_ulong name_hash, alpm_depmod_t mod) {
+		this.name = name,
+		this.version_ = version_,
+		this.desc = desc,
+		this.name_hash = name_hash,
+		this.mod = mod;
+	}
+
+	this() {}
+
+	auto dup() {
+		return new AlpmDepend(
+			this.name,
+			this.version_,
+			this.desc,
+			this.name_hash,
+			this.mod
+		);
+	}
 }
 
+alias AlpmDeps = DList!AlpmDepend;
+
+auto alpmDepsDup(AlpmDeps deps) {
+    AlpmDeps copy;
+
+    foreach(item; deps[]) {
+        copy.insertBack(item.dup);
+    }
+
+    return copy;
+}
 
 void  alpm_dep_free(void* _dep)
 {

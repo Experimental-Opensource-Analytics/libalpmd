@@ -560,7 +560,7 @@ enum string READ_AND_STORE_ALL_L(string f) = `do {
 	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
 	if(_alpm_strip_newline(buf.line, buf.real_line_size) == 0) break; 
 	STRDUP(linedup, buf.line); 
-	` ~ f ~ ` = alpmList_add(` ~ f ~ `, linedup.to!string); 
+	` ~ f ~ `.insertFront(linedup.to!string); 
 } while(1); /* note the while(1) and not (0) */`;
 
 enum string READ_AND_STORE_ALL(string f) = `do { 
@@ -577,6 +577,13 @@ enum string READ_AND_SPLITDEP(string f) = `do {
 	if(_alpm_strip_newline(buf.line, buf.real_line_size) == 0) break; 
 	` ~ f ~ ` = alpm_list_add(` ~ f ~ `, cast(void*)alpm_dep_from_string(line)); 
 } while(1); /* note the while(1) and not (0) */`;
+
+enum string READ_AND_SPLITDEP_N(string f) = `do { 
+	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
+	if(_alpm_strip_newline(buf.line, buf.real_line_size) == 0) break; 
+	` ~ f ~ `.insertFront(alpm_dep_from_string(line)); 
+} while(1); /* note the while(1) and not (0) */`;
+
 
 int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* likely_pkg)
 {
@@ -672,7 +679,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%PGPSIG%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.base64_sig`));
 			} else if(strcmp(line, "%REPLACES%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.replaces`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.replaces`));
 			} else if(strcmp(line, "%DEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP!(`pkg.depends`));
 			} else if(strcmp(line, "%OPTDEPENDS%") == 0) {

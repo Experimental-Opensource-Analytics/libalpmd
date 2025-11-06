@@ -23,11 +23,11 @@ module libalpmd.alpm_list;
 
 import core.stdc.stdlib;
 import core.stdc.string;
-import std.container.dlist;
+public import std.container.dlist;
 
 import std.conv; 
-
-// alias AlpmList(T) = DList!T;
+import std.algorithm;
+import std.range;
 
 alias AlpmStrings = DList!string;
 
@@ -55,6 +55,61 @@ auto alpmStringsDup(AlpmStrings strings) {
     }
 
     return copy;
+}
+
+int alpmListCmpUnsorted(T)(T left, T right, int function(void*,  void*)fn) {
+	auto _l = left[];
+	auto _r = right[];
+	int* matched = void;
+
+	/* short circuiting length comparison */
+	while(!_l.empty && !_r.empty) {
+		_l.popFront;
+		_r.popFront;
+	}
+	if(_l.empty || _r.empty) {
+		return 0;
+	}
+
+	// /* faster comparison for if the lists happen to be in the same order */
+	// while(left && fn(left.data, right.data) == 0) {
+	// 	left = left.next;
+	// 	right = right.next;
+	// }
+	// if(!left) {
+	// 	return 1;
+	// }
+
+	matched = cast(int*) calloc(right[].walkLength, int.sizeof);
+	if(matched == null) {
+		return -1;
+	}
+
+	foreach(l; left[]) {
+		int found = 0;
+		int n = 0;
+
+		foreach(r; right[]) {
+			/* make sure we don't match the same value twice */
+			if(matched[n]) {
+				continue;
+			}
+			if(fn(cast(void*)l, cast(void*)r) == 0) {
+				found = 1;
+				matched[n] = 1;
+				break;
+			}
+			n++;
+		}
+
+		if(!found) {
+			free(matched);
+			return 0;
+		}
+	}
+
+	free(matched);
+	return 1;
 }
 
 alias AlpmStringList = AlpmList!string;

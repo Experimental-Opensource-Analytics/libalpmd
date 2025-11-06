@@ -1114,10 +1114,33 @@ private int check_pkg_field_matches_db(AlpmHandle handle,   char*field, alpm_lis
 	}
 }
 
+private int check_pkg_field_matches_db_n(AlpmHandle handle,   char*field, AlpmDeps left, AlpmDeps right, alpm_list_fn_cmp cmp)
+{
+	switch(alpmListCmpUnsorted(left, right, cmp)) {
+		case 0:
+			_alpm_log(handle, ALPM_LOG_DEBUG,
+					"internal package %s mismatch\n", field);
+			return 1;
+		case 1:
+			return 0;
+		default:
+			RET_ERR(handle, ALPM_ERR_MEMORY, -1);
+	}
+}
+
 private int check_pkg_matches_db(AlpmPkg spkg, AlpmPkg pkgfile)
 {
 	AlpmHandle handle = spkg.handle;
 	int error = 0;
+
+enum string CHECK_FIELD_N(string STR, string FIELD, string CMP) = `do { 
+	int ok = check_pkg_field_matches_db_n(handle, cast(char*)` ~ STR ~ `, spkg.` ~ FIELD ~ `, pkgfile.` ~ FIELD ~ `, cast(alpm_list_fn_cmp)&` ~ CMP ~ `); 
+	if(ok == -1) { 
+		return 1; 
+	} else if(ok != 0) { 
+		error = 1; 
+	} 
+} while(0);`;
 
 enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do { 
 	int ok = check_pkg_field_matches_db(handle, cast(char*)` ~ STR ~ `, spkg.` ~ FIELD ~ `, pkgfile.` ~ FIELD ~ `, cast(alpm_list_fn_cmp)&` ~ CMP ~ `); 
@@ -1149,7 +1172,7 @@ enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do {
 
 	mixin(CHECK_FIELD!(`"depends"`, `depends`, `dep_not_equal`));
 	mixin(CHECK_FIELD!(`"conflicts"`, `conflicts`, `dep_not_equal`));
-	mixin(CHECK_FIELD!(`"replaces"`, `replaces`, `dep_not_equal`));
+	mixin(CHECK_FIELD_N!(`"replaces"`, `replaces`, `dep_not_equal`));
 	mixin(CHECK_FIELD!(`"provides"`, `provides`, `dep_not_equal`));
 	mixin(CHECK_FIELD!(`"groups"`, `groups`, `strcmp`));
 

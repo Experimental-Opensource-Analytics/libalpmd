@@ -178,7 +178,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.url = tmp.to!string;
 			} else if(strcmp(key, "license") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.licenses = alpmList_add(newpkg.licenses, tmp.to!string);
+				newpkg.licenses.insertFront(tmp.to!string);
 			} else if(strcmp(key, "builddate") == 0) {
 				newpkg.builddate = _alpm_parsedate(ptr);
 			} else if(strcmp(key, "packager") == 0) {
@@ -206,7 +206,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.conflicts = alpm_list_add(newpkg.conflicts, cast(void*)conflict);
 			} else if(strcmp(key, "replaces") == 0) {
 				AlpmDepend replace = alpm_dep_from_string(ptr);
-				newpkg.replaces = alpm_list_add(newpkg.replaces, cast(void*)replace);
+				newpkg.replaces.insertFront(replace);
 			} else if(strcmp(key, "provides") == 0) {
 				AlpmDepend provide = alpm_dep_from_string(ptr);
 				newpkg.provides = alpm_list_add(newpkg.provides, cast(void*)provide);
