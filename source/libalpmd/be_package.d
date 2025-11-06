@@ -172,7 +172,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.desc = tmp.to!string;
 			} else if(strcmp(key, "group") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.groups = alpm_list_add(newpkg.groups, tmp);
+				newpkg.groups.insertFront(tmp.to!string);
 			} else if(strcmp(key, "url") == 0) {
 				STRDUP(tmp, ptr);
 				newpkg.url = tmp.to!string;

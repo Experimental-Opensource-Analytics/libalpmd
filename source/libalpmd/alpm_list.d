@@ -57,6 +57,13 @@ auto alpmStringsDup(AlpmStrings strings) {
     return copy;
 }
 
+bool alpmList_find_n(List, Item = typeof(List.front))(List haystack, Item item, alpm_list_fn_cmp fn)
+{
+	if(haystack.canFind(item))
+		return true;
+	return false;
+}
+
 int alpmListCmpUnsorted(T)(T left, T right, int function(void*,  void*)fn) {
 	auto _l = left[];
 	auto _r = right[];
@@ -68,7 +75,8 @@ int alpmListCmpUnsorted(T)(T left, T right, int function(void*,  void*)fn) {
 		_r.popFront;
 	}
 	if(_l.empty || _r.empty) {
-		return 0;
+		return 0;			//   char*grpname =  cast(char*)i.data;
+
 	}
 
 	// /* faster comparison for if the lists happen to be in the same order */

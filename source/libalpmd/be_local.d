@@ -146,7 +146,7 @@ auto _cache_get_licenses(AlpmPkg pkg)
 	return pkg.licenses;
 }
 
-private alpm_list_t* _cache_get_groups(AlpmPkg pkg)
+private auto _cache_get_groups(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.groups;
@@ -351,7 +351,7 @@ private const (pkg_operations) local_pkg_ops = {
 	get_reason: &_cache_get_reason,
 	get_validation: &_cache_get_validation,
 	has_scriptlet: &_cache_has_scriptlet,
-	// get_licenses: &_cache_get_licenses,
+	get_licenses: &_cache_get_licenses,
 	get_groups: &_cache_get_groups,
 	get_depends: &_cache_get_depends,
 	get_optdepends: &_cache_get_optdepends,
@@ -797,7 +797,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			} else if(strcmp(line.ptr, "%DESC%") == 0) {
 				mixin(READ_AND_STORE!(`info.desc`));
 			} else if(strcmp(line.ptr, "%GROUPS%") == 0) {
-				mixin(READ_AND_STORE_ALL!(`info.groups`));
+				mixin(READ_AND_STORE_ALL_L!(`info.groups`));
 			} else if(strcmp(line.ptr, "%URL%") == 0) {
 				mixin(READ_AND_STORE!(`info.url`));
 			} else if(strcmp(line.ptr, "%LICENSE%") == 0) {
@@ -1083,10 +1083,10 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			fprintf(fp, "%%REASON%%\n"
 							~ "%u\n\n", info.reason);
 		}
-		if(info.groups) {
+		if(!info.groups.empty) {
 			fputs("%GROUPS%\n", fp);
-			for(lp = info.groups; lp; lp = lp.next) {
-				fputs(cast(  char*)lp.data, fp);
+			foreach(_lp; info.groups) {
+				fputs(cast(  char*)lp, fp);
 				fputc('\n', fp);
 			}
 			fputc('\n', fp);

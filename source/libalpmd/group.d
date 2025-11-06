@@ -46,3 +46,5 @@ class AlpmGroup {
 		packages = null;
 	}
 }
+
+alias AlpmGroups = DList!AlpmGroup;

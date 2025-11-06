@@ -114,7 +114,7 @@ class AlpmDB {
 }
 
 alias AlpmDBList = AlpmList!AlpmDB;
-
+alias AlpmDBs = DList!AlpmDB;
 /* Helper function for alpm_db_unregister{_all} */
 void _alpm_db_unregister(AlpmDB db)
 {
@@ -468,7 +468,7 @@ int _alpm_db_cmp( void* d1,  void* d2)
 
 int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 {
-	 alpm_list_t* i = void, j = void, k = void;
+	alpm_list_t* i = void, j = void, k = void;
 
 	if(!(db.usage & ALPM_DB_USAGE_SEARCH)) {
 		return 0;
@@ -489,7 +489,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 
 		for(j = cast( alpm_list_t*) list; j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
-			  char*matched = null;
+			char* matched = null;
 			string name = pkg.name;
 			char*desc = cast(char*)pkg.getDesc();
 
@@ -515,10 +515,10 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 			}
 			if(!matched) {
 				/* check groups */
-				for(k = alpm_pkg_get_groups(pkg); k; k = k.next) {
-					  char*group =  cast(char*)k.data;
-					if(strstr(group, targ)) {
-						matched = group;
+				foreach(group; alpm_pkg_get_groups(pkg)[]) {
+					//   char*group =  cast(char*)k.data;
+					if(strstr(cast(char*)group, targ)) {
+						matched = cast(char*)group;
 						break;
 					}
 				}
@@ -716,11 +716,9 @@ private int load_grpcache(AlpmDB db)
 			db.treename);
 
 	for(lp = _alpm_db_get_pkgcache(db); lp; lp = lp.next) {
-		 alpm_list_t* i = void;
 		AlpmPkg pkg = cast(AlpmPkg)lp.data;
 
-		for(i = alpm_pkg_get_groups(pkg); i; i = i.next) {
-			  char*grpname =  cast(char*)i.data;
+		foreach(grpname; alpm_pkg_get_groups(pkg)[]) {
 			alpm_list_t* j = void;
 			AlpmGroup grp = null;
 			int found = 0;
@@ -729,7 +727,7 @@ private int load_grpcache(AlpmDB db)
 			for(j = db.grpcache; j; j = j.next) {
 				grp = cast(AlpmGroup)j.data;
 
-				if(strcmp(cast(char*)grp.name, grpname) == 0
+				if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
 						&& !alpm_list_find_ptr(grp.packages, cast(void*)pkg)) {
 					grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
 					found = 1;

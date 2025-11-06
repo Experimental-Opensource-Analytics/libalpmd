@@ -41,6 +41,7 @@ import libalpmd.util;
 import libalpmd.db;
 import libalpmd.handle;
 import libalpmd.alpm;
+import libalpmd.group;
 import derelict.libarchive;
 import libalpmd.signing;
 import libalpmd.backup;
@@ -71,14 +72,15 @@ struct pkg_operations {
 	int function(AlpmPkg) get_validation;
 	int function(AlpmPkg) has_scriptlet;
 
-	alpm_list_t* function(AlpmPkg) get_groups;
+	AlpmStrings function(AlpmPkg) get_groups;
+	AlpmStrings function(AlpmPkg) get_licenses;
 	alpm_list_t* function(AlpmPkg) get_depends;
 	alpm_list_t* function(AlpmPkg) get_optdepends;
 	alpm_list_t* function(AlpmPkg) get_checkdepends;
 	alpm_list_t* function(AlpmPkg) get_makedepends;
 	alpm_list_t* function(AlpmPkg) get_conflicts;
 	alpm_list_t* function(AlpmPkg) get_provides;
-	alpm_list_t* function(AlpmPkg) get_replaces;
+	AlpmDeps function(AlpmPkg) get_replaces;
 	AlpmFileList function(AlpmPkg) get_files;
 	alpm_list_t* function(AlpmPkg) get_backup;
 
@@ -134,7 +136,7 @@ class AlpmPkg {
 
 	AlpmStrings licenses;
 	AlpmDeps replaces;
-	alpm_list_t* groups;
+	AlpmStrings groups;
 	alpm_list_t* backup;
 	alpm_list_t* depends;
 	alpm_list_t* optdepends;
@@ -177,6 +179,7 @@ class AlpmPkg {
 	auto getLicenses() => this.licenses;
 	auto getDesc() => this.desc;
 	auto getReplaces() => this.replaces;
+	auto getGroups() => this.groups;
 
 	auto getXData() => this.xdata;
 
@@ -265,8 +268,6 @@ alpm_pkgreason_t _pkg_get_reason(AlpmPkg pkg) { return pkg.reason; }
 int _pkg_get_validation(AlpmPkg pkg) { return pkg.validation; }
 int _pkg_has_scriptlet(AlpmPkg pkg)           { return pkg.scriptlet; }
 
-// AlpmStringList _pkg_get_licenses(AlpmPkg pkg)   { return pkg.licenses; }
-alpm_list_t* _pkg_get_groups(AlpmPkg pkg)     { return pkg.groups; }
 alpm_list_t* _pkg_get_depends(AlpmPkg pkg)    { return pkg.depends; }
 alpm_list_t* _pkg_get_optdepends(AlpmPkg pkg) { return pkg.optdepends; }
 alpm_list_t* _pkg_get_checkdepends(AlpmPkg pkg) { return pkg.checkdepends; }
@@ -451,7 +452,7 @@ int  alpm_pkg_get_validation(AlpmPkg pkg)
 // 	return pkg.ops.get_licenses(pkg);
 // }
 
-alpm_list_t * alpm_pkg_get_groups(AlpmPkg pkg)
+auto alpm_pkg_get_groups(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -500,7 +501,7 @@ alpm_list_t * alpm_pkg_get_provides(AlpmPkg pkg)
 	return pkg.ops.get_provides(pkg);
 }
 
-alpm_list_t * alpm_pkg_get_replaces(AlpmPkg pkg)
+auto alpm_pkg_get_replaces(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -727,7 +728,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	// newpkg.licenses   = alpm_list_strdup(pkg.licenses);
 	newpkg.licenses = alpmStringsDup(pkg.licenses);
 	newpkg.replaces   = alpmDepsDup(pkg.replaces);
-	newpkg.groups     = alpm_list_strdup(pkg.groups);
+	newpkg.groups     = alpmStringsDup(pkg.groups);
 	for(i = pkg.backup; i; i = i.next) {
 		newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
 	}
@@ -804,7 +805,7 @@ void _alpm_pkg_free(AlpmPkg pkg)
 
 	// FREELIST(pkg.licenses);
 	// free_deplist(pkg.replaces);
-	FREELIST(pkg.groups);
+	// FREELIST(pkg.groups);
 	if(pkg.files.count) {
 		size_t i = void;
 		for(i = 0; i < pkg.files.count; i++) {
@@ -901,16 +902,14 @@ AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 
 int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
 {
-	alpm_list_t* groups = null;
-
 	/* first see if the package is ignored */
 	if(alpm_list_find(handle.ignorepkg, cast(char*)pkg.name, &fnmatch_wrapper)) {
 		return 1;
 	}
 
 	/* next see if the package is in a group that is ignored */
-	for(groups = alpm_pkg_get_groups(pkg); groups; groups = groups.next) {
-		char* grp = cast(char*)groups.data;
+	foreach(groups; alpm_pkg_get_groups(pkg)[]) {
+		char* grp = cast(char*)groups;
 		if(alpm_list_find(handle.ignoregroup, grp, &fnmatch_wrapper)) {
 			return 1;
 		}

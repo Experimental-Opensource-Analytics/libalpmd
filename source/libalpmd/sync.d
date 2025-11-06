@@ -143,11 +143,9 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 	for(k = _alpm_db_get_pkgcache(sdb); k; k = k.next) {
 		int found = 0;
 		AlpmPkg spkg = cast(AlpmPkg)k.data;
-		alpm_list_t* l = void;
-		for(l = alpm_pkg_get_replaces(spkg); l; l = l.next) {
-			AlpmDepend replace = cast(AlpmDepend)l.data;
+		foreach(l; alpm_pkg_get_replaces(spkg)[]) {
 			/* we only want to consider literal matches at this point. */
-			if(_alpm_depcmp_literal(lpkg, replace)) {
+			if(_alpm_depcmp_literal(lpkg, l)) {
 				found = 1;
 				break;
 			}
@@ -1114,7 +1112,7 @@ private int check_pkg_field_matches_db(AlpmHandle handle,   char*field, alpm_lis
 	}
 }
 
-private int check_pkg_field_matches_db_n(AlpmHandle handle,   char*field, AlpmDeps left, AlpmDeps right, alpm_list_fn_cmp cmp)
+private int check_pkg_field_matches_db_n(List)(AlpmHandle handle,   char*field, List left, List right, alpm_list_fn_cmp cmp)
 {
 	switch(alpmListCmpUnsorted(left, right, cmp)) {
 		case 0:
@@ -1174,7 +1172,7 @@ enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do {
 	mixin(CHECK_FIELD!(`"conflicts"`, `conflicts`, `dep_not_equal`));
 	mixin(CHECK_FIELD_N!(`"replaces"`, `replaces`, `dep_not_equal`));
 	mixin(CHECK_FIELD!(`"provides"`, `provides`, `dep_not_equal`));
-	mixin(CHECK_FIELD!(`"groups"`, `groups`, `strcmp`));
+	mixin(CHECK_FIELD_N!(`"groups"`, `groups`, `strcmp`));
 
 	return error;
 }

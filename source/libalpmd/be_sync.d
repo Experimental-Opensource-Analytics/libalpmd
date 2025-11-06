@@ -654,7 +654,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%DESC%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.desc`));
 			} else if(strcmp(line, "%GROUPS%") == 0) {
-				mixin(READ_AND_STORE_ALL!(`pkg.groups`));
+				mixin(READ_AND_STORE_ALL_L!(`pkg.groups`));
 			} else if(strcmp(line, "%URL%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.url`));
 			} else if(strcmp(line, "%LICENSE%") == 0) {
