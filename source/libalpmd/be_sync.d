@@ -681,17 +681,17 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%REPLACES%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`pkg.replaces`));
 			} else if(strcmp(line, "%DEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.depends`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.depends`));
 			} else if(strcmp(line, "%OPTDEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.optdepends`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.optdepends`));
 			} else if(strcmp(line, "%MAKEDEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP!(`pkg.makedepends`));
 			} else if(strcmp(line, "%CHECKDEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP!(`pkg.checkdepends`));
 			} else if(strcmp(line, "%CONFLICTS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.conflicts`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.conflicts`));
 			} else if(strcmp(line, "%PROVIDES%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.provides`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.provides`));
 			} else if(strcmp(line, "%FILES%") == 0) {
 				/* TODO: this could lazy load if there is future demand */
 				size_t files_count = 0, files_size = 0;

@@ -130,9 +130,9 @@ void  alpm_depmissing_free(alpm_depmissing_t* miss)
 /** Check if pkg2 satisfies a dependency of pkg1 */
 private int _alpm_pkg_depends_on(AlpmPkg pkg1, AlpmPkg pkg2)
 {
-	alpm_list_t* i = void;
-	for(i = alpm_pkg_get_depends(pkg1); i; i = i.next) {
-		if(_alpm_depcmp(pkg2, cast(AlpmDepend )i.data)) {
+	// alpm_list_t* i = void;
+	foreach(dep; alpm_pkg_get_depends(pkg1)[]) {
+		if(_alpm_depcmp(pkg2, dep)) {
 			return 1;
 		}
 	}
@@ -376,8 +376,8 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: package %s-%s\n",
 				tp.name, tp.version_);
 
-		for(j = alpm_pkg_get_depends(tp); j; j = j.next) {
-			AlpmDepend depend = cast(AlpmDepend )j.data;
+		foreach(depend; alpm_pkg_get_depends(tp)[]) {
+			// AlpmDepend depend = cast(AlpmDepend )j.data;
 			alpm_depmod_t orig_mod = depend.mod;
 			if(nodepversion) {
 				depend.mod = ALPM_DEP_MOD_ANY;
@@ -406,8 +406,8 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 		 * the packages listed in the requiredby field. */
 		for(i = dblist; i; i = i.next) {
 			AlpmPkg lp = cast(AlpmPkg)i.data;
-			for(j = alpm_pkg_get_depends(lp); j; j = j.next) {
-				AlpmDepend depend = cast(AlpmDepend )j.data;
+			foreach(depend; alpm_pkg_get_depends(lp)[]) {
+				// AlpmDepend depend = cast(AlpmDepend )j.data;
 				alpm_depmod_t orig_mod = depend.mod;
 				if(nodepversion) {
 					depend.mod = ALPM_DEP_MOD_ANY;
@@ -475,19 +475,21 @@ int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
  * @param provisions provision list
  * @return 1 if provider is found, 0 otherwise
  */
-int _alpm_depcmp_provides(AlpmDepend dep, alpm_list_t* provisions)
+int _alpm_depcmp_provides(AlpmDepend dep, AlpmDeps provisions)
 {
 	int satisfy = 0;
-	alpm_list_t* i = void;
+	// alpm_list_t* i = void;
+	AlpmDepend provision;
+	auto provisionsRange = provisions[];
 
 	/* check provisions, name and version if available */
-	for(i = provisions; i && !satisfy; i = i.next) {
-		AlpmDepend provision = cast(AlpmDepend )i.data;
+	for(provision = provisionsRange.front; !provisionsRange.empty && !satisfy; provisionsRange.popFront) {
+		// AlpmDepend provision = cast(AlpmDepend )i.data;
 
 		if(dep.mod == ALPM_DEP_MOD_ANY) {
 			/* any version will satisfy the requirement */
 			satisfy = (provision.name_hash == dep.name_hash
-					&& strcmp(provision.name, dep.name) == 0);
+					&& strcmp(cast(char*)provision.name, dep.name) == 0);
 		} else if(provision.mod == ALPM_DEP_MOD_EQ) {
 			/* provision specifies a version, so try it out */
 			satisfy = (provision.name_hash == dep.name_hash
@@ -602,7 +604,7 @@ error:
 private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, AlpmPkg pkg, int explicit)
 {
 	alpm_list_t* i = void, next = void;
-	if(!alpm_pkg_get_depends(pkg)) {
+	if(alpm_pkg_get_depends(pkg).empty) {
 		return;
 	}
 	for(i = *from; i; i = next) {

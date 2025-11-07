@@ -178,12 +178,12 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 
 	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = alpm_list_next(i)) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		alpm_list_t* optdeps = alpm_pkg_get_optdepends(pkg);
+		auto optdeps = alpm_pkg_get_optdepends(pkg);
 
-		if(optdeps && !alpm_pkg_find(lp, cast(char*)pkg.name)) {
+		if(!optdeps.empty && !alpm_pkg_find(lp, cast(char*)pkg.name)) {
 			alpm_list_t* j = void;
-			for(j = optdeps; j; j = alpm_list_next(j)) {
-				AlpmDepend optdep = cast(AlpmDepend)j.data;
+			foreach(optdep; optdeps[]) {
+				// AlpmDepend optdep = cast(AlpmDepend)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
 				if(libalpmd.deps.alpm_find_satisfier(lp, optstring)) {
 					alpm_event_optdep_removal_t event = {

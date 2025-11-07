@@ -177,10 +177,10 @@ private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* 
 	}
 	for(i = list1; i; i = i.next) {
 		AlpmPkg pkg1 = cast(AlpmPkg)i.data;
-		alpm_list_t* j = void;
+		// alpm_list_t* j = void;
 
-		for(j = alpm_pkg_get_conflicts(pkg1); j; j = j.next) {
-			AlpmDepend conflict = cast(AlpmDepend )j.data;
+		foreach(conflict1; alpm_pkg_get_conflicts(pkg1)[]) {
+			// AlpmDepend conflict = cast(AlpmDepend )j.data;
 			alpm_list_t* k = void;
 
 			for(k = list2; k; k = k.next) {
@@ -192,11 +192,11 @@ private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* 
 					continue;
 				}
 
-				if(_alpm_depcmp(pkg2, conflict)) {
+				if(_alpm_depcmp(pkg2, conflict1)) {
 					if(order >= 0) {
-						add_conflict(handle, baddeps, pkg1, pkg2, conflict);
+						add_conflict(handle, baddeps, pkg1, pkg2, conflict1);
 					} else {
-						add_conflict(handle, baddeps, pkg2, pkg1, conflict);
+						add_conflict(handle, baddeps, pkg2, pkg1, conflict1);
 					}
 				}
 			}

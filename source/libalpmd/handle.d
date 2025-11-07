@@ -52,6 +52,8 @@ import std.exception;
 import std.stdio;
 import std.string;
 import libalpmd.deps;
+import libalpmd._package;
+
 
 
 
@@ -123,7 +125,7 @@ version (HAVE_LIBGPGME) {
 	alpm_list_t* noextract;   /* List of files NOT to extract */
 	alpm_list_t* ignorepkg;   /* List of packages to ignore */
 	alpm_list_t* ignoregroup; /* List of groups to ignore */
-	alpm_list_t* assumeinstalled;   /* List of virtual packages used to satisfy dependencies */
+	AlpmDeps assumeinstalled;   /* List of virtual packages used to satisfy dependencies */
 
 	/* options */
 	alpm_list_t* architectures; /* Architectures of packages we should allow */
@@ -280,8 +282,8 @@ version (HAVE_LIBCURL) {
 	FREELIST(handle.ignoregroup);
 	FREELIST(handle.overwrite_files);
 
-	alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)&alpm_dep_free);
-	alpm_list_free(handle.assumeinstalled);
+	// alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)&alpm_dep_free);
+	// alpm_list_free(handle.assumeinstalled);
 
 	FREE(handle);
 }
@@ -446,7 +448,7 @@ alpm_list_t * alpm_option_get_overwrite_files(AlpmHandle handle)
 	return handle.overwrite_files;
 }
 
-alpm_list_t * alpm_option_get_assumeinstalled(AlpmHandle handle)
+auto alpm_option_get_assumeinstalled(AlpmHandle handle)
 {
 	CHECK_HANDLE(handle);
 	return handle.assumeinstalled;
@@ -838,17 +840,17 @@ int  alpm_option_add_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 
 	/* fill in name_hash in case dep was built by hand */
 	depcpy.name_hash = _alpm_hash_sdbm(dep.name);
-	handle.assumeinstalled = alpm_list_add(handle.assumeinstalled, cast(void*)depcpy);
+	handle.assumeinstalled.insertFront(depcpy);
 	return 0;
 }
 
 int  alpm_option_set_assumeinstalled(AlpmHandle handle, alpm_list_t* deps)
 {
 	CHECK_HANDLE(handle);
-	if(handle.assumeinstalled) {
-		alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)&alpm_dep_free);
-		alpm_list_free(handle.assumeinstalled);
-		handle.assumeinstalled = null;
+	if(!handle.assumeinstalled.empty) {
+		// alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)&alpm_dep_free);
+		// alpm_list_free(handle.assumeinstalled);
+		// handle.assumeinstalled = null;
 	}
 	while(deps) {
 		if(alpm_option_add_assumeinstalled(handle, cast(AlpmDepend )deps.data) != 0) {
@@ -887,9 +889,13 @@ int  alpm_option_remove_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 	AlpmDepend vdata = null;
 	CHECK_HANDLE(handle);
 
-	handle.assumeinstalled = alpm_list_remove(handle.assumeinstalled, cast(void*)dep, &assumeinstalled_cmp, cast(void**)&vdata);
-	if(vdata !is null) {
-		alpm_dep_free(cast(void*)vdata);
+	// handle.assumeinstalled = alpm_list_remove(handle.assumeinstalled, cast(void*)dep, &assumeinstalled_cmp, cast(void**)&vdata);
+	// vdata = handle.assumeinstalled.linearRemoveElement(dep);
+	// if(vdata !is null) {
+		// alpm_dep_free(cast(void*)vdata);
+		// return 1;
+	// }
+	if(handle.assumeinstalled.linearRemoveElement(dep)) {
 		return 1;
 	}
 

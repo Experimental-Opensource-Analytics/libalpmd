@@ -1168,10 +1168,10 @@ enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do {
 		error = 1;
 	}
 
-	mixin(CHECK_FIELD!(`"depends"`, `depends`, `dep_not_equal`));
-	mixin(CHECK_FIELD!(`"conflicts"`, `conflicts`, `dep_not_equal`));
+	mixin(CHECK_FIELD_N!(`"depends"`, `depends`, `dep_not_equal`));
+	mixin(CHECK_FIELD_N!(`"conflicts"`, `conflicts`, `dep_not_equal`));
 	mixin(CHECK_FIELD_N!(`"replaces"`, `replaces`, `dep_not_equal`));
-	mixin(CHECK_FIELD!(`"provides"`, `provides`, `dep_not_equal`));
+	mixin(CHECK_FIELD_N!(`"provides"`, `provides`, `dep_not_equal`));
 	mixin(CHECK_FIELD_N!(`"groups"`, `groups`, `strcmp`));
 
 	return error;

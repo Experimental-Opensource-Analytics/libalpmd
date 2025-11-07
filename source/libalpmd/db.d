@@ -505,8 +505,8 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 			 * differently when we do match it since it isn't currently printed? */
 			if(!matched) {
 				/* check provides */
-				for(k = alpm_pkg_get_provides(pkg); k; k = k.next) {
-					AlpmDepend provide = cast(AlpmDepend )k.data;
+				foreach(provide; alpm_pkg_get_provides(pkg)[]) {
+					// AlpmDepend provide = cast(AlpmDepend )k.data;
 					if(strstr(provide.name, targ)) {
 						matched = provide.name;
 						break;

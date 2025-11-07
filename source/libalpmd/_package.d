@@ -74,12 +74,12 @@ struct pkg_operations {
 
 	AlpmStrings function(AlpmPkg) get_groups;
 	AlpmStrings function(AlpmPkg) get_licenses;
-	alpm_list_t* function(AlpmPkg) get_depends;
-	alpm_list_t* function(AlpmPkg) get_optdepends;
+	AlpmDeps function(AlpmPkg) get_depends;
+	AlpmDeps function(AlpmPkg) get_optdepends;
 	alpm_list_t* function(AlpmPkg) get_checkdepends;
 	alpm_list_t* function(AlpmPkg) get_makedepends;
-	alpm_list_t* function(AlpmPkg) get_conflicts;
-	alpm_list_t* function(AlpmPkg) get_provides;
+	AlpmDeps function(AlpmPkg) get_conflicts;
+	AlpmDeps function(AlpmPkg) get_provides;
 	AlpmDeps function(AlpmPkg) get_replaces;
 	AlpmFileList function(AlpmPkg) get_files;
 	alpm_list_t* function(AlpmPkg) get_backup;
@@ -138,12 +138,12 @@ class AlpmPkg {
 	AlpmDeps replaces;
 	AlpmStrings groups;
 	AlpmBackups backup;
-	alpm_list_t* depends;
-	alpm_list_t* optdepends;
+	AlpmDeps depends;
+	AlpmDeps optdepends;
 	alpm_list_t* checkdepends;
 	alpm_list_t* makedepends;
-	alpm_list_t* conflicts;
-	alpm_list_t* provides;
+	AlpmDeps conflicts;
+	AlpmDeps provides;
 	alpm_list_t* removes; /* in transaction targets only */
 	AlpmPkg oldpkg; /* in transaction targets only */
 
@@ -181,7 +181,10 @@ class AlpmPkg {
 	auto getReplaces() => this.replaces;
 	auto getGroups() => this.groups;
 	auto getBackups() => this.backup;
-
+	auto getDepends() => this.depends;
+	auto getOptDepends() => this.optdepends;
+	auto getConflicts() => this.conflicts;
+	auto getProvides() => this.provides;
 
 	auto getXData() => this.xdata;
 
@@ -242,7 +245,7 @@ class AlpmPkg {
 	}
 }
 
-// alias AlpmPkgList = AlpmList!AlpmPkg;
+alias AlpmPkgs = DList!AlpmPkg;
 
 int  alpm_pkg_free(AlpmPkg pkg)
 {
@@ -270,12 +273,12 @@ alpm_pkgreason_t _pkg_get_reason(AlpmPkg pkg) { return pkg.reason; }
 int _pkg_get_validation(AlpmPkg pkg) { return pkg.validation; }
 int _pkg_has_scriptlet(AlpmPkg pkg)           { return pkg.scriptlet; }
 
-alpm_list_t* _pkg_get_depends(AlpmPkg pkg)    { return pkg.depends; }
-alpm_list_t* _pkg_get_optdepends(AlpmPkg pkg) { return pkg.optdepends; }
+auto _pkg_get_depends(AlpmPkg pkg)    { return pkg.depends; }
+auto _pkg_get_optdepends(AlpmPkg pkg) { return pkg.optdepends; }
 alpm_list_t* _pkg_get_checkdepends(AlpmPkg pkg) { return pkg.checkdepends; }
 alpm_list_t* _pkg_get_makedepends(AlpmPkg pkg) { return pkg.makedepends; }
-alpm_list_t* _pkg_get_conflicts(AlpmPkg pkg)  { return pkg.conflicts; }
-alpm_list_t* _pkg_get_provides(AlpmPkg pkg)   { return pkg.provides; }
+auto _pkg_get_conflicts(AlpmPkg pkg)  { return pkg.conflicts; }
+auto _pkg_get_provides(AlpmPkg pkg)   { return pkg.provides; }
 // alpm_list_t* _pkg_get_replaces(AlpmPkg pkg)   { return pkg.replaces; }
 AlpmFileList _pkg_get_files(AlpmPkg pkg)  { return pkg.files; }
 auto _pkg_get_backup(AlpmPkg pkg)     { return pkg.backup; }
@@ -461,14 +464,14 @@ auto alpm_pkg_get_groups(AlpmPkg pkg)
 	return pkg.ops.get_groups(pkg);
 }
 
-alpm_list_t * alpm_pkg_get_depends(AlpmPkg pkg)
+AlpmDeps alpm_pkg_get_depends(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_depends(pkg);
 }
 
-alpm_list_t * alpm_pkg_get_optdepends(AlpmPkg pkg)
+AlpmDeps alpm_pkg_get_optdepends(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -489,14 +492,14 @@ alpm_list_t * alpm_pkg_get_makedepends(AlpmPkg pkg)
 	return pkg.ops.get_makedepends(pkg);
 }
 
-alpm_list_t * alpm_pkg_get_conflicts(AlpmPkg pkg)
+AlpmDeps alpm_pkg_get_conflicts(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
 	return pkg.ops.get_conflicts(pkg);
 }
 
-alpm_list_t * alpm_pkg_get_provides(AlpmPkg pkg)
+AlpmDeps alpm_pkg_get_provides(AlpmPkg pkg)
 {
 	//ASSERT(pkg != null);
 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
@@ -603,16 +606,16 @@ void find_requiredby(AlpmPkg pkg, AlpmDB db, alpm_list_t** reqs, int optional)
 
 	for(i = _alpm_db_get_pkgcache(db); i; i = i.next) {
 		AlpmPkg cachepkg = cast(AlpmPkg)i.data;
-		alpm_list_t* j = void;
+		AlpmDeps j;
 
 		if(optional == 0) {
-			j = alpm_pkg_get_depends(cachepkg);
+			j = cachepkg.getDepends();
 		} else {
-			j = alpm_pkg_get_optdepends(cachepkg);
+			j = cachepkg.getOptDepends();
 		}
 
-		for(; j; j = j.next) {
-			if(_alpm_depcmp(pkg, cast(AlpmDepend )j.data)) {
+		foreach(dep; j[]) {
+			if(_alpm_depcmp(pkg, dep)) {
 				string cachepkgname = cachepkg.name;
 				if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
 					*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup);
@@ -737,10 +740,10 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	foreach(_i; pkg.backup[]) {
 		newpkg.backup.insertFront(_i.dup);
 	}
-	newpkg.depends    = list_depdup(pkg.depends);
-	newpkg.optdepends = list_depdup(pkg.optdepends);
-	newpkg.conflicts  = list_depdup(pkg.conflicts);
-	newpkg.provides   = list_depdup(pkg.provides);
+	newpkg.depends    = alpmDepsDup(pkg.depends);
+	newpkg.optdepends = alpmDepsDup(pkg.optdepends);
+	newpkg.conflicts  = alpmDepsDup(pkg.conflicts);
+	newpkg.provides   = alpmDepsDup(pkg.provides);
 
 	newpkg.files = pkg.files.dup;
 	/* internal */
@@ -822,12 +825,12 @@ void _alpm_pkg_free(AlpmPkg pkg)
 	// alpm_list_free(pkg.backup);
 	// alpm_list_free_inner(pkg.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
 	// alpm_list_free(pkg.xdata);
-	free_deplist(pkg.depends);
-	free_deplist(pkg.optdepends);
+	// free_deplist(pkg.depends);
+	// free_deplist(pkg.optdepends);
 	free_deplist(pkg.checkdepends);
 	free_deplist(pkg.makedepends);
-	free_deplist(pkg.conflicts);
-	free_deplist(pkg.provides);
+	// free_deplist(pkg.conflicts);
+	// free_deplist(pkg.provides);
 	alpm_list_free(pkg.removes);
 	_alpm_pkg_free(pkg.oldpkg);
 

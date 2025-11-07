@@ -158,13 +158,13 @@ private int _cache_has_scriptlet(AlpmPkg pkg)
 	return pkg.scriptlet;
 }
 
-private alpm_list_t* _cache_get_depends(AlpmPkg pkg)
+private auto _cache_get_depends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.depends;
 }
 
-private alpm_list_t* _cache_get_optdepends(AlpmPkg pkg)
+private auto _cache_get_optdepends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.optdepends;
@@ -182,13 +182,13 @@ private alpm_list_t* _cache_get_checkdepends(AlpmPkg pkg)
 	return pkg.checkdepends;
 }
 
-private alpm_list_t* _cache_get_conflicts(AlpmPkg pkg)
+private auto _cache_get_conflicts(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.conflicts;
 }
 
-private alpm_list_t* _cache_get_provides(AlpmPkg pkg)
+private auto _cache_get_provides(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.provides;
@@ -841,17 +841,17 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			} else if(strcmp(line.ptr, "%REPLACES%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`info.replaces`));
 			} else if(strcmp(line.ptr, "%DEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`info.depends`));
+				mixin(READ_AND_SPLITDEP_N!(`info.depends`));
 			} else if(strcmp(line.ptr, "%OPTDEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`info.optdepends`));
+				mixin(READ_AND_SPLITDEP_N!(`info.optdepends`));
 			} else if(strcmp(line.ptr, "%MAKEDEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP!(`info.makedepends`));
 			} else if(strcmp(line.ptr, "%CHECKDEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP!(`info.checkdepends`));
 			} else if(strcmp(line.ptr, "%CONFLICTS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`info.conflicts`));
+				mixin(READ_AND_SPLITDEP_N!(`info.conflicts`));
 			} else if(strcmp(line.ptr, "%PROVIDES%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`info.provides`));
+				mixin(READ_AND_SPLITDEP_N!(`info.provides`));
 			} else if(strcmp(line.ptr, "%XDATA%") == 0) {
 				alpm_list_t* i = void, lines = null;
 				mixin(READ_AND_STORE_ALL!(`lines`));
@@ -1117,10 +1117,10 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 
 		write_deps_n(fp, cast(char*)"%REPLACES%", info.replaces);
-		write_deps(fp, cast(char*)"%DEPENDS%", info.depends);
-		write_deps(fp, cast(char*)"%OPTDEPENDS%", info.optdepends);
-		write_deps(fp, cast(char*)"%CONFLICTS%", info.conflicts);
-		write_deps(fp, cast(char*)"%PROVIDES%", info.provides);
+		write_deps_n(fp, cast(char*)"%DEPENDS%", info.depends);
+		write_deps_n(fp, cast(char*)"%OPTDEPENDS%", info.optdepends);
+		write_deps_n(fp, cast(char*)"%CONFLICTS%", info.conflicts);
+		write_deps_n(fp, cast(char*)"%PROVIDES%", info.provides);
 
 		if(info.xdata) {
 			fputs("%XDATA%\n", fp);

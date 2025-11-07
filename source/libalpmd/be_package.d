@@ -191,10 +191,10 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.isize = _alpm_strtoofft(ptr);
 			} else if(strcmp(key, "depend") == 0) {
 				AlpmDepend dep = alpm_dep_from_string(ptr);
-				newpkg.depends = alpm_list_add(newpkg.depends, cast(void*)dep);
+				newpkg.depends.insertFront(dep);
 			} else if(strcmp(key, "optdepend") == 0) {
 				AlpmDepend optdep = alpm_dep_from_string(ptr);
-				newpkg.optdepends = alpm_list_add(newpkg.optdepends, cast(void*)optdep);
+				newpkg.optdepends.insertFront(optdep);
 			} else if(strcmp(key, "makedepend") == 0) {
 				AlpmDepend makedep = alpm_dep_from_string(ptr);
 				newpkg.makedepends = alpm_list_add(newpkg.makedepends, cast(void*)makedep);
@@ -203,13 +203,13 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.checkdepends = alpm_list_add(newpkg.checkdepends, cast(void*)checkdep);
 			} else if(strcmp(key, "conflict") == 0) {
 				AlpmDepend conflict = alpm_dep_from_string(ptr);
-				newpkg.conflicts = alpm_list_add(newpkg.conflicts, cast(void*)conflict);
+				newpkg.conflicts.insertFront(conflict);
 			} else if(strcmp(key, "replaces") == 0) {
 				AlpmDepend replace = alpm_dep_from_string(ptr);
 				newpkg.replaces.insertFront(replace);
 			} else if(strcmp(key, "provides") == 0) {
 				AlpmDepend provide = alpm_dep_from_string(ptr);
-				newpkg.provides = alpm_list_add(newpkg.provides, cast(void*)provide);
+				newpkg.provides.insertFront(provide);
 			} else if(strcmp(key, "backup") == 0) {
 				AlpmBackup backup = void;
 				CALLOC(backup, 1, AlpmBackup.sizeof);
