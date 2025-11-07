@@ -705,7 +705,7 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 				pkgname, pkgver);
 
 		/* run the pre-remove scriptlet if it exists */
-		if(alpm_pkg_has_scriptlet(oldpkg) &&
+		if(oldpkg.hasScriptlet() &&
 				!(handle.trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 			char* scriptlet = _alpm_local_db_pkgpath(handle.db_local,
 					oldpkg, cast(char*)"install");
@@ -725,7 +725,7 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 	}
 
 	/* run the post-remove script if it exists */
-	if(!newpkg && alpm_pkg_has_scriptlet(oldpkg) &&
+	if(!newpkg && oldpkg.hasScriptlet() &&
 			!(handle.trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		char* scriptlet = _alpm_local_db_pkgpath(handle.db_local,
 				oldpkg, cast(char*)"install");

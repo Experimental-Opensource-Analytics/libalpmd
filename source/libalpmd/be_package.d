@@ -56,12 +56,6 @@ import derelict.libarchive;
 import libalpmd.db;
 import libalpmd.backup;
 
-
-class AlpmPkgChangelog {
-	archive* _archive;
-	int fd;
-}
-
 /**
  * Read data from an open changelog 'file stream'. Similar to fread in
  * functionality, this function takes a buffer and amount of data to read.
@@ -100,23 +94,23 @@ private int _package_changelog_close( AlpmPkg pkg, void* fp)
 	return ret;
 }
 
-/** Package file operations struct accessor. We implement this as a method
- * because we want to reuse the majority of the default_pkg_ops struct and
- * add only a few operations of our own on top.
- */
-private const (pkg_operations)* get_file_pkg_ops()
-{
-	static pkg_operations file_pkg_ops;
-	static int file_pkg_ops_initialized = 0;
-	if(!file_pkg_ops_initialized) {
-		file_pkg_ops = default_pkg_ops;
-		// file_pkg_ops.changelog_open  = &_package_changelog_open;
-		file_pkg_ops.changelog_read  = &_package_changelog_read;
-		file_pkg_ops.changelog_close = &_package_changelog_close;
-		file_pkg_ops_initialized = 1;
-	}
-	return &file_pkg_ops;
-}
+// /** Package file operations struct accessor. We implement this as a method
+//  * because we want to reuse the majority of the default_pkg_ops struct and
+//  * add only a few operations of our own on top.
+//  */
+// private const (pkg_operations)* get_file_pkg_ops()
+// {
+// 	static pkg_operations file_pkg_ops;
+// 	static int file_pkg_ops_initialized = 0;
+// 	if(!file_pkg_ops_initialized) {
+// 		file_pkg_ops = default_pkg_ops;
+// 		// file_pkg_ops.changelog_open  = &_package_changelog_open;
+// 		file_pkg_ops.changelog_read  = &_package_changelog_read;
+// 		file_pkg_ops.changelog_close = &_package_changelog_close;
+// 		file_pkg_ops_initialized = 1;
+// 	}
+// 	return &file_pkg_ops;
+// }
 
 /**
  * Parses the package description file for a package into a alpm_pkg_t struct.
@@ -624,7 +618,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	/* internal fields for package struct */
 	newpkg.origin = ALPM_PKG_FROM_FILE;
 	newpkg.origin_data.file = pkgfile.to!string;
-	newpkg.ops = get_file_pkg_ops();
+	// newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
 	newpkg.infolevel = INFRQ_BASE | INFRQ_DESC | INFRQ_SCRIPTLET;
 	newpkg.validation = ALPM_PKG_VALIDATION_NONE;

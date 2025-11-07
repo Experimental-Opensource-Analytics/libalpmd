@@ -311,21 +311,21 @@ int _sync_get_validation(AlpmPkg pkg)
 	return pkg.validation;
 }
 
-/** Package sync operations struct accessor. We implement this as a method
- * because we want to reuse the majority of the default_pkg_ops struct and
- * add only a few operations of our own on top.
- */
- const (pkg_operations)* get_sync_pkg_ops()
-{
-	static pkg_operations sync_pkg_ops;
-	static int sync_pkg_ops_initialized = 0;
-	if(!sync_pkg_ops_initialized) {
-		sync_pkg_ops = default_pkg_ops;
-		sync_pkg_ops.get_validation = &_sync_get_validation;
-		sync_pkg_ops_initialized = 1;
-	}
-	return &sync_pkg_ops;
-}
+// /** Package sync operations struct accessor. We implement this as a method
+//  * because we want to reuse the majority of the default_pkg_ops struct and
+//  * add only a few operations of our own on top.
+//  */
+//  const (pkg_operations)* get_sync_pkg_ops()
+// {
+// 	static pkg_operations sync_pkg_ops;
+// 	static int sync_pkg_ops_initialized = 0;
+// 	if(!sync_pkg_ops_initialized) {
+// 		sync_pkg_ops = default_pkg_ops;
+// 		sync_pkg_ops.get_validation = &_sync_get_validation;
+// 		sync_pkg_ops_initialized = 1;
+// 	}
+// 	return &sync_pkg_ops;
+// }
 
 AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, AlpmPkg likely_pkg)
 {
@@ -367,7 +367,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 
 		pkg.origin = ALPM_PKG_FROM_SYNCDB;
 		pkg.origin_data.db = db;
-		pkg.ops = get_sync_pkg_ops();
+		// pkg.ops = get_sync_pkg_ops();
 		pkg.handle = db.handle;
 
 		if(_alpm_pkg_check_meta(pkg) != 0) {

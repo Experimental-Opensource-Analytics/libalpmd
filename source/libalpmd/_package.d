@@ -32,60 +32,17 @@ import libalpmd.be_package;
 import libalpmd.libarchive_compat;
 import libalpmd._version;
 
-
-
-
-struct pkg_operations {
-	  char*function(AlpmPkg) get_base;
-	  char*function(AlpmPkg) get_desc;
-	string function(AlpmPkg) get_url;
-	AlpmTime function(AlpmPkg) get_builddate;
-	AlpmTime function(AlpmPkg) get_installdate;
-	string function(AlpmPkg) get_packager;
-	  char*function(AlpmPkg) get_arch;
-	off_t function(AlpmPkg) get_isize;
-	AlpmPkgReason function(AlpmPkg) get_reason;
-	int function(AlpmPkg) get_validation;
-	int function(AlpmPkg) has_scriptlet;
-
-	AlpmStrings function(AlpmPkg) get_groups;
-	AlpmStrings function(AlpmPkg) get_licenses;
-	AlpmDeps function(AlpmPkg) get_depends;
-	AlpmDeps function(AlpmPkg) get_optdepends;
-	AlpmDeps function(AlpmPkg) get_checkdepends;
-	AlpmDeps function(AlpmPkg) get_makedepends;
-	AlpmDeps function(AlpmPkg) get_conflicts;
-	AlpmDeps function(AlpmPkg) get_provides;
-	AlpmDeps function(AlpmPkg) get_replaces;
-	AlpmFileList function(AlpmPkg) get_files;
-	AlpmBackups function(AlpmPkg) get_backup;
-
-	AlpmXDataList function(AlpmPkg) get_xdata;
-
-	void* function(AlpmPkg) changelog_open;
-	size_t function(void*, size_t, AlpmPkg, void*) changelog_read;
-	int function(AlpmPkg, void*) changelog_close;
-
-	archive* function(AlpmPkg) mtree_open;
-	int function(AlpmPkg, archive*, archive_entry**) mtree_next;
-	int function(AlpmPkg, archive*) mtree_close;
-
-	int function(AlpmPkg) force_load;
-}
-
-/** The standard package operations struct. get fields directly from the
- * struct itself with no abstraction layer or any type of lazy loading.
- * The actual definition is in package.c so it can have access to the
- * default accessor functions which are defined there.
- */
-const(pkg_operations) default_pkg_ops;
-
 struct AlpmPkgXData {
 	string name;
 	string value;
 }
 
 alias AlpmXDataList = AlpmList!AlpmPkgXData;
+
+class AlpmPkgChangelog {
+	archive* _archive;
+	int fd;
+}
 
 class AlpmPkg {
 	c_ulong name_hash;
@@ -122,8 +79,6 @@ class AlpmPkg {
 	AlpmDeps provides;
 	AlpmPkgs removes; /* in transaction targets only */
 	AlpmPkg oldpkg; /* in transaction targets only */
-
-	const (pkg_operations)* ops;
 
 	AlpmFileList files;
 
@@ -184,42 +139,21 @@ class AlpmPkg {
 	auto getReason() => this.reason;
 	auto getValidation() => this.validation;
 	auto getFiles() => this.files;
-
-
+	auto hasScriptlet() => this.scriptlet;
 
 	auto getXData() => this.xdata;
 
+	alias UNUSED = void;
 
-	AlpmPkgChangelog openChangelog() {
-		AlpmPkgChangelog changelog;
-		archive* _archive;
-		archive_entry* entry;
-		stat_t buf = void;
-		int fd = void;
+	AlpmPkgChangelog changelogOpen() => null;
+	size_t changelogRead(void* ptr, size_t UNUSED, AlpmPkg pkg, UNUSED* fp) => 0;
+	int changelogClose(void* fp) => 0;
 
-		fd = _alpm_open_archive(this.handle, cast(char*)origin_data.file, &buf,
-				&_archive, ALPM_ERR_PKG_OPEN);
-		if(fd < 0) {
-			return null;
-		}
+	archive* mtreeOpen() => null;
+	int mtreeNext(archive* archive, archive_entry** entry) => -1;
+	int mtreeClose(archive* archive) => -1;
 
-		while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
-			string entry_name = archive_entry_pathname(entry).to!string;
-
-			if(entry_name == ".CHANGELOG") {
-				changelog = new AlpmPkgChangelog;
-				changelog._archive = _archive;
-				changelog.fd = fd;
-				return changelog;
-			}
-		}
-		/* we didn't find a changelog */
-		_alpm_archive_read_free(_archive);
-		close(fd);
-		errno = ENOENT;
-
-		return null;
-	}
+	int forceLoad() => 0;
 
 	int  checkMD5Sum() {
 		char* fpath = void;
@@ -258,67 +192,6 @@ int  alpm_pkg_free(AlpmPkg pkg)
 	return 0;
 }
 
-/* Default package accessor functions. These will get overridden by any
- * backend logic that needs lazy access, such as the local database through
- * a lazy-load cache. However, the defaults will work just fine for fully-
- * populated package structures. */
-string _pkg_get_base(AlpmPkg pkg)        { return pkg.base; }
-string _pkg_get_desc(AlpmPkg pkg)        { return pkg.desc; }
-string _pkg_get_url(AlpmPkg pkg)         { return pkg.url; }
-AlpmTime _pkg_get_builddate(AlpmPkg pkg)   { return pkg.builddate; }
-AlpmTime _pkg_get_installdate(AlpmPkg pkg) { return pkg.installdate; }
-string _pkg_get_packager(AlpmPkg pkg)    { return pkg.packager; }
-string _pkg_get_arch(AlpmPkg pkg)        { return pkg.arch; }
-off_t _pkg_get_isize(AlpmPkg pkg)             { return pkg.isize; }
-AlpmPkgReason _pkg_get_reason(AlpmPkg pkg) { return pkg.reason; }
-int _pkg_get_validation(AlpmPkg pkg) { return pkg.validation; }
-int _pkg_has_scriptlet(AlpmPkg pkg)           { return pkg.scriptlet; }
-
-auto _pkg_get_depends(AlpmPkg pkg)    { return pkg.depends; }
-auto _pkg_get_optdepends(AlpmPkg pkg) { return pkg.optdepends; }
-auto _pkg_get_checkdepends(AlpmPkg pkg) { return pkg.checkdepends; }
-auto _pkg_get_makedepends(AlpmPkg pkg) { return pkg.makedepends; }
-auto _pkg_get_conflicts(AlpmPkg pkg)  { return pkg.conflicts; }
-auto _pkg_get_provides(AlpmPkg pkg)   { return pkg.provides; }
-// auto _pkg_get_replaces(AlpmPkg pkg)   { return pkg.replaces; }
-AlpmFileList _pkg_get_files(AlpmPkg pkg)  { return pkg.files; }
-auto _pkg_get_backup(AlpmPkg pkg)     { return pkg.backup; }
-auto _pkg_get_xdata(AlpmPkg pkg)      { return pkg.xdata; }
-
-void* _pkg_changelog_open(AlpmPkg pkg)
-{
-	return null;
-}
-
-alias UNUSED = void;
-
-size_t _pkg_changelog_read(void* ptr, size_t UNUSED, AlpmPkg pkg, UNUSED* fp)
-{
-	return 0;
-}
-
-int _pkg_changelog_close(AlpmPkg pkg, void* fp)
-{
-	return 0;
-}
-
-archive* _pkg_mtree_open(AlpmPkg pkg)
-{
-	return null;
-}
-
-int _pkg_mtree_next(AlpmPkg pkg, archive* archive, archive_entry** entry)
-{
-	return -1;
-}
-
-int _pkg_mtree_close(AlpmPkg pkg, archive* archive)
-{
-	return -1;
-}
-
-int _pkg_force_load(AlpmPkg pkg) { return 0; }
-
 int  alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len)
 {
 	//ASSERT(pkg != null);
@@ -356,55 +229,6 @@ cleanup:
 		return ret;
 	} 
 }
-
-size_t  alpm_pkg_changelog_read(void* ptr, size_t size, AlpmPkg pkg, void* fp)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.changelog_read(ptr, size, pkg, fp);
-}
-
-int  alpm_pkg_changelog_close(AlpmPkg pkg, void* fp)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.changelog_close(pkg, fp);
-}
-
-archive * alpm_pkg_mtree_open(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.mtree_open(pkg);
-}
-
-int  alpm_pkg_mtree_next(AlpmPkg pkg, archive* archive, archive_entry** entry)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.mtree_next(pkg, archive, entry);
-}
-
-int  alpm_pkg_mtree_close(AlpmPkg pkg, archive* archive)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.mtree_close(pkg, archive);
-}
-
-int  alpm_pkg_has_scriptlet(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.has_scriptlet(pkg);
-}
-
-// alpm_list_t * alpm_pkg_get_xdata(AlpmPkg pkg)
-// {
-// 	//ASSERT(pkg != null);
-// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-// 	return pkg.ops.get_xdata(pkg);
-// }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
 private int fnmatch_wrapper( void* pattern,  void* _string)
@@ -514,13 +338,13 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 		RET_ERR(pkg.handle, ALPM_ERR_WRONG_ARGS, -1);
 	}
 
-	if(pkg.ops.force_load(pkg)) {
-		_alpm_log(pkg.handle, ALPM_LOG_WARNING,
-				("could not fully load metadata for package %s-%s\n"),
-				pkg.name, pkg.version_);
-		ret = 1;
-		(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_PKG_INVALID;
-	}
+	// if(pkg.ops.force_load(pkg)) {
+	// 	_alpm_log(pkg.handle, ALPM_LOG_WARNING,
+	// 			("could not fully load metadata for package %s-%s\n"),
+	// 			pkg.name, pkg.version_);
+	// 	ret = 1;
+	// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_PKG_INVALID;
+	// }
 
 	CALLOC(newpkg, 1, AlpmPkg.sizeof);
 
@@ -567,7 +391,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	} else {
 		newpkg.origin_data.db = pkg.origin_data.db;
 	}
-	newpkg.ops = pkg.ops;
+	// newpkg.ops = pkg.ops;
 	newpkg.handle = pkg.handle;
 
 	*new_ptr = newpkg;

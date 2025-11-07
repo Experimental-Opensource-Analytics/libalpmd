@@ -335,45 +335,45 @@ private int _cache_force_load(AlpmPkg pkg)
 }
 
 
-/** The local database operations struct. Get package fields through
- * lazy accessor methods that handle any backend loading and caching
- * logic.
- */
-private const (pkg_operations) local_pkg_ops = {
-	get_base: &_cache_get_base,
-	get_desc: &_cache_get_desc,
-	get_url: &_cache_get_url,
-	get_builddate: &_cache_get_builddate,
-	get_installdate: &_cache_get_installdate,
-	get_packager: &_cache_get_packager,
-	get_arch: &_cache_get_arch,
-	get_isize: &_cache_get_isize,
-	get_reason: &_cache_get_reason,
-	get_validation: &_cache_get_validation,
-	has_scriptlet: &_cache_has_scriptlet,
-	get_licenses: &_cache_get_licenses,
-	get_groups: &_cache_get_groups,
-	get_depends: &_cache_get_depends,
-	get_optdepends: &_cache_get_optdepends,
-	get_makedepends: &_cache_get_makedepends,
-	get_checkdepends: &_cache_get_checkdepends,
-	get_conflicts: &_cache_get_conflicts,
-	get_provides: &_cache_get_provides,
-	// get_replaces: &_cache_get_replaces,
-	get_files: &_cache_get_files,
-	// get_backup: &_cache_get_backup,
-	get_xdata: &_cache_get_xdata,
+// /** The local database operations struct. Get package fields through
+//  * lazy accessor methods that handle any backend loading and caching
+//  * logic.
+//  */
+// private const (pkg_operations) local_pkg_ops = {
+// 	get_base: &_cache_get_base,
+// 	get_desc: &_cache_get_desc,
+// 	get_url: &_cache_get_url,
+// 	get_builddate: &_cache_get_builddate,
+// 	get_installdate: &_cache_get_installdate,
+// 	get_packager: &_cache_get_packager,
+// 	get_arch: &_cache_get_arch,
+// 	get_isize: &_cache_get_isize,
+// 	get_reason: &_cache_get_reason,
+// 	get_validation: &_cache_get_validation,
+// 	has_scriptlet: &_cache_has_scriptlet,
+// 	get_licenses: &_cache_get_licenses,
+// 	get_groups: &_cache_get_groups,
+// 	get_depends: &_cache_get_depends,
+// 	get_optdepends: &_cache_get_optdepends,
+// 	get_makedepends: &_cache_get_makedepends,
+// 	get_checkdepends: &_cache_get_checkdepends,
+// 	get_conflicts: &_cache_get_conflicts,
+// 	get_provides: &_cache_get_provides,
+// 	// get_replaces: &_cache_get_replaces,
+// 	get_files: &_cache_get_files,
+// 	// get_backup: &_cache_get_backup,
+// 	get_xdata: &_cache_get_xdata,
 
-	changelog_open: &_cache_changelog_open,
-	changelog_read: &_cache_changelog_read,
-	changelog_close: &_cache_changelog_close,
+// 	changelog_open: &_cache_changelog_open,
+// 	changelog_read: &_cache_changelog_read,
+// 	changelog_close: &_cache_changelog_close,
 
-	mtree_open: &_cache_mtree_open,
-	mtree_next: &_cache_mtree_next,
-	mtree_close: &_cache_mtree_close,
+// 	mtree_open: &_cache_mtree_open,
+// 	mtree_next: &_cache_mtree_next,
+// 	mtree_close: &_cache_mtree_close,
 
-	force_load: &_cache_force_load,
-};
+// 	force_load: &_cache_force_load,
+// };
 
 private int checkdbdir(AlpmDB db)
 {
@@ -628,7 +628,7 @@ private int local_db_populate(AlpmDB db)
 
 		pkg.origin = ALPM_PKG_FROM_LOCALDB;
 		pkg.origin_data.db = db;
-		pkg.ops = &local_pkg_ops;
+		// pkg.ops = &local_pkg_ops;
 		pkg.handle = db.handle;
 
 		/* explicitly read with only 'BASE' data, accessors will handle the rest */
@@ -1276,4 +1276,35 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 
 	handle.db_local = db;
 	return db;
+}
+
+AlpmPkgChangelog openChangelog(AlpmPkg pkg) {
+	AlpmPkgChangelog changelog;
+	archive* _archive;
+	archive_entry* entry;
+	stat_t buf = void;
+	int fd = void;
+
+	fd = _alpm_open_archive(pkg.handle, cast(char*)pkg.origin_data.file, &buf,
+			&_archive, ALPM_ERR_PKG_OPEN);
+	if(fd < 0) {
+		return null;
+	}
+
+	while(archive_read_next_header(_archive, &entry) == ARCHIVE_OK) {
+		string entry_name = archive_entry_pathname(entry).to!string;
+
+		if(entry_name == ".CHANGELOG") {
+			changelog = new AlpmPkgChangelog;
+			changelog._archive = _archive;
+			changelog.fd = fd;
+			return changelog;
+		}
+	}
+	/* we didn't find a changelog */
+	_alpm_archive_read_free(_archive);
+	close(fd);
+	errno = ENOENT;
+
+	return null;
 }

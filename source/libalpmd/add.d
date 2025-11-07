@@ -443,7 +443,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	_alpm_log(handle, ALPM_LOG_DEBUG, "%s package %s-%s\n",
 			log_msg, newpkg.name, newpkg.version_);
 		/* pre_install/pre_upgrade scriptlet */
-	if(alpm_pkg_has_scriptlet(newpkg) &&
+	if(newpkg.hasScriptlet() &&
 			!(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "pre_upgrade" : "pre_install");
 
@@ -614,7 +614,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	}
 
 	/* run the post-install script if it exists */
-	if(alpm_pkg_has_scriptlet(newpkg)
+	if(newpkg.hasScriptlet()
 			&& !(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		char* scriptlet = _alpm_local_db_pkgpath(db, newpkg, cast(char*)"install");
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "post_upgrade" : "post_install");

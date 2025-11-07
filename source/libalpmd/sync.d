@@ -791,9 +791,7 @@ private int download_files(AlpmHandle handle)
 	if(temporary_cachedir == null) {
 		ret = -1;
 		goto finish;
-	}alpm_pkg_get_db
-alpm_pkg_get_db
-alpm_pkg_get_db
+	}
 	handle.trans.state = STATE_DOWNLOADING;
 
 	ret = find_dl_candidates(handle, &files);
