@@ -86,10 +86,10 @@ int sync_db_validate(AlpmDB db)
 	int siglevel = void;
 	  char*dbpath = void;
 
-	if(db.status & DB_STATUS_VALID || db.status & DB_STATUS_MISSING) {
+	if(db.status & AlpmDBStatus.Valid || db.status & AlpmDBStatus.Missing) {
 		return 0;
 	}
-	if(db.status & DB_STATUS_INVALID) {
+	if(db.status & AlpmDBStatus.Invalid) {
 		db.handle.pm_errno = ALPM_ERR_DB_INVALID_SIG;
 		return -1;
 	}
@@ -106,13 +106,13 @@ int sync_db_validate(AlpmDB db)
 			type: ALPM_EVENT_DATABASE_MISSING,
 			dbname: cast(char*)db.treename
 		};
-		db.status &= ~DB_STATUS_EXISTS;
-		db.status |= DB_STATUS_MISSING;
+		db.status &= ~AlpmDBStatus.Exists;
+		db.status |= AlpmDBStatus.Missing;
 		EVENT(db.handle, &event);
 		goto valid;
 	}
-	db.status |= DB_STATUS_EXISTS;
-	db.status &= ~DB_STATUS_MISSING;
+	db.status |= AlpmDBStatus.Exists;
+	db.status &= ~AlpmDBStatus.Missing;
 
 	/* this takes into account the default verification level if UNKNOWN
 	 * was assigned to this db */
@@ -137,16 +137,16 @@ int sync_db_validate(AlpmDB db)
 		} while(retry);
 
 		if(ret) {
-			db.status &= ~DB_STATUS_VALID;
-			db.status |= DB_STATUS_INVALID;
+			db.status &= ~AlpmDBStatus.Valid;
+			db.status |= AlpmDBStatus.Invalid;
 			db.handle.pm_errno = ALPM_ERR_DB_INVALID_SIG;
 			return 1;
 		}
 	}
 
 valid:
-	db.status |= DB_STATUS_VALID;
-	db.status &= ~DB_STATUS_INVALID;
+	db.status |= AlpmDBStatus.Valid;
+	db.status &= ~AlpmDBStatus.Invalid;
 	return 0;
 }
 
@@ -193,7 +193,7 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 		//ASSERT(db.servers != null);
 
 		/* force update of invalid databases to fix potential mismatched database/signature */
-		if(db.status & DB_STATUS_INVALID) {
+		if(db.status & AlpmDBStatus.Invalid) {
 			dbforce = 1;
 		}
 
@@ -250,10 +250,10 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 		_alpm_db_free_pkgcache(db);
 
 		/* clear all status flags regarding validity/existence */
-		db.status &= ~DB_STATUS_VALID;
-		db.status &= ~DB_STATUS_INVALID;
-		db.status &= ~DB_STATUS_EXISTS;
-		db.status &= ~DB_STATUS_MISSING;
+		db.status &= ~AlpmDBStatus.Valid;
+		db.status &= ~AlpmDBStatus.Invalid;
+		db.status &= ~AlpmDBStatus.Exists;
+		db.status &= ~AlpmDBStatus.Missing;
 
 		/* if the download failed skip validation to preserve the download error */
 		if(sync_db_validate(db) != 0) {
@@ -438,10 +438,10 @@ int sync_db_populate(AlpmDB db)
 	archive_entry* entry = void;
 	AlpmPkg pkg = null;
 
-	if(db.status & DB_STATUS_INVALID) {
+	if(db.status & AlpmDBStatus.Invalid) {
 		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, -1);
 	}
-	if(db.status & DB_STATUS_MISSING) {
+	if(db.status & AlpmDBStatus.Missing) {
 		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
 	}
 	dbpath = cast(char*)_alpm_db_path(db);
@@ -453,8 +453,8 @@ int sync_db_populate(AlpmDB db)
 	fd = _alpm_open_archive(db.handle, dbpath, &buf,
 			&archive, ALPM_ERR_DB_OPEN);
 	if(fd < 0) {
-		db.status &= ~DB_STATUS_VALID;
-		db.status |= DB_STATUS_INVALID;
+		db.status &= ~AlpmDBStatus.Valid;
+		db.status |= AlpmDBStatus.Invalid;
 		return -1;
 	}
 	est_count = estimate_package_count(&buf, archive);
@@ -485,8 +485,8 @@ int sync_db_populate(AlpmDB db)
 	}
 	/* the db file was successfully read, but contained errors */
 	if(ret == -1) {
-		db.status &= ~DB_STATUS_VALID;
-		db.status |= DB_STATUS_INVALID;
+		db.status &= ~AlpmDBStatus.Valid;
+		db.status |= AlpmDBStatus.Invalid;
 		_alpm_db_free_pkgcache(db);
 		GOTO_ERR(db.handle, ALPM_ERR_DB_INVALID, "cleanup");
 	}

@@ -56,25 +56,16 @@ enum AlpmDBInfRq {
 }
 
 /** Database status. Bitflags. */
-enum _alpm_dbstatus_t {
-	DB_STATUS_VALID = (1 << 0),
-	DB_STATUS_INVALID = (1 << 1),
-	DB_STATUS_EXISTS = (1 << 2),
-	DB_STATUS_MISSING = (1 << 3),
+enum AlpmDBStatus {
+	Valid = (1 << 0),
+	Invalid = (1 << 1),
+	Exists = (1 << 2),
+	Missing = (1 << 3),
 
-	DB_STATUS_LOCAL = (1 << 10),
-	DB_STATUS_PKGCACHE = (1 << 11),
-	DB_STATUS_GRPCACHE = (1 << 12)
+	Local = (1 << 10),
+	PkgCache = (1 << 11),
+	GrpCache = (1 << 12)
 }
-alias DB_STATUS_VALID = _alpm_dbstatus_t.DB_STATUS_VALID;
-alias DB_STATUS_INVALID = _alpm_dbstatus_t.DB_STATUS_INVALID;
-alias DB_STATUS_EXISTS = _alpm_dbstatus_t.DB_STATUS_EXISTS;
-alias DB_STATUS_MISSING = _alpm_dbstatus_t.DB_STATUS_MISSING;
-alias DB_STATUS_LOCAL = _alpm_dbstatus_t.DB_STATUS_LOCAL;
-alias DB_STATUS_PKGCACHE = _alpm_dbstatus_t.DB_STATUS_PKGCACHE;
-alias DB_STATUS_GRPCACHE = _alpm_dbstatus_t.DB_STATUS_GRPCACHE;
-
-
 
 struct db_operations {
 	int function(AlpmDB) validate;
@@ -392,9 +383,9 @@ AlpmDB _alpm_db_new(  char*treename, int is_local)
 	CALLOC(db, 1, AlpmDB.sizeof);
 	db.treename = treename.to!string;
 	if(is_local) {
-		db.status |= DB_STATUS_LOCAL;
+		db.status |= AlpmDBStatus.Local;
 	} else {
-		db.status &= ~DB_STATUS_LOCAL;
+		db.status &= ~AlpmDBStatus.Local;
 	}
 	db.usage = ALPM_DB_USAGE_ALL;
 
@@ -431,7 +422,7 @@ string _alpm_db_path(AlpmDB db)
 			RET_ERR(db.handle, ALPM_ERR_DB_OPEN, null);
 		}
 
-		if(db.status & DB_STATUS_LOCAL) {
+		if(db.status & AlpmDBStatus.Local) {
 			pathsize = strlen(dbpath) + db.treename.length + 2;
 			db._path = "";
 			snprintf(cast(char*)db._path, pathsize, "%s%s/", dbpath, cast(char*)db.treename);
@@ -546,7 +537,7 @@ private int load_pkgcache(AlpmDB db)
 		return -1;
 	}
 
-	db.status |= DB_STATUS_PKGCACHE;
+	db.status |= AlpmDBStatus.PkgCache;
 	return 0;
 }
 
@@ -554,7 +545,7 @@ private void free_groupcache(AlpmDB db)
 {
 	alpm_list_t* lg = void;
 
-	if(db is null || !(db.status & DB_STATUS_GRPCACHE)) {
+	if(db is null || !(db.status & AlpmDBStatus.GrpCache)) {
 		return;
 	}
 
@@ -566,7 +557,7 @@ private void free_groupcache(AlpmDB db)
 		lg.data = null;
 	}
 	FREELIST(db.grpcache);
-	db.status &= ~DB_STATUS_GRPCACHE;
+	db.status &= ~AlpmDBStatus.GrpCache;
 }
 
 void _alpm_db_free_pkgcache(AlpmDB db)
@@ -582,7 +573,7 @@ void _alpm_db_free_pkgcache(AlpmDB db)
 			cast(alpm_list_fn_free)&_alpm_pkg_free);
 	_alpm_pkghash_free(db.pkgcache);
 	db.pkgcache = null;
-	db.status &= ~DB_STATUS_PKGCACHE;
+	db.status &= ~AlpmDBStatus.PkgCache;
 
 	free_groupcache(db);
 }
@@ -593,11 +584,11 @@ alpm_pkghash_t* _alpm_db_get_pkgcache_hash(AlpmDB db)
 		return null;
 	}
 
-	if(!(db.status & DB_STATUS_VALID)) {
+	if(!(db.status & AlpmDBStatus.Valid)) {
 		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, null);
 	}
 
-	if(!(db.status & DB_STATUS_PKGCACHE)) {
+	if(!(db.status & AlpmDBStatus.PkgCache)) {
 		if(load_pkgcache(db)) {
 			/* handle->error set in local/sync-db-populate */
 			return null;
@@ -623,7 +614,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 {
 	AlpmPkg newpkg = null;
 
-	if(db is null || pkg is null || !(db.status & DB_STATUS_PKGCACHE)) {
+	if(db is null || pkg is null || !(db.status & AlpmDBStatus.PkgCache)) {
 		return -1;
 	}
 
@@ -638,7 +629,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
 		free(cast(void*)newpkg.origin_data.file);
 	}
-	newpkg.origin = (db.status & DB_STATUS_LOCAL)
+	newpkg.origin = (db.status & AlpmDBStatus.Local)
 		? ALPM_PKG_FROM_LOCALDB
 		: ALPM_PKG_FROM_SYNCDB;
 	newpkg.origin_data.db = db;
@@ -656,7 +647,7 @@ int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
 {
 	AlpmPkg data = null;
 
-	if(db is null || pkg is null || !(db.status & DB_STATUS_PKGCACHE)) {
+	if(db is null || pkg is null || !(db.status & AlpmDBStatus.PkgCache)) {
 		return -1;
 	}
 
@@ -738,7 +729,7 @@ private int load_grpcache(AlpmDB db)
 		}
 	}
 
-	db.status |= DB_STATUS_GRPCACHE;
+	db.status |= AlpmDBStatus.GrpCache;
 	return 0;
 }
 
@@ -748,11 +739,11 @@ alpm_list_t* _alpm_db_get_groupcache(AlpmDB db)
 		return null;
 	}
 
-	if(!(db.status & DB_STATUS_VALID)) {
+	if(!(db.status & AlpmDBStatus.Valid)) {
 		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, null);
 	}
 
-	if(!(db.status & DB_STATUS_GRPCACHE)) {
+	if(!(db.status & AlpmDBStatus.GrpCache)) {
 		load_grpcache(db);
 	}
 

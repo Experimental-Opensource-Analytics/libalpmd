@@ -276,7 +276,7 @@ alpm_list_t* compute_requiredby(AlpmPkg pkg, int optional)
 		/* We have a DB package. if it is a local package, then we should
 		 * only search the local DB; else search all known sync databases. */
 		db = pkg.origin_data.db;
-		if(db.status & DB_STATUS_LOCAL) {
+		if(db.status & AlpmDBStatus.Local) {
 			find_requiredby(pkg, db, &reqs, optional);
 		} else {
 			for(auto i = pkg.handle.dbs_sync; i; i = i.next) {

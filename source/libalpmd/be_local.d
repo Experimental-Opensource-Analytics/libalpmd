@@ -378,10 +378,10 @@ private int local_db_validate(AlpmDB db)
 	int t = void;
 	size_t version_ = void;
 
-	if(db.status & DB_STATUS_VALID) {
+	if(db.status & AlpmDBStatus.Valid) {
 		return 0;
 	}
-	if(db.status & DB_STATUS_INVALID) {
+	if(db.status & AlpmDBStatus.Invalid) {
 		return -1;
 	}
 
@@ -395,14 +395,14 @@ private int local_db_validate(AlpmDB db)
 		if(errno == ENOENT) {
 			/* local database dir doesn't exist yet - create it */
 			if(local_db_create(db, dbpath) == 0) {
-				db.status |= DB_STATUS_VALID;
-				db.status &= ~DB_STATUS_INVALID;
-				db.status |= DB_STATUS_EXISTS;
-				db.status &= ~DB_STATUS_MISSING;
+				db.status |= AlpmDBStatus.Valid;
+				db.status &= ~AlpmDBStatus.Invalid;
+				db.status |= AlpmDBStatus.Exists;
+				db.status &= ~AlpmDBStatus.Missing;
 				return 0;
 			} else {
-				db.status &= ~DB_STATUS_EXISTS;
-				db.status |= DB_STATUS_MISSING;
+				db.status &= ~AlpmDBStatus.Exists;
+				db.status |= AlpmDBStatus.Missing;
 				/* pm_errno is set by local_db_create */
 				return -1;
 			}
@@ -410,8 +410,8 @@ private int local_db_validate(AlpmDB db)
 			RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
 		}
 	}
-	db.status |= DB_STATUS_EXISTS;
-	db.status &= ~DB_STATUS_MISSING;
+	db.status |= AlpmDBStatus.Exists;
+	db.status &= ~AlpmDBStatus.Missing;
 
 	snprintf(dbverpath.ptr, PATH_MAX, "%sALPM_DB_VERSION", dbpath);
 
@@ -445,14 +445,14 @@ private int local_db_validate(AlpmDB db)
 
 version_latest:
 	closedir(dbdir);
-	db.status |= DB_STATUS_VALID;
-	db.status &= ~DB_STATUS_INVALID;
+	db.status |= AlpmDBStatus.Valid;
+	db.status &= ~AlpmDBStatus.Invalid;
 	return 0;
 
 version_error:
 	closedir(dbdir);
-	db.status &= ~DB_STATUS_VALID;
-	db.status |= DB_STATUS_INVALID;
+	db.status &= ~AlpmDBStatus.Valid;
+	db.status |= AlpmDBStatus.Invalid;
 	db.handle.pm_errno = ALPM_ERR_DB_VERSION;
 	return -1;
 }
@@ -466,10 +466,10 @@ private int local_db_populate(AlpmDB db)
 	  char*dbpath = void;
 	DIR* dbdir = void;
 
-	if(db.status & DB_STATUS_INVALID) {
+	if(db.status & AlpmDBStatus.Invalid) {
 		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, -1);
 	}
-	if(db.status & DB_STATUS_MISSING) {
+	if(db.status & AlpmDBStatus.Missing) {
 		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
 	}
 
@@ -486,8 +486,8 @@ private int local_db_populate(AlpmDB db)
 	if(fstat(dirfd(dbdir), &buf) != 0) {
 		RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
 	}
-	db.status |= DB_STATUS_EXISTS;
-	db.status &= ~DB_STATUS_MISSING;
+	db.status |= AlpmDBStatus.Exists;
+	db.status &= ~AlpmDBStatus.Missing;
 	if(buf.st_nlink >= 2) {
 		est_count = buf.st_nlink;
 	} else {
@@ -941,7 +941,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 	alpm_list_t* lp = void;
 	int retval = 0;
 
-	if(db is null || info is null || !(db.status & DB_STATUS_LOCAL)) {
+	if(db is null || info is null || !(db.status & AlpmDBStatus.Local)) {
 		return -1;
 	}
 

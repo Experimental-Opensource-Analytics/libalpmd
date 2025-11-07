@@ -393,11 +393,11 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	/* ensure all sync database are valid if we will be using them */
 	for(auto i = handle.dbs_sync; i; i = i.next) {
 		  AlpmDB db = cast(AlpmDB)i.data;
-		if(db.status & DB_STATUS_INVALID) {
+		if(db.status & AlpmDBStatus.Invalid) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
 		/* missing databases are not allowed if we have sync targets */
-		if(from_sync && db.status & DB_STATUS_MISSING) {
+		if(from_sync && db.status & AlpmDBStatus.Missing) {
 			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
 		}
 	}
