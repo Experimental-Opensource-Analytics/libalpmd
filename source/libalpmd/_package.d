@@ -103,50 +103,50 @@ class AlpmPkg {
 	this() {}
 	auto getHandle() => this.handle;
 
-	auto getFilename() => this.filename;
-	auto getName() => this.name; 
-	auto getBase() => this.base;
-	auto getVersion() => this.version_;
-	auto getDesc() => this.desc;
-	auto getUrl() => this.url;
-	auto getPackager() => this.packager;
-	auto getMD5Sum() => this.md5sum;
-	auto getSHA256Sum() => this.sha256sum;
-	auto getBase64Sig() => this.base64_sig;
-	auto getArch() => this.arch;
+	string getFilename() => this.filename;
+	string getName() => this.name; 
+	string getBase() => this.base;
+	string getVersion() => this.version_;
+	string getDesc() => this.desc;
+	string getUrl() => this.url;
+	string getPackager() => this.packager;
+	string getMD5Sum() => this.md5sum;
+	string getSHA256Sum() => this.sha256sum;
+	string getBase64Sig() => this.base64_sig;
+	string getArch() => this.arch;
 
-	auto getBuildDate() => this.builddate;
-	auto getInstallDate() => this.installdate;
-	auto getSize() => this.size;
-	auto getInstallSize() => this.isize;
-	auto getDownloadSize() => this.download_size;
+	AlpmTime getBuildDate() => this.builddate;
+	AlpmTime getInstallDate() => this.installdate;
+	off_t getSize() => this.size;
+	off_t getInstallSize() => this.isize;
+	off_t getDownloadSize() => this.download_size;
 
-	auto getLicenses() => this.licenses;
-	auto getReplaces() => this.replaces;
-	auto getGroups() => this.groups;
-	auto getBackups() => this.backup;
-	auto getDepends() => this.depends;
-	auto getOptDepends() => this.optdepends;
-	auto getCheckDepends() => this.checkdepends;
-	auto getMakeDepends() => this.makedepends;
-	auto getConflicts() => this.conflicts;
-	auto getProvides() => this.provides;
-	auto getRemoves() => this.removes;
-	auto getOldPkg() => this.oldpkg;
+	AlpmStrings getLicenses() => this.licenses;
+	AlpmDeps getReplaces() => this.replaces;
+	AlpmStrings getGroups() => this.groups;
+	AlpmBackups getBackups() => this.backup;
+	AlpmDeps getDepends() => this.depends;
+	AlpmDeps getOptDepends() => this.optdepends;
+	AlpmDeps getCheckDepends() => this.checkdepends;
+	AlpmDeps getMakeDepends() => this.makedepends;
+	AlpmDeps getConflicts() => this.conflicts;
+	AlpmDeps getProvides() => this.provides;
+	AlpmPkgs getRemoves() => this.removes;
+	AlpmPkg getOldPkg() => this.oldpkg;
 
-	auto getOrigin() => this.origin;
-	auto getDB() => this.origin_data.db;
-	auto getReason() => this.reason;
-	auto getValidation() => this.validation;
-	auto getFiles() => this.files;
-	auto hasScriptlet() => this.scriptlet;
+	AlpmPkgFrom getOrigin() => this.origin;
+	AlpmDB getDB() => this.origin_data.db;
+	AlpmPkgReason getReason() => this.reason;
+	int getValidation() => this.validation;
+	AlpmFileList getFiles() => this.files;
+	int hasScriptlet() => this.scriptlet;
 
-	auto getXData() => this.xdata;
+	AlpmXDataList getXData() => this.xdata;
 
 	alias UNUSED = void;
 
-	AlpmPkgChangelog changelogOpen() => null;
-	size_t changelogRead(void* ptr, size_t UNUSED, AlpmPkg pkg, UNUSED* fp) => 0;
+	void* changelogOpen() => null;
+	size_t changelogRead(void* ptr, size_t UNUSED, UNUSED* fp) => 0;
 	int changelogClose(void* fp) => 0;
 
 	archive* mtreeOpen() => null;

@@ -57,22 +57,15 @@ import std.string;
 import libalpmd.pkghash;
 import libalpmd.backup;
 
-pragma(mangle, "dirfd")
-                        extern(C) nothrow @nogc int dirfd(DIR* dir);
-
+pragma(mangle, "dirfd") extern(C) nothrow @nogc int dirfd(DIR* dir);
 
 /* local database format version */
 size_t ALPM_LOCAL_DB_VERSION = 9;
 
-
-
 enum string LAZY_LOAD(string info) = `
-	do { 
-		if(!(pkg.infolevel & ` ~ info ~ `)) { 
-			local_db_read(pkg, ` ~ info ~ `); 
-		} 
-	} while(0);`;
-
+	if(!(this.infolevel & ` ~ info ~ `)) { 
+		local_db_read(this, ` ~ info ~ `); 
+	}`;
 
 /* Cache-specific accessor functions. These implementations allow for lazy
  * loading by the files backend when a data member is actually needed
@@ -80,300 +73,226 @@ enum string LAZY_LOAD(string info) = `
  * initialized.
  */
 
-  char*_cache_get_base(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return cast(char*)pkg.base;
-}
-
-private char* _cache_get_desc(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return cast(char*)pkg.desc;
-}
-
-private string _cache_get_url(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.url;
-}
-
-private AlpmTime _cache_get_builddate(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.builddate;
-}
-
-private AlpmTime _cache_get_installdate(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.installdate;
-}
-
-private string _cache_get_packager(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.packager;
-}
-
-private char* _cache_get_arch(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return cast(char*)pkg.arch;
-}
-
-private off_t _cache_get_isize(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.isize;
-}
-
-private AlpmPkgReason _cache_get_reason(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.reason;
-}
-
-private int _cache_get_validation(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.validation;
-}
-
-auto _cache_get_licenses(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.licenses;
-}
-
-private auto _cache_get_groups(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.groups;
-}
-
-private int _cache_has_scriptlet(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_SCRIPTLET`));
-	return pkg.scriptlet;
-}
-
-private auto _cache_get_depends(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.depends;
-}
-
-private auto _cache_get_optdepends(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.optdepends;
-}
-
-private auto _cache_get_makedepends(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.makedepends;
-}
-
-private auto _cache_get_checkdepends(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.checkdepends;
-}
-
-private auto _cache_get_conflicts(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.conflicts;
-}
-
-private auto _cache_get_provides(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.provides;
-}
-
-private AlpmFileList _cache_get_files(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_FILES`));
-	return pkg.files;
-}
-
-private auto _cache_get_backup(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_FILES`));
-	return pkg.backup;
-}
-
-private auto _cache_get_xdata(AlpmPkg pkg)
-{
-	mixin(LAZY_LOAD!(`INFRQ_DESC`));
-	return pkg.xdata;
-}
-
-/**
- * Open a package changelog for reading. Similar to fopen in functionality,
- * except that the returned 'file stream' is from the database.
- * @param pkg the package (from db) to read the changelog
- * @return a 'file stream' to the package changelog
- */
-private void* _cache_changelog_open(AlpmPkg pkg)
-{
-	AlpmDB db = pkg.getDB();
-	char* clfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"changelog");
-	FILE* f = fopen(clfile, "r");
-	free(clfile);
-	return cast(void*)f;
-}
-
-/**
- * Read data from an open changelog 'file stream'. Similar to fread in
- * functionality, this function takes a buffer and amount of data to read.
- * @param ptr a buffer to fill with raw changelog data
- * @param size the size of the buffer
- * @param pkg the package that the changelog is being read from
- * @param fp a 'file stream' to the package changelog
- * @return the number of characters read, or 0 if there is no more data
- */
-private size_t _cache_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, void* fp)
-{
-	return fread(ptr, 1, size, cast(FILE*)fp);
-}
-
-/**
- * Close a package changelog for reading. Similar to fclose in functionality,
- * except that the 'file stream' is from the database.
- * @param pkg the package that the changelog was read from
- * @param fp a 'file stream' to the package changelog
- * @return whether closing the package changelog stream was successful
- */
-private int _cache_changelog_close( AlpmPkg pkg, void* fp)
-{
-	return fclose(cast(FILE*)fp);
-}
-
-/**
- * Open a package mtree file for reading.
- * @param pkg the local package to read the changelog of
- * @return a archive structure for the package mtree file
- */
-private archive* _cache_mtree_open(AlpmPkg pkg)
-{
-	archive* mtree = void;
-
-	AlpmDB db = pkg.getDB();
-	char* mtfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"mtree");
-
-	if(access(mtfile, F_OK) != 0) {
-		/* there is no mtree file for this package */
-		goto error;
+ class AlpmPkgLocal : AlpmPkg {
+	override string getBase() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.base;
 	}
 
-	if((mtree = archive_read_new()) == null) {
-		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, "error");
+	override string getDesc() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.desc;
 	}
 
-	_alpm_archive_read_support_filter_all(mtree);
-	archive_read_support_format_mtree(mtree);
-
-	if(_alpm_archive_read_open_file(mtree, mtfile, ALPM_BUFFER_SIZE)) {
-		_alpm_log(pkg.handle, ALPM_LOG_ERROR, "error while reading file %s: %s\n",
-					mtfile, archive_error_string(mtree));
-		_alpm_archive_read_free(mtree);
-		GOTO_ERR(pkg.handle, ALPM_ERR_LIBARCHIVE, "error");
+	override string getUrl() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.url;
 	}
 
-	free(mtfile);
-	return mtree;
-
-error:
-	free(mtfile);
-	return null;
-}
-
-/**
- * Read next entry from a package mtree file.
- * @param pkg the package that the mtree file is being read from
- * @param archive the archive structure reading from the mtree file
- * @param entry an archive_entry to store the entry header information
- * @return 0 on success, 1 if end of archive is reached, -1 otherwise.
- */
-private int _cache_mtree_next( AlpmPkg pkg, archive* mtree, archive_entry** entry)
-{
-	int ret = void;
-	ret = archive_read_next_header(mtree, entry);
-
-	switch(ret) {
-		case ARCHIVE_OK:
-			return 0;
-			break;
-		case ARCHIVE_EOF:
-			return 1;
-			break;
-		default:
-			break;
+	override AlpmTime getBuildDate() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.builddate;
 	}
 
-	return -1;
-}
+	override AlpmTime getInstallDate() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.installdate;
+	}
 
-/**
- * Close a package mtree file for reading.
- * @param pkg the package that the mtree file was read from
- * @param mtree the archive structure use for reading from the mtree file
- * @return whether closing the package changelog stream was successful
- */
-private int _cache_mtree_close( AlpmPkg pkg, archive* mtree)
-{
-	return _alpm_archive_read_free(mtree);
-}
+	override string getPackager() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.packager;
+	}
 
-private int _cache_force_load(AlpmPkg pkg)
-{
-	return local_db_read(pkg, INFRQ_ALL);
-}
+	override string getArch() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.arch;
+	}
 
+	override off_t getInstallSize() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.isize;
+	}
 
-// /** The local database operations struct. Get package fields through
-//  * lazy accessor methods that handle any backend loading and caching
-//  * logic.
-//  */
-// private const (pkg_operations) local_pkg_ops = {
-// 	get_base: &_cache_get_base,
-// 	get_desc: &_cache_get_desc,
-// 	get_url: &_cache_get_url,
-// 	get_builddate: &_cache_get_builddate,
-// 	get_installdate: &_cache_get_installdate,
-// 	get_packager: &_cache_get_packager,
-// 	get_arch: &_cache_get_arch,
-// 	get_isize: &_cache_get_isize,
-// 	get_reason: &_cache_get_reason,
-// 	get_validation: &_cache_get_validation,
-// 	has_scriptlet: &_cache_has_scriptlet,
-// 	get_licenses: &_cache_get_licenses,
-// 	get_groups: &_cache_get_groups,
-// 	get_depends: &_cache_get_depends,
-// 	get_optdepends: &_cache_get_optdepends,
-// 	get_makedepends: &_cache_get_makedepends,
-// 	get_checkdepends: &_cache_get_checkdepends,
-// 	get_conflicts: &_cache_get_conflicts,
-// 	get_provides: &_cache_get_provides,
-// 	// get_replaces: &_cache_get_replaces,
-// 	get_files: &_cache_get_files,
-// 	// get_backup: &_cache_get_backup,
-// 	get_xdata: &_cache_get_xdata,
+	override AlpmPkgReason getReason() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.reason;
+	}
 
-// 	changelog_open: &_cache_changelog_open,
-// 	changelog_read: &_cache_changelog_read,
-// 	changelog_close: &_cache_changelog_close,
+	override int getValidation() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.validation;
+	}
 
-// 	mtree_open: &_cache_mtree_open,
-// 	mtree_next: &_cache_mtree_next,
-// 	mtree_close: &_cache_mtree_close,
+	override AlpmStrings getLicenses() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.licenses;
+	}
 
-// 	force_load: &_cache_force_load,
-// };
+	override AlpmStrings getGroups() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.groups;
+	}
+
+	override int hasScriptlet() {
+		mixin(LAZY_LOAD!(`INFRQ_SCRIPTLET`));
+		return this.scriptlet;
+	}
+
+	override AlpmDeps getDepends() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.depends;
+	}
+
+	override AlpmDeps getOptDepends() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.optdepends;
+	}
+
+	override AlpmDeps getMakeDepends() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.makedepends;
+	}
+
+	override AlpmDeps getCheckDepends() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.checkdepends;
+	}
+
+	override AlpmDeps getConflicts() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.conflicts;
+	}
+
+	override AlpmDeps getProvides() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.provides;
+	}
+
+	override AlpmFileList getFiles() {
+		mixin(LAZY_LOAD!(`INFRQ_FILES`));
+		return this.files;
+	}
+
+	override AlpmBackups getBackups() {
+		mixin(LAZY_LOAD!(`INFRQ_FILES`));
+		return this.backup;
+	}
+
+	override AlpmXDataList getXData() {
+		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		return this.xdata;
+	}
+
+	override void* changelogOpen() {
+		// AlpmDB db = pkg.getDB();
+		char* clfile = _alpm_local_db_pkgpath(origin_data.db, this, cast(char*)"changelog");
+		FILE* f = fopen(clfile, "r");
+		free(clfile);
+		return cast(void*)f;
+	}
+
+	/**
+	* Read data from an open changelog 'file stream'. Similar to fread in
+	* functionality, this function takes a buffer and amount of data to read.
+	* @param ptr a buffer to fill with raw changelog data
+	* @param size the size of the buffer
+	* @param pkg the package that the changelog is being read from
+	* @param fp a 'file stream' to the package changelog
+	* @return the number of characters read, or 0 if there is no more data
+	*/
+	override size_t changelogRead(void* ptr, size_t size, void* fp) {
+		return fread(ptr, 1, size, cast(FILE*)fp);
+	}
+
+	/**
+	* Close a package changelog for reading. Similar to fclose in functionality,
+	* except that the 'file stream' is from the database.
+	* @param pkg the package that the changelog was read from
+	* @param fp a 'file stream' to the package changelog
+	* @return whether closing the package changelog stream was successful
+	*/
+	override int changelogClose(void* fp) {
+		return fclose(cast(FILE*)fp);
+	}
+
+	/**
+	* Open a package mtree file for reading.
+	* @param pkg the local package to read the changelog of
+	* @return a archive structure for the package mtree file
+	*/
+	override archive* mtreeOpen() {
+		archive* mtree = void;
+
+		// AlpmDB db = pkg.getDB();
+		char* mtfile = _alpm_local_db_pkgpath(origin_data.db, this, cast(char*)"mtree");
+
+		if(access(mtfile, F_OK) != 0) {
+			/* there is no mtree file for this package */
+			goto error;
+		}
+
+		if((mtree = archive_read_new()) == null) {
+			GOTO_ERR(this.handle, ALPM_ERR_LIBARCHIVE, "error");
+		}
+
+		_alpm_archive_read_support_filter_all(mtree);
+		archive_read_support_format_mtree(mtree);
+
+		if(_alpm_archive_read_open_file(mtree, mtfile, ALPM_BUFFER_SIZE)) {
+			_alpm_log(this.handle, ALPM_LOG_ERROR, "error while reading file %s: %s\n",
+						mtfile, archive_error_string(mtree));
+			_alpm_archive_read_free(mtree);
+			GOTO_ERR(this.handle, ALPM_ERR_LIBARCHIVE, "error");
+		}
+
+		free(mtfile);
+		return mtree;
+
+	error:
+		free(mtfile);
+		return null;
+	}
+
+	/**
+	* Read next entry from a package mtree file.
+	* @param pkg the package that the mtree file is being read from
+	* @param archive the archive structure reading from the mtree file
+	* @param entry an archive_entry to store the entry header information
+	* @return 0 on success, 1 if end of archive is reached, -1 otherwise.
+	*/
+	override int mtreeNext(archive* mtree, archive_entry** entry) {
+		int ret = void;
+		ret = archive_read_next_header(mtree, entry);
+
+		switch(ret) {
+			case ARCHIVE_OK:
+				return 0;
+				break;
+			case ARCHIVE_EOF:
+				return 1;
+				break;
+			default:
+				break;
+		}
+
+		return -1;
+	}
+
+	/**
+	* Close a package mtree file for reading.
+	* @param pkg the package that the mtree file was read from
+	* @param mtree the archive structure use for reading from the mtree file
+	* @return whether closing the package changelog stream was successful
+	*/
+	override int mtreeClose(archive* mtree) {
+		return _alpm_archive_read_free(mtree);
+	}
+
+	override int forceLoad() {
+		return local_db_read(this, INFRQ_ALL);
+	}
+ }
 
 private int checkdbdir(AlpmDB db)
 {
