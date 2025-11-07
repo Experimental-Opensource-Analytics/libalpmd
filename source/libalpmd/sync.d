@@ -185,7 +185,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 				}
 				_alpm_log(handle, ALPM_LOG_DEBUG, "appending %s to the removes list of %s\n",
 						lpkg.name, tpkg.name);
-				tpkg.removes = alpm_list_add(tpkg.removes, cast(void*)lpkg);
+				tpkg.removes.insertFront(lpkg);
 				/* check the to-be-replaced package's reason field */
 				if(alpm_pkg_get_reason(lpkg) == ALPM_PKG_REASON_EXPLICIT) {
 					tpkg.reason = ALPM_PKG_REASON_EXPLICIT;
@@ -194,7 +194,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 				/* add spkg to the target list */
 				/* copy over reason */
 				spkg.reason = alpm_pkg_get_reason(lpkg);
-				spkg.removes = alpm_list_add(null, cast(void*)lpkg);
+				spkg.removes.insertFront(lpkg);
 				_alpm_log(handle, ALPM_LOG_DEBUG,
 						"adding package %s-%s to the transaction targets\n",
 						spkg.name, spkg.version_);
@@ -406,7 +406,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
 		alpm_list_t* resolved = null;
-		alpm_list_t* remove = alpm_list_copy(trans.remove);
+		auto remove = trans.remove;
 		alpm_list_t* localpkgs = void;
 
 		/* Build up list by repeatedly resolving each transaction package */
@@ -418,8 +418,9 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		/* build remove list for resolvedeps */
 		for(auto i = trans.add; i; i = i.next) {
 			AlpmPkg spkg = cast(AlpmPkg)i.data;
-			for(j = spkg.removes; j; j = j.next) {
-				remove = alpm_list_add(remove, j.data);
+			auto range = spkg.removes[];
+			for(auto pkg = range.front; !range.empty; range.popFront) {
+				remove = alpm_list_add(remove, cast(void*)pkg);
 			}
 		}
 
@@ -602,7 +603,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			}
 			for(j = trans.add; j && !found; j = j.next) {
 				AlpmPkg spkg = cast(AlpmPkg)j.data;
-				if(alpm_pkg_find(spkg.removes, cast(char*)name2)) {
+				if(alpm_pkg_find_n(spkg.removes, cast(char*)name2)) {
+				// if(spkg.removes[].canFind)
 					found = 1;
 				}
 			}
@@ -619,7 +621,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				AlpmPkg sync = alpm_pkg_find(trans.add, cast(char*)name1);
 				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)name2);
 				_alpm_log(handle, ALPM_LOG_DEBUG, "electing '%s' for removal\n", name2);
-				sync.removes = alpm_list_add(sync.removes, cast(void*)local);
+				sync.removes.insertFront(local);
 			} else { /* abort */
 				_alpm_log(handle, ALPM_LOG_ERROR, "unresolvable package conflicts detected\n");
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
@@ -644,8 +646,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	/* Build trans->remove list */
 	for(auto i = trans.add; i; i = i.next) {
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
-		for(j = spkg.removes; j; j = j.next) {
-			AlpmPkg rpkg = cast(AlpmPkg)j.data;
+		foreach(rpkg; spkg.removes[]) {
+			// AlpmPkg rpkg = cast(AlpmPkg)j.data;
 			if(!alpm_pkg_find(trans.remove, cast(char*)rpkg.name)) {
 				AlpmPkg copy = void;
 				_alpm_log(handle, ALPM_LOG_DEBUG, "adding '%s' to remove list\n", rpkg.name);

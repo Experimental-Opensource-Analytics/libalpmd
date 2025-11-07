@@ -2391,7 +2391,7 @@ int alpm_option_set_disable_sandbox(AlpmHandle handle, ushort disable_sandbox);
  */
 
 /** Package install reasons. */
-enum alpm_pkgreason_t {
+enum AlpmPkgReason {
 	/** Explicitly requested by the user. */
 	ALPM_PKG_REASON_EXPLICIT = 0,
 	/** Installed as a dependency for another package. */
@@ -2399,13 +2399,13 @@ enum alpm_pkgreason_t {
 	/** Failed parsing of local database */
 	ALPM_PKG_REASON_UNKNOWN = 2
 }
-alias ALPM_PKG_REASON_EXPLICIT = alpm_pkgreason_t.ALPM_PKG_REASON_EXPLICIT;
-alias ALPM_PKG_REASON_DEPEND = alpm_pkgreason_t.ALPM_PKG_REASON_DEPEND;
-alias ALPM_PKG_REASON_UNKNOWN = alpm_pkgreason_t.ALPM_PKG_REASON_UNKNOWN;
+alias ALPM_PKG_REASON_EXPLICIT = AlpmPkgReason.ALPM_PKG_REASON_EXPLICIT;
+alias ALPM_PKG_REASON_DEPEND = AlpmPkgReason.ALPM_PKG_REASON_DEPEND;
+alias ALPM_PKG_REASON_UNKNOWN = AlpmPkgReason.ALPM_PKG_REASON_UNKNOWN;
 
 
 /** Location a package object was loaded from. */
-enum alpm_pkgfrom_t {
+enum AlpmPkgFrom {
 	/** Loaded from a file via \link alpm_pkg_load \endlink */
 	ALPM_PKG_FROM_FILE = 1,
 	/** From the local database */
@@ -2413,9 +2413,9 @@ enum alpm_pkgfrom_t {
 	/** From a sync database */
 	ALPM_PKG_FROM_SYNCDB
 }
-alias ALPM_PKG_FROM_FILE = alpm_pkgfrom_t.ALPM_PKG_FROM_FILE;
-alias ALPM_PKG_FROM_LOCALDB = alpm_pkgfrom_t.ALPM_PKG_FROM_LOCALDB;
-alias ALPM_PKG_FROM_SYNCDB = alpm_pkgfrom_t.ALPM_PKG_FROM_SYNCDB;
+alias ALPM_PKG_FROM_FILE = AlpmPkgFrom.ALPM_PKG_FROM_FILE;
+alias ALPM_PKG_FROM_LOCALDB = AlpmPkgFrom.ALPM_PKG_FROM_LOCALDB;
+alias ALPM_PKG_FROM_SYNCDB = AlpmPkgFrom.ALPM_PKG_FROM_SYNCDB;
 
 
 
@@ -2555,9 +2555,9 @@ const(char)* alpm_pkg_get_name(AlpmPkg pkg);
 // const(char)* alpm_pkg_get_version(AlpmPkg pkg);
 
 /** Returns the origin of the package.
- * @return an alpm_pkgfrom_t constant, -1 on error
+ * @return an AlpmPkgFrom constant, -1 on error
  */
-alpm_pkgfrom_t alpm_pkg_get_origin(AlpmPkg pkg);
+AlpmPkgFrom alpm_pkg_get_origin(AlpmPkg pkg);
 
 /** Returns the package URL.
  * @param pkg a pointer to package
@@ -2664,7 +2664,7 @@ off_t alpm_pkg_download_size(AlpmPkg newpkg);
  * @param reason the new install reason
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_pkg_set_reason(AlpmPkg pkg, alpm_pkgreason_t reason);
+int alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason);
 
 
 /* End of libalpm_pkg_t accessors */

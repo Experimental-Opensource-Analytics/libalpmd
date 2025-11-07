@@ -70,8 +70,8 @@ AlpmBackup _alpm_needbackup(  char*file, AlpmPkg pkg)
 		return null;
 	}
 
-	for(lp = alpm_pkg_get_backup(pkg); lp; lp = lp.next) {
-		AlpmBackup backup = cast(AlpmBackup)lp.data;
+	foreach(backup; alpm_pkg_get_backup(pkg)[]) {
+		// AlpmBackup backup = cast(AlpmBackup)lp.data;
 
 		if(strcmp(file, cast(char*)backup.name) == 0) {
 			return backup;

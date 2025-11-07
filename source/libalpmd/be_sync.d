@@ -555,6 +555,14 @@ enum string READ_AND_STORE(string f) = `do {
 	`~f~` = tmp.to!(typeof(`~f~`));
 } while(0);`;
 
+enum string READ_AND_STORE_N(string f) = `do { 
+	` ~ READ_NEXT!() ~ `; 
+	char* tmp = null;
+	STRDUP(tmp, line);
+	`~f~` = tmp.to!(typeof(`~f~`));
+} while(0);`;
+
+
 enum string READ_AND_STORE_ALL_L(string f) = `do { 
 	char* linedup = void; 
 	if(_alpm_archive_fgets(archive, &buf) != ARCHIVE_OK) goto error; 
@@ -685,9 +693,9 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 			} else if(strcmp(line, "%OPTDEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`pkg.optdepends`));
 			} else if(strcmp(line, "%MAKEDEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.makedepends`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.makedepends`));
 			} else if(strcmp(line, "%CHECKDEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`pkg.checkdepends`));
+				mixin(READ_AND_SPLITDEP_N!(`pkg.checkdepends`));
 			} else if(strcmp(line, "%CONFLICTS%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`pkg.conflicts`));
 			} else if(strcmp(line, "%PROVIDES%") == 0) {

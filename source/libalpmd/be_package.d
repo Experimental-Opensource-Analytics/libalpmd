@@ -197,10 +197,10 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.optdepends.insertFront(optdep);
 			} else if(strcmp(key, "makedepend") == 0) {
 				AlpmDepend makedep = alpm_dep_from_string(ptr);
-				newpkg.makedepends = alpm_list_add(newpkg.makedepends, cast(void*)makedep);
+				newpkg.makedepends.insertFront(makedep);
 			} else if(strcmp(key, "checkdepend") == 0) {
 				AlpmDepend checkdep = alpm_dep_from_string(ptr);
-				newpkg.checkdepends = alpm_list_add(newpkg.checkdepends, cast(void*)checkdep);
+				newpkg.checkdepends.insertFront(checkdep);
 			} else if(strcmp(key, "conflict") == 0) {
 				AlpmDepend conflict = alpm_dep_from_string(ptr);
 				newpkg.conflicts.insertFront(conflict);

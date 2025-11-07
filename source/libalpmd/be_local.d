@@ -128,7 +128,7 @@ private off_t _cache_get_isize(AlpmPkg pkg)
 	return pkg.isize;
 }
 
-private alpm_pkgreason_t _cache_get_reason(AlpmPkg pkg)
+private AlpmPkgReason _cache_get_reason(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.reason;
@@ -170,13 +170,13 @@ private auto _cache_get_optdepends(AlpmPkg pkg)
 	return pkg.optdepends;
 }
 
-private alpm_list_t* _cache_get_makedepends(AlpmPkg pkg)
+private auto _cache_get_makedepends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.makedepends;
 }
 
-private alpm_list_t* _cache_get_checkdepends(AlpmPkg pkg)
+private auto _cache_get_checkdepends(AlpmPkg pkg)
 {
 	mixin(LAZY_LOAD!(`INFRQ_DESC`));
 	return pkg.checkdepends;
@@ -662,7 +662,7 @@ private int local_db_populate(AlpmDB db)
 	return 0;
 }
 
-private alpm_pkgreason_t _read_pkgreason(AlpmHandle handle,   char*pkgname,   char*line) {
+private AlpmPkgReason _read_pkgreason(AlpmHandle handle,   char*pkgname,   char*line) {
 	if(strcmp(line, "0") == 0) {
 		return ALPM_PKG_REASON_EXPLICIT;
 	} else if(strcmp(line, "1") == 0) {
@@ -845,9 +845,9 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			} else if(strcmp(line.ptr, "%OPTDEPENDS%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`info.optdepends`));
 			} else if(strcmp(line.ptr, "%MAKEDEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`info.makedepends`));
+				mixin(READ_AND_SPLITDEP_N!(`info.makedepends`));
 			} else if(strcmp(line.ptr, "%CHECKDEPENDS%") == 0) {
-				mixin(READ_AND_SPLITDEP!(`info.checkdepends`));
+				mixin(READ_AND_SPLITDEP_N!(`info.checkdepends`));
 			} else if(strcmp(line.ptr, "%CONFLICTS%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`info.conflicts`));
 			} else if(strcmp(line.ptr, "%PROVIDES%") == 0) {
@@ -1225,7 +1225,7 @@ int _alpm_local_db_remove(AlpmDB db, AlpmPkg info)
 	return ret;
 }
 
-int  alpm_pkg_set_reason(AlpmPkg pkg, alpm_pkgreason_t reason)
+int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 {
 	//ASSERT(pkg != null);
 	//ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
