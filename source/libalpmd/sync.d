@@ -124,7 +124,7 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 				return 1;
 			}
 		} else {
-			AlpmDB sdb = alpm_pkg_get_db(spkg);
+			AlpmDB sdb = spkg.getDB();
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: local (%s) is newer than %s (%s)\n",
 					lpkg.name, lpkg.version_, sdb.treename, spkg.version_);
 		}
@@ -143,7 +143,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 	for(k = _alpm_db_get_pkgcache(sdb); k; k = k.next) {
 		int found = 0;
 		AlpmPkg spkg = cast(AlpmPkg)k.data;
-		foreach(l; alpm_pkg_get_replaces(spkg)[]) {
+		foreach(l; spkg.getReplaces()[]) {
 			/* we only want to consider literal matches at this point. */
 			if(_alpm_depcmp_literal(lpkg, l)) {
 				found = 1;
@@ -187,13 +187,13 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 						lpkg.name, tpkg.name);
 				tpkg.removes.insertFront(lpkg);
 				/* check the to-be-replaced package's reason field */
-				if(alpm_pkg_get_reason(lpkg) == ALPM_PKG_REASON_EXPLICIT) {
+				if(lpkg.getReason() == ALPM_PKG_REASON_EXPLICIT) {
 					tpkg.reason = ALPM_PKG_REASON_EXPLICIT;
 				}
 			} else {
 				/* add spkg to the target list */
 				/* copy over reason */
-				spkg.reason = alpm_pkg_get_reason(lpkg);
+				spkg.reason = lpkg.getReason();
 				spkg.removes.insertFront(lpkg);
 				_alpm_log(handle, ALPM_LOG_DEBUG,
 						"adding package %s-%s to the transaction targets\n",
@@ -739,7 +739,7 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
 			AlpmDB repo = spkg.origin_data.db;
 			bool need_download = void;
-			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(spkg));
+			int siglevel = alpm_db_get_siglevel(spkg.getDB());
 
 			if(!repo.servers) {
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_SERVER_NONE;
@@ -791,7 +791,9 @@ private int download_files(AlpmHandle handle)
 	if(temporary_cachedir == null) {
 		ret = -1;
 		goto finish;
-	}
+	}alpm_pkg_get_db
+alpm_pkg_get_db
+alpm_pkg_get_db
 	handle.trans.state = STATE_DOWNLOADING;
 
 	ret = find_dl_candidates(handle, &files);
@@ -837,7 +839,7 @@ private int download_files(AlpmHandle handle)
 		EVENT(handle, &event);
 		for(i = files; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			int siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(pkg));
+			int siglevel = alpm_db_get_siglevel(pkg.getDB());
 			dload_payload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
@@ -925,7 +927,7 @@ private int check_keyring(AlpmHandle handle)
 			continue; /* pkg_load() has been already called, this package is valid */
 		}
 
-		level = alpm_db_get_siglevel(alpm_pkg_get_db(pkg));
+		level = alpm_db_get_siglevel(pkg.getDB());
 		if((level & ALPM_SIG_PACKAGE)) {
 			ubyte* sig = null;
 			size_t sig_len = void;
@@ -1026,7 +1028,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
 		}
 
-		v.siglevel = alpm_db_get_siglevel(alpm_pkg_get_db(v.pkg));
+		v.siglevel = alpm_db_get_siglevel(v.pkg.getDB());
 
 		if(_alpm_pkg_validate_internal(handle, v.path, v.pkg,
 					v.siglevel, &v.siglist, &v.validation) == -1) {

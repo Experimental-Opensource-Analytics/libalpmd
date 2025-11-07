@@ -428,7 +428,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		is_upgrade = 1;
 
 		/* copy over the install reason */
-		newpkg.reason = alpm_pkg_get_reason(oldpkg);
+		newpkg.reason = oldpkg.getReason();
 	} else {
 		event.operation = ALPM_PACKAGE_INSTALL;
 	}

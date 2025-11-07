@@ -1,29 +1,6 @@
 module libalpmd._package;
 
-//  
 import core.stdc.config: c_long, c_ulong;
-/*
- *  package.c
- *
- *  Copyright (c) 2006-2025 Pacman Development Team <pacman-dev@lists.archlinux.org>
- *  Copyright (c) 2002-2006 by Judd Vinet <jvinet@zeroflux.org>
- *  Copyright (c) 2005 by Aurelien Foret <orelien@chez.com>
- *  Copyright (c) 2005, 2006 by Christian Hamar <krics@linuxforum.hu>
- *  Copyright (c) 2005, 2006 by Miklos Vajna <vmiklos@frugalware.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
 import core.stdc.limits;
 import core.stdc.stdlib;
@@ -54,7 +31,6 @@ import libalpmd.filelist;
 import libalpmd.be_package;
 import libalpmd.libarchive_compat;
 import libalpmd._version;
-
 
 
 
@@ -170,21 +146,46 @@ class AlpmPkg {
 	int validation;
 
 	this() {}
+	auto getHandle() => this.handle;
+
 	auto getFilename() => this.filename;
 	auto getName() => this.name; 
-	auto getUrl() => this.ops.get_url(this);
-	auto getPackager() => this.ops.get_packager(this);
-	auto getBase() => this.ops.get_base(this);
+	auto getBase() => this.base;
 	auto getVersion() => this.version_;
-	auto getLicenses() => this.licenses;
 	auto getDesc() => this.desc;
+	auto getUrl() => this.url;
+	auto getPackager() => this.packager;
+	auto getMD5Sum() => this.md5sum;
+	auto getSHA256Sum() => this.sha256sum;
+	auto getBase64Sig() => this.base64_sig;
+	auto getArch() => this.arch;
+
+	auto getBuildDate() => this.builddate;
+	auto getInstallDate() => this.installdate;
+	auto getSize() => this.size;
+	auto getInstallSize() => this.isize;
+	auto getDownloadSize() => this.download_size;
+
+	auto getLicenses() => this.licenses;
 	auto getReplaces() => this.replaces;
 	auto getGroups() => this.groups;
 	auto getBackups() => this.backup;
 	auto getDepends() => this.depends;
 	auto getOptDepends() => this.optdepends;
+	auto getCheckDepends() => this.checkdepends;
+	auto getMakeDepends() => this.makedepends;
 	auto getConflicts() => this.conflicts;
 	auto getProvides() => this.provides;
+	auto getRemoves() => this.removes;
+	auto getOldPkg() => this.oldpkg;
+
+	auto getOrigin() => this.origin;
+	auto getDB() => this.origin_data.db;
+	auto getReason() => this.reason;
+	auto getValidation() => this.validation;
+	auto getFiles() => this.files;
+
+
 
 	auto getXData() => this.xdata;
 
@@ -318,65 +319,6 @@ int _pkg_mtree_close(AlpmPkg pkg, archive* archive)
 
 int _pkg_force_load(AlpmPkg pkg) { return 0; }
 
-/** The standard package operations struct. Get fields directly from the
- * struct itself with no abstraction layer or any type of lazy loading.
- */
-
-AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	return pkg.handle;
-}
-
-AlpmPkgFrom  alpm_pkg_get_origin(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.origin;
-}
-
-// alpm_pkg_get_desc(AlpmPkg pkg)
-// {
-// 	//ASSERT(pkg != null);
-// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-// 	return pkg.ops.get_desc(pkg);
-// }
-
-AlpmTime  alpm_pkg_get_builddate(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_builddate(pkg);
-}
-
-AlpmTime  alpm_pkg_get_installdate(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_installdate(pkg);
-}
-
-string alpm_pkg_get_md5sum(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.md5sum;
-}
-
-string alpm_pkg_get_sha256sum(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.sha256sum;
-}
-
-string alpm_pkg_get_base64_sig(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.base64_sig;
-}
-
 int  alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len)
 {
 	//ASSERT(pkg != null);
@@ -413,135 +355,6 @@ cleanup:
 		FREE(sigpath);
 		return ret;
 	} 
-}
-
-  char*alpm_pkg_get_arch(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_arch(pkg);
-}
-
-off_t  alpm_pkg_get_size(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.size;
-}
-
-off_t  alpm_pkg_get_isize(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_isize(pkg);
-}
-
-AlpmPkgReason  alpm_pkg_get_reason(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_reason(pkg);
-}
-
-int  alpm_pkg_get_validation(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_validation(pkg);
-}
-
-// alpm_list_t * alpm_pkg_get_licenses(AlpmPkg pkg)
-// {
-// 	//ASSERT(pkg != null);
-// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-// 	return pkg.ops.get_licenses(pkg);
-// }
-
-auto alpm_pkg_get_groups(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_groups(pkg);
-}
-
-AlpmDeps alpm_pkg_get_depends(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_depends(pkg);
-}
-
-AlpmDeps alpm_pkg_get_optdepends(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_optdepends(pkg);
-}
-
-auto alpm_pkg_get_checkdepends(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_checkdepends(pkg);
-}
-
-auto alpm_pkg_get_makedepends(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_makedepends(pkg);
-}
-
-AlpmDeps alpm_pkg_get_conflicts(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_conflicts(pkg);
-}
-
-AlpmDeps alpm_pkg_get_provides(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_provides(pkg);
-}
-
-auto alpm_pkg_get_replaces(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_replaces(pkg);
-}
-
-AlpmFileList alpm_pkg_get_files(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_files(pkg);
-}
-
-auto alpm_pkg_get_backup(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.get_backup(pkg);
-}
-
-AlpmDB alpm_pkg_get_db(AlpmPkg pkg)
-{
-	/* Sanity checks */
-	//ASSERT(pkg != null);
-	//ASSERT(pkg.origin != ALPM_PKG_FROM_FILE);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-
-	return pkg.origin_data.db;
-}
-
-void * alpm_pkg_changelog_open(AlpmPkg pkg)
-{
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-	return pkg.ops.changelog_open(pkg);
 }
 
 size_t  alpm_pkg_changelog_read(void* ptr, size_t size, AlpmPkg pkg, void* fp)
@@ -944,7 +757,7 @@ int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
 	}
 
 	/* next see if the package is in a group that is ignored */
-	foreach(groups; alpm_pkg_get_groups(pkg)[]) {
+	foreach(groups; pkg.getGroups()[]) {
 		char* grp = cast(char*)groups;
 		if(alpm_list_find(handle.ignoregroup, grp, &fnmatch_wrapper)) {
 			return 1;

@@ -220,7 +220,7 @@ private auto _cache_get_xdata(AlpmPkg pkg)
  */
 private void* _cache_changelog_open(AlpmPkg pkg)
 {
-	AlpmDB db = alpm_pkg_get_db(pkg);
+	AlpmDB db = pkg.getDB();
 	char* clfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"changelog");
 	FILE* f = fopen(clfile, "r");
 	free(clfile);
@@ -262,7 +262,7 @@ private archive* _cache_mtree_open(AlpmPkg pkg)
 {
 	archive* mtree = void;
 
-	AlpmDB db = alpm_pkg_get_db(pkg);
+	AlpmDB db = pkg.getDB();
 	char* mtfile = _alpm_local_db_pkgpath(db, pkg, cast(char*)"mtree");
 
 	if(access(mtfile, F_OK) != 0) {
@@ -1233,7 +1233,7 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 
 	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);
-	if(alpm_pkg_get_reason(pkg) == reason) {
+	if(pkg.getReason() == reason) {
 		/* we are done */
 		return 0;
 	}

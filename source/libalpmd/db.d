@@ -505,7 +505,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 			 * differently when we do match it since it isn't currently printed? */
 			if(!matched) {
 				/* check provides */
-				foreach(provide; alpm_pkg_get_provides(pkg)[]) {
+				foreach(provide; pkg.getProvides()[]) {
 					// AlpmDepend provide = cast(AlpmDepend )k.data;
 					if(strstr(provide.name, targ)) {
 						matched = provide.name;
@@ -515,7 +515,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 			}
 			if(!matched) {
 				/* check groups */
-				foreach(group; alpm_pkg_get_groups(pkg)[]) {
+				foreach(group; pkg.getGroups()[]) {
 					//   char*group =  cast(char*)k.data;
 					if(strstr(cast(char*)group, targ)) {
 						matched = cast(char*)group;
@@ -718,7 +718,7 @@ private int load_grpcache(AlpmDB db)
 	for(lp = _alpm_db_get_pkgcache(db); lp; lp = lp.next) {
 		AlpmPkg pkg = cast(AlpmPkg)lp.data;
 
-		foreach(grpname; alpm_pkg_get_groups(pkg)[]) {
+		foreach(grpname; pkg.getGroups()[]) {
 			alpm_list_t* j = void;
 			AlpmGroup grp = null;
 			int found = 0;

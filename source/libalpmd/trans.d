@@ -116,7 +116,7 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		alpm_list_t* j = void;
 		int found = 0;
-		  char*pkgarch = alpm_pkg_get_arch(pkg);
+		  char*pkgarch = cast(char*)pkg.getArch();
 
 		/* always allow non-architecture packages and those marked "any" */
 		if(!pkgarch || strcmp(pkgarch, "any") == 0) {

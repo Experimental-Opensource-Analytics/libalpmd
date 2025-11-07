@@ -178,7 +178,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 
 	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = alpm_list_next(i)) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		auto optdeps = alpm_pkg_get_optdepends(pkg);
+		auto optdeps = pkg.getOptDepends();
 
 		if(!optdeps.empty && !alpm_pkg_find(lp, cast(char*)pkg.name)) {
 			alpm_list_t* j = void;
@@ -491,7 +491,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 		} else if(files < 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"keeping directory %s (could not count files)\n", file.ptr);
-		} else if(newpkg && alpm_filelist_contains(alpm_pkg_get_files(newpkg),
+		} else if(newpkg && alpm_filelist_contains(newpkg.getFiles(),
 					fileobj.name)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"keeping directory %s (in new package)\n", file.ptr);
@@ -513,7 +513,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 						&& oldpkg.name == local_pkg.name) {
 					continue;
 				}
-				filelist = alpm_pkg_get_files(local_pkg);
+				filelist = local_pkg.getFiles();
 				if(alpm_filelist_contains(filelist, fileobj.name)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"keeping directory %s (owned by %s)\n", file.ptr, local_pkg.name);
@@ -597,7 +597,7 @@ private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
 	return _alpm_fnmatch_patterns(handle.noupgrade, path) == 0
 		|| alpm_list_find_str(handle.trans.skip_remove, path)
 		|| (newpkg && _alpm_needbackup(path, newpkg)
-				&& alpm_filelist_contains(alpm_pkg_get_files(newpkg), path.to!string));
+				&& alpm_filelist_contains(newpkg.getFiles(), path.to!string));
 }
 
 /**
@@ -620,7 +620,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 	int err = 0;
 	int nosave = handle.trans.flags & ALPM_TRANS_FLAG_NOSAVE;
 
-	filelist = alpm_pkg_get_files(oldpkg);
+	filelist = oldpkg.getFiles();
 	for(i = 0; i < filelist.length; i++) {
 		AlpmFile* file = filelist.ptr + i;
 		if(!should_skip_file(handle, newpkg, cast(char*)file.name)

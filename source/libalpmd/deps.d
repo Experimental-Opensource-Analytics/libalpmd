@@ -131,7 +131,7 @@ void  alpm_depmissing_free(alpm_depmissing_t* miss)
 private int _alpm_pkg_depends_on(AlpmPkg pkg1, AlpmPkg pkg2)
 {
 	// alpm_list_t* i = void;
-	foreach(dep; alpm_pkg_get_depends(pkg1)[]) {
+	foreach(dep; pkg1.getDepends()[]) {
 		if(_alpm_depcmp(pkg2, dep)) {
 			return 1;
 		}
@@ -376,7 +376,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: package %s-%s\n",
 				tp.name, tp.version_);
 
-		foreach(depend; alpm_pkg_get_depends(tp)[]) {
+		foreach(depend; tp.getDepends()[]) {
 			// AlpmDepend depend = cast(AlpmDepend )j.data;
 			alpm_depmod_t orig_mod = depend.mod;
 			if(nodepversion) {
@@ -406,7 +406,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 		 * the packages listed in the requiredby field. */
 		for(i = dblist; i; i = i.next) {
 			AlpmPkg lp = cast(AlpmPkg)i.data;
-			foreach(depend; alpm_pkg_get_depends(lp)[]) {
+			foreach(depend; lp.getDepends()[]) {
 				// AlpmDepend depend = cast(AlpmDepend )j.data;
 				alpm_depmod_t orig_mod = depend.mod;
 				if(nodepversion) {
@@ -504,7 +504,7 @@ int _alpm_depcmp_provides(AlpmDepend dep, AlpmDeps provisions)
 int _alpm_depcmp(AlpmPkg pkg, AlpmDepend dep)
 {
 	return _alpm_depcmp_literal(pkg, dep)
-		|| _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg));
+		|| _alpm_depcmp_provides(dep, pkg.getProvides());
 }
 
 AlpmDepend alpm_dep_from_string(  char*depstring)
@@ -604,13 +604,13 @@ error:
 private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, AlpmPkg pkg, int explicit)
 {
 	alpm_list_t* i = void, next = void;
-	if(alpm_pkg_get_depends(pkg).empty) {
+	if(pkg.getDepends().empty) {
 		return;
 	}
 	for(i = *from; i; i = next) {
 		AlpmPkg deppkg = cast(AlpmPkg)i.data;
 		next = i.next;
-		if((explicit || alpm_pkg_get_reason(deppkg) == ALPM_PKG_REASON_DEPEND)
+		if((explicit || deppkg.getReason() == ALPM_PKG_REASON_DEPEND)
 				&& _alpm_pkg_depends_on(pkg, deppkg)) {
 			*to = alpm_list_add(*to, cast(void*)deppkg);
 			*from = alpm_list_remove_item(*from, i);
@@ -734,7 +734,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, al
 		for(auto j = _alpm_db_get_pkgcache(db); j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.name_hash != dep.name_hash || strcmp(cast(char*)pkg.name, dep.name) != 0)
-					&& _alpm_depcmp_provides(dep, alpm_pkg_get_provides(pkg))
+					&& _alpm_depcmp_provides(dep, pkg.getProvides())
 					&& !alpm_pkg_find(excluding, cast(char*)pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
 					alpm_question_install_ignorepkg_t question = {

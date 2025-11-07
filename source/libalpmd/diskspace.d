@@ -312,7 +312,7 @@ private alpm_mountpoint_t* match_mount_point( alpm_list_t* mount_points,   char*
 private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points, AlpmPkg pkg)
 {
 	size_t i = void;
-	AlpmFileList filelist = alpm_pkg_get_files(pkg);
+	AlpmFileList filelist = pkg.getFiles();
 
 	if(!filelist.length) {
 		return 0;
@@ -373,7 +373,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_points, AlpmPkg pkg)
 {
 	size_t i = void;
-	AlpmFileList filelist = alpm_pkg_get_files(pkg);
+	AlpmFileList filelist = pkg.getFiles;
 
 	if(!filelist.length) {
 		return 0;

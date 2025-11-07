@@ -179,7 +179,7 @@ private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* 
 		AlpmPkg pkg1 = cast(AlpmPkg)i.data;
 		// alpm_list_t* j = void;
 
-		foreach(conflict1; alpm_pkg_get_conflicts(pkg1)[]) {
+		foreach(conflict1; pkg1.getConflicts()[]) {
 			// AlpmDepend conflict = cast(AlpmDepend )j.data;
 			alpm_list_t* k = void;
 
@@ -345,7 +345,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 		snprintf(path.ptr, PATH_MAX, "%s%s%s", dirpath, name, is_dir ? "/".ptr : "".ptr);
 
 		for(i = pkgs; i && !owned; i = i.next) {
-			if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.to!string)) {
+			if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 				owned = 1;
 			}
 		}
@@ -369,7 +369,7 @@ private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 {
 	alpm_list_t* i = void, owners = null;
 	for(i = alpm_db_get_pkgcache(db); i; i = i.next) {
-		if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.to!string)) {
+		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			owners = alpm_list_add(owners, i.data);
 		}
 	}
@@ -380,7 +380,7 @@ private AlpmPkg _alpm_find_file_owner(AlpmHandle handle,   char*path)
 {
 	alpm_list_t* i = void;
 	for(i = alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
-		if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)i.data), path.to!string)) {
+		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			return cast(AlpmPkg)i.data;
 		}
 	}
@@ -440,8 +440,8 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			alpm_list_t* common_files = void;
 			AlpmPkg p2 = cast(AlpmPkg)j.data;
 
-			AlpmFileList p1_files = alpm_pkg_get_files(p1);
-			AlpmFileList p2_files = alpm_pkg_get_files(p2);
+			AlpmFileList p1_files = p1.getFiles();
+			AlpmFileList p2_files = p2.getFiles();
 
 			common_files = _alpm_filelist_intersection(p1_files, p2_files);
 
@@ -490,11 +490,11 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		 * be freed. */
 		if(dbpkg) {
 			/* older ver of package currently installed */
-			newfiles = _alpm_filelist_difference(alpm_pkg_get_files(p1),
-					alpm_pkg_get_files(dbpkg));
+			newfiles = _alpm_filelist_difference(p1.getFiles(),
+					dbpkg.getFiles());
 		} else {
 			/* no version of package currently installed */
-			AlpmFileList fl = alpm_pkg_get_files(p1);
+			AlpmFileList fl = p1.getFiles();
 			size_t filenum = void;
 			for(filenum = 0; filenum < fl.length; filenum++) {
 				newfiles = alpm_list_add(newfiles, cast(char*)fl[filenum].name);
@@ -534,7 +534,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				path[pathlen - 1] = '\0';
 
 				/* Check if the directory was a file in dbpkg */
-				if(alpm_filelist_contains(alpm_pkg_get_files(dbpkg), relative_path.to!string)) {
+				if(alpm_filelist_contains(dbpkg.getFiles(), relative_path.to!string)) {
 					size_t fslen = strlen(filestr);
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"replacing package file with a directory, not a conflict\n");
@@ -555,8 +555,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			/* Check remove list (will we remove the conflicting local file?) */
 			for(k = rem; k && !resolved_conflict; k = k.next) {
 				AlpmPkg rempkg = cast(AlpmPkg)k.data;
-				if(rempkg && alpm_filelist_contains(alpm_pkg_get_files(rempkg),
-							relative_path.to!string)) {
+				if(rempkg && alpm_filelist_contains(rempkg.getFiles(), relative_path.to!string)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"local file will be removed, not a conflict\n");
 					resolved_conflict = 1;
@@ -586,7 +585,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				localp2 = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)p2.name);
 
 				/* localp2->files will be removed (target conflicts are handled by CHECK 1) */
-				if(localp2 && alpm_filelist_contains(alpm_pkg_get_files(localp2), relative_path.to!string)) {
+				if(localp2 && alpm_filelist_contains(localp2.getFiles(), relative_path.to!string)) {
 					size_t fslen = strlen(filestr);
 
 					/* skip removal of file, but not add. this will prevent a second
@@ -650,7 +649,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				alpm_list_t* local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
 				int found = 0;
 				for(k = local_pkgs; k && !found; k = k.next) {
-					if(alpm_filelist_contains(alpm_pkg_get_files(cast(AlpmPkg)k.data), relative_path.to!string)) {
+					if(alpm_filelist_contains((cast(AlpmPkg)k.data).getFiles(), relative_path.to!string)) {
 							found = 1;
 					}
 				}
