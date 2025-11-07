@@ -94,7 +94,7 @@ class AlpmPkg {
 
 	AlpmXDataList xdata;
 
-	/* Bitfield from alpm_dbinfrq_t */
+	/* Bitfield from AlpmDBInfRq */
 	int infolevel;
 	/* Bitfield from alpm_pkgvalidation_t */
 	int validation;

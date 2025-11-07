@@ -620,7 +620,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	newpkg.origin_data.file = pkgfile.to!string;
 	// newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
-	newpkg.infolevel = INFRQ_BASE | INFRQ_DESC | INFRQ_SCRIPTLET;
+	newpkg.infolevel =AlpmDBInfRq.Base | AlpmDBInfRq.Desc | AlpmDBInfRq.Scriptlet;
 	newpkg.validation = ALPM_PKG_VALIDATION_NONE;
 
 	if(full) {
@@ -632,7 +632,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 
 			_alpm_filelist_sort(newpkg.files);
 		}
-		newpkg.infolevel |= INFRQ_FILES;
+		newpkg.infolevel |= AlpmDBInfRq.Files;
 	}
 
 	if(_alpm_pkg_check_meta(newpkg) != 0) {

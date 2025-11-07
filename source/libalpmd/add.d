@@ -574,7 +574,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	_alpm_log(handle, ALPM_LOG_DEBUG, "updating database\n");
 	_alpm_log(handle, ALPM_LOG_DEBUG, "adding database entry '%s'\n", newpkg.name);
 
-	if(_alpm_local_db_write(db, newpkg, INFRQ_ALL)) {
+	if(_alpm_local_db_write(db, newpkg, AlpmDBInfRq.All)) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not update database entry %s-%s\n"),
 				newpkg.name, newpkg.version_);
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,

@@ -75,112 +75,112 @@ enum string LAZY_LOAD(string info) = `
 
  class AlpmPkgLocal : AlpmPkg {
 	override string getBase() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.base;
 	}
 
 	override string getDesc() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.desc;
 	}
 
 	override string getUrl() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.url;
 	}
 
 	override AlpmTime getBuildDate() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.builddate;
 	}
 
 	override AlpmTime getInstallDate() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.installdate;
 	}
 
 	override string getPackager() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.packager;
 	}
 
 	override string getArch() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.arch;
 	}
 
 	override off_t getInstallSize() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.isize;
 	}
 
 	override AlpmPkgReason getReason() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.reason;
 	}
 
 	override int getValidation() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.validation;
 	}
 
 	override AlpmStrings getLicenses() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.licenses;
 	}
 
 	override AlpmStrings getGroups() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.groups;
 	}
 
 	override int hasScriptlet() {
-		mixin(LAZY_LOAD!(`INFRQ_SCRIPTLET`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Scriptlet`));
 		return this.scriptlet;
 	}
 
 	override AlpmDeps getDepends() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.depends;
 	}
 
 	override AlpmDeps getOptDepends() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.optdepends;
 	}
 
 	override AlpmDeps getMakeDepends() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.makedepends;
 	}
 
 	override AlpmDeps getCheckDepends() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.checkdepends;
 	}
 
 	override AlpmDeps getConflicts() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.conflicts;
 	}
 
 	override AlpmDeps getProvides() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.provides;
 	}
 
 	override AlpmFileList getFiles() {
-		mixin(LAZY_LOAD!(`INFRQ_FILES`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Files`));
 		return this.files;
 	}
 
 	override AlpmBackups getBackups() {
-		mixin(LAZY_LOAD!(`INFRQ_FILES`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Files`));
 		return this.backup;
 	}
 
 	override AlpmXDataList getXData() {
-		mixin(LAZY_LOAD!(`INFRQ_DESC`));
+		mixin(LAZY_LOAD!(`AlpmDBInfRq.Desc`));
 		return this.xdata;
 	}
 
@@ -290,7 +290,7 @@ enum string LAZY_LOAD(string info) = `
 	}
 
 	override int forceLoad() {
-		return local_db_read(this, INFRQ_ALL);
+		return local_db_read(this, AlpmDBInfRq.All);
 	}
  }
 
@@ -551,7 +551,7 @@ private int local_db_populate(AlpmDB db)
 		pkg.handle = db.handle;
 
 		/* explicitly read with only 'BASE' data, accessors will handle the rest */
-		if(local_db_read(pkg, INFRQ_BASE) == -1) {
+		if(local_db_read(pkg,AlpmDBInfRq.Base) == -1) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("corrupted database entry '%s'\n"), name);
 			_alpm_pkg_free(pkg);
 			continue;
@@ -672,7 +672,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 		return 0;
 	}
 
-	if(info.infolevel & INFRQ_ERROR) {
+	if(info.infolevel & AlpmDBInfRq.Error) {
 		/* We've encountered an error loading this package before. Don't attempt
 		 * repeated reloads, just give up. */
 		return -1;
@@ -683,7 +683,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			info.name, inforeq);
 
 	/* DESC */
-	if(inforeq & INFRQ_DESC && !(info.infolevel & INFRQ_DESC)) {
+	if(inforeq & AlpmDBInfRq.Desc && !(info.infolevel & AlpmDBInfRq.Desc)) {
 		char* path = _alpm_local_db_pkgpath(db, info, cast(char*)"desc");
 		if(!path || (fp = fopen(path, "r")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"), path, strerror(errno));
@@ -792,11 +792,11 @@ private int local_db_read(AlpmPkg info, int inforeq)
 		}
 		fclose(fp);
 		fp = null;
-		info.infolevel |= INFRQ_DESC;
+		info.infolevel |= AlpmDBInfRq.Desc;
 	}
 
 	/* FILES */
-	if(inforeq & INFRQ_FILES && !(info.infolevel & INFRQ_FILES)) {
+	if(inforeq & AlpmDBInfRq.Files && !(info.infolevel & AlpmDBInfRq.Files)) {
 		char* path = _alpm_local_db_pkgpath(db, info, cast(char*)"files");
 		if(!path || (fp = fopen(path, "r")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"), path, strerror(errno));
@@ -853,23 +853,23 @@ nomem:
 		}
 		fclose(fp);
 		fp = null;
-		info.infolevel |= INFRQ_FILES;
+		info.infolevel |= AlpmDBInfRq.Files;
 	}
 
 	/* INSTALL */
-	if(inforeq & INFRQ_SCRIPTLET && !(info.infolevel & INFRQ_SCRIPTLET)) {
+	if(inforeq & AlpmDBInfRq.Scriptlet && !(info.infolevel & AlpmDBInfRq.Scriptlet)) {
 		char* path = _alpm_local_db_pkgpath(db, info, cast(char*)"install");
 		if(access(path, F_OK) == 0) {
 			info.scriptlet = 1;
 		}
 		free(path);
-		info.infolevel |= INFRQ_SCRIPTLET;
+		info.infolevel |= AlpmDBInfRq.Scriptlet;
 	}
 
 	return 0;
 
 error:
-	info.infolevel |= INFRQ_ERROR;
+	info.infolevel |= AlpmDBInfRq.Error;
 	if(fp) {
 		fclose(fp);
 	}
@@ -949,7 +949,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 	oldmask = umask(octal!"0022");
 
 	/* DESC */
-	if(inforeq & INFRQ_DESC) {
+	if(inforeq & AlpmDBInfRq.Desc) {
 		char* path = void;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s DESC information back to db\n",
@@ -1055,7 +1055,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 	}
 
 	/* FILES */
-	if(inforeq & INFRQ_FILES) {
+	if(inforeq & AlpmDBInfRq.Files) {
 		char* path = void;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s FILES information back to db\n",
@@ -1159,7 +1159,7 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 	/* set reason (in pkgcache) */
 	pkg.reason = reason;
 	/* write DESC */
-	if(_alpm_local_db_write(pkg.handle.db_local, pkg, INFRQ_DESC)) {
+	if(_alpm_local_db_write(pkg.handle.db_local, pkg, AlpmDBInfRq.Desc)) {
 		RET_ERR(pkg.handle, ALPM_ERR_DB_WRITE, -1);
 	}
 

@@ -43,27 +43,17 @@ import libalpmd.pkghash;
 import libalpmd.be_sync;
 import libalpmd.deps;
 
-
-
-enum alpm_dbinfrq_t {
-	INFRQ_BASE = (1 << 0),
-	INFRQ_DESC = (1 << 1),
-	INFRQ_FILES = (1 << 2),
-	INFRQ_SCRIPTLET = (1 << 3),
-	INFRQ_DSIZE = (1 << 4),
+enum AlpmDBInfRq {
+	Base = (1 << 0),
+	Desc = (1 << 1),
+	Files = (1 << 2),
+	Scriptlet = (1 << 3),
+	DSize = (1 << 4),
 	/* ALL should be info stored in the package or database */
-	INFRQ_ALL = INFRQ_BASE | INFRQ_DESC | INFRQ_FILES |
-		INFRQ_SCRIPTLET | INFRQ_DSIZE,
-	INFRQ_ERROR = (1 << 30)
+	All = Base | Desc | Files |
+		Scriptlet | DSize,
+	Error = (1 << 30)
 }
-alias INFRQ_BASE = alpm_dbinfrq_t.INFRQ_BASE;
-alias INFRQ_DESC = alpm_dbinfrq_t.INFRQ_DESC;
-alias INFRQ_FILES = alpm_dbinfrq_t.INFRQ_FILES;
-alias INFRQ_SCRIPTLET = alpm_dbinfrq_t.INFRQ_SCRIPTLET;
-alias INFRQ_DSIZE = alpm_dbinfrq_t.INFRQ_DSIZE;
-alias INFRQ_ALL = alpm_dbinfrq_t.INFRQ_ALL;
-alias INFRQ_ERROR = alpm_dbinfrq_t.INFRQ_ERROR;
-
 
 /** Database status. Bitflags. */
 enum _alpm_dbstatus_t {

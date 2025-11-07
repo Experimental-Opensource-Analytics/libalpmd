@@ -321,7 +321,7 @@ private int compute_download_size(AlpmPkg newpkg)
 	size_t fnamepartlen = 0;
 
 	if(newpkg.origin != ALPM_PKG_FROM_SYNCDB) {
-		newpkg.infolevel |= INFRQ_DSIZE;
+		newpkg.infolevel |= AlpmDBInfRq.DSize;
 		newpkg.download_size = 0;
 		return 0;
 	}
@@ -359,7 +359,7 @@ finish:
 	_alpm_log(handle, ALPM_LOG_DEBUG, "setting download size %jd for pkg %s\n",
 			cast(intmax_t)size, newpkg.name);
 
-	newpkg.infolevel |= INFRQ_DSIZE;
+	newpkg.infolevel |= AlpmDBInfRq.DSize;
 	newpkg.download_size = size;
 
 	FREE(fpath);
@@ -694,7 +694,7 @@ cleanup:
 
 off_t  alpm_pkg_download_size(AlpmPkg newpkg)
 {
-	if(!(newpkg.infolevel & INFRQ_DSIZE)) {
+	if(!(newpkg.infolevel & AlpmDBInfRq.DSize)) {
 		compute_download_size(newpkg);
 	}
 	return newpkg.download_size;
@@ -882,7 +882,7 @@ finish:
 
 	for(i = handle.trans.add; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		pkg.infolevel &= ~INFRQ_DSIZE;
+		pkg.infolevel &= ~AlpmDBInfRq.DSize;
 		pkg.download_size = 0;
 	}
 	FREE(temporary_cachedir);
