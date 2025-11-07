@@ -3,8 +3,6 @@ module libalpmd._package;
 import core.stdc.config: c_long, c_ulong;
 
 import core.stdc.limits;
-import core.stdc.stdlib;
-import core.stdc.string;
 import core.sys.posix.unistd;
 
 import libalpmd.deps;
@@ -26,6 +24,7 @@ import std.conv;
 import std.string;
 import std.array;
 import core.stdc.errno;
+import std.algorithm;
 
 import libalpmd.filelist;
 import libalpmd.be_package;
@@ -423,12 +422,12 @@ AlpmPkgXData* _alpm_pkg_parse_xdata(string data)
 	return pd;
 }
 
-void _alpm_pkg_xdata_free(AlpmPkgXData* pd)
-{
-	if(pd) {
-		free(pd);
-	}
-}
+// void _alpm_pkg_xdata_free(AlpmPkgXData* pd)
+// {
+// 	if(pd) {
+// 		free(pd);
+// 	}
+// }
 
 void _alpm_pkg_free(AlpmPkg pkg)
 {
@@ -456,7 +455,8 @@ void _alpm_pkg_free(AlpmPkg pkg)
 		for(i = 0; i < pkg.files.count; i++) {
 			FREE(pkg.files.ptr[i].name);
 		}
-		free(pkg.files.ptr);
+		// free(pkg.files.ptr);
+		pkg.files = [];
 	}
 	// alpm_list_free_inner(pkg.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
 	// alpm_list_free(pkg.backup);
@@ -514,7 +514,7 @@ int _alpm_pkg_cmp( void* p1,  void* p2)
 	return pkg1.name == pkg2.name;
 }
 
-AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack,   char*needle)
+AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
 {
 	// alpm_list_t* lp = void;
 	c_ulong needle_hash = void;
@@ -523,7 +523,7 @@ AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack,   char*needle)
 		return null;
 	}
 
-	needle_hash = _alpm_hash_sdbm(needle);
+	needle_hash = _alpm_hash_sdbm(cast(char*)needle);
 
 	foreach(info; haystack[]) {
 		// AlpmPkg info = cast(AlpmPkg)lp.data;
@@ -534,7 +534,7 @@ AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack,   char*needle)
 			}
 
 			/* finally: we had hash match, verify string match */
-			if(strcmp(cast(char*)info.name, needle) == 0) {
+			if(info.name == needle) {
 				return info;
 			}
 		}
@@ -547,6 +547,7 @@ AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack,   char*needle)
  */
 AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 {
+	import core.stdc.string;
 	alpm_list_t* lp = void;
 	c_ulong needle_hash = void;
 
@@ -594,7 +595,7 @@ int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
 /* check that package metadata meets our requirements */
 int _alpm_pkg_check_meta(AlpmPkg pkg)
 {
-	char* c = void;
+	string c;
 	int error_found = 0;
 
 enum string EPKGMETA(string error) = `do { 
@@ -626,11 +627,12 @@ enum string EPKGMETA(string error) = `do {
 
 	/* multiple '-' in pkgver can cause local db entries for different packages
 	 * to overlap (e.g. foo-1=2-3 and foo=1-2-3 both give foo-1-2-3) */
-	if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
+	// if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
+	if((c = pkg.getVersion().find('-')) != [] && c[1..$-1].find('-')) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package version contains invalid characters)\n")`));
 	}
-	if(strchr(cast(char*)pkg.version_, '/')) {
+	if(pkg.getVersion().find('-') != []) {
 		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 					~ "(package version contains invalid characters)\n")`));
 	}

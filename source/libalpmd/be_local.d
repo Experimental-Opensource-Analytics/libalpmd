@@ -777,7 +777,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				for(i = lines; i; i = i.next) {
 					AlpmPkgXData* pd = _alpm_pkg_parse_xdata(i.data.to!string);
 					if(pd == null || !alpmList_append(&info.xdata, *pd)) {
-						_alpm_pkg_xdata_free(pd);
+						pd = null;
 						FREELIST(lines);
 						goto error;
 					}

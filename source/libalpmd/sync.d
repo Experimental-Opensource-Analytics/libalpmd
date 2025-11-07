@@ -58,8 +58,6 @@ import libalpmd.deps;
 import libalpmd.error;
 
 
-
-
 struct keyinfo_t {
        char* uid;
        char* keyid;
@@ -603,7 +601,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			}
 			for(j = trans.add; j && !found; j = j.next) {
 				AlpmPkg spkg = cast(AlpmPkg)j.data;
-				if(alpm_pkg_find_n(spkg.removes, cast(char*)name2)) {
+				if(alpm_pkg_find_n(spkg.removes, name2)) {
 				// if(spkg.removes[].canFind)
 					found = 1;
 				}
