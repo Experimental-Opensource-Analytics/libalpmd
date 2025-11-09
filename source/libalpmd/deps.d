@@ -171,7 +171,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* vertices = null;
 	alpm_list_t* localpkgs = alpm_list_diff(
-			alpm_db_get_pkgcache(handle.db_local), targets, &_alpm_pkg_cmp);
+			handle.db_local.getPkgCache(), targets, &_alpm_pkg_cmp);
 
 	if(ignore) {
 		alpm_list_t* oldlocal = localpkgs;

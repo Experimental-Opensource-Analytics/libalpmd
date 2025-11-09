@@ -233,7 +233,7 @@ alpm_list_t* _alpm_outerconflicts(AlpmDB db, alpm_list_t* packages)
 		return null;
 	}
 
-	alpm_list_t* dblist = alpm_list_diff(alpm_db_get_pkgcache(db),
+	alpm_list_t* dblist = alpm_list_diff(db.getPkgCache(),
 			packages, &_alpm_pkg_cmp);
 
 	/* two checks to be done here for conflicts */
@@ -368,7 +368,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 {
 	alpm_list_t* i = void, owners = null;
-	for(i = alpm_db_get_pkgcache(db); i; i = i.next) {
+	for(i = db.getPkgCache(); i; i = i.next) {
 		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			owners = alpm_list_add(owners, i.data);
 		}
@@ -379,7 +379,7 @@ private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 private AlpmPkg _alpm_find_file_owner(AlpmHandle handle,   char*path)
 {
 	alpm_list_t* i = void;
-	for(i = alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
+	for(i = handle.db_local.getPkgCache(); i; i = i.next) {
 		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			return cast(AlpmPkg)i.data;
 		}
