@@ -76,8 +76,8 @@ error:
 void  alpm_conflict_free(alpm_conflict_t* conflict)
 {
 	//ASSERT(conflict != null);
-	_alpm_pkg_free(conflict.package1);
-	_alpm_pkg_free(conflict.package2);
+	destroy!false(conflict.package1);
+	destroy!false(conflict.package2);
 
 	FREE(conflict);
 }

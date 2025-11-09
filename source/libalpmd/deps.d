@@ -666,7 +666,7 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
 				"adding '%s' to the targets\n", pkg.name);
 		if(_alpm_pkg_dup(pkg, &copy)) {
 			/* we return memory on "non-fatal" error in _alpm_pkg_dup */
-			_alpm_pkg_free(copy);
+			destroy!false(copy);
 			alpm_list_free(rem);
 			return -1;
 		}

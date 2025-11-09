@@ -646,7 +646,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 pkg_invalid:
 	handle.pm_errno = ALPM_ERR_PKG_INVALID;
 error:
-	_alpm_pkg_free(newpkg);
+	destroy!false(newpkg);
 	_alpm_archive_read_free(archive);
 	close(fd);
 
@@ -715,7 +715,7 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, Alpm
 						if(_alpm_key_import(handle, null, key) == -1) {
 							fail = 1;
 						}
-						_alpm_pkg_free(pkg_temp);
+						destroy!false(pkg_temp);
 					}
 				}
 				FREELIST(keys);

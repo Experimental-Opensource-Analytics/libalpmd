@@ -1227,7 +1227,7 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 			errors++;
 			*data = alpm_list_add(*data, cast(char*)spkg.filename.dup);
 			delete_list = alpm_list_add(delete_list, filepath);
-			_alpm_pkg_free(pkgfile);
+			destroy!false(pkgfile);
 			continue;
 		}
 		free(filepath);

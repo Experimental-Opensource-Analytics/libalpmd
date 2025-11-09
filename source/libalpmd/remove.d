@@ -156,7 +156,7 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 			if(pkg) {
 				_alpm_log(handle, ALPM_LOG_WARNING, ("removing %s from target list\n"),
 						pkg.name);
-				_alpm_pkg_free(pkg);
+				destroy!false(pkg);
 			}
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);

@@ -620,7 +620,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 
 	if(_alpm_pkg_dup(pkg, &newpkg)) {
 		/* we return memory on "non-fatal" error in _alpm_pkg_dup */
-		_alpm_pkg_free(newpkg);
+		destroy!false(newpkg);
 		return -1;
 	}
 
@@ -634,7 +634,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 		: ALPM_PKG_FROM_SYNCDB;
 	newpkg.origin_data.db = db;
 	if(_alpm_pkghash_add_sorted(&db.pkgcache, newpkg) == null) {
-		_alpm_pkg_free(newpkg);
+		destroy!false(newpkg);
 		RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 	}
 
@@ -662,7 +662,7 @@ int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
 		return -1;
 	}
 
-	_alpm_pkg_free(data);
+	destroy!false(data);
 
 	free_groupcache(db);
 

@@ -371,7 +371,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		pkg.handle = db.handle;
 
 		if(_alpm_pkg_check_meta(pkg) != 0) {
-			_alpm_pkg_free(pkg);
+			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_PKG_INVALID, null);
 		}
 
@@ -379,7 +379,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
 				pkg.name, db.treename);
 		if(_alpm_pkghash_add(&db.pkgcache, pkg) == null) {
-			_alpm_pkg_free(pkg);
+			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
 		}
 	} else {

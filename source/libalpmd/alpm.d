@@ -2443,7 +2443,7 @@ alias ALPM_PKG_VALIDATION_SIGNATURE = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_S
  * If full is false, the archive is read only until all necessary
  * metadata is found. If it is true, the entire archive is read, which
  * serves as a verification of integrity and the filelist can be created.
- * The allocated structure should be freed using alpm_pkg_free().
+ * The allocated structure should be freed using destroy!false().
  * @param handle the context handle
  * @param filename location of the package tarball
  * @param full whether to stop the load after metadata is read or continue
@@ -2472,7 +2472,7 @@ int alpm_fetch_pkgurl(AlpmHandle handle, alpm_list_t* urls, alpm_list_t** fetche
  * @param pkg package pointer to free
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_pkg_free(AlpmPkg pkg);
+// int destroy!false(AlpmPkg pkg);
 
 /** Check the integrity (with md5) of a package from the sync cache.
  * @param pkg package pointer
@@ -2517,7 +2517,7 @@ alpm_list_t* alpm_pkg_compute_optionalfor(AlpmPkg pkg);
  * allocated by libalpm. They should not be freed nor modified in any
  * way.
  *
- * For loaded packages, they will be freed when \link alpm_pkg_free \endlink is called.
+ * For loaded packages, they will be freed when \link destroy!false \endlink is called.
  * For database packages, they will be freed when the database is unregistered.
  * @{
  */

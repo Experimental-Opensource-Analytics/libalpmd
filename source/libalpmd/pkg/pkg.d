@@ -148,15 +148,15 @@ public:
 
 alias AlpmPkgs = DList!AlpmPkg;
 
-int  alpm_pkg_free(AlpmPkg pkg)
-{
-	/* Only free packages loaded in user space */
-	if(pkg.origin == ALPM_PKG_FROM_FILE) {
-		_alpm_pkg_free(pkg);
-	}
+// int  destroy!false(AlpmPkg pkg)
+// {
+// 	/* Only free packages loaded in user space */
+// 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
+// 		destroy!false(pkg);
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 int  alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len)
 {
@@ -364,7 +364,7 @@ int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
 	return ret;
 
 cleanup:
-	_alpm_pkg_free(newpkg);
+	destroy!false(newpkg);
 	RET_ERR(pkg.handle, ALPM_ERR_MEMORY, -1);
 }
 
@@ -436,7 +436,7 @@ void _alpm_pkg_free(AlpmPkg pkg)
 	// free_deplist(pkg.conflicts);
 	// free_deplist(pkg.provides);
 	// alpm_list_free(pkg.removes);
-	// _alpm_pkg_free(pkg.oldpkg);
+	// destroy!false(pkg.oldpkg);
 
 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
 		FREE(pkg.origin_data.file);
@@ -456,13 +456,13 @@ void _alpm_pkg_free_trans(AlpmPkg pkg)
 	}
 
 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
-		_alpm_pkg_free(pkg);
+		destroy!false(pkg);
 		return;
 	}
 
 	// alpm_list_free(pkg.removes);
 	// pkg.removes = null;
-	_alpm_pkg_free(pkg.oldpkg);
+	destroy!false(pkg.oldpkg);
 	pkg.oldpkg = null;
 }
 

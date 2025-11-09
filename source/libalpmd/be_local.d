@@ -558,14 +558,14 @@ private int local_db_populate(AlpmDB db)
 					&(pkg.name_hash)) != 0) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
 					name);
-			_alpm_pkg_free(pkg);
+			destroy!false(pkg);
 			continue;
 		}
 
 		/* duplicated database entries are not allowed */
 		if(_alpm_pkghash_find(db.pkgcache, cast(char*)pkg.name)) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("duplicated database entry '%s'\n"), pkg.name);
-			_alpm_pkg_free(pkg);
+			destroy!false(pkg);
 			continue;
 		}
 
@@ -577,7 +577,7 @@ private int local_db_populate(AlpmDB db)
 		/* explicitly read with only 'BASE' data, accessors will handle the rest */
 		if(local_db_read(pkg,AlpmDBInfRq.Base) == -1) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("corrupted database entry '%s'\n"), name);
-			_alpm_pkg_free(pkg);
+			destroy!false(pkg);
 			continue;
 		}
 
@@ -589,7 +589,7 @@ private int local_db_populate(AlpmDB db)
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
 				pkg.name, db.treename);
 		if(_alpm_pkghash_add(&db.pkgcache, pkg) == null) {
-			_alpm_pkg_free(pkg);
+			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 		}
 		count++;
