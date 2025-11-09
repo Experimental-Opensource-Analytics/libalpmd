@@ -35,7 +35,7 @@ import libalpmd.be_package;
 import libalpmd.libarchive_compat;
 import libalpmd.pkg;;
 import std.base64;
-import core.sys.darwin.mach.loader;
+// import core.sys.darwin.mach.loader;
 
 alias AlpmPkgs = DList!AlpmPkg;
 

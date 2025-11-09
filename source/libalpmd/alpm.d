@@ -2625,7 +2625,7 @@ alpm_list_t* alpm_pkg_get_makedepends(AlpmPkg pkg);
  * @param pkg a pointer to package
  * @return a reference to an internal string
  */
-const(char)* alpm_pkg_get_base64_sig(AlpmPkg pkg);
+// const(char)* alpm_pkg_get_base64_sig(AlpmPkg pkg);
 
 /** Extracts package signature either from embedded package signature
  * or if it is absent then reads data from detached signature file.
