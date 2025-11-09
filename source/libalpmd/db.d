@@ -273,6 +273,20 @@ class AlpmDB {
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 		return this.ops.validate(this);
 	}
+
+	AlpmPkg getPkg(char*name)
+	{
+		AlpmPkg pkg = void;
+		//ASSERT(this != null);
+		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(name != null && strlen(name) != 0);
+
+		pkg = _alpm_db_get_pkgfromcache(this, name);
+		if(!pkg) {
+			RET_ERR(this.handle, ALPM_ERR_PKG_NOT_FOUND, null);
+		}
+		return pkg;
+	}
 }
 
 alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
@@ -286,20 +300,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
 	_alpm_db_free(db);
-}
-
-AlpmPkg alpm_db_get_pkg(AlpmDB db,   char*name)
-{
-AlpmPkg pkg = void;
-//ASSERT(db != null);
-(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-//ASSERT(name != null && strlen(name) != 0);
-
-	pkg = _alpm_db_get_pkgfromcache(db, name);
-	if(!pkg) {
-		RET_ERR(db.handle, ALPM_ERR_PKG_NOT_FOUND, null);
-	}
-	return pkg;
 }
 
 alpm_list_t * alpm_db_get_pkgcache(AlpmDB db)
