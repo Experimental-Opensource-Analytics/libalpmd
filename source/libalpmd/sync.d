@@ -263,7 +263,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 
 	for(i = dbs; i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
-		AlpmGroup grp = alpm_db_get_group(db, name);
+		AlpmGroup grp = db.getGroup(name);
 
 		if(!grp) {
 			continue;

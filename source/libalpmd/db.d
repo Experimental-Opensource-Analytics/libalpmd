@@ -294,6 +294,15 @@ class AlpmDB {
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 		return _alpm_db_get_pkgcache(this);
 	}
+
+	AlpmGroup getGroup(char*name)
+	{
+		//ASSERT(db != null);
+		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(name != null && strlen(name) != 0);
+
+		return _alpm_db_get_groupfromcache(this, name);
+	}
 }
 
 alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
@@ -307,15 +316,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
 	_alpm_db_free(db);
-}
-
-AlpmGroup alpm_db_get_group(AlpmDB db,   char*name)
-{
-	//ASSERT(db != null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-	//ASSERT(name != null && strlen(name) != 0);
-
-	return _alpm_db_get_groupfromcache(db, name);
 }
 
 alpm_list_t * alpm_db_get_groupcache(AlpmDB db)
