@@ -258,6 +258,14 @@ class AlpmDB {
 		return ret;
 	}
 
+	int getSigLevel() {
+		//ASSERT(this != null);
+		if(this.siglevel & ALPM_SIG_USE_DEFAULT) {
+			return this.handle.siglevel;
+		} else {
+			return this.siglevel;
+		}
+	}
 }
 
 alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
@@ -271,16 +279,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
 	_alpm_db_free(db);
-}
-
-int  alpm_db_get_siglevel(AlpmDB db)
-{
-	//ASSERT(db != null);
-	if(db.siglevel & ALPM_SIG_USE_DEFAULT) {
-		return db.handle.siglevel;
-	} else {
-		return db.siglevel;
-	}
 }
 
 int  alpm_db_get_valid(AlpmDB db)

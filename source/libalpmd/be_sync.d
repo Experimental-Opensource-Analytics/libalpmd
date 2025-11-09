@@ -116,7 +116,7 @@ int sync_db_validate(AlpmDB db)
 
 	/* this takes into account the default verification level if UNKNOWN
 	 * was assigned to this db */
-	siglevel = alpm_db_get_siglevel(db);
+	siglevel = db.getSigLevel();
 
 	if(siglevel & ALPM_SIG_DATABASE) {
 		int retry = void, ret = void;
@@ -197,7 +197,7 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 			dbforce = 1;
 		}
 
-		siglevel = alpm_db_get_siglevel(db);
+		siglevel = db.getSigLevel();
 
 		CALLOC(payload, 1, typeof(*payload).sizeof);
 		payload.servers = db.servers;

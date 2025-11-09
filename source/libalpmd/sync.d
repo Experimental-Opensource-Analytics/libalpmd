@@ -738,7 +738,7 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
 			AlpmDB repo = spkg.origin_data.db;
 			bool need_download = void;
-			int siglevel = alpm_db_get_siglevel(spkg.getDB());
+			int siglevel = spkg.getDB().getSigLevel();
 
 			if(!repo.servers) {
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_SERVER_NONE;
@@ -836,7 +836,7 @@ private int download_files(AlpmHandle handle)
 		EVENT(handle, &event);
 		for(i = files; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			int siglevel = alpm_db_get_siglevel(pkg.getDB());
+			int siglevel = pkg.getDB().getSigLevel();
 			dload_payload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
@@ -1025,7 +1025,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
 		}
 
-		v.siglevel = alpm_db_get_siglevel(v.pkg.getDB());
+		v.siglevel = v.pkg.getDB().getSigLevel();
 
 		if(_alpm_pkg_validate_internal(handle, v.path, v.pkg,
 					v.siglevel, &v.siglist, &v.validation) == -1) {
