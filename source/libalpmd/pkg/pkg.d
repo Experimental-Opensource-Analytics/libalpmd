@@ -406,6 +406,24 @@ public:
 	{
 		return alpm_pkg_vercmp(cast(char*)this.version_.toStringz, cast(char*)localpkg.version_.toStringz);
 	}
+
+	int  shouldIgnore(AlpmHandle handle)
+	{
+		/* first see if the package is ignored */
+		if(alpm_list_find(handle.ignorepkg, cast(char*)this.name, &fnmatch_wrapper)) {
+			return 1;
+		}
+
+		/* next see if the package is in a group that is ignored */
+		foreach(group; groups[]) {
+			char* grp = cast(char*)group;
+			if(alpm_list_find(handle.ignoregroup, grp, &fnmatch_wrapper)) {
+				return 1;
+			}
+		}
+
+		return 0;
+	}
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
@@ -521,20 +539,7 @@ AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 
 int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
 {
-	/* first see if the package is ignored */
-	if(alpm_list_find(handle.ignorepkg, cast(char*)pkg.name, &fnmatch_wrapper)) {
-		return 1;
-	}
-
-	/* next see if the package is in a group that is ignored */
-	foreach(groups; pkg.getGroups()[]) {
-		char* grp = cast(char*)groups;
-		if(alpm_list_find(handle.ignoregroup, grp, &fnmatch_wrapper)) {
-			return 1;
-		}
-	}
-
-	return 0;
+	return pkg.shouldIgnore(handle);
 }
 
 /* check that package metadata meets our requirements */
