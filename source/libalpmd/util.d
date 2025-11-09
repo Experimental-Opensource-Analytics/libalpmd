@@ -63,7 +63,7 @@ import core.sys.posix.stdlib;
 import std.conv;
 import core.stdc.string;
 import libalpmd.util_common;
-import libalpmd.conf;
+import libalpmd.consts;
 
 // fnmatch constants
 enum FNM_PATHNAME = 1;     // No wildcard can ever match '/'

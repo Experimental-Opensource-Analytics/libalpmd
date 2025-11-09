@@ -24,7 +24,7 @@ import core.sys.posix.fcntl;
 import core.stdc.stddef;
 import core.sys.posix.unistd;
 
-// import libalpmd.config;
+// import libalpmd.constsig;
 import libalpmd.log;
 import libalpmd.sandbox_fs;
 import libalpmd.util;

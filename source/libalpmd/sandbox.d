@@ -24,7 +24,7 @@ private template HasVersion(string versionId) {
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// import libalpmd.config;
+// import libalpmd.constsig;
 
 import core.stdc.errno;
 import core.stdc.stdio;

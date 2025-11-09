@@ -37,7 +37,7 @@ import std.conv;
 
 /* libalpm */
 import libalpmd.trans;
-import libalpmd.conf;
+import libalpmd.consts;
 
 import libalpmd.alpm_list;
 import libalpmd.pkg;

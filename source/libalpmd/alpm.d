@@ -2,7 +2,7 @@ module libalpmd.alpm;
  
    
 
-import libalpmd.conf;
+import libalpmd.consts;
 import core.stdc.config: c_long, c_ulong;
 import core.stdc.stdarg;
 import derelict.libarchive;

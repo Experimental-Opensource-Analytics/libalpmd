@@ -2,14 +2,18 @@ module libalpmd.pkg.pkg;
 
 import core.stdc.config: c_long, c_ulong;
 
-import core.stdc.limits;
 import core.sys.posix.unistd;
+import core.sys.posix.sys.types : off_t;
+
+import std.conv;
+import std.string;
+import std.array;
+
+import libalpmd.pkg;
 
 import libalpmd.deps;
-
-import core.sys.posix.sys.types;
+import libalpmd.consts;
 /* libalpm */
-import libalpmd.pkg;
 import libalpmd.alpm_list.alpm_list_new;
 import libalpmd.alpm_list.alpm_list_old;
 import libalpmd.log;
@@ -21,9 +25,6 @@ import libalpmd.group;
 import derelict.libarchive;
 import libalpmd.signing;
 import libalpmd.backup;
-import std.conv;
-import std.string;
-import std.array;
 import core.stdc.errno;
 import std.algorithm;
 
