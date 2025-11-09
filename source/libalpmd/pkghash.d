@@ -31,6 +31,7 @@ import libalpmd.pkghash;
 import libalpmd.util;
 import libalpmd.pkg;
 import libalpmd.alpm_list;
+import std.conv;
 
 
 
@@ -353,7 +354,7 @@ AlpmPkg _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
 		return null;
 	}
 
-	name_hash = _alpm_hash_sdbm(name);
+	name_hash = alpmSDBMHash(name.to!string);
 
 	position = name_hash % hash.buckets;
 

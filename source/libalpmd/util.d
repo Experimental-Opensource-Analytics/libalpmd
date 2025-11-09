@@ -13,6 +13,7 @@ import core.stdc.fenv;
 import std.path;
 import std.digest.md;
 import std.digest.sha;
+import std.conv;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -1594,7 +1595,7 @@ int _alpm_splitname(  char*target, char** name, char** version_, c_ulong* name_h
 		}
 		STRNDUP(*name, target, pkgver - target);
 		if(name_hash) {
-			*name_hash = _alpm_hash_sdbm(*name);
+			*name_hash = alpmSDBMHash((*name).to!string);
 		}
 	}
 
@@ -1606,16 +1607,12 @@ int _alpm_splitname(  char*target, char** name, char** version_, c_ulong* name_h
  * @param str string to hash
  * @return the hash value of the given string
  */
-c_ulong _alpm_hash_sdbm(  char*str)
-{
-	c_ulong hash = 0;
-	int c = void;
 
-	if(!str) {
-		return hash;
-	}
-	while(cast(bool)(c = cast(int)(*str++))) {
-		hash = c + hash * 65599;
+c_ulong alpmSDBMHash(string str) {
+	c_ulong hash = 0;
+
+	foreach(sym; str) {
+		hash = cast(int)sym + hash * 65599;
 	}
 
 	return hash;

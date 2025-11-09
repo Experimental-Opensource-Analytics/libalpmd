@@ -490,7 +490,7 @@ AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
 		return null;
 	}
 
-	needle_hash = _alpm_hash_sdbm(cast(char*)needle);
+	needle_hash = alpmSDBMHash(needle);
 
 	foreach(info; haystack[]) {
 		// AlpmPkg info = cast(AlpmPkg)lp.data;
@@ -522,7 +522,7 @@ AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 		return null;
 	}
 
-	needle_hash = _alpm_hash_sdbm(needle);
+	needle_hash = alpmSDBMHash(needle.to!string);
 
 	for(lp = haystack; lp; lp = lp.next) {
 		AlpmPkg info = cast(AlpmPkg)lp.data;

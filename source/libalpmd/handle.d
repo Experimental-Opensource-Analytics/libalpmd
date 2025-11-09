@@ -839,7 +839,7 @@ int  alpm_option_add_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 	// //ASSERT((depcpy = _alpm_dep_dup(dep)));
 
 	/* fill in name_hash in case dep was built by hand */
-	depcpy.name_hash = _alpm_hash_sdbm(dep.name);
+	depcpy.name_hash = alpmSDBMHash(dep.name.to!string);
 	handle.assumeinstalled.insertFront(depcpy);
 	return 0;
 }

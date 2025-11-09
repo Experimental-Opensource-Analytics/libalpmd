@@ -564,8 +564,10 @@ AlpmDepend alpm_dep_from_string(  char*depstring)
 	}
 
 	/* copy the right parts to the right places */
+	import std.conv;
+	
 	STRNDUP(depend.name, depstring, ptr - depstring);
-	depend.name_hash = _alpm_hash_sdbm(depend.name);
+	depend.name_hash = alpmSDBMHash((depend.name).to!string);
 	if(version_) {
 		STRNDUP(depend.version_, version_, desc - version_);
 	}
