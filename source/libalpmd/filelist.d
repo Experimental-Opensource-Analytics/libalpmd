@@ -34,12 +34,21 @@ import std.conv;
 
 /** File in a package */
 struct AlpmFile {
-       /** Name of the file */
-       string name;
-       /** Size of the file */
-       off_t size;
-       /** The file's permissions */
-       mode_t mode;
+		/** Name of the file */
+		string name;
+		/** Size of the file */
+		off_t size;
+		/** The file's permissions */
+		mode_t mode;
+
+	   	AlpmFile dup(){
+			auto dest = AlpmFile();
+			dest.name = this.name.idup;
+			dest.size = this.size.idup;
+			dest.mode = this.mode;
+
+			return dest;
+		}
 }
 
 alias AlpmFileList = AlpmFile[];

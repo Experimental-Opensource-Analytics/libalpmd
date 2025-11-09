@@ -253,15 +253,6 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-AlpmFile* _alpm_file_copy(AlpmFile* dest, AlpmFile* src)
-{
-	dest.name = src.name;
-	dest.size = src.size;
-	dest.mode = src.mode;
-
-	return dest;
-}
-
 alpm_list_t* list_depdup(alpm_list_t* old)
 {
 	alpm_list_t* i = void, new_ = null;
