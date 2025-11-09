@@ -339,13 +339,6 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-
-void free_deplist(alpm_list_t* deps)
-{
-	alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_dep_free);
-	alpm_list_free(deps);
-}
-
 AlpmPkgXData* _alpm_pkg_parse_xdata(string data)
 {
 	AlpmPkgXData* pd = void;

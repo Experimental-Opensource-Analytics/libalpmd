@@ -630,6 +630,12 @@ private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, AlpmPkg 
 	}
 }
 
+void free_deplist(alpm_list_t* deps)
+{
+	alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_dep_free);
+	alpm_list_free(deps);
+}
+
 /**
  * @brief Adds unneeded dependencies to an existing list of packages.
  * By unneeded, we mean dependencies that are only required by packages in the
