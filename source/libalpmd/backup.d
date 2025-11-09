@@ -57,14 +57,16 @@ class AlpmBackup {
 
 			return 0;
 		}
+
+		~this() {
+			FREE(this.name);
+			FREE(this.hash);
+		}
 }
 
 void _alpm_backup_free(AlpmBackup backup)
 {
-	//ASSERT(backup != null);
-	FREE(backup.name);
-	FREE(backup.hash);
-	FREE(backup);
+	destroy!false(backup);
 }
 
 alias AlpmBackups = DList!AlpmBackup;
