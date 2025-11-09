@@ -339,21 +339,6 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-AlpmPkgXData* _alpm_pkg_parse_xdata(string data)
-{
-	AlpmPkgXData* pd = void;
-	string[] splited;
-	if(data == "" || (splited = data.split('=')).length == 0) {
-		return null;
-	}
-
-	pd = new AlpmPkgXData;
-	pd.name = splited[0];
-	pd.value = splited[1];
-
-	return pd;
-}
-
 // void _alpm_pkg_xdata_free(AlpmPkgXData* pd)
 // {
 // 	if(pd) {
