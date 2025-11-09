@@ -33,7 +33,7 @@ import libalpmd.alpm_list;
 import libalpmd.log;
 import libalpmd.util;
 import libalpmd.alpm;
-import libalpmd._package;
+import libalpmd.pkg;
 import std.string;
 
 /** Local package or package file backup entry */

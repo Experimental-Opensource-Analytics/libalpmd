@@ -1,4 +1,4 @@
-module libalpmd._version;
+module libalpmd.pkg.version_;
 @nogc  
    
 /*

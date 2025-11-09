@@ -39,7 +39,7 @@ import core.sys.posix.sys.stat;
 import libalpmd.sync;
 import libalpmd.alpm_list;
 import libalpmd.log;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.db;
 import libalpmd.deps;
 import libalpmd.conflict;

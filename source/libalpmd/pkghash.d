@@ -29,7 +29,7 @@ import core.stdc.string;
 
 import libalpmd.pkghash;
 import libalpmd.util;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.alpm_list;
 
 

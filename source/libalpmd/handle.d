@@ -52,7 +52,7 @@ import std.exception;
 import std.stdio;
 import std.string;
 import libalpmd.deps;
-import libalpmd._package;
+import libalpmd.pkg;
 
 
 

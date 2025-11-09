@@ -527,7 +527,7 @@ struct alpm_fileconflict_t {
  * to be added or removed from the system.
  * @ingroup libalpm_packages
  */
-import libalpmd._package;
+import libalpmd.pkg;
 
 /** The time type used by libalpm. Represents a unix time stamp
  * @ingroup libalpm_misc */

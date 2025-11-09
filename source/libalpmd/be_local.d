@@ -47,7 +47,7 @@ import libalpmd.log;
 import libalpmd.util;
 import libalpmd.alpm;
 import libalpmd.handle;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.deps;
 import libalpmd.filelist;
 import libalpmd.libarchive_compat;

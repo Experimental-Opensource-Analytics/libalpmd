@@ -40,7 +40,7 @@ import libalpmd.trans;
 import libalpmd.conf;
 
 import libalpmd.alpm_list;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.util;
 import libalpmd.log;
 import libalpmd.handle;

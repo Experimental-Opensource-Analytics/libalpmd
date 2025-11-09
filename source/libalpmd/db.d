@@ -37,7 +37,7 @@ import libalpmd.log;
 import libalpmd.util;
 import libalpmd.handle;
 import libalpmd.alpm;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.group;
 import libalpmd.pkghash;
 import libalpmd.be_sync;

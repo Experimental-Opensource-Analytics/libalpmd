@@ -31,7 +31,7 @@ import gpgme;
 
 /* libalpm */
 import libalpmd.signing;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.base64;
 import libalpmd.util;
 import libalpmd.log;

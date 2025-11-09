@@ -70,7 +70,7 @@ import libalpmd.util;
 import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.handle;
-import libalpmd._package;
+import libalpmd.pkg;
 import core.sys.posix.sys.statvfs;
 import libalpmd.filelist;import core.sys.posix.unistd;
 import core.stdc.stdio;

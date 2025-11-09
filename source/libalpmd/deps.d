@@ -35,12 +35,12 @@ import libalpmd.alpm_list;
 import libalpmd.util;
 import libalpmd.log;
 import libalpmd.graph;
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.db;
 import libalpmd.handle;
 import libalpmd.trans;
 import libalpmd.alpm;
-import libalpmd._version;
+import libalpmd.pkg;;
 
 /** The basic dependency type.
  *

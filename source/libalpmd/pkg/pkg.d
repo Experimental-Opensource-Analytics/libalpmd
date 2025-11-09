@@ -1,4 +1,4 @@
-module libalpmd._package;
+module libalpmd.pkg.pkg;
 
 import core.stdc.config: c_long, c_ulong;
 
@@ -9,7 +9,7 @@ import libalpmd.deps;
 
 import core.sys.posix.sys.types;
 /* libalpm */
-import libalpmd._package;
+import libalpmd.pkg;
 import libalpmd.alpm_list.alpm_list_new;
 import libalpmd.alpm_list.alpm_list_old;
 import libalpmd.log;
@@ -30,19 +30,7 @@ import std.algorithm;
 import libalpmd.filelist;
 import libalpmd.be_package;
 import libalpmd.libarchive_compat;
-import libalpmd._version;
-
-struct AlpmPkgXData {
-	string name;
-	string value;
-}
-
-alias AlpmXDataList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmPkgXData;
-
-class AlpmPkgChangelog {
-	archive* _archive;
-	int fd;
-}
+import libalpmd.pkg;;
 
 class AlpmPkg {
 	c_ulong name_hash;
@@ -100,6 +88,7 @@ class AlpmPkg {
 	/* Bitfield from alpm_pkgvalidation_t */
 	int validation;
 
+public:
 	this() {}
 	auto getHandle() => this.handle;
 
