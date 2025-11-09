@@ -31,7 +31,6 @@ import std.range;
 
 alias AlpmStrings = DList!string;
 
-
 alias AlpmStringList = AlpmList!string;
 
 class AlpmList(T) {

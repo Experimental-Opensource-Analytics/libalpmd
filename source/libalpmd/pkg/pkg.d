@@ -22,6 +22,7 @@ import libalpmd.db;
 import libalpmd.handle;
 import libalpmd.alpm;
 import libalpmd.group;
+import libalpmd.util_common;
 import derelict.libarchive;
 import libalpmd.signing;
 import libalpmd.backup;
@@ -251,15 +252,6 @@ public:
 private int fnmatch_wrapper( void* pattern,  void* _string)
 {
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
-}
-
-alpm_list_t* list_depdup(alpm_list_t* old)
-{
-	alpm_list_t* i = void, new_ = null;
-	for(i = old; i; i = i.next) {
-		new_ = alpm_list_add(new_, cast(void*)_alpm_dep_dup(cast(AlpmDepend )i.data));
-	}
-	return new_;
 }
 
 /**

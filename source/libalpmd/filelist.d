@@ -44,7 +44,7 @@ struct AlpmFile {
 	   	AlpmFile dup(){
 			auto dest = AlpmFile();
 			dest.name = this.name.idup;
-			dest.size = this.size.idup;
+			dest.size = this.size;
 			dest.mode = this.mode;
 
 			return dest;

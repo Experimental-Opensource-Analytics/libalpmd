@@ -81,6 +81,15 @@ class AlpmDepend {
 
 alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
+alpm_list_t* list_depdup(alpm_list_t* old)
+{
+	alpm_list_t* i = void, new_ = null;
+	for(i = old; i; i = i.next) {
+		new_ = alpm_list_add(new_, cast(void*)_alpm_dep_dup(cast(AlpmDepend )i.data));
+	}
+	return new_;
+}
+
 auto alpmDepsDup(AlpmDeps deps) {
     AlpmDeps copy;
 
