@@ -673,7 +673,7 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
 		AlpmPkg pkg = cast(AlpmPkg)i.data, copy = null;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"adding '%s' to the targets\n", pkg.name);
-		if(_alpm_pkg_dup(pkg, &copy)) {
+		if((copy = pkg.dup) !is null) {
 			/* we return memory on "non-fatal" error in _alpm_pkg_dup */
 			destroy!false(copy);
 			alpm_list_free(rem);

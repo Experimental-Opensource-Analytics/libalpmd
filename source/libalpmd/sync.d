@@ -649,7 +649,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			if(!alpm_pkg_find_n(trans.remove, rpkg.name)) {
 				AlpmPkg copy = void;
 				_alpm_log(handle, ALPM_LOG_DEBUG, "adding '%s' to remove list\n", rpkg.name);
-				if(_alpm_pkg_dup(rpkg, &copy) == -1) {
+				if((copy = rpkg.dup) !is null) {
 					return -1;
 				}
 				trans.remove = alpm_list_add(trans.remove, cast(void*)copy);
@@ -682,7 +682,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			ret = -1;
 			goto cleanup;
 		}
-		if(lpkg && _alpm_pkg_dup(lpkg, &spkg.oldpkg) != 0) {
+		if(lpkg && (spkg.oldpkg = lpkg.dup) !is null) {
+			// (spkg.oldpkg = lpkg.dup) !is null
 			ret = -1;
 			goto cleanup;
 		}

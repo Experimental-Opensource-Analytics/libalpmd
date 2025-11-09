@@ -618,7 +618,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 		return -1;
 	}
 
-	if(_alpm_pkg_dup(pkg, &newpkg)) {
+	if((newpkg = pkg.dup) !is null) {
 		/* we return memory on "non-fatal" error in _alpm_pkg_dup */
 		destroy!false(newpkg);
 		return -1;

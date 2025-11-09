@@ -83,7 +83,7 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package %s to the transaction remove list\n",
 			pkgname);
-	if(_alpm_pkg_dup(pkg, &copy) == -1) {
+	if((copy = pkg.dup) !is null) {
 		return -1;
 	}
 	trans.remove = alpm_list_add(trans.remove, cast(void*)copy);
@@ -112,7 +112,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 				if(!alpm_pkg_find_n(trans.remove, info.name)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG, "pulling %s in target list\n",
 							info.name);
-					if(_alpm_pkg_dup(info, &copy) == -1) {
+					if((copy = info.dup) !is null) {
 						return -1;
 					}
 					trans.remove = alpm_list_add(trans.remove, cast(void*)copy);

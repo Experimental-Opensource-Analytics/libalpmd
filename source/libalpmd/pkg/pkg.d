@@ -246,6 +246,91 @@ public:
 	{
 		return computeRequiredBy(1);
 	}
+
+	/**
+	* Duplicate a package data struct.
+	* @param pkg the package to duplicate
+	* @param new_ptr location to store duplicated package pointer
+	* @return 0 on success, -1 on fatal error, 1 on non-fatal error
+	*/
+	AlpmPkg dup()
+	{
+		AlpmPkg newpkg = void;
+		alpm_list_t* i = void;
+		int ret = 0;
+
+		if(!this.handle) {
+			return null;
+		}
+
+		// if(!new_ptr) {
+		// 	RET_ERR(this.handle, ALPM_ERR_WRONG_ARGS, -1);
+		// }
+
+		// if(this.ops.force_load(this)) {
+		// 	_alpm_log(this.handle, ALPM_LOG_WARNING,
+		// 			("could not fully load metadata for package %s-%s\n"),
+		// 			this.name, this.version_);
+		// 	ret = 1;
+		// 	(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_PKG_INVALID;
+		// }
+
+		CALLOC(newpkg, 1, AlpmPkg.sizeof);
+
+		newpkg.name_hash = this.name_hash;
+		newpkg.filename = this.filename.dup;
+		newpkg.base = this.base.dup;
+		newpkg.name = this.name.dup;
+		newpkg.version_ = this.version_.dup;
+		newpkg.desc = this.desc.dup;
+		newpkg.url = this.url.dup;
+		newpkg.builddate = this.builddate;
+		newpkg.installdate = this.installdate;
+		newpkg.packager = this.packager.dup;
+		newpkg.md5sum = this.md5sum.dup;
+		newpkg.sha256sum = this.sha256sum.dup;
+		newpkg.arch = this.arch.dup;
+		newpkg.size = this.size;
+		newpkg.isize = this.isize;
+		newpkg.scriptlet = this.scriptlet;
+		newpkg.reason = this.reason;
+		newpkg.validation = this.validation;
+
+		// newpkg.licenses   = alpm_list_strdup(this.licenses);
+		newpkg.licenses = alpmStringsDup(this.licenses);
+		newpkg.replaces   = alpmDepsDup(this.replaces);
+		newpkg.groups     = alpmStringsDup(this.groups);
+		// for(i = this.backup; i; i = i.next) {
+		// 	newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
+		// }
+		foreach(_i; this.backup[]) {
+			newpkg.backup.insertFront(_i.dup);
+		}
+		newpkg.depends    = alpmDepsDup(this.depends);
+		newpkg.optdepends = alpmDepsDup(this.optdepends);
+		newpkg.conflicts  = alpmDepsDup(this.conflicts);
+		newpkg.provides   = alpmDepsDup(this.provides);
+
+		newpkg.files = this.files.dup;
+		/* internal */
+		newpkg.infolevel = this.infolevel;
+		newpkg.origin = this.origin;
+		if(newpkg.origin == ALPM_PKG_FROM_FILE) {
+			newpkg.origin_data.file = this.origin_data.file.idup;
+		} else {
+			newpkg.origin_data.db = this.origin_data.db;
+		}
+		// newpkg.ops = this.ops;
+		newpkg.handle = this.handle;
+
+		// *new_ptr = newpkg;
+		return newpkg;
+
+	cleanup:
+		destroy!false(newpkg);
+		RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
+		// return newpkg;
+	}
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
@@ -254,89 +339,6 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-/**
- * Duplicate a package data struct.
- * @param pkg the package to duplicate
- * @param new_ptr location to store duplicated package pointer
- * @return 0 on success, -1 on fatal error, 1 on non-fatal error
- */
-int _alpm_pkg_dup(AlpmPkg pkg, AlpmPkg* new_ptr)
-{
-	AlpmPkg newpkg = void;
-	alpm_list_t* i = void;
-	int ret = 0;
-
-	if(!pkg || !pkg.handle) {
-		return -1;
-	}
-
-	if(!new_ptr) {
-		RET_ERR(pkg.handle, ALPM_ERR_WRONG_ARGS, -1);
-	}
-
-	// if(pkg.ops.force_load(pkg)) {
-	// 	_alpm_log(pkg.handle, ALPM_LOG_WARNING,
-	// 			("could not fully load metadata for package %s-%s\n"),
-	// 			pkg.name, pkg.version_);
-	// 	ret = 1;
-	// 	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_PKG_INVALID;
-	// }
-
-	CALLOC(newpkg, 1, AlpmPkg.sizeof);
-
-	newpkg.name_hash = pkg.name_hash;
-	newpkg.filename = pkg.filename.dup;
-	newpkg.base = pkg.base.dup;
-	newpkg.name = pkg.name.dup;
-	newpkg.version_ = pkg.version_.dup;
-	newpkg.desc = pkg.desc.dup;
-	newpkg.url = pkg.url.dup;
-	newpkg.builddate = pkg.builddate;
-	newpkg.installdate = pkg.installdate;
-	newpkg.packager = pkg.packager.dup;
-	newpkg.md5sum = pkg.md5sum.dup;
-	newpkg.sha256sum = pkg.sha256sum.dup;
-	newpkg.arch = pkg.arch.dup;
-	newpkg.size = pkg.size;
-	newpkg.isize = pkg.isize;
-	newpkg.scriptlet = pkg.scriptlet;
-	newpkg.reason = pkg.reason;
-	newpkg.validation = pkg.validation;
-
-	// newpkg.licenses   = alpm_list_strdup(pkg.licenses);
-	newpkg.licenses = alpmStringsDup(pkg.licenses);
-	newpkg.replaces   = alpmDepsDup(pkg.replaces);
-	newpkg.groups     = alpmStringsDup(pkg.groups);
-	// for(i = pkg.backup; i; i = i.next) {
-	// 	newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
-	// }
-	foreach(_i; pkg.backup[]) {
-		newpkg.backup.insertFront(_i.dup);
-	}
-	newpkg.depends    = alpmDepsDup(pkg.depends);
-	newpkg.optdepends = alpmDepsDup(pkg.optdepends);
-	newpkg.conflicts  = alpmDepsDup(pkg.conflicts);
-	newpkg.provides   = alpmDepsDup(pkg.provides);
-
-	newpkg.files = pkg.files.dup;
-	/* internal */
-	newpkg.infolevel = pkg.infolevel;
-	newpkg.origin = pkg.origin;
-	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-		newpkg.origin_data.file = pkg.origin_data.file.idup;
-	} else {
-		newpkg.origin_data.db = pkg.origin_data.db;
-	}
-	// newpkg.ops = pkg.ops;
-	newpkg.handle = pkg.handle;
-
-	*new_ptr = newpkg;
-	return ret;
-
-cleanup:
-	destroy!false(newpkg);
-	RET_ERR(pkg.handle, ALPM_ERR_MEMORY, -1);
-}
 
 void free_deplist(alpm_list_t* deps)
 {
