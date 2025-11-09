@@ -292,6 +292,30 @@ enum string LAZY_LOAD(string info) = `
 	override int forceLoad() {
 		return local_db_read(this, AlpmDBInfRq.All);
 	}
+
+		int  checkMD5Sum() {
+		char* fpath = void;
+		int retval = void;
+
+		handle.pm_errno = ALPM_ERR_OK;
+		if(this.origin != ALPM_PKG_FROM_SYNCDB) {
+			handle.pm_errno = ALPM_ERR_WRONG_ARGS;
+			return -1;
+		}
+
+		fpath = _alpm_filecache_find(this.handle, cast(char*)this.filename);
+
+		retval = _alpm_test_checksum(fpath, cast(char*)this.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
+
+		FREE(fpath);
+
+		if(retval == 1) {
+			this.handle.pm_errno = ALPM_ERR_PKG_INVALID;
+			retval = -1;
+		}
+
+		return retval;
+	}
  }
 
 private int checkdbdir(AlpmDB db)

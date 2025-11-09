@@ -94,7 +94,7 @@ class AlpmDB {
 	int usage;
 }
 
-alias AlpmDBList = AlpmList!AlpmDB;
+alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
 alias AlpmDBs = DList!AlpmDB;
 /* Helper function for alpm_db_unregister{_all} */
 void _alpm_db_unregister(AlpmDB db)

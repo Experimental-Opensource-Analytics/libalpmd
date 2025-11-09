@@ -29,8 +29,37 @@ import std.conv;
 /* libalpm */
 import libalpmd.util;
 
+struct AlpmSemver {
+	uint majot;
+	uint minor;
+	uint patch;
+	this(string stringSemver) {
+
+	}
+}
+
+struct AlpmVersion {
+	uint epoch;
+	AlpmSemver version_;
+	uint release;
+
+	this(string stringVer) {
+		auto splitted = stringVer.split(":");
+		epoch = splitted[0].to!uint;
+
+		auto ver_rel_splitted = splitted[1].split("-");
+		version_ = AlpmSemver(ver_rel_splitted[0]);
+		// string ver_rel = splitted[1];
+		release = ver_rel_splitted[1].to!uint;
+		// string _version = ver_rel_splitted[0];
+		// ep = epoch;
+		// vp = _version;
+		// rp = rel;
+	}
+}
+
 /**
- * Some functions in this file have been adopted from the rpm source, notably
+ * Some functions in this file have beten adopted from the rpm source, notably
  * 'rpmvercmp' located at lib/rpmvercmp.c and 'parseEVR' located at
  * lib/rpmds.c. It was most recently updated against rpm version 4.8.1. Small
  * modifications have been made to make it more consistent with the libalpm

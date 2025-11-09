@@ -10,7 +10,8 @@ import libalpmd.deps;
 import core.sys.posix.sys.types;
 /* libalpm */
 import libalpmd._package;
-import libalpmd.alpm_list;
+import libalpmd.alpm_list.alpm_list_new;
+import libalpmd.alpm_list.alpm_list_old;
 import libalpmd.log;
 import libalpmd.util;
 import libalpmd.db;
@@ -36,7 +37,7 @@ struct AlpmPkgXData {
 	string value;
 }
 
-alias AlpmXDataList = AlpmList!AlpmPkgXData;
+alias AlpmXDataList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmPkgXData;
 
 class AlpmPkgChangelog {
 	archive* _archive;
@@ -153,30 +154,6 @@ class AlpmPkg {
 	int mtreeClose(archive* archive) => -1;
 
 	int forceLoad() => 0;
-
-	int  checkMD5Sum() {
-		char* fpath = void;
-		int retval = void;
-
-		handle.pm_errno = ALPM_ERR_OK;
-		if(this.origin != ALPM_PKG_FROM_SYNCDB) {
-			handle.pm_errno = ALPM_ERR_WRONG_ARGS;
-			return -1;
-		}
-
-		fpath = _alpm_filecache_find(this.handle, cast(char*)this.filename);
-
-		retval = _alpm_test_checksum(fpath, cast(char*)this.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
-
-		FREE(fpath);
-
-		if(retval == 1) {
-			this.handle.pm_errno = ALPM_ERR_PKG_INVALID;
-			retval = -1;
-		}
-
-		return retval;
-	}
 }
 
 alias AlpmPkgs = DList!AlpmPkg;

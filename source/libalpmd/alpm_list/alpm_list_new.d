@@ -11,6 +11,8 @@ import std.range;
 ///Alias for AlpmStrings
 alias AlpmStrings = DList!string;
 
+static alias AlpmList(T) = DList!T;
+
 ///Utilities for AlpmList!string;
 auto alpmStringsDup(AlpmStrings strings) {
     AlpmStrings copy;
@@ -40,6 +42,7 @@ auto lazySort(T) (T _list) {
 }
 
 ///AlpmList common utilities
+///TODO: using alpm_list_fn_cmp
 bool alpmList_find_n(List, Item = typeof(List.front))(List haystack, Item item, alpm_list_fn_cmp fn)
 {
 	if(haystack.canFind(item))

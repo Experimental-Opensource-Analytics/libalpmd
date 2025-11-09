@@ -7,7 +7,7 @@
         {
             "type": "code-d",
             "request": "launch",
-            "dubBuild": true,
+            "dubBuild": false,
             "name": "Build & Debug DUB project",
             "cwd": "${command:dubWorkingDirectory}",
             "program": "${command:dubTarget}-test-library",

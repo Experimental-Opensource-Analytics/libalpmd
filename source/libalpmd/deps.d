@@ -79,7 +79,7 @@ class AlpmDepend {
 	}
 }
 
-alias AlpmDeps = DList!AlpmDepend;
+alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
 auto alpmDepsDup(AlpmDeps deps) {
     AlpmDeps copy;
