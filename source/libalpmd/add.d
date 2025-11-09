@@ -171,7 +171,8 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 {
 	char*entryname = cast(char*)archive_entry_pathname(entry);
 	mode_t entrymode = archive_entry_mode(entry);
-	AlpmBackup backup = _alpm_needbackup(entryname, newpkg);
+	// AlpmBackup backup = _alpm_needbackup(entryname, newpkg);
+	AlpmBackup backup = newpkg.needBackup(entryname.to!string);
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
 	int needbackup = 0, notouch = 0;
 	  char*hash_orig = null;

@@ -533,7 +533,8 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 		}
 	} else {
 		/* if the file needs backup and has been modified, back it up to .pacsave */
-		AlpmBackup backup = _alpm_needbackup(cast(char*)fileobj.name, oldpkg);
+		// AlpmBackup backup = _alpm_needbackup(cast(char*)fileobj.name, oldpkg);
+		auto backup = oldpkg.needBackup(fileobj.name);
 		if(backup) {
 			if(nosave) {
 				_alpm_log(handle, ALPM_LOG_DEBUG, "transaction is set to NOSAVE, not backing up '%s'\n", file.ptr);
@@ -596,7 +597,9 @@ private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
 {
 	return _alpm_fnmatch_patterns(handle.noupgrade, path) == 0
 		|| alpm_list_find_str(handle.trans.skip_remove, path)
-		|| (newpkg && _alpm_needbackup(path, newpkg)
+		//|| (newpkg && _alpm_needbackup(path, newpkg)
+		|| (newpkg && newpkg.needBackup(path.to!string)
+
 				&& alpm_filelist_contains(newpkg.getFiles(), path.to!string));
 }
 

@@ -28,6 +28,7 @@ import libalpmd.signing;
 import libalpmd.backup;
 import core.stdc.errno;
 import std.algorithm;
+import libalpmd.util;
 
 import libalpmd.filelist;
 import libalpmd.be_package;
@@ -431,7 +432,7 @@ public:
 		// free_deplist(this.conflicts);
 		// free_deplist(this.provides);
 		// alpm_list_free(this.removes);
-		// destroy!false(this.oldpkg);
+		destroy!false(this.oldpkg);
 
 		if(this.origin == ALPM_PKG_FROM_FILE) {
 			FREE(this.origin_data.file);
@@ -462,12 +463,23 @@ public:
 
 		return 0;
 	}
-}
 
-/* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
-private int fnmatch_wrapper( void* pattern,  void* _string)
-{
-	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
+	/* Look for a filename in a alpm_pkg_t.backup list. If we find it,
+	* then we return the full backup entry.
+	*/
+	AlpmBackup needBackup(string file) {
+		if(!file) {
+			return null;
+		}
+
+		foreach(_backup; backup[]) {
+			if(file == _backup.name) {
+				return _backup;
+			}
+		}
+
+		return null;
+	}
 }
 
 //Left until full refactoring AlpmList

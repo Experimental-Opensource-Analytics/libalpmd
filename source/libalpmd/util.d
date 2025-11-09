@@ -1845,6 +1845,12 @@ void _alpm_alloc_fail(size_t size)
 	fprintf(stderr, "alloc failure: could not allocate %zu bytes\n", size);
 }
 
+/* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
+int fnmatch_wrapper( void* pattern,  void* _string)
+{
+	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
+}
+
 /** This functions reads file content.
  *
  * Memory buffer is allocated by the callee function. It is responsibility

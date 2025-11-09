@@ -59,28 +59,6 @@ class AlpmBackup {
 		}
 }
 
-/* Look for a filename in a alpm_pkg_t.backup list. If we find it,
- * then we return the full backup entry.
- */
-AlpmBackup _alpm_needbackup(  char*file, AlpmPkg pkg)
-{
-	alpm_list_t* lp = void;
-
-	if(file == null || pkg is null) {
-		return null;
-	}
-
-	foreach(backup; pkg.getBackups()[]) {
-		// AlpmBackup backup = cast(AlpmBackup)lp.data;
-
-		if(strcmp(file, cast(char*)backup.name) == 0) {
-			return backup;
-		}
-	}
-
-	return null;
-}
-
 void _alpm_backup_free(AlpmBackup backup)
 {
 	//ASSERT(backup != null);

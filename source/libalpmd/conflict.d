@@ -645,7 +645,9 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			}
 
 			/* is the file unowned and in the backup list of the new package? */
-			if(!resolved_conflict && _alpm_needbackup(relative_path, p1)) {
+			// if(!resolved_conflict && _alpm_needbackup(relative_path, p1)) {
+			if(!resolved_conflict && p1.needBackup(relative_path.to!string)) {
+
 				alpm_list_t* local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
 				int found = 0;
 				for(k = local_pkgs; k && !found; k = k.next) {
