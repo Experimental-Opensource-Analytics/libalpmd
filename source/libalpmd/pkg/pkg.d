@@ -207,50 +207,50 @@ public:
 			}
 		}
 	}
+
+	alpm_list_t* computeRequiredBy(int optional)
+	{
+		alpm_list_t* reqs = null;
+		AlpmDB db = void;
+
+		//ASSERT(pkg != null);
+		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
+
+		if(this.origin == ALPM_PKG_FROM_FILE) {
+			/* The sane option; search locally for things that require this. */
+			this.findRequiredBy(this.handle.db_local, &reqs, optional);
+		} else {
+			/* We have a DB package. if it is a local package, then we should
+			* only search the local DB; else search all known sync databases. */
+			db = this.origin_data.db;
+			if(db.status & AlpmDBStatus.Local) {
+				this.findRequiredBy(db, &reqs, optional);
+			} else {
+				for(auto i = this.handle.dbs_sync; i; i = i.next) {
+					db = cast(AlpmDB)i.data;
+					this.findRequiredBy(db, &reqs, optional);
+				}
+				reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp);
+			}
+		}
+		return reqs;
+	}
+
+	alpm_list_t * computeRequiredBy()
+	{
+		return computeRequiredBy(0);
+	}
+
+	alpm_list_t * computeOptionalFor()
+	{
+		return computeRequiredBy(1);
+	}
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
 private int fnmatch_wrapper( void* pattern,  void* _string)
 {
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
-}
-
-alpm_list_t* compute_requiredby(AlpmPkg pkg, int optional)
-{
-	alpm_list_t* reqs = null;
-	AlpmDB db = void;
-
-	//ASSERT(pkg != null);
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-
-	if(pkg.origin == ALPM_PKG_FROM_FILE) {
-		/* The sane option; search locally for things that require this. */
-		pkg.findRequiredBy(pkg.handle.db_local, &reqs, optional);
-	} else {
-		/* We have a DB package. if it is a local package, then we should
-		 * only search the local DB; else search all known sync databases. */
-		db = pkg.origin_data.db;
-		if(db.status & AlpmDBStatus.Local) {
-			pkg.findRequiredBy(db, &reqs, optional);
-		} else {
-			for(auto i = pkg.handle.dbs_sync; i; i = i.next) {
-				db = cast(AlpmDB)i.data;
-				pkg.findRequiredBy(db, &reqs, optional);
-			}
-			reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp);
-		}
-	}
-	return reqs;
-}
-
-alpm_list_t * alpm_pkg_compute_requiredby(AlpmPkg pkg)
-{
-	return compute_requiredby(pkg, 0);
-}
-
-alpm_list_t * alpm_pkg_compute_optionalfor(AlpmPkg pkg)
-{
-	return compute_requiredby(pkg, 1);
 }
 
 AlpmFile* _alpm_file_copy(AlpmFile* dest, AlpmFile* src)
