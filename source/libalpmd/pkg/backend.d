@@ -1,4 +1,4 @@
-module libalpmd.be_package;
+module libalpmd.pkg.backend;
 @nogc  
    
 /*

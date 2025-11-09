@@ -52,7 +52,7 @@ import libalpmd.dload;
 import libalpmd.remove;
 import libalpmd.diskspace;
 import libalpmd.signing;
-import libalpmd.be_package;
+// import libalpmd.be_package;
 import libalpmd.group;
 import libalpmd.deps;
 import libalpmd.error;
