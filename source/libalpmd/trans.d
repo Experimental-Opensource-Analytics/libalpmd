@@ -50,29 +50,21 @@ import libalpmd.alpm;
 import libalpmd.deps;
 import libalpmd.hook;
 
-enum alpm_transstate_t {
-	STATE_IDLE = 0,
-	STATE_INITIALIZED,
-	STATE_PREPARED,
-	STATE_DOWNLOADING,
-	STATE_COMMITTING,
-	STATE_COMMITTED,
-	STATE_INTERRUPTED
+enum AlpmTransState {
+	Idle = 0,
+	Initialized,
+	Prepared,
+	Downloading,
+	Commiting,
+	Commited,
+	Interrupted
 }
-alias STATE_IDLE = alpm_transstate_t.STATE_IDLE;
-alias STATE_INITIALIZED = alpm_transstate_t.STATE_INITIALIZED;
-alias STATE_PREPARED = alpm_transstate_t.STATE_PREPARED;
-alias STATE_DOWNLOADING = alpm_transstate_t.STATE_DOWNLOADING;
-alias STATE_COMMITTING = alpm_transstate_t.STATE_COMMITTING;
-alias STATE_COMMITTED = alpm_transstate_t.STATE_COMMITTED;
-alias STATE_INTERRUPTED = alpm_transstate_t.STATE_INTERRUPTED;
-
 
 /* Transaction */
 class AlpmTrans {
 	/* bitfield of alpm_transflag_t flags */
 	int flags;
-	alpm_transstate_t state;
+	AlpmTransState state;
 	alpm_list_t* unresolvable;  /* list of (AlpmPkg) */
 	alpm_list_t* add;           /* list of (AlpmPkg) */
 	alpm_list_t* remove;        /* list of (AlpmPkg) */
@@ -96,7 +88,7 @@ int  alpm_trans_init(AlpmHandle handle, int flags)
 
 	trans = new AlpmTrans;
 	trans.flags = flags;
-	trans.state = STATE_INITIALIZED;
+	trans.state = AlpmTransState.Initialized;
 
 	handle.trans = trans;
 
@@ -154,7 +146,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 	trans = handle.trans;
 
 	//ASSERT(trans != null);
-	//ASSERT(trans.state == STATE_INITIALIZED);
+	ASSERT(trans.state == AlpmTransState.Initialized);
 
 	/* If there's nothing to do, return without complaining */
 	if(trans.add == null && trans.remove == null) {
@@ -196,7 +188,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 		}
 	}
 
-	trans.state = STATE_PREPARED;
+	trans.state = AlpmTransState.Prepared;
 
 	return 0;
 }
@@ -212,7 +204,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	trans = handle.trans;
 
 	//ASSERT(trans != null);
-	//ASSERT(trans.state == STATE_PREPARED);
+	ASSERT(trans.state == AlpmTransState.Prepared);
 
 	//ASSERT(!(trans.flags & ALPM_TRANS_FLAG_NOLOCK));
 
@@ -240,7 +232,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 		RET_ERR(handle, ALPM_ERR_TRANS_HOOK_FAILED, -1);
 	}
 
-	trans.state = STATE_COMMITTING;
+	trans.state = AlpmTransState.Commiting;
 
 	//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction started\n");
 	event.type = ALPM_EVENT_TRANSACTION_START;
@@ -264,7 +256,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 		}
 	}
 
-	if(trans.state == STATE_INTERRUPTED) {
+	if(trans.state == AlpmTransState.Interrupted) {
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction interrupted\n");
 	} else {
 		event.type = ALPM_EVENT_TRANSACTION_DONE;
@@ -276,7 +268,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 		}
 	}
 
-	trans.state = STATE_COMMITTED;
+	trans.state = AlpmTransState.Commited;
 
 	return 0;
 }
@@ -290,9 +282,9 @@ int  alpm_trans_interrupt(AlpmHandle handle)
 
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	//ASSERT(trans.state == STATE_COMMITTING || trans.state == STATE_INTERRUPTED);
+	ASSERT(trans.state == AlpmTransState.Commiting || trans.state == AlpmTransState.Interrupted);
 
-	trans.state = STATE_INTERRUPTED;
+	trans.state = AlpmTransState.Interrupted;
 
 	return 0;
 }
@@ -306,7 +298,7 @@ int  alpm_trans_release(AlpmHandle handle)
 
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	//ASSERT(trans.state != STATE_IDLE);
+	ASSERT(trans.state != AlpmTransState.Idle);
 
 	int nolock_flag = trans.flags & ALPM_TRANS_FLAG_NOLOCK;
 

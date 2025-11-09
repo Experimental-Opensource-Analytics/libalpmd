@@ -210,7 +210,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	CHECK_HANDLE(handle);
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	//ASSERT(trans.state == STATE_INITIALIZED);
+	ASSERT(trans.state == AlpmTransState.Initialized);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "checking for package upgrades\n");
 	for(auto i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
@@ -791,7 +791,7 @@ private int download_files(AlpmHandle handle)
 		ret = -1;
 		goto finish;
 	}
-	handle.trans.state = STATE_DOWNLOADING;
+	handle.trans.state = AlpmTransState.Downloading;
 
 	ret = find_dl_candidates(handle, &files);
 	if(ret != 0) {

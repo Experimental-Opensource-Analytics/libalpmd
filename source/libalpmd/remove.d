@@ -73,7 +73,7 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(handle == pkg.handle);
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	//ASSERT(trans.state == STATE_INITIALIZED);
+	ASSERT(trans.state == AlpmTransState.Initialized);
 
 
 	if(alpm_pkg_find_n(trans.remove, pkgname)) {
@@ -778,7 +778,7 @@ int _alpm_remove_packages(AlpmHandle handle, int run_ldconfig)
 	for(targ = trans.remove; targ; targ = targ.next) {
 		AlpmPkg pkg = cast(AlpmPkg)targ.data;
 
-		if(trans.state == STATE_INTERRUPTED) {
+		if(trans.state == AlpmTransState.Interrupted) {
 			return ret;
 		}
 

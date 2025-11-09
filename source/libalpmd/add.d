@@ -45,7 +45,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(handle == pkg.handle);
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	//ASSERT(trans.state == STATE_INITIALIZED);
+	ASSERT(trans.state == AlpmTransState.Initialized);
 
 	pkgver = pkg.version_;
 
@@ -649,13 +649,13 @@ int _alpm_upgrade_packages(AlpmHandle handle)
 	for(targ = trans.add; targ; targ = targ.next) {
 		AlpmPkg newpkg = cast(AlpmPkg)targ.data;
 
-		if(handle.trans.state == STATE_INTERRUPTED) {
+		if(handle.trans.state == AlpmTransState.Interrupted) {
 			return ret;
 		}
 
 		if(commit_single_pkg(handle, newpkg, pkg_current, pkg_count)) {
 			/* something screwed up on the commit, abort the trans */
-			trans.state = STATE_INTERRUPTED;
+			trans.state = AlpmTransState.Interrupted;
 			handle.pm_errno = ALPM_ERR_TRANS_ABORT;
 			/* running ldconfig at this point could possibly screw system */
 			skip_ldconfig = 1;
