@@ -331,6 +331,49 @@ public:
 		RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
 		// return newpkg;
 	}
+
+	~this() {
+		FREE(this.filename);
+		FREE(this.base);
+		FREE(this.name);
+		FREE(this.version_);
+		FREE(this.desc);
+		FREE(this.url);
+		FREE(this.packager);
+		FREE(this.md5sum);
+		FREE(this.sha256sum);
+		FREE(this.base64_sig);
+		FREE(this.arch);
+
+		// FREELIST(this.licenses);
+		// free_deplist(this.replaces);
+		// FREELIST(this.groups);
+		if(this.files.count) {
+			size_t i = void;
+			for(i = 0; i < this.files.count; i++) {
+				FREE(this.files.ptr[i].name);
+			}
+			// free(this.files.ptr);
+			this.files = [];
+		}
+		// alpm_list_free_inner(this.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
+		// alpm_list_free(this.backup);
+		// alpm_list_free_inner(this.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
+		// alpm_list_free(this.xdata);
+		// free_deplist(this.depends);
+		// free_deplist(this.optdepends);
+		// free_deplist(this.checkdepends);
+		// free_deplist(this.makedepends);
+		// free_deplist(this.conflicts);
+		// free_deplist(this.provides);
+		// alpm_list_free(this.removes);
+		// destroy!false(this.oldpkg);
+
+		if(this.origin == ALPM_PKG_FROM_FILE) {
+			FREE(this.origin_data.file);
+		}
+		// FREE(this);
+	}
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
@@ -339,59 +382,10 @@ private int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-// void _alpm_pkg_xdata_free(AlpmPkgXData* pd)
-// {
-// 	if(pd) {
-// 		free(pd);
-// 	}
-// }
-
+//Left until full refactoring AlpmList
 void _alpm_pkg_free(AlpmPkg pkg)
 {
-	if(pkg is null) {
-		return;
-	}
-
-	FREE(pkg.filename);
-	FREE(pkg.base);
-	FREE(pkg.name);
-	FREE(pkg.version_);
-	FREE(pkg.desc);
-	FREE(pkg.url);
-	FREE(pkg.packager);
-	FREE(pkg.md5sum);
-	FREE(pkg.sha256sum);
-	FREE(pkg.base64_sig);
-	FREE(pkg.arch);
-
-	// FREELIST(pkg.licenses);
-	// free_deplist(pkg.replaces);
-	// FREELIST(pkg.groups);
-	if(pkg.files.count) {
-		size_t i = void;
-		for(i = 0; i < pkg.files.count; i++) {
-			FREE(pkg.files.ptr[i].name);
-		}
-		// free(pkg.files.ptr);
-		pkg.files = [];
-	}
-	// alpm_list_free_inner(pkg.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
-	// alpm_list_free(pkg.backup);
-	// alpm_list_free_inner(pkg.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
-	// alpm_list_free(pkg.xdata);
-	// free_deplist(pkg.depends);
-	// free_deplist(pkg.optdepends);
-	// free_deplist(pkg.checkdepends);
-	// free_deplist(pkg.makedepends);
-	// free_deplist(pkg.conflicts);
-	// free_deplist(pkg.provides);
-	// alpm_list_free(pkg.removes);
-	// destroy!false(pkg.oldpkg);
-
-	if(pkg.origin == ALPM_PKG_FROM_FILE) {
-		FREE(pkg.origin_data.file);
-	}
-	FREE(pkg);
+	destroy!false(pkg);
 }
 
 /* This function should be used when removing a target from upgrade/sync target list
@@ -410,8 +404,9 @@ void _alpm_pkg_free_trans(AlpmPkg pkg)
 		return;
 	}
 
+	//TODO
 	// alpm_list_free(pkg.removes);
-	// pkg.removes = null;
+	destroy(pkg.removes);
 	destroy!false(pkg.oldpkg);
 	pkg.oldpkg = null;
 }
