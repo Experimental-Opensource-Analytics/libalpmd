@@ -33,6 +33,8 @@ import libalpmd.filelist;
 import libalpmd.be_package;
 import libalpmd.libarchive_compat;
 import libalpmd.pkg;;
+import std.base64;
+import core.sys.darwin.mach.loader;
 
 alias AlpmPkgs = DList!AlpmPkg;
 
@@ -150,44 +152,54 @@ public:
 
 	/* Helper function for comparing packages
 	*/
-	override int opCmp(Object rhs)
-	{
+	override int opCmp(Object rhs) {
 		return cmp(this.name, (cast(AlpmPkg)rhs).name);
 	}
 
-	int  getSig(ubyte** sig, size_t* sig_len) {
+	int  getSig(ref ubyte[] sig, size_t* sig_len) {
 		if(this.base64_sig) {
-			int ret = alpm_decode_signature(cast(char*)this.base64_sig, sig, sig_len);
-			if(ret != 0) {
-				RET_ERR(this.handle, ALPM_ERR_SIG_INVALID, -1);
+			try{
+				Base64.decode(base64_sig);
 			}
-			return 0;
+			catch(Exception e) {
+				this.handle.pm_errno = ALPM_ERR_SIG_INVALID;
+				return -1;
+			}
+			*sig_len = sig.length;
 		} else {
-			char* pkgpath = null, sigpath = null;
+			string pkgpath, sigpath;
 			alpm_errno_t err = void;
 			int ret = -1;
 
-			pkgpath = _alpm_filecache_find(this.handle, cast(char*)this.filename);
-			if(!pkgpath) {
-				GOTO_ERR(this.handle, ALPM_ERR_PKG_NOT_FOUND, "cleanup");
+			try{
+				pkgpath = _alpm_filecache_find(this.handle, cast(char*)this.filename).to!string;
+				if(!pkgpath) {
+					this.handle.pm_errno = ALPM_ERR_PKG_NOT_FOUND;
+					throw new Exception("ALPM Error: package not found");
+					return ret;
+				}
+				sigpath = _alpm_sigpath(this.handle, cast(char*)pkgpath).to!string;
+				if(!sigpath || _alpm_access(this.handle, null, cast(char*)sigpath, R_OK)) {
+					this.handle.pm_errno = ALPM_ERR_SIG_MISSING;
+					throw new Exception("ALPM Error: signing not found");
+				}
+				err = _alpm_read_file(cast(char*)sigpath, &sig, sig_len);
+				if(err == ALPM_ERR_OK) {
+					_alpm_log(this.handle, ALPM_LOG_DEBUG, "found detached signature %s with size %ld\n",
+						sigpath, *sig_len);
+				} else {
+					throw new Exception("ALPM Error: cannot read signature file.");
+				}
+				ret = 0;
 			}
-			sigpath = _alpm_sigpath(this.handle, pkgpath);
-			if(!sigpath || _alpm_access(this.handle, null, sigpath, R_OK)) {
-				GOTO_ERR(this.handle, ALPM_ERR_SIG_MISSING, "cleanup");
+			catch(Exception e) {
+				FREE(pkgpath);
+				FREE(sigpath);
+				return ret;
 			}
-			err = _alpm_read_file(sigpath, sig, sig_len);
-			if(err == ALPM_ERR_OK) {
-				_alpm_log(this.handle, ALPM_LOG_DEBUG, "found detached signature %s with size %ld\n",
-					sigpath, *sig_len);
-			} else {
-				GOTO_ERR(this.handle, err, "cleanup");
-			}
-			ret = 0;
-	cleanup:
-			FREE(pkgpath);
-			FREE(sigpath);
-			return ret;
-		} 
+
+		}
+		assert(0);
 	}
 
 	void findRequiredBy(AlpmDB db, alpm_list_t** reqs, int optional)
@@ -195,7 +207,8 @@ public:
 		alpm_list_t* i = void;
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
-		for(i = _alpm_db_get_pkgcache(db); i; i = i.next) {
+		//[ ] _alpm_db_get_pkgcache
+		for(i = _alpm_db_get_pkgcache(db); i; i = i.next) { 
 			AlpmPkg cachepkg = cast(AlpmPkg)i.data;
 			AlpmDeps j;
 
@@ -206,10 +219,10 @@ public:
 			}
 
 			foreach(dep; j[]) {
-				if(_alpm_depcmp(this, dep)) {
+				if(_alpm_depcmp(this, dep)) {//[ ] _alpm_depcmp
 					string cachepkgname = cachepkg.name;
-					if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
-						*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup);
+					if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) { //[ ] alpm_list_find_str
+						*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup); //[ ] alpm_list_add
 					}
 				}
 			}
@@ -221,7 +234,6 @@ public:
 		alpm_list_t* reqs = null;
 		AlpmDB db = void;
 
-		//ASSERT(pkg != null);
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
 		if(this.origin == ALPM_PKG_FROM_FILE) {
@@ -238,7 +250,7 @@ public:
 					db = cast(AlpmDB)i.data;
 					this.findRequiredBy(db, &reqs, optional);
 				}
-				reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp);
+				reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp); //[ ] alpm_list_msort
 			}
 		}
 		return reqs;
@@ -266,7 +278,7 @@ public:
 			return;
 		}
 
-		//TODO
+		//TODO: recheck alpm_list_free(this.removes)
 		// alpm_list_free(this.removes);
 		destroy(this.removes);
 		destroy!false(this.oldpkg);
@@ -279,83 +291,55 @@ public:
 	* @param new_ptr location to store duplicated package pointer
 	* @return 0 on success, -1 on fatal error, 1 on non-fatal error
 	*/
-	AlpmPkg dup()
-	{
-		AlpmPkg newpkg = void;
-		alpm_list_t* i = void;
-		int ret = 0;
-
+	AlpmPkg dup() {
 		if(!this.handle) {
 			return null;
 		}
 
-		// if(!new_ptr) {
-		// 	RET_ERR(this.handle, ALPM_ERR_WRONG_ARGS, -1);
-		// }
+		AlpmPkg newPkg = new AlpmPkg;
 
-		// if(this.ops.force_load(this)) {
-		// 	_alpm_log(this.handle, ALPM_LOG_WARNING,
-		// 			("could not fully load metadata for package %s-%s\n"),
-		// 			this.name, this.version_);
-		// 	ret = 1;
-		// 	(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_PKG_INVALID;
-		// }
-
-		CALLOC(newpkg, 1, AlpmPkg.sizeof);
-
-		newpkg.name_hash = this.name_hash;
-		newpkg.filename = this.filename.dup;
-		newpkg.base = this.base.dup;
-		newpkg.name = this.name.dup;
-		newpkg.version_ = this.version_.dup;
-		newpkg.desc = this.desc.dup;
-		newpkg.url = this.url.dup;
-		newpkg.builddate = this.builddate;
-		newpkg.installdate = this.installdate;
-		newpkg.packager = this.packager.dup;
-		newpkg.md5sum = this.md5sum.dup;
-		newpkg.sha256sum = this.sha256sum.dup;
-		newpkg.arch = this.arch.dup;
-		newpkg.size = this.size;
-		newpkg.isize = this.isize;
-		newpkg.scriptlet = this.scriptlet;
-		newpkg.reason = this.reason;
-		newpkg.validation = this.validation;
-
-		// newpkg.licenses   = alpm_list_strdup(this.licenses);
-		newpkg.licenses = alpmStringsDup(this.licenses);
-		newpkg.replaces   = alpmDepsDup(this.replaces);
-		newpkg.groups     = alpmStringsDup(this.groups);
-		// for(i = this.backup; i; i = i.next) {
-		// 	newpkg.backup = alpm_list_add(newpkg.backup, cast(void*)(cast(AlpmBackup)i.data).dup);
-		// }
+		newPkg.name_hash = this.name_hash;
+		newPkg.filename = this.filename.dup;
+		newPkg.base = this.base.dup;
+		newPkg.name = this.name.dup;
+		newPkg.version_ = this.version_.dup;
+		newPkg.desc = this.desc.dup;
+		newPkg.url = this.url.dup;
+		newPkg.builddate = this.builddate;
+		newPkg.installdate = this.installdate;
+		newPkg.packager = this.packager.dup;
+		newPkg.md5sum = this.md5sum.dup;
+		newPkg.sha256sum = this.sha256sum.dup;
+		newPkg.arch = this.arch.dup;
+		newPkg.size = this.size;
+		newPkg.isize = this.isize;
+		newPkg.scriptlet = this.scriptlet;
+		newPkg.reason = this.reason;
+		newPkg.validation = this.validation;
+		newPkg.licenses = alpmStringsDup(this.licenses);
+		newPkg.replaces   = alpmDepsDup(this.replaces);
+		newPkg.groups     = alpmStringsDup(this.groups);
 		foreach(_i; this.backup[]) {
-			newpkg.backup.insertFront(_i.dup);
+			newPkg.backup.insertFront(_i.dup);
 		}
-		newpkg.depends    = alpmDepsDup(this.depends);
-		newpkg.optdepends = alpmDepsDup(this.optdepends);
-		newpkg.conflicts  = alpmDepsDup(this.conflicts);
-		newpkg.provides   = alpmDepsDup(this.provides);
+		newPkg.depends    = alpmDepsDup(this.depends);
+		newPkg.optdepends = alpmDepsDup(this.optdepends);
+		newPkg.conflicts  = alpmDepsDup(this.conflicts);
+		newPkg.provides   = alpmDepsDup(this.provides);
 
-		newpkg.files = this.files.dup;
-		/* internal */
-		newpkg.infolevel = this.infolevel;
-		newpkg.origin = this.origin;
-		if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-			newpkg.origin_data.file = this.origin_data.file.idup;
+		newPkg.files = this.files.dup;
+
+		newPkg.infolevel = this.infolevel;
+		newPkg.origin = this.origin;
+		if(newPkg.origin == ALPM_PKG_FROM_FILE) {
+			newPkg.origin_data.file = this.origin_data.file.idup;
 		} else {
-			newpkg.origin_data.db = this.origin_data.db;
+			newPkg.origin_data.db = this.origin_data.db;
 		}
-		// newpkg.ops = this.ops;
-		newpkg.handle = this.handle;
+		
+		newPkg.handle = this.handle;
 
-		// *new_ptr = newpkg;
-		return newpkg;
-
-	cleanup:
-		destroy!false(newpkg);
-		RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
-		// return newpkg;
+		return newPkg;
 	}
 
 	/* check that package metadata meets our requirements */
