@@ -92,6 +92,43 @@ class AlpmDB {
 	int siglevel;
 	/* alpm_db_usage_t */
 	int usage;
+
+	int  unregister() {
+		int found = 0;
+		// AlpmHandle handle = void;
+
+		/* Sanity checks */
+		//ASSERT(db != null);
+		/* Do not unregister a database if a transaction is on-going */
+		// handle = db.handle;
+		handle.pm_errno = ALPM_ERR_OK;
+		//ASSERT(handle.trans == null);
+
+		if(this is handle.db_local) {
+			handle.db_local = null;
+			found = 1;
+		} else {
+			/* Warning : this function shouldn't be used to unregister all sync
+			* databases by walking through the list returned by
+			* alpm_get_syncdbs, because the db is removed from that list here.
+			*/
+			void* data = void;
+			handle.dbs_sync = alpmList_remove(handle.dbs_sync,
+					this, &_alpm_db_cmp, &data);
+			if(data) {
+				found = 1;
+			}
+		}
+
+		if(!found) {
+			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
+		}
+
+		this.ops.unregister(this);
+		return 0;
+	}
+
+	alpm_list_t* getChacheServers() => this.cache_servers;
 }
 
 alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
@@ -105,48 +142,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
 	_alpm_db_free(db);
-}
-
-int  alpm_db_unregister(AlpmDB db)
-{
-	int found = 0;
-	AlpmHandle handle = void;
-
-	/* Sanity checks */
-	//ASSERT(db != null);
-	/* Do not unregister a database if a transaction is on-going */
-	handle = db.handle;
-	handle.pm_errno = ALPM_ERR_OK;
-	//ASSERT(handle.trans == null);
-
-	if(db == handle.db_local) {
-		handle.db_local = null;
-		found = 1;
-	} else {
-		/* Warning : this function shouldn't be used to unregister all sync
-		 * databases by walking through the list returned by
-		 * alpm_get_syncdbs, because the db is removed from that list here.
-		 */
-		void* data = void;
-		handle.dbs_sync = alpmList_remove(handle.dbs_sync,
-				db, &_alpm_db_cmp, &data);
-		if(data) {
-			found = 1;
-		}
-	}
-
-	if(!found) {
-		RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
-	}
-
-	db.ops.unregister(db);
-	return 0;
-}
-
- alpm_list_t* alpm_db_get_cache_servers(  AlpmDB db)
-{
-	//ASSERT(db != null);
-	return db.cache_servers;
 }
 
 int  alpm_db_set_cache_servers(AlpmDB db, alpm_list_t* cache_servers)

@@ -54,9 +54,6 @@ import std.string;
 import libalpmd.deps;
 import libalpmd.pkg;
 
-
-
-
 void EVENT(h, e)(h handle, e event) { 
 	if(handle.eventcb) { 
 		handle.eventcb(handle.eventcb_ctx, cast(alpm_event_t*) event);
@@ -81,19 +78,19 @@ class AlpmHandle {
 	File logstream;        /* log file stream pointer */
 	AlpmTrans trans;
 
-version (HAVE_LIBCURL) {
-	/* libcurl handle */
-	CURLM* curlm;
-	alpm_list_t* server_errors;
-}
+	version (HAVE_LIBCURL) {
+		/* libcurl handle */
+		CURLM* curlm;
+		alpm_list_t* server_errors;
+	}
 
 	ushort disable_dl_timeout;
 	ushort disable_sandbox;
 	uint parallel_downloads; /* number of download streams */
 
-version (HAVE_LIBGPGME) {
-	alpm_list_t* known_keys;  /* keys verified to be in our keychain */
-}
+	version (HAVE_LIBGPGME) {
+		alpm_list_t* known_keys;  /* keys verified to be in our keychain */
+	}
 
 	/* callback functions */
 	alpm_cb_log logcb;          /* Log callback function */
