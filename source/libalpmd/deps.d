@@ -361,7 +361,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 
 	for(i = pkglist; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		if(alpm_pkg_find(rem, cast(char*)pkg.name) || alpm_pkg_find(upgrade, cast(char*)pkg.name)) {
+		if(alpm_pkg_find_n(rem, pkg.name) || alpm_pkg_find_n(upgrade, pkg.name)) {
 			modified = alpm_list_add(modified, cast(void*)pkg);
 		} else {
 			dblist = alpm_list_add(dblist, cast(void*)pkg);
@@ -706,7 +706,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, al
 
 		pkg = _alpm_db_get_pkgfromcache(db, dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
-				&& !alpm_pkg_find(excluding, cast(char*)pkg.name)) {
+				&& !alpm_pkg_find_n(excluding, pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
 				alpm_question_install_ignorepkg_t question = {
 					type: ALPM_QUESTION_INSTALL_IGNOREPKG,
@@ -737,7 +737,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, al
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.name_hash != dep.name_hash || strcmp(cast(char*)pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
-					&& !alpm_pkg_find(excluding, cast(char*)pkg.name)) {
+					&& !alpm_pkg_find_n(excluding, pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
 					alpm_question_install_ignorepkg_t question = {
 						type: ALPM_QUESTION_INSTALL_IGNOREPKG,
@@ -846,7 +846,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	alpm_list_t* deps = null;
 	alpm_list_t* packages_copy = void;
 
-	if(alpm_pkg_find(*packages, cast(char*)pkg.name) !is null) {
+	if(alpm_pkg_find_n(*packages, pkg.name) !is null) {
 		return 0;
 	}
 

@@ -483,17 +483,39 @@ int _alpm_pkg_cmp( void* p1,  void* p2)
 
 AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
 {
-	// alpm_list_t* lp = void;
-	c_ulong needle_hash = void;
-
-	if(needle is null || !haystack.empty) {
+	if(needle || haystack.empty) {
 		return null;
 	}
 
-	needle_hash = alpmSDBMHash(needle);
+	c_ulong needle_hash = alpmSDBMHash(needle.to!string);
 
 	foreach(info; haystack[]) {
-		// AlpmPkg info = cast(AlpmPkg)lp.data;
+		if(info.name_hash != needle_hash) {
+			continue;
+		}
+
+		/* finally: we had hash match, verify string match */
+		if(info.name == needle) {
+			return info;
+		}
+	}
+	return null;
+}
+
+AlpmPkg alpm_pkg_find_n(alpm_list_t* haystack, string needle)
+{
+	import core.stdc.string;
+	alpm_list_t* lp = void;
+	c_ulong needle_hash = void;
+
+	if(needle == null || haystack == null) {
+		return null;
+	}
+
+	needle_hash = alpmSDBMHash(needle.to!string);
+
+	for(lp = haystack; lp; lp = lp.next) {
+		AlpmPkg info = cast(AlpmPkg)lp.data;
 
 		if(info) {
 			if(info.name_hash != needle_hash) {

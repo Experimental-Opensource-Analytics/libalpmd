@@ -76,7 +76,7 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(trans.state == STATE_INITIALIZED);
 
 
-	if(alpm_pkg_find(trans.remove, cast(char*)pkgname)) {
+	if(alpm_pkg_find_n(trans.remove, pkgname)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
 		return 0;
 	}
@@ -109,7 +109,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 			AlpmPkg info = _alpm_db_get_pkgfromcache(handle.db_local, miss.target);
 			if(info) {
 				AlpmPkg copy = void;
-				if(!alpm_pkg_find(trans.remove, cast(char*)info.name)) {
+				if(!alpm_pkg_find_n(trans.remove, info.name)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG, "pulling %s in target list\n",
 							info.name);
 					if(_alpm_pkg_dup(info, &copy) == -1) {
@@ -146,7 +146,7 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 		for(i = lp; i; i = i.next) {
 			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
 			void* vpkg = void;
-			AlpmPkg pkg = alpm_pkg_find(trans.remove, miss.causingpkg);
+			AlpmPkg pkg = alpm_pkg_find_n(trans.remove, miss.causingpkg.to!string);
 			if(pkg is null) {
 				continue;
 			}
@@ -180,7 +180,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		auto optdeps = pkg.getOptDepends();
 
-		if(!optdeps.empty && !alpm_pkg_find(lp, cast(char*)pkg.name)) {
+		if(!optdeps.empty && !alpm_pkg_find_n(lp, pkg.name)) {
 			alpm_list_t* j = void;
 			foreach(optdep; optdeps[]) {
 				// AlpmDepend optdep = cast(AlpmDepend)j.data;

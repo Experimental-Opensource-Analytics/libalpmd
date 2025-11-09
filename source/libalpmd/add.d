@@ -51,7 +51,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package '%s'\n", pkgname);
 
-	if((dup = alpm_pkg_find(trans.add, cast(char*)pkgname)) !is null ) {
+	if((dup = alpm_pkg_find_n(trans.add, pkgname)) !is null ) {
 		if(dup == pkg) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
 			return 0;
