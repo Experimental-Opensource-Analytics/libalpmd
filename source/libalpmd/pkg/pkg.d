@@ -358,6 +358,60 @@ public:
 		// return newpkg;
 	}
 
+	/* check that package metadata meets our requirements */
+	int checkMeta()
+	{
+		string c;
+		int error_found = 0;
+
+	enum string EPKGMETA(string error) = `do { 
+		error_found = -1; 
+		_alpm_log(this.handle, ALPM_LOG_ERROR, ` ~ error ~ `, this.name, this.version_); 
+	} while(0);`;
+
+		/* sanity check */
+		if(this.handle is null) {
+			return -1;
+		}
+
+		/* immediate bail if package doesn't have name or version */
+		if(this.name == null || this.name[0] == '\0'
+				|| this.version_ == null || this.version_[0] == '\0') {
+			_alpm_log(this.handle, ALPM_LOG_ERROR,
+					("invalid package metadata (name or version missing)"));
+			return -1;
+		}
+
+		if(this.name[0] == '-' || this.name[0] == '.') {
+			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
+						~ "(package name cannot start with '.' or '-')\n")`));
+		}
+		if(_alpm_fnmatch(cast(char*)this.name, cast(char*)"[![:alnum:]+_.@-]") == 0) {
+			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
+						~ "(package name contains invalid characters)\n")`));
+		}
+
+		/* multiple '-' in pkgver can cause local db entries for different packages
+		* to overlap (e.g. foo-1=2-3 and foo=1-2-3 both give foo-1-2-3) */
+		// if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
+		if((c = this.getVersion().find('-')) != [] && c[1..$-1].find('-')) {
+			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
+						~ "(package version contains invalid characters)\n")`));
+		}
+		if(this.getVersion().find('-') != []) {
+			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
+						~ "(package version contains invalid characters)\n")`));
+		}
+
+		/* local db entry is <pkgname>-<pkgver> */
+		if(this.name.length + this.version_.length + 1 > NAME_MAX) {
+			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
+						~ "(package name and version too long)\n")`));
+		}
+
+		return error_found;
+	}
+
 	~this() {
 		FREE(this.filename);
 		FREE(this.base);
@@ -540,58 +594,4 @@ AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
 int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
 {
 	return pkg.shouldIgnore(handle);
-}
-
-/* check that package metadata meets our requirements */
-int _alpm_pkg_check_meta(AlpmPkg pkg)
-{
-	string c;
-	int error_found = 0;
-
-enum string EPKGMETA(string error) = `do { 
-	error_found = -1; 
-	_alpm_log(pkg.handle, ALPM_LOG_ERROR, ` ~ error ~ `, pkg.name, pkg.version_); 
-} while(0);`;
-
-	/* sanity check */
-	if(pkg.handle is null) {
-		return -1;
-	}
-
-	/* immediate bail if package doesn't have name or version */
-	if(pkg.name == null || pkg.name[0] == '\0'
-			|| pkg.version_ == null || pkg.version_[0] == '\0') {
-		_alpm_log(pkg.handle, ALPM_LOG_ERROR,
-				("invalid package metadata (name or version missing)"));
-		return -1;
-	}
-
-	if(pkg.name[0] == '-' || pkg.name[0] == '.') {
-		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-					~ "(package name cannot start with '.' or '-')\n")`));
-	}
-	if(_alpm_fnmatch(cast(char*)pkg.name, cast(char*)"[![:alnum:]+_.@-]") == 0) {
-		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-					~ "(package name contains invalid characters)\n")`));
-	}
-
-	/* multiple '-' in pkgver can cause local db entries for different packages
-	 * to overlap (e.g. foo-1=2-3 and foo=1-2-3 both give foo-1-2-3) */
-	// if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
-	if((c = pkg.getVersion().find('-')) != [] && c[1..$-1].find('-')) {
-		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-					~ "(package version contains invalid characters)\n")`));
-	}
-	if(pkg.getVersion().find('-') != []) {
-		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-					~ "(package version contains invalid characters)\n")`));
-	}
-
-	/* local db entry is <pkgname>-<pkgver> */
-	if(pkg.name.length + pkg.version_.length + 1 > NAME_MAX) {
-		mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-					~ "(package name and version too long)\n")`));
-	}
-
-	return error_found;
 }

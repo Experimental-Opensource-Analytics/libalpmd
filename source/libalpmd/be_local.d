@@ -583,7 +583,7 @@ private int local_db_populate(AlpmDB db)
 
 		/* treat local metadata errors as warning-only,
 		 * they are already installed and otherwise they can't be operated on */
-		_alpm_pkg_check_meta(pkg);
+		pkg.checkMeta();
 
 		/* add to the collection */
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",

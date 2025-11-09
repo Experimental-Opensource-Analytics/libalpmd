@@ -370,7 +370,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		// pkg.ops = get_sync_pkg_ops();
 		pkg.handle = db.handle;
 
-		if(_alpm_pkg_check_meta(pkg) != 0) {
+		if(pkg.checkMeta() != 0) {
 			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_PKG_INVALID, null);
 		}

@@ -634,7 +634,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 		newpkg.infolevel |= AlpmDBInfRq.Files;
 	}
 
-	if(_alpm_pkg_check_meta(newpkg) != 0) {
+	if(newpkg.checkMeta() != 0) {
 		goto pkg_invalid;
 	}
 
