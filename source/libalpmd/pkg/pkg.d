@@ -33,6 +33,8 @@ import libalpmd.be_package;
 import libalpmd.libarchive_compat;
 import libalpmd.pkg;;
 
+alias AlpmPkgs = DList!AlpmPkg;
+
 class AlpmPkg {
 	c_ulong name_hash;
 	string filename;
@@ -144,88 +146,73 @@ public:
 	int mtreeClose(archive* archive) => -1;
 
 	int forceLoad() => 0;
-}
 
-alias AlpmPkgs = DList!AlpmPkg;
-
-// int  destroy!false(AlpmPkg pkg)
-// {
-// 	/* Only free packages loaded in user space */
-// 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
-// 		destroy!false(pkg);
-// 	}
-
-// 	return 0;
-// }
-
-int  alpm_pkg_get_sig(AlpmPkg pkg, ubyte** sig, size_t* sig_len)
-{
-	//ASSERT(pkg != null);
-
-	if(pkg.base64_sig) {
-		int ret = alpm_decode_signature(cast(char*)pkg.base64_sig, sig, sig_len);
-		if(ret != 0) {
-			RET_ERR(pkg.handle, ALPM_ERR_SIG_INVALID, -1);
-		}
-		return 0;
-	} else {
-		char* pkgpath = null, sigpath = null;
-		alpm_errno_t err = void;
-		int ret = -1;
-
-		pkgpath = _alpm_filecache_find(pkg.handle, cast(char*)pkg.filename);
-		if(!pkgpath) {
-			GOTO_ERR(pkg.handle, ALPM_ERR_PKG_NOT_FOUND, "cleanup");
-		}
-		sigpath = _alpm_sigpath(pkg.handle, pkgpath);
-		if(!sigpath || _alpm_access(pkg.handle, null, sigpath, R_OK)) {
-			GOTO_ERR(pkg.handle, ALPM_ERR_SIG_MISSING, "cleanup");
-		}
-		err = _alpm_read_file(sigpath, sig, sig_len);
-		if(err == ALPM_ERR_OK) {
-			_alpm_log(pkg.handle, ALPM_LOG_DEBUG, "found detached signature %s with size %ld\n",
-				sigpath, *sig_len);
+	int  getSig(ubyte** sig, size_t* sig_len) {
+		if(this.base64_sig) {
+			int ret = alpm_decode_signature(cast(char*)this.base64_sig, sig, sig_len);
+			if(ret != 0) {
+				RET_ERR(this.handle, ALPM_ERR_SIG_INVALID, -1);
+			}
+			return 0;
 		} else {
-			GOTO_ERR(pkg.handle, err, "cleanup");
+			char* pkgpath = null, sigpath = null;
+			alpm_errno_t err = void;
+			int ret = -1;
+
+			pkgpath = _alpm_filecache_find(this.handle, cast(char*)this.filename);
+			if(!pkgpath) {
+				GOTO_ERR(this.handle, ALPM_ERR_PKG_NOT_FOUND, "cleanup");
+			}
+			sigpath = _alpm_sigpath(this.handle, pkgpath);
+			if(!sigpath || _alpm_access(this.handle, null, sigpath, R_OK)) {
+				GOTO_ERR(this.handle, ALPM_ERR_SIG_MISSING, "cleanup");
+			}
+			err = _alpm_read_file(sigpath, sig, sig_len);
+			if(err == ALPM_ERR_OK) {
+				_alpm_log(this.handle, ALPM_LOG_DEBUG, "found detached signature %s with size %ld\n",
+					sigpath, *sig_len);
+			} else {
+				GOTO_ERR(this.handle, err, "cleanup");
+			}
+			ret = 0;
+	cleanup:
+			FREE(pkgpath);
+			FREE(sigpath);
+			return ret;
+		} 
+	}
+
+	void findRequiredBy(AlpmDB db, alpm_list_t** reqs, int optional)
+	{
+		alpm_list_t* i = void;
+		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
+
+		for(i = _alpm_db_get_pkgcache(db); i; i = i.next) {
+			AlpmPkg cachepkg = cast(AlpmPkg)i.data;
+			AlpmDeps j;
+
+			if(optional == 0) {
+				j = cachepkg.getDepends();
+			} else {
+				j = cachepkg.getOptDepends();
+			}
+
+			foreach(dep; j[]) {
+				if(_alpm_depcmp(this, dep)) {
+					string cachepkgname = cachepkg.name;
+					if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
+						*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup);
+					}
+				}
+			}
 		}
-		ret = 0;
-cleanup:
-		FREE(pkgpath);
-		FREE(sigpath);
-		return ret;
-	} 
+	}
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
 private int fnmatch_wrapper( void* pattern,  void* _string)
 {
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
-}
-
-void find_requiredby(AlpmPkg pkg, AlpmDB db, alpm_list_t** reqs, int optional)
-{
-	 alpm_list_t* i = void;
-	(cast(AlpmHandle)pkg.handle).pm_errno = ALPM_ERR_OK;
-
-	for(i = _alpm_db_get_pkgcache(db); i; i = i.next) {
-		AlpmPkg cachepkg = cast(AlpmPkg)i.data;
-		AlpmDeps j;
-
-		if(optional == 0) {
-			j = cachepkg.getDepends();
-		} else {
-			j = cachepkg.getOptDepends();
-		}
-
-		foreach(dep; j[]) {
-			if(_alpm_depcmp(pkg, dep)) {
-				string cachepkgname = cachepkg.name;
-				if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) {
-					*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup);
-				}
-			}
-		}
-	}
 }
 
 alpm_list_t* compute_requiredby(AlpmPkg pkg, int optional)
@@ -238,17 +225,17 @@ alpm_list_t* compute_requiredby(AlpmPkg pkg, int optional)
 
 	if(pkg.origin == ALPM_PKG_FROM_FILE) {
 		/* The sane option; search locally for things that require this. */
-		find_requiredby(pkg, pkg.handle.db_local, &reqs, optional);
+		pkg.findRequiredBy(pkg.handle.db_local, &reqs, optional);
 	} else {
 		/* We have a DB package. if it is a local package, then we should
 		 * only search the local DB; else search all known sync databases. */
 		db = pkg.origin_data.db;
 		if(db.status & AlpmDBStatus.Local) {
-			find_requiredby(pkg, db, &reqs, optional);
+			pkg.findRequiredBy(db, &reqs, optional);
 		} else {
 			for(auto i = pkg.handle.dbs_sync; i; i = i.next) {
 				db = cast(AlpmDB)i.data;
-				find_requiredby(pkg, db, &reqs, optional);
+				pkg.findRequiredBy(db, &reqs, optional);
 			}
 			reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp);
 		}
