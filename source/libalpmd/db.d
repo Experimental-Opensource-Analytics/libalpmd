@@ -42,6 +42,7 @@ import libalpmd.group;
 import libalpmd.pkghash;
 import libalpmd.be_sync;
 import libalpmd.deps;
+import libalpmd.util;
 
 enum AlpmDBInfRq {
 	Base = (1 << 0),
@@ -93,6 +94,10 @@ class AlpmDB {
 	/* alpm_db_usage_t */
 	int usage;
 
+
+	AlpmHandle getHandle() => this.handle;
+	string getName() => this.treename;
+
 	int  unregister() {
 		int found = 0;
 		// AlpmHandle handle = void;
@@ -129,6 +134,129 @@ class AlpmDB {
 	}
 
 	alpm_list_t* getChacheServers() => this.cache_servers;
+
+	int  addServer(char*url)
+	{
+		auto db = this;
+		char* newurl = void;
+
+		/* Sanity checks */
+		//ASSERT(db != null);
+		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(url != null && strlen(url) != 0);
+
+		newurl = sanitize_url(url);
+		//ASSERT(newurl != null);
+
+		db.servers = alpm_list_add(db.servers, newurl);
+		_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s\n",
+				db.treename, newurl);
+
+		return 0;
+	}
+
+	int  setServers(alpm_list_t* servers)
+	{
+		alpm_list_t* i = void;
+		//ASSERT(db != null);
+		FREELIST(this.servers);
+		for(i = servers; i; i = i.next) {
+			char* url = cast(char*)i.data;
+			if(this.addServer(url) != 0) {
+				return -1;
+			}
+		}
+		
+		
+		return 0;
+	}
+
+	int  removeServer(char*url)
+	{
+		char* newurl = void, vdata = null;
+		int ret = 1;
+
+		/* Sanity checks */
+		//ASSERT(db != null);
+		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(url != null && strlen(url) != 0);
+
+		newurl = sanitize_url(url);
+		//ASSERT(newurl != null);
+
+		this.servers = alpm_list_remove_str(this.servers, newurl, &vdata);
+
+		if(vdata) {
+			_alpm_log(this.handle, ALPM_LOG_DEBUG, "removed server URL from database '%s': %s\n",
+					this.treename, newurl);
+			free(vdata);
+			ret = 0;
+		}
+
+		free(newurl);
+		return ret;
+	}
+
+	int  setCacheServers(AlpmDB db, alpm_list_t* cache_servers)
+	{
+		alpm_list_t* i = void;
+		//ASSERT(db != null);
+		FREELIST(db.cache_servers);
+		for(i = cache_servers; i; i = i.next) {
+			char* url = cast(char*)i.data;
+			if(alpm_db_add_cache_server(db, url) != 0) {
+				return -1;
+			}
+		}
+		return 0;
+	}
+
+	int  addCacheServers(AlpmDB db,   char*url)
+	{
+		char* newurl = void;
+
+		/* Sanity checks */
+		//ASSERT(db != null);
+		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(url != null && strlen(url) != 0);
+
+		newurl = sanitize_url(url);
+		//ASSERT(newurl != null);
+
+		db.cache_servers = alpm_list_add(db.cache_servers, newurl);
+		_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
+				db.treename, newurl);
+
+		return 0;
+	}
+
+	int  removeCacheServers(AlpmDB db,   char*url)
+	{
+		import libalpmd.util;
+		char* newurl = void, vdata = null;
+		int ret = 1;
+
+		/* Sanity checks */
+		//ASSERT(db != null);
+		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(url != null && strlen(url) != 0);
+
+		newurl = sanitize_url(url);
+		//ASSERT(newurl != null);
+
+		db.cache_servers = alpm_list_remove_str(db.cache_servers, newurl, &vdata);
+
+		if(vdata) {
+			_alpm_log(db.handle, ALPM_LOG_DEBUG, "removed cache server URL from database '%s': %s\n",
+					db.treename, newurl);
+			free(vdata);
+			ret = 0;
+		}
+
+		free(newurl);
+		return ret;
+	}
+
 }
 
 alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
@@ -142,155 +270,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
 	_alpm_db_free(db);
-}
-
-int  alpm_db_set_cache_servers(AlpmDB db, alpm_list_t* cache_servers)
-{
-	alpm_list_t* i = void;
-	//ASSERT(db != null);
-	FREELIST(db.cache_servers);
-	for(i = cache_servers; i; i = i.next) {
-		char* url = cast(char*)i.data;
-		if(alpm_db_add_cache_server(db, url) != 0) {
-			return -1;
-		}
-	}
-	return 0;
-}
-
- alpm_list_t* alpm_db_get_servers(  AlpmDB db)
-{
-	//ASSERT(db != null);
-	return db.servers;
-}
-
-int  alpm_db_set_servers(AlpmDB db, alpm_list_t* servers)
-{
-	alpm_list_t* i = void;
-	//ASSERT(db != null);
-	FREELIST(db.servers);
-	for(i = servers; i; i = i.next) {
-		char* url = cast(char*)i.data;
-		if(alpm_db_add_server(db, url) != 0) {
-			return -1;
-		}
-	}
-	return 0;
-}
-
-private char* sanitize_url(  char*url)
-{
-	char* newurl = void;
-	size_t len = strlen(url);
-
-	STRDUP(newurl, url);
-	/* strip the trailing slash if one exists */
-	if(newurl[len - 1] == '/') {
-		newurl[len - 1] = '\0';
-	}
-	return newurl;
-}
-
-int  alpm_db_add_cache_server(AlpmDB db,   char*url)
-{
-	char* newurl = void;
-
-	/* Sanity checks */
-	//ASSERT(db != null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-	//ASSERT(url != null && strlen(url) != 0);
-
-	newurl = sanitize_url(url);
-	//ASSERT(newurl != null);
-
-	db.cache_servers = alpm_list_add(db.cache_servers, newurl);
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
-			db.treename, newurl);
-
-	return 0;
-}
-
-int  alpm_db_add_server(AlpmDB db,   char*url)
-{
-	char* newurl = void;
-
-	/* Sanity checks */
-	//ASSERT(db != null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-	//ASSERT(url != null && strlen(url) != 0);
-
-	newurl = sanitize_url(url);
-	//ASSERT(newurl != null);
-
-	db.servers = alpm_list_add(db.servers, newurl);
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s\n",
-			db.treename, newurl);
-
-	return 0;
-}
-
-int  alpm_db_remove_cache_server(AlpmDB db,   char*url)
-{
-	char* newurl = void, vdata = null;
-	int ret = 1;
-
-	/* Sanity checks */
-	//ASSERT(db != null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-	//ASSERT(url != null && strlen(url) != 0);
-
-	newurl = sanitize_url(url);
-	//ASSERT(newurl != null);
-
-	db.cache_servers = alpm_list_remove_str(db.cache_servers, newurl, &vdata);
-
-	if(vdata) {
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "removed cache server URL from database '%s': %s\n",
-				db.treename, newurl);
-		free(vdata);
-		ret = 0;
-	}
-
-	free(newurl);
-	return ret;
-}
-
-int  alpm_db_remove_server(AlpmDB db,   char*url)
-{
-	char* newurl = void, vdata = null;
-	int ret = 1;
-
-	/* Sanity checks */
-	//ASSERT(db != null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-	//ASSERT(url != null && strlen(url) != 0);
-
-	newurl = sanitize_url(url);
-	//ASSERT(newurl != null);
-
-	db.servers = alpm_list_remove_str(db.servers, newurl, &vdata);
-
-	if(vdata) {
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "removed server URL from database '%s': %s\n",
-				db.treename, newurl);
-		free(vdata);
-		ret = 0;
-	}
-
-	free(newurl);
-	return ret;
-}
-
-AlpmHandle alpm_db_get_handle(AlpmDB db)
-{
-	//ASSERT(db != null);
-	return db.handle;
-}
-
-string alpm_db_get_name(  AlpmDB db)
-{
-	//ASSERT(db != null);
-	return db.treename;
 }
 
 int  alpm_db_get_siglevel(AlpmDB db)

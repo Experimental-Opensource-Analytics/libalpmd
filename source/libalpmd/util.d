@@ -1887,3 +1887,17 @@ alpm_errno_t _alpm_read_file(  char*filepath, ubyte[]* data, size_t* data_len)
 	fclose(fp);
 	return ALPM_ERR_OK;
 }
+
+
+char* sanitize_url(  char*url)
+{
+	char* newurl = void;
+	size_t len = strlen(url);
+
+	STRDUP(newurl, url);
+	/* strip the trailing slash if one exists */
+	if(newurl[len - 1] == '/') {
+		newurl[len - 1] = '\0';
+	}
+	return newurl;
+}
