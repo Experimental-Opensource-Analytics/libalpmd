@@ -69,31 +69,36 @@ class AlpmTrans {
 	alpm_list_t* add;           /* list of (AlpmPkg) */
 	alpm_list_t* remove;        /* list of (AlpmPkg) */
 	alpm_list_t* skip_remove;   /* list of (char *) */
-}
 
-int  alpm_trans_init(AlpmHandle handle, int flags)
-{
-	AlpmTrans trans = void;
-
-	/* Sanity checks */
-	CHECK_HANDLE(handle);
-	//ASSERT(handle.trans == null);
-
-	/* lock db */
-	if(!(flags & ALPM_TRANS_FLAG_NOLOCK)) {
-		if(handle.lock()) {
-			RET_ERR(handle, ALPM_ERR_HANDLE_LOCK, -1);
-		}
+	this(int flags) {
+		this.flags = flags;
+		this.state = AlpmTransState.Initialized;
 	}
-
-	trans = new AlpmTrans;
-	trans.flags = flags;
-	trans.state = AlpmTransState.Initialized;
-
-	handle.trans = trans;
-
-	return 0;
 }
+
+// int  alpm_trans_init(AlpmHandle handle, int flags)
+// {
+// 	AlpmTrans trans = void;
+
+// 	/* Sanity checks */
+// 	// CHECK_HANDLE(handle);
+// 	//ASSERT(handle.trans == null);
+
+// 	/* lock db */
+// 	if(!(flags & ALPM_TRANS_FLAG_NOLOCK)) {
+// 		if(handle.lock()) {
+// 			RET_ERR(handle, ALPM_ERR_HANDLE_LOCK, -1);
+// 		}
+// 	}
+
+// 	trans = new AlpmTrans;
+// 	trans.flags = flags;
+// 	trans.state = AlpmTransState.Initialized;
+
+// 	handle.trans = trans;
+
+// 	return 0;
+// }
 
 private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 {
