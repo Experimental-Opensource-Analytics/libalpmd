@@ -148,6 +148,13 @@ public:
 
 	int forceLoad() => 0;
 
+	/* Helper function for comparing packages
+	*/
+	override int opCmp(Object rhs)
+	{
+		return cmp(this.name, (cast(AlpmPkg)rhs).name);
+	}
+
 	int  getSig(ubyte** sig, size_t* sig_len) {
 		if(this.base64_sig) {
 			int ret = alpm_decode_signature(cast(char*)this.base64_sig, sig, sig_len);
@@ -427,9 +434,7 @@ void _alpm_pkg_free_trans(AlpmPkg pkg)
  */
 int _alpm_pkg_cmp( void* p1,  void* p2)
 {
-	AlpmPkg pkg1 = cast( AlpmPkg)p1;
-	AlpmPkg pkg2 = cast( AlpmPkg)p2;
-	return pkg1.name == pkg2.name;
+	return (cast(AlpmPkg)p1).opCmp(cast(Object)p2);
 }
 
 AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
