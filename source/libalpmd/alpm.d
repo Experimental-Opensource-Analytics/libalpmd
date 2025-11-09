@@ -1417,7 +1417,7 @@ int alpm_db_remove_server(AlpmDB db, const(char)* url);
  * @param db pointer to the database to get the servers from
  * @return a char* list of servers
  */
-alpm_list_t* alpm_db_get_cache_servers( AlpmDB db);
+// alpm_list_t* alpm_db_get_cache_servers( AlpmDB db);
 
 /** Sets the list of cache servers for the database to use.
  * @param db the database to set the servers. The list will be duped and
@@ -1431,7 +1431,7 @@ int alpm_db_set_cache_servers(AlpmDB db, alpm_list_t* servers);
  * @param url url of the server
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
-int alpm_db_add_cache_server(AlpmDB db, const(char)* url);
+// int alpm_db_add_cache_server(AlpmDB db, const(char)* url);
 
 /** Remove a download cache server from a database.
  * @param db database pointer

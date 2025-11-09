@@ -591,7 +591,7 @@ error:
 AlpmDepend _alpm_dep_dup( AlpmDepend dep)
 {
 	AlpmDepend newdep = new AlpmDepend;
-	// CALLOC(newdep, 1, AlpmDepend.sizeof);
+	// CALLOC(newdep, 1, AlpmDepend.sSTATE_INTERRUPTEDizeof);
 
 	STRNDUP(newdep.name, dep.name, strlen(dep.name));
 	STRNDUP(newdep.version_, dep.version_, strlen(dep.version_));

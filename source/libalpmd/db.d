@@ -197,41 +197,42 @@ class AlpmDB {
 		return ret;
 	}
 
-	int  setCacheServers(AlpmDB db, alpm_list_t* cache_servers)
+	int  setCacheServer(alpm_list_t* cache_servers)
 	{
 		alpm_list_t* i = void;
 		//ASSERT(db != null);
-		FREELIST(db.cache_servers);
+		FREELIST(this.cache_servers);
 		for(i = cache_servers; i; i = i.next) {
 			char* url = cast(char*)i.data;
-			if(alpm_db_add_cache_server(db, url) != 0) {
+			if(this.addCacheServer(url) != 0) {
 				return -1;
 			}
 		}
 		return 0;
 	}
 
-	int  addCacheServers(AlpmDB db,   char*url)
+	int  addCacheServer( char*url)
 	{
 		char* newurl = void;
 
 		/* Sanity checks */
-		//ASSERT(db != null);
-		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
+		//ASSERT(this != null);
+		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(url != null && strlen(url) != 0);
 
 		newurl = sanitize_url(url);
 		//ASSERT(newurl != null);
 
-		db.cache_servers = alpm_list_add(db.cache_servers, newurl);
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
-				db.treename, newurl);
+		this.cache_servers = alpm_list_add(this.cache_servers, newurl);
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
+				this.treename, newurl);
 
 		return 0;
 	}
 
-	int  removeCacheServers(AlpmDB db,   char*url)
+	int  removeCacheServer( char*url)
 	{
+		alias db = this;
 		import libalpmd.util;
 		char* newurl = void, vdata = null;
 		int ret = 1;
