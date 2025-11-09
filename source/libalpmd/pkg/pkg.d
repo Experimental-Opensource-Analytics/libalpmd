@@ -393,6 +393,12 @@ public:
 		}
 		// FREE(this);
 	}
+
+	/* Is spkg an upgrade for localpkg? */
+	int compareVersions(AlpmPkg localpkg)
+	{
+		return alpm_pkg_vercmp(cast(char*)this.version_.toStringz, cast(char*)localpkg.version_.toStringz);
+	}
 }
 
 /* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
@@ -415,12 +421,6 @@ void _alpm_pkg_free(AlpmPkg pkg)
 void _alpm_pkg_free_trans(AlpmPkg pkg)
 {
 	pkg.freeTrans();
-}
-
-/* Is spkg an upgrade for localpkg? */
-int _alpm_pkg_compare_versions(AlpmPkg spkg, AlpmPkg localpkg)
-{
-	return alpm_pkg_vercmp(cast(char*)spkg.version_.toStringz, cast(char*)localpkg.version_.toStringz);
 }
 
 /* Helper function for comparing packages

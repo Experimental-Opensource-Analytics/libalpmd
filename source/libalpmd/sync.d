@@ -83,7 +83,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
 	}
 
 	/* compare versions and see if spkg is an upgrade */
-	if(_alpm_pkg_compare_versions(spkg, pkg) > 0) {
+	if(spkg.compareVersions(pkg) > 0) {
 		_alpm_log(pkg.handle, ALPM_LOG_DEBUG, "new version of '%s' found (%s => %s)\n",
 					pkg.name, pkg.version_, spkg.version_);
 		return spkg;
@@ -95,7 +95,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
 private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int enable_downgrade)
 {
 	/* 1. literal was found in sdb */
-	int cmp = _alpm_pkg_compare_versions(spkg, lpkg);
+	int cmp = spkg.compareVersions(lpkg);
 	if(cmp > 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "new version of '%s' found (%s => %s)\n",
 				lpkg.name, lpkg.version_, spkg.version_);
@@ -278,7 +278,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 			}
 			if(trans !is null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
 				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.db_local, cast(char*)pkg.name);
-				if(local && _alpm_pkg_compare_versions(pkg, local) == 0) {
+				if(local && pkg.compareVersions(local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
 					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
 							local.name, local.version_);

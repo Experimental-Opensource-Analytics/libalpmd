@@ -63,7 +63,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	if((local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkgname)) !is null) {
 		string localpkgname = local.name;
 		string localpkgver = local.version_;
-		int cmp = _alpm_pkg_compare_versions(pkg, local);
+		int cmp = pkg.compareVersions(local);
 
 		if(cmp == 0) {
 			if(trans.flags & ALPM_TRANS_FLAG_NEEDED) {
@@ -411,7 +411,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 
 	/* see if this is an upgrade. if so, remove the old package first */
 	if(_alpm_db_get_pkgfromcache(db, cast(char*)newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
-		int cmp = _alpm_pkg_compare_versions(newpkg, oldpkg);
+		int cmp = newpkg.compareVersions(oldpkg);
 		if(cmp < 0) {
 			log_msg = cast(char*)"downgrading";
 			progress = ALPM_PROGRESS_DOWNGRADE_START;
