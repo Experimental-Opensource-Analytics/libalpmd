@@ -1855,7 +1855,7 @@ void _alpm_alloc_fail(size_t size)
  * @param data_len size of the output buffer
  * @return error code for the operation
  */
-alpm_errno_t _alpm_read_file(  char*filepath, ubyte** data, size_t* data_len)
+alpm_errno_t _alpm_read_file(  char*filepath, ubyte[]* data, size_t* data_len)
 {
 	stat_t st = void;
 	FILE* fp = void;
@@ -1870,9 +1870,9 @@ alpm_errno_t _alpm_read_file(  char*filepath, ubyte** data, size_t* data_len)
 	}
 	*data_len = st.st_size;
 
-	MALLOC(*data, *data_len);
+	MALLOC(&data, *data_len);
 
-	if(fread(*data, *data_len, 1, fp) != 1) {
+	if(fread(&data, *data_len, 1, fp) != 1) {
 		FREE(*data);
 		fclose(fp);
 		return ALPM_ERR_SYSTEM;
