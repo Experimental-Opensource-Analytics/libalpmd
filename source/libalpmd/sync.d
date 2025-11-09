@@ -1242,7 +1242,8 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 		i.data = cast(void*)pkgfile;
 		/* spkg has been removed from the target list, so we can free the
 		 * sync-specific fields */
-		_alpm_pkg_free_trans(spkg);
+		// _alpm_pkg_free_trans(spkg);
+		spkg.freeTrans();
 	}
 
 	PROGRESS(handle, ALPM_PROGRESS_LOAD_START, "", 100,

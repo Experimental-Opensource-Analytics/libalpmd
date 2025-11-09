@@ -247,6 +247,25 @@ public:
 		return computeRequiredBy(1);
 	}
 
+	/* This function should be used when removing a target from upgrade/sync target list
+	* Case 1: If pkg is a loaded package file (ALPM_PKG_FROM_FILE), it will be freed.
+	* Case 2: If pkg is a pkgcache entry (ALPM_PKG_FROM_CACHE), it won't be freed,
+	*         only the transaction specific fields of pkg will be freed.
+	*/
+	void freeTrans()
+	{
+		if(this.origin == ALPM_PKG_FROM_FILE) {
+			destroy!false(this);
+			return;
+		}
+
+		//TODO
+		// alpm_list_free(this.removes);
+		destroy(this.removes);
+		destroy!false(this.oldpkg);
+		this.oldpkg = null;
+	}
+
 	/**
 	* Duplicate a package data struct.
 	* @param pkg the package to duplicate
@@ -395,20 +414,7 @@ void _alpm_pkg_free(AlpmPkg pkg)
  */
 void _alpm_pkg_free_trans(AlpmPkg pkg)
 {
-	if(pkg is null) {
-		return;
-	}
-
-	if(pkg.origin == ALPM_PKG_FROM_FILE) {
-		destroy!false(pkg);
-		return;
-	}
-
-	//TODO
-	// alpm_list_free(pkg.removes);
-	destroy(pkg.removes);
-	destroy!false(pkg.oldpkg);
-	pkg.oldpkg = null;
+	pkg.freeTrans();
 }
 
 /* Is spkg an upgrade for localpkg? */
