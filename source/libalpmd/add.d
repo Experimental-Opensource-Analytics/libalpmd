@@ -28,7 +28,7 @@ import libalpmd.db;
 import libalpmd.remove;
 import libalpmd.handle;
 
-import libalpmd.be_local;
+// import libalpmd.be_local;
 
 int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {

@@ -47,7 +47,7 @@ import libalpmd.alpm;
 import libalpmd.deps;
 import core.stdc.stdio;
 import libalpmd.db;
-import libalpmd.be_sync;
+// import libalpmd.be_sync;
 import std.exception;
 import std.stdio;
 import std.string;

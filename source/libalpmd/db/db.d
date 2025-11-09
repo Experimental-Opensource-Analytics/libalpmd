@@ -1,4 +1,4 @@
-module libalpmd.db;
+module libalpmd.db.db;
 /*
  *  db.c
  *
@@ -40,7 +40,7 @@ import libalpmd.alpm;
 import libalpmd.pkg;
 import libalpmd.group;
 import libalpmd.pkghash;
-import libalpmd.be_sync;
+// import libalpmd.be_sync;
 import libalpmd.deps;
 import libalpmd.util;
 

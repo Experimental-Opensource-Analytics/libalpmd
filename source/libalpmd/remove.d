@@ -54,7 +54,7 @@ import libalpmd.deps;
 import libalpmd.handle;
 import libalpmd.filelist;
 import libalpmd.util_common;
-import libalpmd.be_local;
+// import libalpmd.be_local;
 
 
 

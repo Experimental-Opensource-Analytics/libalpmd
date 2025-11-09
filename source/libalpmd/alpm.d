@@ -8,7 +8,7 @@ import core.stdc.stdarg;
 import derelict.libarchive;
 import core.stdc.string;
 import core.stdc.stdio;
-import libalpmd.be_local;
+// import libalpmd.be_local;
 import libalpmd.deps;
 import std.conv;
 

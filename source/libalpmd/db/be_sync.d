@@ -1,4 +1,4 @@
-module libalpmd.be_sync;
+module libalpmd.db.be_sync;
 
 import core.stdc.config: c_long, c_ulong;
 /*

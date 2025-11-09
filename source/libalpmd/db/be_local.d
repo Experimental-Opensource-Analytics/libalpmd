@@ -1,4 +1,4 @@
-module libalpmd.be_local;
+module libalpmd.db.be_local;
 /*
  *  be_local.c : backend for the local database
  *
