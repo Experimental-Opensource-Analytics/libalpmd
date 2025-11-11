@@ -18,6 +18,7 @@ import std.path;
 import std.digest.md;
 import std.digest.sha;
 import std.conv;
+import std.string;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -107,6 +108,7 @@ import libalpmd.alpm_list;
 import libalpmd.handle;
 import libalpmd.trans;
 import derelict.libarchive;
+// import ae.sys.git;
 
 struct archive_read_buffer {
 	char* line;
@@ -1596,7 +1598,7 @@ version (faccessat) {
  * @return 0 if string matches pattern, negative if they don't match and
  * positive if the last match was inverted
  */
-int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char*string)
+int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char* _string)
 {
 	alpm_list_t* i = void;
 	char* pattern = void;
@@ -1610,7 +1612,7 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char*string)
 			pattern++;
 		}
 
-		if(_alpm_fnmatch(pattern, string) == 0) {
+		if(alpmFnMatch(pattern.to!string, _string.to!string) == 0) {
 			return inverted;
 		}
 	}
@@ -1627,9 +1629,8 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char*string)
  * @return 0 if string matches pattern, non-zero if they don't match and on
  * error
  */
-int _alpm_fnmatch(char* pattern, char* _string)
-{
-	return fnmatch(pattern, _string, 0);
+int alpmFnMatch(string pattern, string _string){
+	return fnmatch(pattern.toStringz, _string.toStringz, 0);
 }
 
 /** Think of this as realloc with error handling. If realloc fails NULL will be
@@ -1692,10 +1693,9 @@ void _alpm_alloc_fail(size_t size)
 	fprintf(stderr, "alloc failure: could not allocate %zu bytes\n", size);
 }
 
-/* Wrapper function for _alpm_fnmatch to match alpm_list_fn_cmp signature */
-int fnmatch_wrapper( void* pattern,  void* _string)
-{
-	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
+/* Wrapper function for alpmFnMatch to match alpm_list_fn_cmp signature */
+int fnmatch_wrapper( void* pattern,  void* _string) {
+	return alpmFnMatch(pattern.to!string, _string.to!string);
 }
 
 ubyte[] alpmReadFile(string path) {

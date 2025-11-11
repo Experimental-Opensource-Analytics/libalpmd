@@ -371,7 +371,7 @@ public:
 			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 						~ "(package name cannot start with '.' or '-')\n")`));
 		}
-		if(_alpm_fnmatch(cast(char*)this.name, cast(char*)"[![:alnum:]+_.@-]") == 0) {
+		if(alpmFnMatch(this.name, "[![:alnum:]+_.@-]") == 0) {
 			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
 						~ "(package name contains invalid characters)\n")`));
 		}
