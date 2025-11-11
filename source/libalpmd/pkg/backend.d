@@ -182,7 +182,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.arch = ptr.to!string;
 			} else if(strcmp(key, "size") == 0) {
 				/* size in the raw package is uncompressed (installed) size */
-				newpkg.isize = _alpm_strtoofft(ptr);
+				newpkg.isize = alpmStrToOfft(ptr.to!string);
 			} else if(strcmp(key, "depend") == 0) {
 				AlpmDepend dep = alpm_dep_from_string(ptr);
 				newpkg.depends.insertFront(dep);

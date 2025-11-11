@@ -19,6 +19,8 @@ import std.digest.md;
 import std.digest.sha;
 import std.conv;
 import std.string;
+import std.ascii;
+import std.typecons;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -1471,29 +1473,18 @@ c_ulong alpmSDBMHash(string str) {
  * @param line string to convert
  * @return off_t on success, -1 on error
  */
-off_t _alpm_strtoofft(  char*line)
-{
-	char* end = void;
-	ulong result = void;
-	errno = 0;
-
+off_t alpmStrToOfft(string line) {
 	/* we are trying to parse bare numbers only, no leading anything */
-	if(!isdigit(cast(ubyte)line[0])) {
+	if(!isDigit(line[0])) {
 		return cast(off_t)-1;
 	}
-	result = strtoull(line, &end, 10);
-	if(result == 0 && end == line) {
+	auto result = parse!(off_t, string, Yes.doCount)(line);
+	if(result.count == 0) {
 		/* line was not a number */
 		return cast(off_t)-1;
-	} else if(result == ULLONG_MAX && errno == ERANGE) {
-		/* line does not fit in unsigned long long */
-		return cast(off_t)-1;
-	} else if(*end) {
-		/* line began with a number but has junk left over at the end */
-		return cast(off_t)-1;
 	}
 
-	return cast(off_t)result;
+	return result.data;
 }
 
 /** Parses a date into an AlpmTime struct.
@@ -1565,7 +1556,7 @@ version (AT_SYMLINK_NOFOLLOW) { //!Fix AT_SYMLINK_NOFOLLOW version trigger
 
 /** Checks whether a string matches at least one shell wildcard pattern.
 * Checks for matches with fnmatch. Matches are inverted by prepending
-* patterns with an exclamation mark. Preceding exclamation marks may be
+* patterns with an exclamation mark. Preceding exclamation marks may bestrtoll
 * escaped. Subsequent matches override previous ones.
 * @param patterns patterns to match against
 * @param string string to check against pattern

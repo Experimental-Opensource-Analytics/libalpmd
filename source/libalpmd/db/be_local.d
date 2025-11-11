@@ -780,7 +780,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				FREELIST(v);
 			} else if(strcmp(line.ptr, "%SIZE%") == 0) {
 				mixin(READ_NEXT!());
-				info.isize = _alpm_strtoofft(line.ptr);
+				info.isize = alpmStrToOfft(line.to!string);
 			} else if(strcmp(line.ptr, "%REPLACES%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`info.replaces`));
 			} else if(strcmp(line.ptr, "%DEPENDS%") == 0) {

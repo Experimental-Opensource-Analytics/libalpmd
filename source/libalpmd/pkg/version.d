@@ -73,7 +73,7 @@ struct AlpmVersion {
  * @retval *vp		pointer to version
  * @retval *rp		pointer to release
  */
-void parseEVR(string evr,  out string ep, out string vp, out string rp){
+void parseEVR(string evr,  out string ep, out string vp, out string rp){//!formattedRead
 	auto splitted = evr.split(":");
 	string epoch = splitted[0];
 

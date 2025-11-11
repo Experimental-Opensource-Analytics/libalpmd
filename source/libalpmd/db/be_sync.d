@@ -676,10 +676,10 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				mixin(READ_AND_STORE!(`pkg.packager`));
 			} else if(strcmp(line, "%CSIZE%") == 0) {
 				mixin(READ_NEXT!());
-				pkg.size = _alpm_strtoofft(line);
+				pkg.size = alpmStrToOfft(line.to!string);
 			} else if(strcmp(line, "%ISIZE%") == 0) {
 				mixin(READ_NEXT!());
-				pkg.isize = _alpm_strtoofft(line);
+				pkg.isize = alpmStrToOfft(line.to!string);
 			} else if(strcmp(line, "%MD5SUM%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.md5sum`));
 			} else if(strcmp(line, "%SHA256SUM%") == 0) {
