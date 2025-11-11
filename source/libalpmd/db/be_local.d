@@ -749,10 +749,10 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				mixin(READ_AND_STORE!(`info.arch`));
 			} else if(strcmp(line.ptr, "%BUILDDATE%") == 0) {
 				mixin(READ_NEXT!());
-				info.builddate = _alpm_parsedate(line.ptr);
+				info.builddate = alpmParseDate(line.to!string);
 			} else if(strcmp(line.ptr, "%INSTALLDATE%") == 0) {
 				mixin(READ_NEXT!());
-				info.installdate = _alpm_parsedate(line.ptr);
+				info.installdate = alpmParseDate(line.to!string);
 			} else if(strcmp(line.ptr, "%PACKAGER%") == 0) {
 				mixin(READ_AND_STORE!(`info.packager`));
 			} else if(strcmp(line.ptr, "%REASON%") == 0) {

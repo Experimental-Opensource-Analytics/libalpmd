@@ -70,6 +70,7 @@ import std.conv;
 import core.stdc.string;
 import libalpmd.util_common;
 import libalpmd.consts;
+import std.conv;
 
 // fnmatch constants
 enum FNM_PATHNAME = 1;     // No wildcard can ever match '/'
@@ -1499,25 +1500,8 @@ off_t _alpm_strtoofft(  char*line)
  * @param line date to parse
  * @return time struct on success, 0 on error
  */
-AlpmTime _alpm_parsedate(  char*line)
-{
-	char* end = void;
-	long result = void;
-	errno = 0;
-
-	result = strtoll(line, &end, 10);
-	if(result == 0 && end == line) {
-		/* line was not a number */
-		errno = EINVAL;
-		return 0;
-	} else if(errno == ERANGE) {
-		/* line does not fit in long long */
-		return 0;
-	} else if(*end) {
-		/* line began with a number but has junk left over at the end */
-		errno = EINVAL;
-		return 0;
-	}
+AlpmTime alpmParseDate(string line) {
+	long result = line.parse!long;
 
 	return cast(AlpmTime)result;
 }

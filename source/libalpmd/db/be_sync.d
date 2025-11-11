@@ -671,7 +671,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				mixin(READ_AND_STORE!(`pkg.arch`));
 			} else if(strcmp(line, "%BUILDDATE%") == 0) {
 				mixin(READ_NEXT!());
-				pkg.builddate = _alpm_parsedate(line);
+				pkg.builddate = alpmParseDate(line.to!string);
 			} else if(strcmp(line, "%PACKAGER%") == 0) {
 				mixin(READ_AND_STORE!(`pkg.packager`));
 			} else if(strcmp(line, "%CSIZE%") == 0) {

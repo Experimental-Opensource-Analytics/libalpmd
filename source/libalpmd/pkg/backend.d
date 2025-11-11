@@ -174,7 +174,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				STRDUP(tmp, ptr);
 				newpkg.licenses.insertFront(tmp.to!string);
 			} else if(strcmp(key, "builddate") == 0) {
-				newpkg.builddate = _alpm_parsedate(ptr);
+				newpkg.builddate = alpmParseDate(ptr.to!string);
 			} else if(strcmp(key, "packager") == 0) {
 				STRDUP(tmp, ptr);
 				newpkg.packager = tmp.to!string;
