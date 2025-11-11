@@ -449,14 +449,14 @@ public:
 	int  shouldIgnore(AlpmHandle handle)
 	{
 		/* first see if the package is ignored */
-		if(alpm_list_find(handle.ignorepkg, cast(char*)this.name, &fnmatch_wrapper)) {
+		if(alpm_list_find(handle.ignorepkg, cast(char*)this.name, &fnmatchWrapper)) {
 			return 1;
 		}
 
 		/* next see if the package is in a group that is ignored */
 		foreach(group; groups[]) {
 			char* grp = cast(char*)group;
-			if(alpm_list_find(handle.ignoregroup, grp, &fnmatch_wrapper)) {
+			if(alpm_list_find(handle.ignoregroup, grp, &fnmatchWrapper)) {
 				return 1;
 			}
 		}

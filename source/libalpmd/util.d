@@ -1694,7 +1694,7 @@ void _alpm_alloc_fail(size_t size)
 }
 
 /* Wrapper function for alpmFnMatch to match alpm_list_fn_cmp signature */
-int fnmatch_wrapper( void* pattern,  void* _string) {
+int fnmatchWrapper( void* pattern,  void* _string) {
 	return alpmFnMatch(pattern.to!string, _string.to!string);
 }
 
