@@ -21,6 +21,7 @@ import std.conv;
 import std.string;
 import std.ascii;
 import std.typecons;
+import std.format;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -1401,54 +1402,34 @@ cleanup:
  * @param name_hash to hold package name hash
  * @return 0 on success, -1 on error
  */
-int _alpm_splitname(  char*target, char** name, char** version_, c_ulong* name_hash)
-{
+
+string[] splitAtPosition(string a, ulong n) {
+	return [ a[0..n], a[n+1..$]];
+}
+
 	/* the format of a db entry is as follows:
 	 *    package-version-rel/
 	 *    package-version-rel/desc (we ignore the filename portion)
 	 * package name can contain hyphens, so parse from the back- go back
 	 * two hyphens and we have split the version from the name.
 	 */
-	  char*pkgver = void, end = void;
+int alpmSplitName(string target, out string name, out string version_, ref c_ulong name_hash) {
+	bool found = false;
+	auto i = target.length - 1;
+	foreach_reverse(ch; target) {
+		if(ch == '-') {
+			if(found) {
+				break;
 
-	if(target == null) {
-		return -1;
-	}
-
-	/* remove anything trailing a '/' */
-	end = strchr(target, '/');
-	if(!end) {
-		end = target + strlen(target);
-	}
-
-	/* do the magic parsing- find the beginning of the version string
-	 * by doing two iterations of same loop to lop off two hyphens */
-	for(pkgver = end - 1; *pkgver && *pkgver != '-'; pkgver--){}
-	for(pkgver = pkgver - 1; *pkgver && *pkgver != '-'; pkgver--){}
-	if(*pkgver != '-' || pkgver == target) {
-		return -1;
-	}
-
-	/* copy into fields and return */
-	if(version_) {
-		if(*version_) {
-			FREE(*version_);
+			}
+			found = true;
 		}
-		/* version actually points to the dash, so need to increment 1 and account
-		 * for potential end character */
-		STRNDUP(*version_, pkgver + 1, end - pkgver - 1);
+		i--;
 	}
 
-	if(name) {
-		if(*name) {
-			FREE(*name);
-		}
-		STRNDUP(*name, target, pkgver - target);
-		if(name_hash) {
-			*name_hash = alpmSDBMHash((*name).to!string);
-		}
-	}
-
+	auto result = splitAtPosition(target, i);
+	name = result[0];
+	version_ = result[1];
 	return 0;
 }
 

@@ -330,7 +330,7 @@ int _sync_get_validation(AlpmPkg pkg)
 AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, AlpmPkg likely_pkg)
 {
 	string pkgname = null;
-	char* pkgver = null;
+	string pkgver = null;
 	c_ulong pkgname_hash = void;
 	AlpmPkg pkg = void;
 
@@ -343,7 +343,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 			*entry_filename = null;
 		}
 	}
-	if(_alpm_splitname(entryname, cast(char**)&pkgname, &pkgver, &pkgname_hash) != 0) {
+	if(alpmSplitName(entryname.to!string, pkgname, pkgver, pkgname_hash) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR,
 				("invalid name for database entry '%s'\n"), entryname);
 		return null;
@@ -384,7 +384,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		}
 	} else {
 		// free(pkgname);
-		free(pkgver);
+		// free(pkgver);
 	}
 
 	return pkg;

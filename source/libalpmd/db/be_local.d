@@ -554,8 +554,7 @@ private int local_db_populate(AlpmDB db)
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 		}
 		/* split the db entry name */
-		if(_alpm_splitname(name, cast(char**)&(pkg.name), cast(char**)&(pkg.version_),
-					&(pkg.name_hash)) != 0) {
+		if(alpmSplitName(name.to!string, pkg.name, pkg.version_, pkg.name_hash) != 0) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
 					name);
 			destroy!false(pkg);
