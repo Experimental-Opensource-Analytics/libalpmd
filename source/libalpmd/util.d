@@ -75,170 +75,10 @@ enum FNM_LEADING_DIR = 8;  // Ignore '/...' after a match
 enum FNM_CASEFOLD = 16;    // Compare without regard to case
 
 // Объявление функции chroot, если она отсутствует в стандартной библиотеке
-extern (C) int chroot(const(char)* path);
-
-/** Match NAME against the filename pattern PATTERN,
- * returning zero if it matches, FNM_NOMATCH if not
- */
-int fnmatch(const(char)* pattern, const(char)* name, int flags)
-{
-	if (!pattern || !name) return FNM_NOMATCH;
-
-	const(char)* p = pattern;
-	const(char)* n = name;
-	const(char)* fallback_p = null;
-	const(char)* fallback_n = null;
-
-	while (*p != '\0' && *n != '\0') {
-		switch (*p) {
-			case '?':
-				if ((flags & FNM_PATHNAME) && *n == '/') {
-					// Метасимвол '?' не соответствует '/' при установленном флаге FNM_PATHNAME
-					break;
-				}
-				if ((flags & FNM_PERIOD) && n == name && *n == '.') {
-					// Начальная точка должна совпадать явно
-					if (!(p > pattern && *(p-1) == '\\')) {
-						break;
-					}
-				}
-				p++;
-				n++;
-				break;
-
-			case '*':
-				// Пропускаем последовательные '*'
-				while (*p == '*') p++;
-				
-				// Если '*' в конце шаблона, то совпадение найдено
-				if (*p == '\0') return 0;
-				
-				// Запоминаем позицию для возврата
-				fallback_p = p;
-				fallback_n = n;
-				break;
-
-			case '[':
-				if ((flags & FNM_PATHNAME) && *n == '/') {
-					// Метасимвол '[' не соответствует '/' при установленном флаге FNM_PATHNAME
-					break;
-				}
-				if ((flags & FNM_PERIOD) && n == name && *n == '.') {
-					// Начальная точка должна совпадать явно
-					break;
-				}
-				
-				p++;
-				bool matched = false;
-				bool negated = false;
-				
-				if (*p == '!') {
-					negated = true;
-					p++;
-				}
-				
-				char last_char = '\0';
-				while (*p != '\0' && *p != ']') {
-					if (p[0] == '-' && p[1] != ']' && last_char != '\0') {
-						// Диапазон символов
-						p++;
-						if (*n >= last_char && *n <= *p) {
-							matched = !negated;
-						}
-						last_char = *p;
-					} else {
-						if (*p == *n) {
-							matched = !negated;
-						}
-						last_char = *p;
-					}
-					p++;
-				}
-				
-				if (*p == ']') p++;
-				
-				if (!matched) {
-					// Если не совпало, возвращаемся к предыдущей позиции '*'
-					if (fallback_p) {
-						p = fallback_p;
-						n = fallback_n + 1;
-						continue;
-					} else {
-						break;
-					}
-				}
-				n++;
-				break;
-
-			case '\\':
-				if (!(flags & FNM_NOESCAPE) && *(p+1) != '\0') {
-					p++;
-					// Проверяем точное совпадение следующего символа
-					if (*p == *n) {
-						p++;
-						n++;
-					} else {
-						// Если экранированный символ не совпадает, возвращаемся к предыдущей позиции '*'
-						if (fallback_p) {
-							p = fallback_p;
-							n = fallback_n + 1;
-							continue;
-						} else {
-							break;
-						}
-					}
-				} else {
-					// Обрабатываем '\' как обычный символ
-					if (*p == *n) {
-						p++;
-						n++;
-					} else {
-						// Если символ не совпадает, возвращаемся к предыдущей позиции '*'
-						if (fallback_p) {
-							p = fallback_p;
-							n = fallback_n + 1;
-							continue;
-						} else {
-							break;
-						}
-					}
-				}
-				break;
-
-			default:
-				// Обычный символ
-				if (*p == *n) {
-					p++;
-					n++;
-				} else {
-					// Если символ не совпадает, возвращаемся к предыдущей позиции '*'
-					if (fallback_p) {
-						p = fallback_p;
-						n = fallback_n + 1;
-						continue;
-					} else {
-						break;
-					}
-				}
-				break;
-		}
-	}
-	
-	// Пропускаем оставшиеся '*' в конце шаблона
-	while (*p == '*') p++;
-	
-	// Совпадение, если обе строки достигли конца
-	if (*p == '\0' && *n == '\0') {
-		return 0;
-	}
-	
-	// Если шаблон закончился, но строка нет, проверяем специальный случай с '/'
-	if (*p == '\0' && (flags & FNM_LEADING_DIR) && *n == '/') {
-		return 0;
-	}
-	
-	return FNM_NOMATCH;
-}
+extern (C){
+	int chroot(const(char)* path);
+	int fnmatch(const(char)* pattern, const(char)* name, int flags);
+} 
 
 // public import openss;
 
@@ -250,7 +90,7 @@ import derelict.libarchive;
 // }
 
 // version (HAVE_LIBNETTLE) {
-// import nettle/md5;
+// import nettle/md5'
 // import nettle/sha2;
 // }
 
@@ -1772,6 +1612,8 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char*string)
 
 	return -1;
 }
+
+// extern(C) fnmatch
 
 /** Checks whether a string matches a shell wildcard pattern.
  * Wrapper around fnmatch.
