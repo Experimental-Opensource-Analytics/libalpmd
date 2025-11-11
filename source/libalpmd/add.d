@@ -202,7 +202,7 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 	}
 
 	/* if a file is in NoExtract then we never extract it */
-	if(_alpm_fnmatch_patterns(handle.noextract, entryname) == 0) {
+	if(alpmFnmatchPatterns(handle.noextract, entryname.to!string) == 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "%s is in NoExtract,"
 				~ " skipping extraction of %s\n",
 				entryname, filename.ptr);
@@ -281,7 +281,7 @@ version (none) {
 	} else {
 		/* case 3: trying to overwrite file with file */
 		/* if file is in NoUpgrade, don't touch it */
-		if(_alpm_fnmatch_patterns(handle.noupgrade, entryname) == 0) {
+		if(alpmFnmatchPatterns(handle.noupgrade, entryname.to!string) == 0) {
 			notouch = 1;
 		} else {
 			AlpmBackup oldbackup = void;

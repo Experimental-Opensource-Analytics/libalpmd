@@ -346,8 +346,8 @@ private AlpmPkg _alpm_find_file_owner(AlpmHandle handle,   char*path)
 
 private int _alpm_can_overwrite_file(AlpmHandle handle,   char*path,   char*rootedpath)
 {
-	return _alpm_fnmatch_patterns(handle.overwrite_files, path) == 0
-		|| _alpm_fnmatch_patterns(handle.overwrite_files, rootedpath) == 0;
+	return alpmFnmatchPatterns(handle.overwrite_files, path.to!string) == 0
+		|| alpmFnmatchPatterns(handle.overwrite_files, rootedpath.to!string) == 0;
 }
 
 /**

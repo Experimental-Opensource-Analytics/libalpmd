@@ -760,7 +760,7 @@ int  alpm_option_remove_noupgrade(AlpmHandle handle, char* pkg)
 
 int  alpm_option_match_noupgrade(AlpmHandle handle, char* path)
 {
-	return _alpm_fnmatch_patterns(handle.noupgrade, path);
+	return alpmFnmatchPatterns(handle.noupgrade, path.to!string);
 }
 
 int  alpm_option_add_noextract(AlpmHandle handle, char* path)
@@ -780,7 +780,7 @@ int  alpm_option_remove_noextract(AlpmHandle handle, char* path)
 
 int  alpm_option_match_noextract(AlpmHandle handle, char* path)
 {
-	return _alpm_fnmatch_patterns(handle.noextract, path);
+	return alpmFnmatchPatterns(handle.noextract, path.to!string);
 }
 
 int  alpm_option_add_ignorepkg(AlpmHandle handle, char* pkg)

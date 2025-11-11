@@ -320,7 +320,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 			if(alpm_option_match_noextract(handle, cast(char*)filelist[f].name) == 0) {
 				continue;
 			}
-			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist[f].name) == 0) {
+			if(alpmFnmatchPatterns(t.targets, filelist[f].name) == 0) {
 				install = alpm_list_add(install, cast(char*)filelist[f].name);
 				isize++;
 			}
@@ -335,7 +335,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 			AlpmFileList filelist = pkg.files;
 			size_t f = void;
 			for(f = 0; f < filelist.length; f++) {
-				if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.ptr[f].name) == 0) {
+				if(alpmFnmatchPatterns(t.targets, filelist.ptr[f].name) == 0) {
 					remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
 					rsize++;
 				}
@@ -349,7 +349,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook,
 		AlpmFileList filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
-			if(_alpm_fnmatch_patterns(t.targets, cast(char*)filelist.ptr[f].name) == 0) {
+			if(alpmFnmatchPatterns(t.targets, filelist.ptr[f].name) == 0) {
 				remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
 				rsize++;
 			}
@@ -416,7 +416,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, 
 		alpm_list_t* i = void;
 		for(i = handle.trans.add; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			if(_alpm_fnmatch_patterns(t.targets, cast(char*)pkg.name) == 0) {
+			if(alpmFnmatchPatterns(t.targets, pkg.name) == 0) {
 				if(pkg.oldpkg) {
 					if(t.op & ALPM_HOOK_OP_UPGRADE) {
 						if(hook.needs_targets) {
@@ -442,7 +442,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, 
 		alpm_list_t* i = void;
 		for(i = handle.trans.remove; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			if(pkg && _alpm_fnmatch_patterns(t.targets, cast(char*)pkg.name) == 0) {
+			if(pkg && alpmFnmatchPatterns(t.targets, pkg.name) == 0) {
 				if(!alpm_list_find(handle.trans.add, cast(void*)pkg, &_alpm_pkg_cmp)) {
 					if(hook.needs_targets) {
 						remove = alpm_list_add(remove, cast(char*)pkg.name);

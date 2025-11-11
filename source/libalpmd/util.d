@@ -1598,8 +1598,7 @@ version (faccessat) {
  * @return 0 if string matches pattern, negative if they don't match and
  * positive if the last match was inverted
  */
-int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char* _string)
-{
+int alpmFnmatchPatterns(alpm_list_t* patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
 	alpm_list_t* i = void;
 	char* pattern = void;
 	short inverted = void;
@@ -1619,8 +1618,6 @@ int _alpm_fnmatch_patterns(alpm_list_t* patterns,   char* _string)
 
 	return -1;
 }
-
-// extern(C) fnmatch
 
 /** Checks whether a string matches a shell wildcard pattern.
  * Wrapper around fnmatch.

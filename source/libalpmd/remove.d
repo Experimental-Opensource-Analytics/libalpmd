@@ -595,7 +595,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
  */
 private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
 {
-	return _alpm_fnmatch_patterns(handle.noupgrade, path) == 0
+	return alpmFnmatchPatterns(handle.noupgrade, path.to!string) == 0
 		|| alpm_list_find_str(handle.trans.skip_remove, path)
 		//|| (newpkg && _alpm_needbackup(path, newpkg)
 		|| (newpkg && newpkg.needBackup(path.to!string)
