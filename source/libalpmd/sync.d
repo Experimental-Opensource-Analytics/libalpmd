@@ -552,7 +552,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
-					AlpmConflict newconflict = _alpm_conflict_dup(conflict);
+					AlpmConflict newconflict = conflict.dup();
 					if(newconflict) {
 						*data = alpm_list_add(*data, cast(void*)newconflict);
 					}
@@ -625,7 +625,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
-					AlpmConflict newconflict = _alpm_conflict_dup(conflict);
+					AlpmConflict newconflict = conflict.dup();
 					if(newconflict) {
 						*data = alpm_list_add(*data, cast(void*)newconflict);
 					}

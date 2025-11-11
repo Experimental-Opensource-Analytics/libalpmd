@@ -72,30 +72,20 @@ class AlpmConflict {
 		destroy!false(package1);
 		destroy!false(package2);
 	}
+
+	/**
+	* @brief Creates a copy of a conflict.
+	*/
+	AlpmConflict dup() => new AlpmConflict(
+			package1.dup,
+			package2.dup,
+			reason
+		);
 }
 
 void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
 {
 	destroy!false(conflict);
-}
-
-/**
- * @brief Creates a copy of a conflict.
- */
-AlpmConflict _alpm_conflict_dup(AlpmConflict conflict)
-{
-	AlpmConflict newconflict = void;
-	CALLOC(newconflict, 1, __traits(classInstanceSize, AlpmConflict));
-
-	//ASSERT(_alpm_pkg_dup(conflict.package1, &newconflict.package1) == 0);
-	//ASSERT(_alpm_pkg_dup(conflict.package2, &newconflict.package2) == 0);
-	newconflict.reason = conflict.reason;
-
-	return newconflict;
-
-error:
-	alpm_conflict_free(newconflict);
-	return null;
 }
 
 /**
