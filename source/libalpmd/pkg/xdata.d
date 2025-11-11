@@ -15,7 +15,7 @@ struct AlpmPkgXData {
 		this.value = splited[1];
 	}
 
-	static AlpmPkgXData parseTo(string data) {
+	static AlpmPkgXData parseFrom(string data) {
 		auto xdata = AlpmPkgXData();
 		string[] splited;
 		if(data == "" || (splited = data.split('=')).length == 0) {

@@ -799,7 +799,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				alpm_list_t* i = void, lines = null;
 				mixin(READ_AND_STORE_ALL!(`lines`));
 				for(i = lines; i; i = i.next) {
-					AlpmPkgXData pd = AlpmPkgXData.parseTo(i.data.to!string);
+					AlpmPkgXData pd = AlpmPkgXData.parseFrom(i.data.to!string);
 					if(!alpmList_append(&info.xdata, pd)) {
 						FREELIST(lines);
 						goto error;
