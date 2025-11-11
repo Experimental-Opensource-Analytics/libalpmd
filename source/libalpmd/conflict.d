@@ -67,14 +67,15 @@ class AlpmConflict {
 
 		reason = reason.dup;
 	}
+
+	~this() {
+		destroy!false(package1);
+		destroy!false(package2);
+	}
 }
 
-void  alpm_conflict_free(AlpmConflict conflict)
+void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
 {
-	//ASSERT(conflict != null);
-	destroy!false(conflict.package1);
-	destroy!false(conflict.package2);
-
 	destroy!false(conflict);
 }
 
