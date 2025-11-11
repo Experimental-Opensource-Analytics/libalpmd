@@ -251,7 +251,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 	}
 
 	/* attempt to access the package file, ensure it exists */
-	if(_alpm_access(handle, null, pkgfile, R_OK) != 0) {
+	if(alpmAccess(handle, null, pkgfile.to!string, R_OK) != 0) {
 		if(errno == ENOENT) {
 			handle.pm_errno = ALPM_ERR_PKG_NOT_FOUND;
 		} else if(errno == EACCES) {
@@ -269,7 +269,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 			has_sig = 1;
 		} else {
 			char* sigpath = _alpm_sigpath(handle, pkgfile);
-			if(sigpath && !_alpm_access(handle, null, sigpath, R_OK)) {
+			if(sigpath && !alpmAccess(handle, null, sigpath.to!string, R_OK)) {
 				has_sig = 1;
 			}
 			free(sigpath);
@@ -686,7 +686,7 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, Alpm
 	//ASSERT(pkg != null);
 
 	sigpath = _alpm_sigpath(handle, filename);
-	if(sigpath && !_alpm_access(handle, null, sigpath, R_OK)) {
+	if(sigpath && !alpmAccess(handle, null, sigpath.to!string, R_OK)) {
 		if(level & ALPM_SIG_PACKAGE) {
 			alpm_list_t* keys = null;
 			int fail = 0;

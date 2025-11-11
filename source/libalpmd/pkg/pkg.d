@@ -180,7 +180,7 @@ public:
 					return ret;
 				}
 				sigpath = _alpm_sigpath(this.handle, cast(char*)pkgpath).to!string;
-				if(!sigpath || _alpm_access(this.handle, null, cast(char*)sigpath, R_OK)) {
+				if(!sigpath || alpmAccess(this.handle, null, sigpath, R_OK)) {
 					this.handle.pm_errno = ALPM_ERR_SIG_MISSING;
 					throw new Exception("ALPM Error: signing not found");
 				}

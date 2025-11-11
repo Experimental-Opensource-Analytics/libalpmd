@@ -162,8 +162,8 @@ private int init_gpgme(AlpmHandle handle)
 
 	sigdir = handle.gpgdir;
 
-	if(_alpm_access(handle, sigdir, "pubring.gpg", R_OK)
-			|| _alpm_access(handle, sigdir, "trustdb.gpg", R_OK)) {
+	if(alpmAccess(handle, sigdir, "pubring.gpg", R_OK)
+			|| alpmAccess(handle, sigdir, "trustdb.gpg", R_OK)) {
 		handle.pm_errno = ALPM_ERR_NOT_A_FILE;
 		_alpm_log(handle, ALPM_LOG_DEBUG, "Signature verification will fail!\n");
 		_alpm_log(handle, ALPM_LOG_WARNING,
@@ -407,7 +407,7 @@ private int key_import_keyserver(AlpmHandle handle, alpm_pgpkey_t* key)
 	gpgme_import_result_t result = void;
 	int ret = -1;
 
-	if(_alpm_access(handle, handle.gpgdir, "pubring.gpg", W_OK)) {
+	if(alpmAccess(handle, handle.gpgdir, "pubring.gpg", W_OK)) {
 		/* no chance of import succeeding if pubring isn't writable */
 		_alpm_log(handle, ALPM_LOG_ERROR, ("keyring is not writable\n"));
 		return -1;
@@ -480,7 +480,7 @@ int _alpm_key_import(AlpmHandle handle,   char*uid,   char*fpr)
 	alpm_pgpkey_t fetch_key = {0};
 	char* email = void;
 
-	if(_alpm_access(handle, handle.gpgdir, "pubring.gpg", W_OK)) {
+	if(alpmAccess(handle, handle.gpgdir, "pubring.gpg", W_OK)) {
 		/* no chance of import succeeding if pubring isn't writable */
 		_alpm_log(handle, ALPM_LOG_ERROR, ("keyring is not writable\n"));
 		return -1;
@@ -552,7 +552,7 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 	ubyte* decoded_sigdata = null;
 	FILE* file = null, sigfile = null;
 
-	if(!path || _alpm_access(handle, null, path, R_OK) != 0) {
+	if(!path || alpmAccess(handle, null, path, R_OK) != 0) {
 		RET_ERR(handle, ALPM_ERR_NOT_A_FILE, -1);
 	}
 
@@ -563,7 +563,7 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 
 	if(!base64_sig) {
 		sigpath = _alpm_sigpath(handle, path);
-		if(_alpm_access(handle, null, sigpath, R_OK) != 0
+		if(alpmAccess(handle, null, sigpath, R_OK) != 0
 				|| (sigfile = fopen(sigpath, "rb")) == null) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "sig path %s could not be opened\n",
 					sigpath);

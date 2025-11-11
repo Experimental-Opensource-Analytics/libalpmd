@@ -101,7 +101,7 @@ int sync_db_validate(AlpmDB db)
 	}
 
 	/* we can skip any validation if the database doesn't exist */
-	if(_alpm_access(db.handle, null, dbpath, R_OK) != 0 && errno == ENOENT) {
+	if(alpmAccess(db.handle, null, dbpath.to!string, R_OK) != 0 && errno == ENOENT) {
 		alpm_event_database_missing_t event = {
 			type: ALPM_EVENT_DATABASE_MISSING,
 			dbname: cast(char*)db.treename

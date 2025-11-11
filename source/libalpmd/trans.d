@@ -375,7 +375,7 @@ int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char
 	int retval = 0;
 	size_t len = void;
 
-	if(_alpm_access(handle, null, filepath, R_OK) != 0) {
+	if(alpmAccess(handle, null, filepath.to!string, R_OK) != 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "scriptlet '%s' not found\n", filepath);
 		return 0;
 	}

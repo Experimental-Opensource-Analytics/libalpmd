@@ -1049,7 +1049,7 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 		} else if(!S_ISDIR(buf.st_mode)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"skipping cachedir, not a directory: %s\n", cachedir);
-		} else if(_alpm_access(handle, null, cachedir, W_OK) != 0) {
+		} else if(alpmAccess(handle, null, cachedir.to!string, W_OK) != 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"skipping cachedir, not writable: %s\n", cachedir);
 		} else if(!(buf.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH))) {
@@ -1522,6 +1522,14 @@ AlpmTime _alpm_parsedate(  char*line)
 	return cast(AlpmTime)result;
 }
 
+enum VER_FACCESSAT(alias retSym, string path) = "
+	version (faccessat) {//! Ressurrect faccessat support
+		"~ retSym.stringof ~ "= faccessat(AT_FDCWD," ~ path ~", amode, flag);
+	} else {
+		"~ retSym.stringof ~ "= access(cast(char*)" ~ path ~", amode);
+	}
+";
+
 /** Wrapper around access() which takes a dir and file argument
  * separately and generates an appropriate error message.
  * If dir is NULL file will be treated as the whole path.
@@ -1531,73 +1539,55 @@ AlpmTime _alpm_parsedate(  char*line)
  * @param amode access mode as described in access()
  * @return int value returned by access()
  */
-int _alpm_access(AlpmHandle handle,   char*dir,   char*file, int amode)
-{
- size_t len = 0;
- int ret = 0;
+int alpmAccess(AlpmHandle handle, string dir, string file, int amode){//!No need handle here, only logger
+	int ret = 0;
 
- // Define constants if they are not available
- enum AT_FDCWD = -100;
- 
- int flag = 0;
-version (AT_SYMLINK_NOFOLLOW) {
- flag |= AT_SYMLINK_NOFOLLOW;
+	int flag = 0;
+	enum AT_FDCWD = -100;
+
+//-------------------------------
+version (AT_SYMLINK_NOFOLLOW) { //!Fix AT_SYMLINK_NOFOLLOW version trigger
+	flag |= AT_SYMLINK_NOFOLLOW;
 }
+//-------------------------------
 
- if(dir) {
- 	char* check_path = void;
+	if(dir !is null) {
+		string check_path = dir ~ file;
+		mixin(VER_FACCESSAT!(ret, "check_path"));
+	} else {
+		mixin(VER_FACCESSAT!(ret, "file"));
+	}
 
- 	len = strlen(dir) + strlen(file) + 1;
- 	CALLOC(check_path, len, char.sizeof);
- 	snprintf(check_path, len, "%s%s", dir, file);
-
- 	// Use faccessat if available, otherwise fall back to access
-version (faccessat) {
- 	ret = faccessat(AT_FDCWD, check_path, amode, flag);
-} else {
- 	ret = access(check_path, amode);
-}
- 	free(check_path);
- } else {
- 	dir = cast(char*)"";
- 	// Use faccessat if available, otherwise fall back to access
-version (faccessat) {
- 	ret = faccessat(AT_FDCWD, file, amode, flag);
-} else {
- 	ret = access(file, amode);
-}
- }
-
- if(ret != 0) {
- 	if(amode & R_OK) {
- 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not readable: %s\n",
- 				dir, file, strerror(errno));
- 	}
- 	if(amode & W_OK) {
- 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not writable: %s\n",
- 				dir, file, strerror(errno));
- 	}
- 	if(amode & X_OK) {
- 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not executable: %s\n",
- 				dir, file, strerror(errno));
- 	}
- 	if(amode == F_OK) {
- 		_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" does not exist: %s\n",
- 				dir, file, strerror(errno));
- 	}
- }
- return ret;
+	if(ret != 0) {
+		if(amode & R_OK) {
+			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not readable: %s\n",
+					dir, file, strerror(errno));
+		}
+		if(amode & W_OK) {
+			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not writable: %s\n",
+					dir, file, strerror(errno));
+		}
+		if(amode & X_OK) {
+			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not executable: %s\n",
+					dir, file, strerror(errno));
+		}
+		if(amode == F_OK) {
+			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" does not exist: %s\n",
+					dir, file, strerror(errno));
+		}
+	}
+	return ret;
 }
 
 /** Checks whether a string matches at least one shell wildcard pattern.
- * Checks for matches with fnmatch. Matches are inverted by prepending
- * patterns with an exclamation mark. Preceding exclamation marks may be
- * escaped. Subsequent matches override previous ones.
- * @param patterns patterns to match against
- * @param string string to check against pattern
- * @return 0 if string matches pattern, negative if they don't match and
- * positive if the last match was inverted
- */
+* Checks for matches with fnmatch. Matches are inverted by prepending
+* patterns with an exclamation mark. Preceding exclamation marks may be
+* escaped. Subsequent matches override previous ones.
+* @param patterns patterns to match against
+* @param string string to check against pattern
+* @return 0 if string matches pattern, negative if they don't match and
+* positive if the last match was inverted
+*/
 int alpmFnmatchPatterns(alpm_list_t* patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
 	alpm_list_t* i = void;
 	char* pattern = void;

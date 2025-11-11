@@ -341,8 +341,8 @@ private int can_remove_file(AlpmHandle handle,  AlpmFile* file)
 
 	/* If we fail write permissions due to a read-only filesystem, abort.
 	 * Assume all other possible failures are covered somewhere else */
-	if(_alpm_access(handle, null, filepath.ptr, W_OK) == -1) {
-		if(errno != EACCES && errno != ETXTBSY && _alpm_access(handle, null, filepath.ptr, F_OK) == 0) {
+	if(alpmAccess(handle, null, filepath.to!string, W_OK) == -1) {
+		if(errno != EACCES && errno != ETXTBSY && alpmAccess(handle, null, filepath.to!string, F_OK) == 0) {
 			/* only return failure if the file ACTUALLY exists and we can't write to
 			 * it - ignore "chmod -w" simple permission failures */
 			_alpm_log(handle, ALPM_LOG_ERROR, ("cannot remove file '%s': %s\n"),
