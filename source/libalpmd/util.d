@@ -1633,61 +1633,6 @@ int alpmFnMatch(string pattern, string _string){
 	return fnmatch(pattern.toStringz, _string.toStringz, 0);
 }
 
-/** Think of this as realloc with error handling. If realloc fails NULL will be
- * returned and data will not be changed.
- *
- * Newly created memory will be zeroed.
- *
- * @param data source memory space
- * @param current size of the space pointed to by data
- * @param required size you want
- * @return new memory; NULL on error
- */
-void* _alpm_realloc(void** data, size_t* current,  size_t required)
-{
-	REALLOC(*data, required);
-
-	if (*current < required) {
-		/* ensure all new memory is zeroed out, in both the initial
-		 * allocation and later reallocs */
-		memset(cast(char*)*data + *current, 0, required - *current);
-	}
-	*current = required;
-	return *data;
-}
-
-/** This automatically grows data based on current/required.
- *
- * The memory space will be initialised to required bytes and doubled in size when required.
- *
- * Newly created memory will be zeroed.
- * @param data source memory space
- * @param current size of the space pointed to by data
- * @param required size you want
- * @return new memory if grown; old memory otherwise; NULL on error
- */
-void* _alpm_greedy_grow(void** data, size_t* current,  size_t required)
-{
-	size_t newsize = 0;
-
-	if(*current >= required) {
-		return data;
-	}
-
-	if(*current == 0) {
-		newsize = required;
-	} else {
-		newsize = *current * 2;
-	}
-
-	/* check for overflows */
-	if (newsize < required) {
-		return null;
-	}
-
-	return _alpm_realloc(data, current, newsize);
-}
-
 /* Wrapper function for alpmFnMatch to match alpm_list_fn_cmp signature */
 int fnmatchWrapper( void* pattern,  void* _string) {
 	return alpmFnMatch(pattern.to!string, _string.to!string);

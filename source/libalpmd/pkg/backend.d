@@ -362,10 +362,7 @@ private int add_entry_to_files_list(AlpmFileList filelist, size_t* files_size, a
 	mode_t type = void;
 	size_t pathlen = void;
 
-	if(!_alpm_greedy_grow(cast(void**)&filelist,
-				files_size, (files_count + 1) * AlpmFile.sizeof)) {
-		return -1;
-	}
+	filelist.length++;
 
 	type = archive_entry_filetype(entry);
 
@@ -412,7 +409,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	size_t mtree_maxsize = 0;
 	size_t mtree_cursize = 0;
 	size_t files_size = 0; /* we clean up the existing array so this is fine */
-	char* mtree_data = null;
+	ubyte[] mtree_data;
 	archive* mtree = void;
 	archive_entry* mtree_entry = null;
 	AlpmFileList filelist = [];
@@ -433,11 +430,9 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	while(1) {
 		ssize_t size = void;
 
-		if(!_alpm_greedy_grow(cast(void**)&mtree_data, &mtree_maxsize, mtree_cursize + ALPM_BUFFER_SIZE)) {
-			goto error;
-		}
+		mtree_data.length = mtree_cursize + ALPM_BUFFER_SIZE;
 
-		size = archive_read_data(_archive, mtree_data + mtree_cursize, ALPM_BUFFER_SIZE);
+		size = archive_read_data(_archive, mtree_data.ptr + mtree_cursize, ALPM_BUFFER_SIZE);
 
 		if(size < 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, ("error while reading package %s: %s\n"),
@@ -451,7 +446,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 		mtree_cursize += size;
 	}
 
-	if(archive_read_open_memory(mtree, mtree_data, mtree_cursize)) {
+	if(archive_read_open_memory(mtree, mtree_data.ptr, mtree_cursize)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				("error while reading mtree of package %s: %s\n"),
 				pkg.filename, archive_error_string(mtree));
@@ -490,7 +485,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	/* copy over new filelist */
 	memcpy(&pkg.files, &filelist, AlpmFileList.sizeof);
 
-	free(mtree_data);
+	free(mtree_data.ptr);
 	_alpm_archive_read_free(mtree);
 	_alpm_log(handle, ALPM_LOG_DEBUG, "finished mtree reading for %s\n", pkg.filename);
 	return 0;
@@ -501,7 +496,7 @@ error:
 	}
 	free(filelist.ptr);
 
-	free(mtree_data);
+	free(mtree_data.ptr);
 	_alpm_archive_read_free(mtree);
 	return -1;
 }

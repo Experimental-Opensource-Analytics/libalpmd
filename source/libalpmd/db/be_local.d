@@ -831,14 +831,11 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			_alpm_strip_newline(line.ptr, 0);
 			if(strcmp(line.ptr, "%FILES%") == 0) {
 				size_t files_count = 0, files_size = 0, len = void;
-				AlpmFile* files = null;
+				AlpmFileList files = null;
 
 				while( fgets(line.ptr, line.sizeof, fp) &&
 						(cast(bool)(len = _alpm_strip_newline(line.ptr, 0)))) {
-					if(!_alpm_greedy_grow(cast(void**)&files, &files_size,
-								(files_count ? (files_count + 1) * AlpmFile.sizeof : 8 * AlpmFile.sizeof))) {
-						goto nomem;
-					}
+					files.length++;
 					/* since we know the length of the file string already,
 					 * we can do malloc + memcpy rather than strdup */
 					len += 1;
@@ -847,11 +844,8 @@ private int local_db_read(AlpmPkg info, int inforeq)
 					files_count++;
 				}
 				/* attempt to hand back any memory we don't need */
-				if(files_count > 0) {
-					REALLOC(files, ((AlpmFile).sizeof * files_count));
-				} else {
+				if(files_count == 0)
 					FREE(files);
-				}
 				// info.files.count = files_count;
 				info.files = files[0..files_count];
 				_alpm_filelist_sort(info.files[]);
