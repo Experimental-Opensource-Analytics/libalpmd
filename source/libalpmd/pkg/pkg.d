@@ -184,10 +184,10 @@ public:
 					this.handle.pm_errno = ALPM_ERR_SIG_MISSING;
 					throw new Exception("ALPM Error: signing not found");
 				}
-				err = _alpm_read_file(cast(char*)sigpath, &sig, sig_len);
+				sig = alpmReadFile(sigpath);
 				if(err == ALPM_ERR_OK) {
 					_alpm_log(this.handle, ALPM_LOG_DEBUG, "found detached signature %s with size %ld\n",
-						sigpath, *sig_len);
+						sigpath, sig.length);
 				} else {
 					throw new Exception("ALPM Error: cannot read signature file.");
 				}

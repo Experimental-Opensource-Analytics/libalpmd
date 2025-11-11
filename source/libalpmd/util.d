@@ -5,6 +5,10 @@ module libalpmd.util;
 import core.sys.posix.unistd;
 import core.sys.posix.string;
 
+import stdfile = std.file;
+import stdio = std.stdio;
+
+
 // import core.uni;
 
 import core.stdc.string;
@@ -804,11 +808,12 @@ enum TAIL = 0;
 			fprintf(stderr, ("could not change the root directory (%s)\n"), strerror(errno));
 			exit(1);
 		}
-		if(chdir("/") != 0) {
-			fprintf(stderr, ("could not change directory to %s (%s)\n"),
-					"/".ptr, strerror(errno));
-			exit(1);
-		}
+		stdfile.chdir("/");
+		// if(stdio.chdir("/") != 0) {
+		// 	fprintf(stderr, ("could not change directory to %s (%s)\n"),
+		// 			"/".ptr, strerror(errno));
+		// 	exit(1);
+		// }
 		/* bash assumes it's being run under rsh/ssh if stdin is a socket and
 		 * sources ~/.bashrc if it thinks it's the top-level shell.
 		 * set SHLVL before running to indicate that it's a child shell and
@@ -1693,41 +1698,12 @@ int fnmatch_wrapper( void* pattern,  void* _string)
 	return _alpm_fnmatch(cast(char*)pattern, cast(char*)_string);
 }
 
-/** This functions reads file content.
- *
- * Memory buffer is allocated by the callee function. It is responsibility
- * of the caller to free the buffer.
- *
- * @param filepath filepath to read
- * @param data pointer to output buffer
- * @param data_len size of the output buffer
- * @return error code for the operation
- */
-alpm_errno_t _alpm_read_file(  char*filepath, ubyte[]* data, size_t* data_len)
-{
-	stat_t st = void;
-	FILE* fp = void;
+ubyte[] alpmReadFile(string path) {
+	stdio.File file = stdio.File(path);
 
-	if((fp = fopen(filepath, "rb")) == null) {
-		return ALPM_ERR_NOT_A_FILE;
-	}
-
-	if(fstat(fileno(fp), &st) != 0) {
-		fclose(fp);
-		return ALPM_ERR_NOT_A_FILE;
-	}
-	*data_len = st.st_size;
-
-	MALLOC(&data, *data_len);
-
-	if(fread(&data, *data_len, 1, fp) != 1) {
-		FREE(*data);
-		fclose(fp);
-		return ALPM_ERR_SYSTEM;
-	}
-
-	fclose(fp);
-	return ALPM_ERR_OK;
+	ubyte[] data;
+	file.rawRead(data);
+	return data;
 }
 
 //TODO! @nogc version
