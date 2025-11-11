@@ -155,7 +155,7 @@ private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1,
  * @param baddeps list to store conflicts
  * @param order if >= 0 the conflict order is preserved, if < 0 it's reversed
  */
-private void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* list2, alpm_list_t** baddeps, int order)
+void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* list2, alpm_list_t** baddeps, int order)
 {
 	alpm_list_t* i = void;
 
@@ -209,30 +209,6 @@ alpm_list_t* _alpm_innerconflicts(AlpmHandle handle, alpm_list_t* packages)
 	return baddeps;
 }
 
-/**
- * @brief Returns a list of conflicts between a db and a list of packages.
- */
-alpm_list_t* _alpm_outerconflicts(AlpmDB db, alpm_list_t* packages)
-{
-	alpm_list_t* baddeps = null;
-
-	if(db is null) {
-		return null;
-	}
-
-	alpm_list_t* dblist = alpm_list_diff(db.getPkgCache(),
-			packages, &_alpm_pkg_cmp);
-
-	/* two checks to be done here for conflicts */
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "check targets vs db\n");
-	check_conflict(db.handle, packages, dblist, &baddeps, 1);
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "check db vs targets\n");
-	check_conflict(db.handle, dblist, packages, &baddeps, -1);
-
-	alpm_list_free(dblist);
-	return baddeps;
-}
-
 alpm_list_t * alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist)
 {
 	CHECK_HANDLE(handle);
@@ -268,8 +244,7 @@ class AlpmFileConflict {
  */
 private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,   char*filestr, AlpmPkg pkg1, AlpmPkg pkg2)
 {
-	alpm_fileconflict_t* conflict = void;
-	CALLOC(conflict, 1, alpm_fileconflict_t.sizeof);
+	AlpmFileConflict conflict = new AlpmFileConflict();
 
 	STRDUP(conflict.target, cast(char*)pkg1.name);
 	STRDUP(conflict.file, filestr);
@@ -284,7 +259,7 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
 	}
 
-	conflicts = alpm_list_add(conflicts, conflict);
+	conflicts = alpm_list_add(conflicts, cast(void*)conflict);
 	_alpm_log(handle, ALPM_LOG_DEBUG, "found file conflict %s, packages %s and %s\n",
 	          filestr, pkg1.name, pkg2 ? cast(char*)pkg2.name : "(filesystem)");
 

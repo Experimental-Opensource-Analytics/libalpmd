@@ -43,6 +43,8 @@ import libalpmd.pkghash;
 // import libalpmd.be_sync;
 import libalpmd.deps;
 import libalpmd.util;
+import libalpmd.conflict;
+
 import std.string;
 
 enum AlpmDBInfRq {
@@ -298,6 +300,26 @@ class AlpmDB {
 		//ASSERT(name != null && strlen(name) != 0);
 
 		return _alpm_db_get_groupfromcache(this, name);
+	}
+
+	/**
+	* @brief Returns a list of conflicts between a db and a list of packages.
+	*/
+	alpm_list_t* outerConflicts(alpm_list_t* packages)
+	{
+		alpm_list_t* baddeps = null;
+
+		alpm_list_t* dblist = alpm_list_diff(this.getPkgCache(),
+				packages, &_alpm_pkg_cmp);
+
+		/* two checks to be done here for conflicts */
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "check targets vs db\n");
+		check_conflict(this.handle, packages, dblist, &baddeps, 1);
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "check db vs targets\n");
+		check_conflict(this.handle, dblist, packages, &baddeps, -1);
+
+		alpm_list_free(dblist);
+		return baddeps;
 	}
 }
 

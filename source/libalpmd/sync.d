@@ -581,7 +581,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* 2. we check for target vs db conflicts (and resolve)*/
 		_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs db and db vs targets\n");
-		deps = _alpm_outerconflicts(handle.db_local, trans.add);
+		deps = handle.db_local.outerConflicts(trans.add);
 
 		for(auto i = deps; i; i = i.next) {
 			alpm_question_conflict_t question = {
