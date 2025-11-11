@@ -1888,16 +1888,11 @@ alpm_errno_t _alpm_read_file(  char*filepath, ubyte[]* data, size_t* data_len)
 	return ALPM_ERR_OK;
 }
 
-
-char* sanitize_url(  char*url)
-{
-	char* newurl = void;
-	size_t len = strlen(url);
-
-	STRDUP(newurl, url);
-	/* strip the trailing slash if one exists */
-	if(newurl[len - 1] == '/') {
-		newurl[len - 1] = '\0';
+//TODO! @nogc version
+string sanitizeUrl(string url) {
+	if(url[$-1] == '/'){
+		return url[0..$-2].idup;
 	}
-	return newurl;
+	
+	return url;
 }

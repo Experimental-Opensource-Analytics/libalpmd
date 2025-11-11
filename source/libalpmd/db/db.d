@@ -43,6 +43,7 @@ import libalpmd.pkghash;
 // import libalpmd.be_sync;
 import libalpmd.deps;
 import libalpmd.util;
+import std.string;
 
 enum AlpmDBInfRq {
 	Base = (1 << 0),
@@ -138,17 +139,16 @@ class AlpmDB {
 	int  addServer(char*url)
 	{
 		auto db = this;
-		char* newurl = void;
 
 		/* Sanity checks */
 		//ASSERT(db != null);
 		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(url != null && strlen(url) != 0);
 
-		newurl = sanitize_url(url);
+		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		db.servers = alpm_list_add(db.servers, newurl);
+		db.servers = alpm_list_add(db.servers, cast(char*)newurl.toStringz());
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s\n",
 				db.treename, newurl);
 
@@ -173,7 +173,7 @@ class AlpmDB {
 
 	int  removeServer(char*url)
 	{
-		char* newurl = void, vdata = null;
+		char* vdata = null;
 		int ret = 1;
 
 		/* Sanity checks */
@@ -181,19 +181,18 @@ class AlpmDB {
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(url != null && strlen(url) != 0);
 
-		newurl = sanitize_url(url);
+		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		this.servers = alpm_list_remove_str(this.servers, newurl, &vdata);
+		this.servers = alpm_list_remove_str(this.servers, cast(char*)newurl.toStringz, &vdata);
 
 		if(vdata) {
 			_alpm_log(this.handle, ALPM_LOG_DEBUG, "removed server URL from database '%s': %s\n",
-					this.treename, newurl);
+					this.treename, cast(char*)newurl.toStringz);
 			free(vdata);
 			ret = 0;
 		}
 
-		free(newurl);
 		return ret;
 	}
 
@@ -213,17 +212,15 @@ class AlpmDB {
 
 	int  addCacheServer( char*url)
 	{
-		char* newurl = void;
-
 		/* Sanity checks */
 		//ASSERT(this != null);
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(url != null && strlen(url) != 0);
 
-		newurl = sanitize_url(url);
+		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		this.cache_servers = alpm_list_add(this.cache_servers, newurl);
+		this.cache_servers = alpm_list_add(this.cache_servers, cast(char*)newurl.toStringz);
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
 				this.treename, newurl);
 
@@ -234,7 +231,7 @@ class AlpmDB {
 	{
 		alias db = this;
 		import libalpmd.util;
-		char* newurl = void, vdata = null;
+		char* vdata = null;
 		int ret = 1;
 
 		/* Sanity checks */
@@ -242,10 +239,10 @@ class AlpmDB {
 		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(url != null && strlen(url) != 0);
 
-		newurl = sanitize_url(url);
+		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		db.cache_servers = alpm_list_remove_str(db.cache_servers, newurl, &vdata);
+		db.cache_servers = alpm_list_remove_str(db.cache_servers, cast(char*)newurl.toStringz(), &vdata);
 
 		if(vdata) {
 			_alpm_log(db.handle, ALPM_LOG_DEBUG, "removed cache server URL from database '%s': %s\n",
@@ -254,7 +251,6 @@ class AlpmDB {
 			ret = 0;
 		}
 
-		free(newurl);
 		return ret;
 	}
 
