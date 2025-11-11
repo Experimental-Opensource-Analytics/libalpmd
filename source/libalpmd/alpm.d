@@ -702,7 +702,7 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
  * Free a conflict and its members.
  * @param conflict the conflict to free
  */
-// void alpm_conflict_free(alpm_conflict_t* conflict);
+// void alpm_conflict_free(AlpmConflict conflict);
 
 
 /* End of libalpm_depends */
@@ -1090,7 +1090,7 @@ struct alpm_question_conflict_t {
 	/** Answer: whether or not to remove conflict->package2 */
 	int remove;
 	/** Conflict info */
-	alpm_conflict_t* conflict;
+	AlpmConflict conflict;
 }
 
 /** Should a corrupted package be deleted? */
@@ -3041,7 +3041,7 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
  * Free a conflict and its members.
  * @param conflict the conflict to free
  */
-// void alpm_conflict_free(alpm_conflict_t* conflict);
+// void alpm_conflict_free(AlpmConflict conflict);
 
 
 

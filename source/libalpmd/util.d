@@ -1274,7 +1274,7 @@ void _alpm_remove_temporary_download_dir(  char*dir)
 	//ASSERT(dir != null); * Free a conflict and its members.
 //  * @param conflict the conflict to free
 //  */
-// void alpm_conflict_free(alpm_conflict_t* conflict);
+// void alpm_conflict_free(AlpmConflict conflict);
 	size_t dirlen = strlen(dir);
 	dirent* dp = null;
 	DIR* dirp = opendir(dir);

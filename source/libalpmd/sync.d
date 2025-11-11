@@ -523,7 +523,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		deps = _alpm_innerconflicts(handle, trans.add);
 
 		for(auto i = deps; i; i = i.next) {
-			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
+			AlpmConflict conflict = cast(AlpmConflict)i.data;
 			string name1 = conflict.package1.name;
 			string name2 = conflict.package2.name;
 			AlpmPkg rsync = void, sync = void, sync1 = void, sync2 = void;
@@ -552,9 +552,9 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
-					alpm_conflict_t* newconflict = _alpm_conflict_dup(conflict);
+					AlpmConflict newconflict = _alpm_conflict_dup(conflict);
 					if(newconflict) {
-						*data = alpm_list_add(*data, newconflict);
+						*data = alpm_list_add(*data, cast(void*)newconflict);
 					}
 				}
 				alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
@@ -587,9 +587,9 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			alpm_question_conflict_t question = {
 				type: ALPM_QUESTION_CONFLICT_PKG,
 				remove: 0,
-				conflict: cast(alpm_conflict_t*)i.data
+				conflict: cast(AlpmConflict)i.data
 			};
-			alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
+			AlpmConflict conflict = cast(AlpmConflict)i.data;
 			string name1 = conflict.package1.name;
 			string name2 = conflict.package2.name;
 			int found = 0;
@@ -625,9 +625,9 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_CONFLICTING_DEPS;
 				ret = -1;
 				if(data) {
-					alpm_conflict_t* newconflict = _alpm_conflict_dup(conflict);
+					AlpmConflict newconflict = _alpm_conflict_dup(conflict);
 					if(newconflict) {
-						*data = alpm_list_add(*data, newconflict);
+						*data = alpm_list_add(*data, cast(void*)newconflict);
 					}
 				}
 				alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);

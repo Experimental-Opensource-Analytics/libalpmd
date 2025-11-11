@@ -47,57 +47,44 @@ import libalpmd.backup;
 
 import libalpmd.db;
 import libalpmd.deps;
-
+import std.traits;
 
 import std.conv;
 
 
 /** A conflict that has occurred between two packages. */
-struct alpm_conflict_t {
+class AlpmConflict {
 	/** The first package */
 	AlpmPkg package1;
 	/** The second package */
 	AlpmPkg package2;
 	/** The conflict */
 	AlpmDepend reason;
+
+	this(AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason) {
+		this.package1 = pkg1.dup;
+		this.package2 = pkg2.dup;
+
+		reason = reason.dup;
+	}
 }
 
-/**
- * @brief Creates a new conflict.
- */
-private alpm_conflict_t* conflict_new(AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
-{
-	alpm_conflict_t* conflict = void;
-
-	CALLOC(conflict, 1, alpm_conflict_t.sizeof);
-
-	//ASSERT(_alpm_pkg_dup(pkg1, &conflict.package1) == 0);
-	//ASSERT(_alpm_pkg_dup(pkg2, &conflict.package2) == 0);
-	conflict.reason = reason;
-
-	return conflict;
-
-error:
-	alpm_conflict_free(conflict);
-	return null;
-}
-
-void  alpm_conflict_free(alpm_conflict_t* conflict)
+void  alpm_conflict_free(AlpmConflict conflict)
 {
 	//ASSERT(conflict != null);
 	destroy!false(conflict.package1);
 	destroy!false(conflict.package2);
 
-	FREE(conflict);
+	destroy!false(conflict);
 }
 
 /**
  * @brief Creates a copy of a conflict.
  */
-alpm_conflict_t* _alpm_conflict_dup(alpm_conflict_t* conflict)
+AlpmConflict _alpm_conflict_dup(AlpmConflict conflict)
 {
-	alpm_conflict_t* newconflict = void;
-	CALLOC(newconflict, 1, alpm_conflict_t.sizeof);
+	AlpmConflict newconflict = void;
+	CALLOC(newconflict, 1, __traits(classInstanceSize, AlpmConflict));
 
 	//ASSERT(_alpm_pkg_dup(conflict.package1, &newconflict.package1) == 0);
 	//ASSERT(_alpm_pkg_dup(conflict.package2, &newconflict.package2) == 0);
@@ -118,11 +105,11 @@ error:
  *
  * @return 1 if needle is in haystack, 0 otherwise
  */
-private int conflict_isin(alpm_conflict_t* needle, alpm_list_t* haystack)
+private int conflict_isin(AlpmConflict needle, alpm_list_t* haystack)
 {
 	alpm_list_t* i = void;
 	for(i = haystack; i; i = i.next) {
-		alpm_conflict_t* conflict = cast(alpm_conflict_t*)i.data;
+		AlpmConflict conflict = cast(AlpmConflict)i.data;
 		if(needle.package1.name_hash == conflict.package1.name_hash
 				&& needle.package2.name_hash == conflict.package2.name_hash
 				&& needle.package1.name == conflict.package1.name
@@ -147,13 +134,13 @@ private int conflict_isin(alpm_conflict_t* needle, alpm_list_t* haystack)
  */
 private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
 {
-	alpm_conflict_t* conflict = conflict_new(pkg1, pkg2, reason);
+	AlpmConflict conflict = new AlpmConflict(pkg1, pkg2, reason);
 	if(!conflict) {
 		return -1;
 	}
 	if(!conflict_isin(conflict, *baddeps)) {
 		char* conflict_str = alpm_dep_compute_string(reason);
-		*baddeps = alpm_list_add(*baddeps, conflict);
+		*baddeps = alpm_list_add(*baddeps, cast(void*)conflict);
 		_alpm_log(handle, ALPM_LOG_DEBUG, "package %s conflicts with %s (by %s)\n",
 				pkg1.name, pkg2.name, conflict_str);
 		free(conflict_str);
