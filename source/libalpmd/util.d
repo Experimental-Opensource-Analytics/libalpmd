@@ -1522,11 +1522,11 @@ AlpmTime _alpm_parsedate(  char*line)
 	return cast(AlpmTime)result;
 }
 
-enum VER_FACCESSAT(alias retSym, string path) = "
+enum VER_FACCESSAT(alias retSym, alias path) = "
 	version (faccessat) {//! Ressurrect faccessat support
-		"~ retSym.stringof ~ "= faccessat(AT_FDCWD," ~ path ~", amode, flag);
+		"~ retSym.stringof ~ "= faccessat(AT_FDCWD," ~ path.stringof ~", amode, flag);
 	} else {
-		"~ retSym.stringof ~ "= access(cast(char*)" ~ path ~", amode);
+		"~ retSym.stringof ~ "= access(cast(char*)" ~ path.stringof ~", amode);
 	}
 ";
 
@@ -1553,9 +1553,9 @@ version (AT_SYMLINK_NOFOLLOW) { //!Fix AT_SYMLINK_NOFOLLOW version trigger
 
 	if(dir !is null) {
 		string check_path = dir ~ file;
-		mixin(VER_FACCESSAT!(ret, "check_path"));
+		mixin(VER_FACCESSAT!(ret, check_path));
 	} else {
-		mixin(VER_FACCESSAT!(ret, "file"));
+		mixin(VER_FACCESSAT!(ret, file));
 	}
 
 	if(ret != 0) {
