@@ -211,7 +211,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.backup.insertFront(backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				AlpmPkgXData pd = AlpmPkgXData.parseFrom(ptr.to!string);
-				if(!alpmList_append(&newpkg.xdata, pd)) {
+				if(!alpm_new_list_append(&newpkg.xdata, pd)) {
 					return -1;
 				}
 			} else {

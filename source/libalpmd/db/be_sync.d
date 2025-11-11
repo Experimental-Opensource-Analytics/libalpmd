@@ -735,7 +735,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				mixin(READ_AND_STORE_ALL!(`lines`));
 				for(i = lines; i; i = i.next) {
 					AlpmPkgXData pd = AlpmPkgXData.parseFrom(i.data.to!string);
-					if(!alpmList_append(&pkg.xdata, pd)) {
+					if(!alpm_new_list_append(&pkg.xdata, pd)) {			
 						// _alpm_pkg_xdata_free(pd);
 						FREELIST(lines);
 						goto error;
@@ -793,6 +793,6 @@ version (HAVE_LIBGPGME) {} else {
 
 	sync_db_validate(db);
 
-	handle.dbs_sync = alpmList_add(handle.dbs_sync, db);
+	handle.dbs_sync = alpm_new_list_add(handle.dbs_sync, db);
 	return db;
 }

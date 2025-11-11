@@ -34,3 +34,16 @@ int conflict_isin(AlpmConflict needle, alpm_list_t* haystack)
 
 	return 0;
 }
+
+/* trivial helper function for alpm_list_find_ptr */
+private int ptr_cmp_n(void* p, void* q)
+{
+	return (p != q);
+}
+
+alias alpm_list_fn_cmp = int function( void*,  void*);
+
+// void * alpmList_find_ptr_n(PL, Item = typeof(PL.front))(PL haystack, void* needle)
+// {
+// 	return alpmList_find_n(haystack, cast(Item)needle, &ptr_cmp_n);
+// }

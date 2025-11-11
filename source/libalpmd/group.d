@@ -27,6 +27,7 @@ import core.stdc.string;
 /* libalpm */
 import libalpmd.group;
 import libalpmd.alpm_list;
+import libalpmd.pkg;
 import libalpmd.util;
 import libalpmd.log;
 import libalpmd.alpm;
@@ -36,14 +37,14 @@ class AlpmGroup {
 	/** group name */
 	string name;
 	/** list of alpm_pkg_t packages */
-	alpm_list_t* packages;
+	AlpmPkgs packages;
 
 	this(string name) {
 		this.name = name;
 	}
 
 	~this() {
-		packages = null;
+		destroy(packages);
 	}
 }
 

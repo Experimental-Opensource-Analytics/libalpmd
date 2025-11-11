@@ -704,16 +704,16 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
  *        packages.
  * @return the resolved package
  **/
-private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, alpm_list_t* excluding, int prompt)
+private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_list_t* excluding, int prompt)
 {
 	int ignored = 0;
 
 	alpm_list_t* providers = null;
 	int count = void;
 
-	foreach(i; dbs.toInputRange) {
+	foreach(i; dbs[]) {
 		AlpmPkg pkg = void;
-		AlpmDB db = i.data;
+		AlpmDB db = i;
 
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
@@ -743,8 +743,8 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, al
 		}
 	}
 	/* 2. satisfiers (skip literals here) */
-	for(auto i = dbs; i; i = i.next) {
-		AlpmDB db = cast(AlpmDB)i.data;
+	foreach(i; dbs[]) {
+		AlpmDB db = cast(AlpmDB)i;
 		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
 			continue;
 		}
@@ -816,7 +816,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBList dbs, al
 	return null;
 }
 
-AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBList dbs,   char*depstring)
+AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBs dbs,   char*depstring)
 {
 	AlpmDepend dep = void;
 	AlpmPkg pkg = void;
@@ -857,7 +857,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	int ret = 0;
 	alpm_list_t* j = void;
 	alpm_list_t* targ = void;
-	AlpmDBList dbs = void;
+	AlpmDBs dbs = void;
 	alpm_list_t* deps = null;
 	alpm_list_t* packages_copy = void;
 
@@ -899,7 +899,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 					"pulling dependency %s (needed by %s)\n",
 					spkg.name, pkg.name);
 			alpm_depmissing_free(miss);
-		} else if(resolvedep(handle, missdep, (dbs = alpmList_add(cast(AlpmDBList)null, handle.db_local)), rem, 0)) {
+		} else if(resolvedep(handle, missdep, (dbs = alpm_new_list_add(AlpmDBs(), handle.db_local)), rem, 0)) {
 			alpm_depmissing_free(miss);
 		} else {
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;

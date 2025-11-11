@@ -247,8 +247,8 @@ public:
 			if(db.status & AlpmDBStatus.Local) {
 				this.findRequiredBy(db, &reqs, optional);
 			} else {
-				for(auto i = this.handle.dbs_sync; i; i = i.next) {
-					db = cast(AlpmDB)i.data;
+				foreach(i; this.handle.dbs_sync[]) {
+					db = cast(AlpmDB)i;
 					this.findRequiredBy(db, &reqs, optional);
 				}
 				reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp); //[ ] alpm_list_msort

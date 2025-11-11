@@ -227,8 +227,8 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 		}
 
 		/* Search for replacers then literal (if no replacer) in each sync database. */
-		for(auto j = handle.dbs_sync; j; j = j.next) {
-			AlpmDB sdb = cast(AlpmDB)j.data;
+		foreach(j; handle.dbs_sync[]) {
+			AlpmDB sdb = cast(AlpmDB)j;
 			alpm_list_t* replacers = void;
 
 			if(!(sdb.usage & ALPM_DB_USAGE_UPGRADE)) {
@@ -259,7 +259,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 
 alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 {
-	alpm_list_t* i = void, j = void, pkgs = null, ignorelist = null;
+	alpm_list_t* i = void, pkgs = null, ignorelist = null;
 
 	for(i = dbs; i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
@@ -269,8 +269,8 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 			continue;
 		}
 
-		for(j = grp.packages; j; j = j.next) {
-			AlpmPkg pkg = cast(AlpmPkg)j.data;
+		foreach(pkg; grp.packages[]) {
+			// AlpmPkg pkg = cast(AlpmPkg)j;
 			AlpmTrans trans = db.handle.trans;
 
 			if(alpm_pkg_find_n(ignorelist, pkg.name)) {
@@ -391,8 +391,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	/* ensure all sync database are valid if we will be using them */
-	for(auto i = handle.dbs_sync; i; i = i.next) {
-		  AlpmDB db = cast(AlpmDB)i.data;
+	foreach(i;handle.dbs_sync[]) {
+		  AlpmDB db = cast(AlpmDB)i;
 		if(db.status & AlpmDBStatus.Invalid) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
@@ -1099,7 +1099,7 @@ private int dep_not_equal( AlpmDepend left,  AlpmDepend right)
 		|| ((left.version_ && right.version_) && strcmp(left.version_, right.version_) != 0);
 }
 
-private int check_pkg_field_matches_db(AlpmHandle handle,   char*field, alpm_list_t* left, alpm_list_t* right, alpm_list_fn_cmp cmp)
+private int check_pkg_field_matches_db(AlpmHandle handle,   char*field, alpm_list_t* left, alpm_list_t* right, libalpmd.alpm_list.alpm_list_old.alpm_list_fn_cmp cmp)
 {
 	switch(alpm_list_cmp_unsorted(left, right, cmp)) {
 		case 0:

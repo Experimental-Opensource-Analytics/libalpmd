@@ -74,7 +74,7 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 class AlpmHandle {
 	/* internal usage */
 	AlpmDB db_local;    /* local db pointer */
-	AlpmDBList dbs_sync;  /* List of (AlpmDB) */
+	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
 	File logstream;        /* log file stream pointer */
 	AlpmTrans trans;
 
@@ -200,8 +200,8 @@ class AlpmHandle {
 		if(treename == "local") {
 			RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
-		foreach(i; dbs_sync.toInputRange) {
-			if(treename == i.data.treename)
+		foreach(i; dbs_sync[]) {
+			if(treename == i.treename)
 				RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
 
@@ -212,12 +212,12 @@ class AlpmHandle {
 		enforce(this.trans !is null, "The transaction is going-on");
 
 		/* unregister all sync dbs */
-		for(auto i = this.dbs_sync; i; i = i.next) {
-			auto db = i.data;
+		foreach(i; this.dbs_sync[]) {
+			auto db = i;
 			db.ops.unregister(db);
-			i.data = null;
+			i = null;
 		}
-		this.dbs_sync = null;
+		this.dbs_sync.clear;
 	}
 }
 
@@ -236,11 +236,11 @@ void _alpm_handle_free(AlpmHandle handle)
 	}
 
 	/* unregister all sync dbs */
-	for(auto i = handle.dbs_sync; i; i = i.next) {
-		db = cast(AlpmDB)i.data;
+	foreach(i; handle.dbs_sync[]) {
+		db = cast(AlpmDB)i;
 		db.ops.unregister(db);
 	}
-	handle.dbs_sync = null;
+	handle.dbs_sync.clear;
 
 	/* close logfile */
 	if(handle.logstream.isOpen) {

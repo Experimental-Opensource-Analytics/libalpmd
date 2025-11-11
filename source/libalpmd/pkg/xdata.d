@@ -27,4 +27,4 @@ struct AlpmPkgXData {
 	}
 }
 
-alias AlpmXDataList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmPkgXData;
+alias AlpmXDataList = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmPkgXData;

@@ -800,7 +800,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				mixin(READ_AND_STORE_ALL!(`lines`));
 				for(i = lines; i; i = i.next) {
 					AlpmPkgXData pd = AlpmPkgXData.parseFrom(i.data.to!string);
-					if(!alpmList_append(&info.xdata, pd)) {
+					if(!alpm_new_list_append(&info.xdata, pd)) {
 						FREELIST(lines);
 						goto error;
 					}
@@ -1064,11 +1064,11 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		write_deps_n(fp, cast(char*)"%CONFLICTS%", info.conflicts);
 		write_deps_n(fp, cast(char*)"%PROVIDES%", info.provides);
 
-		if(info.xdata) {
+		if(!info.xdata.empty) {
 			fputs("%XDATA%\n", fp);
-			for(auto _lp = info.xdata; _lp; _lp = _lp.next) {
-				AlpmPkgXData* pd = cast(AlpmPkgXData*)&_lp.data;
-				fprintf(fp, "%s=%s\n", cast(char*)pd.name, cast(char*)pd.value.ptr);
+			foreach(pxd; info.xdata[]) {
+				// AlpmPkgXData* pd = cast(AlpmPkgXData*)&_lp.data;
+				fprintf(fp, "%s=%s\n", cast(char*)pxd.name, cast(char*)pxd.value.ptr);
 			}
 			fputc('\n', fp);
 		}

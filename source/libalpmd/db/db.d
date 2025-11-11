@@ -121,7 +121,7 @@ class AlpmDB {
 			* alpm_get_syncdbs, because the db is removed from that list here.
 			*/
 			void* data = void;
-			handle.dbs_sync = alpmList_remove(handle.dbs_sync,
+			handle.dbs_sync = alpm_new_list_remove(handle.dbs_sync,
 					this, &_alpm_db_cmp, &data);
 			if(data) {
 				found = 1;
@@ -323,8 +323,7 @@ class AlpmDB {
 	}
 }
 
-alias AlpmDBList = libalpmd.alpm_list.alpm_list_old.AlpmList!AlpmDB;
-alias AlpmDBs = DList!AlpmDB;
+alias AlpmDBs = AlpmList!AlpmDB;
 /* Helper function for alpm_db_unregister{_all} */
 void _alpm_db_unregister(AlpmDB db)
 {
@@ -700,8 +699,8 @@ private int load_grpcache(AlpmDB db)
 				grp = cast(AlpmGroup)j.data;
 
 				if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
-						&& !alpm_list_find_ptr(grp.packages, cast(void*)pkg)) {
-					grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
+						&& !alpm_new_list_find_ptr(grp.packages, cast(void*)pkg)) {
+					grp.packages.insertFront(pkg);
 					found = 1;
 					break;
 				}
@@ -715,7 +714,7 @@ private int load_grpcache(AlpmDB db)
 				free_groupcache(db);
 				return -1;
 			}
-			grp.packages = alpm_list_add(grp.packages, cast(void*)pkg);
+			grp.packages.insertFront(pkg);
 			db.grpcache = alpm_list_add(db.grpcache, cast(void*)grp);
 		}
 	}
