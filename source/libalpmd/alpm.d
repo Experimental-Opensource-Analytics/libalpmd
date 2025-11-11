@@ -435,24 +435,6 @@ struct alpm_depmissing_t {
 	char* causingpkg;
 }
 
-/** File conflict.
- *
- * A conflict that has happened due to a two packages containing the same file,
- * or a package contains a file that is already on the filesystem and not owned
- * by that package. */
-struct alpm_fileconflict_t {
-	/** The name of the package that caused the conflict */
-	char* target;
-	/** The type of conflict */
-	alpm_fileconflicttype_t type;
-	/** The name of the file that the package conflicts with */
-	char* file;
-	/** The name of the package that also owns the file if there is one*/
-	char* ctarget;
-}
-
-
-
 /** @addtogroup libalpm The libalpm Public API
  *
  *

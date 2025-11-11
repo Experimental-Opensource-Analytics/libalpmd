@@ -239,6 +239,22 @@ alpm_list_t * alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist)
 	return _alpm_innerconflicts(handle, pkglist);
 }
 
+/** File conflict.
+ *
+ * A conflict that has happened due to a two packages containing the same file,
+ * or a package contains a file that is already on the filesystem and not owned
+ * by that package. */
+class AlpmFileConflict {
+	/** The name of the package that caused the conflict */
+	char* target;
+	/** The type of conflict */
+	alpm_fileconflicttype_t type;
+	/** The name of the file that the package conflicts with */
+	char* file;
+	/** The name of the package that also owns the file if there is one*/
+	char* ctarget;
+}
+
 /**
  * @brief Creates and adds a file conflict to a conflict list.
  *
@@ -279,7 +295,7 @@ error:
 	RET_ERR(handle, ALPM_ERR_MEMORY, conflicts);
 }
 
-void  alpm_fileconflict_free(alpm_fileconflict_t* conflict)
+void  alpm_fileconflict_free(AlpmFileConflict conflict)
 {
 	//ASSERT(conflict != null);
 	FREE(conflict.ctarget);
