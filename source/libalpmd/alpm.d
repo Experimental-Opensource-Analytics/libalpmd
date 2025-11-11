@@ -670,10 +670,6 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
  */
 // void alpm_dep_free(AlpmDepend dep);
 
-/** Free a fileconflict and its members.
- * @param conflict the fileconflict to free
- */
-// void alpm_fileconflict_free(alpm_fileconflict_t* conflict);
 
 /** Free a depmissing and its members
  * @param miss the depmissing to free
@@ -3008,11 +3004,6 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
  * @param dep struct to free
  */
 // void alpm_dep_free(AlpmDepend dep);
-
-/** Free a fileconflict and its members.
- * @param conflict the fileconflict to free
- */
-// void alpm_fileconflict_free(alpm_fileconflict_t* conflict);
 
 /** Free a depmissing and its members
  * @param miss the depmissing to free
