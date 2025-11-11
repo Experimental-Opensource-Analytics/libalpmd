@@ -52,6 +52,15 @@ import libalpmd.deps;
 import std.conv;
 
 
+/** A conflict that has occurred between two packages. */
+struct alpm_conflict_t {
+	/** The first package */
+	AlpmPkg package1;
+	/** The second package */
+	AlpmPkg package2;
+	/** The conflict */
+	AlpmDepend reason;
+}
 
 /**
  * @brief Creates a new conflict.

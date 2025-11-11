@@ -3,6 +3,7 @@ module libalpmd.alpm;
    
 
 import libalpmd.consts;
+import libalpmd.conflict;
 import core.stdc.config: c_long, c_ulong;
 import core.stdc.stdarg;
 import derelict.libarchive;
@@ -432,16 +433,6 @@ struct alpm_depmissing_t {
 	/** If the depmissing was caused by a conflict, the name of the package
 	 * that would be installed, causing the satisfying package to be removed */
 	char* causingpkg;
-}
-
-/** A conflict that has occurred between two packages. */
-struct alpm_conflict_t {
-	/** The first package */
-	AlpmPkg package1;
-	/** The second package */
-	AlpmPkg package2;
-	/** The conflict */
-	AlpmDepend reason;
 }
 
 /** File conflict.
