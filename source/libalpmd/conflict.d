@@ -44,6 +44,7 @@ import libalpmd.deps;
 import libalpmd.filelist;
 import libalpmd.pkg;
 import libalpmd.backup;
+import libalpmd.alpm_list.searching;
 
 import libalpmd.db;
 import libalpmd.deps;
@@ -88,30 +89,6 @@ alias AlpmConflicts = DList!AlpmConflict;
 void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
 {
 	destroy!false(conflict);
-}
-
-/**
- * @brief Searches for a conflict in a list.
- *
- * @param needle conflict to search for
- * @param haystack list of conflicts to search
- *
- * @return 1 if needle is in haystack, 0 otherwise
- */
-private int conflict_isin(AlpmConflict needle, alpm_list_t* haystack)
-{
-	alpm_list_t* i = void;
-	for(i = haystack; i; i = i.next) {
-		AlpmConflict conflict = cast(AlpmConflict)i.data;
-		if(needle.package1.name_hash == conflict.package1.name_hash
-				&& needle.package2.name_hash == conflict.package2.name_hash
-				&& needle.package1.name == conflict.package1.name
-				&& needle.package2.name == conflict.package2.name) {
-			return 1;
-		}
-	}
-
-	return 0;
 }
 
 /**
