@@ -1205,7 +1205,7 @@ char * alpm_compute_md5sum(  char*filename)
 		return null;
 	}
 
-	return hex_representation(output.ptr, 16);
+	return cast(char*)output[].toHexString!(LetterCase.lower).ptr;
 }
 
 char * alpm_compute_sha256sum(  char*filename)
@@ -1218,7 +1218,7 @@ char * alpm_compute_sha256sum(  char*filename)
 		return null;
 	}
 
-	return hex_representation(output.ptr, 32);
+	return cast(char*)output[].toHexString!(LetterCase.lower).ptr;
 }
 
 /** Calculates a file's MD5 or SHA-2 digest and compares it to an expected value.
