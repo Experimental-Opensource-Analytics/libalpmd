@@ -23,17 +23,40 @@ module libalpmd.trans;
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import core.stdc.stdlib;
-import core.stdc.stdio;
-import core.stdc.string;
-import core.sys.posix.unistd;
-import core.sys.posix.stdlib;
+import core.stdc.stdlib :
+	free;
+import core.sys.posix.stdio : 
+	snprintf, 
+	sprintf, 
+	fprintf, 
+	fflush, 
+	stderr, 
+	FILE,
+	feof,
+	fgets,
+	fclose,
+	fopen;
+import core.stdc.string :
+	strcmp,
+	strlen,
+	strchr,
+	strstr,
+	strcpy,
+	strerror;
+import core.sys.posix.unistd :
+	rmdir,
+	unlink,
+	access,
+	F_OK,
+	R_OK;
+import core.sys.posix.stdlib :
+	mkdtemp;
+import core.stdc.errno :
+	errno;
+import core.stdc.limits :
+	PATH_MAX;
 
-import core.sys.posix.sys.types;
-import core.stdc.errno;
-import core.stdc.limits;
 import std.conv;
-
 
 /* libalpm */
 import libalpmd.trans;
