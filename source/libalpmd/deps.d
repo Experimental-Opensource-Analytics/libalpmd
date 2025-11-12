@@ -366,8 +366,6 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 	alpm_list_t* baddeps = null;
 	int nodepversion = void;
 
-	CHECK_HANDLE(handle);
-
 	for(i = pkglist; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		if(alpm_pkg_find_n(rem, pkg.name) || alpm_pkg_find_n(upgrade, pkg.name)) {
@@ -820,8 +818,7 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBs dbs,   char*depstring
 {
 	AlpmDepend dep = void;
 	AlpmPkg pkg = void;
-
-	CHECK_HANDLE(handle);
+	
 	//ASSERT(dbs !is null);
 
 	dep = alpm_dep_from_string(depstring);

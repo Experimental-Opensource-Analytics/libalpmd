@@ -3118,7 +3118,6 @@ cleanup:
 /* check current state and free all resources including storage locks */
 int  alpm_release(AlpmHandle myhandle)
 {
-	CHECK_HANDLE(myhandle);
 	//ASSERT(myhandle.trans == null);
 
 	_alpm_handle_unlock(myhandle);

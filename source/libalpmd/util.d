@@ -167,10 +167,6 @@ void STRDUP(char** str,   char* _str) {
 	*str = cast(char*)strdup(_str);
 }
 
-void CHECK_HANDLE(T) (T t) {
-	assert(t !is null);
-}
-
 void ASSERT(bool exp, ...) {
 	if(_arguments.length > 2) {
 		auto fn = _arguments[1];

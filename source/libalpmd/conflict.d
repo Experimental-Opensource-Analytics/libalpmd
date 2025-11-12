@@ -190,7 +190,6 @@ alpm_list_t* _alpm_innerconflicts(AlpmHandle handle, alpm_list_t* packages)
 
 alpm_list_t * alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist)
 {
-	CHECK_HANDLE(handle);
 	return _alpm_innerconflicts(handle, pkglist);
 }
 

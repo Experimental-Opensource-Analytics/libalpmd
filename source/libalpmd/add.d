@@ -41,7 +41,6 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	AlpmPkg dup = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle);
 	//ASSERT(pkg != null);
 	//ASSERT(pkg.origin != ALPM_PKG_FROM_LOCALDB);
 	//ASSERT(handle == pkg.handle);

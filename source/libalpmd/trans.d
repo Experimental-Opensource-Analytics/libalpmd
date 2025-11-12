@@ -81,7 +81,6 @@ class AlpmTrans {
 // 	AlpmTrans trans = void;
 
 // 	/* Sanity checks */
-// 	// CHECK_HANDLE(handle);
 // 	//ASSERT(handle.trans == null);
 
 // 	/* lock db */
@@ -145,7 +144,6 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 	AlpmTrans trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle);
 	//ASSERT(data != null);
 
 	trans = handle.trans;
@@ -204,7 +202,6 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	alpm_event_any_t event = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle);
 
 	trans = handle.trans;
 
@@ -283,8 +280,6 @@ int  alpm_trans_interrupt(AlpmHandle handle)
 	AlpmTrans trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle);
-
 	trans = handle.trans;
 	//ASSERT(trans != null);
 	ASSERT(trans.state == AlpmTransState.Commiting || trans.state == AlpmTransState.Interrupted);
@@ -299,8 +294,6 @@ int  alpm_trans_release(AlpmHandle handle)
 	AlpmTrans trans = void;
 
 	/* Sanity checks */
-	CHECK_HANDLE(handle);
-
 	trans = handle.trans;
 	//ASSERT(trans != null);
 	ASSERT(trans.state != AlpmTransState.Idle);
@@ -459,27 +452,15 @@ cleanup:
 
 int  alpm_trans_get_flags(AlpmHandle handle)
 {
-	/* Sanity checks */
-	CHECK_HANDLE(handle);
-	//ASSERT(handle.trans != null);
-
 	return handle.trans.flags;
 }
 
 alpm_list_t * alpm_trans_get_add(AlpmHandle handle)
 {
-	/* Sanity checks */
-	CHECK_HANDLE(handle);
-	//ASSERT(handle.trans != null);
-
 	return handle.trans.add;
 }
 
 alpm_list_t * alpm_trans_get_remove(AlpmHandle handle)
 {
-	/* Sanity checks */
-	CHECK_HANDLE(handle);
-	//ASSERT(handle.trans != null);
-
 	return handle.trans.remove;
 }

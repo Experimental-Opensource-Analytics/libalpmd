@@ -682,7 +682,6 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, Alpm
 	char* sigpath = void;
 	AlpmPkg pkg_temp = void;
 
-	CHECK_HANDLE(handle);
 	//ASSERT(pkg != null);
 
 	sigpath = _alpm_sigpath(handle, filename);

@@ -207,7 +207,6 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 {
 	AlpmTrans trans = void;
 
-	CHECK_HANDLE(handle);
 	trans = handle.trans;
 	//ASSERT(trans != null);
 	ASSERT(trans.state == AlpmTransState.Initialized);
