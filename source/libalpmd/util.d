@@ -204,40 +204,7 @@ auto RET_ERR_ASYNC_SAFE(H, E, T) (H handle, E err, T ret) {
 	return (ret); 
 } 
 
-version (HAVE_STRSEP) {} else {
-/** Extracts tokens from a string.
- * Replaces strset which is not portable (missing on Solaris).
- * Copyright (c) 2001 by François Gouget <fgouget_at_codeweavers.com>
- * Modifies str to point to the first character after the token if one is
- * found, or NULL if one is not.
- * @param str string containing delimited tokens to parse
- * @param delim character delimiting tokens in str
- * @return pointer to the first token in str if str is not NULL, NULL if
- * str is NULL
- */
-char* strsep(char** str,   char*delims)
-{
-	char* token = void;
-
-	if(*str == null) {
-		/* No more tokens */
-		return null;
-	}
-
-	token = *str;
-	while(**str != '\0') {
-		if(strchr(delims, **str) != null) {
-			**str = '\0';
-			(*str)++;
-			return token;
-		}
-		(*str)++;
-	}
-	/* There is no other token */
-	*str = null;
-	return token;
-}
-}
+deprecated("Is not available. Use Phobos std.array.split function") char* strsep(char** str, char* delim);
 
 int _alpm_makepath(  char*path)
 {
