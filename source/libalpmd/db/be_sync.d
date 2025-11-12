@@ -295,17 +295,17 @@ int _sync_get_validation(AlpmPkg pkg)
 	}
 
 	if(pkg.md5sum) {
-		pkg.validation |= ALPM_PKG_VALIDATION_MD5SUM;
+		pkg.validation |= AlpmPkgValidation.MD5;
 	}
 	if(pkg.sha256sum) {
-		pkg.validation |= ALPM_PKG_VALIDATION_SHA256SUM;
+		pkg.validation |= AlpmPkgValidation.SHA256;
 	}
 	if(pkg.base64_sig) {
-		pkg.validation |= ALPM_PKG_VALIDATION_SIGNATURE;
+		pkg.validation |= AlpmPkgValidation.Signature;
 	}
 
 	if(!pkg.validation) {
-		pkg.validation |= ALPM_PKG_VALIDATION_NONE;
+		pkg.validation |= AlpmPkgValidation.None;
 	}
 
 	return pkg.validation;

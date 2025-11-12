@@ -293,7 +293,7 @@ enum string LAZY_LOAD(string info) = `
 		return local_db_read(this, AlpmDBInfRq.All);
 	}
 
-		int  checkMD5Sum() {
+	int  checkMD5Sum() {
 		char* fpath = void;
 		int retval = void;
 
@@ -305,7 +305,7 @@ enum string LAZY_LOAD(string info) = `
 
 		fpath = _alpm_filecache_find(this.handle, cast(char*)this.filename);
 
-		retval = _alpm_test_checksum(fpath, cast(char*)this.md5sum, ALPM_PKG_VALIDATION_MD5SUM);
+		retval = _alpm_test_checksum(fpath, cast(char*)this.md5sum, AlpmPkgValidation.MD5);
 
 		FREE(fpath);
 
@@ -763,13 +763,13 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				for(i = v; i; i = alpm_list_next(i))
 				{
 					if(strcmp(cast(  char*)i.data, "none") == 0) {
-						info.validation |= ALPM_PKG_VALIDATION_NONE;
+						info.validation |= AlpmPkgValidation.None;
 					} else if(strcmp(cast(  char*)i.data, "md5") == 0) {
-						info.validation |= ALPM_PKG_VALIDATION_MD5SUM;
+						info.validation |= AlpmPkgValidation.MD5;
 					} else if(strcmp(cast(  char*)i.data, "sha256") == 0) {
-						info.validation |= ALPM_PKG_VALIDATION_SHA256SUM;
+						info.validation |= AlpmPkgValidation.SHA256;
 					} else if(strcmp(cast(  char*)i.data, "pgp") == 0) {
-						info.validation |= ALPM_PKG_VALIDATION_SIGNATURE;
+						info.validation |= AlpmPkgValidation.Signature;
 					} else {
 						_alpm_log(db.handle, ALPM_LOG_WARNING,
 								("unknown validation type for package %s: %s\n"),
@@ -1036,16 +1036,16 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		if(info.validation) {
 			fputs("%VALIDATION%\n", fp);
-			if(info.validation & ALPM_PKG_VALIDATION_NONE) {
+			if(info.validation & AlpmPkgValidation.None) {
 				fputs("none\n", fp);
 			}
-			if(info.validation & ALPM_PKG_VALIDATION_MD5SUM) {
+			if(info.validation & AlpmPkgValidation.MD5) {
 				fputs("md5\n", fp);
 			}
-			if(info.validation & ALPM_PKG_VALIDATION_SHA256SUM) {
+			if(info.validation & AlpmPkgValidation.SHA256) {
 				fputs("sha256\n", fp);
 			}
-			if(info.validation & ALPM_PKG_VALIDATION_SIGNATURE) {
+			if(info.validation & AlpmPkgValidation.Signature) {
 				fputs("pgp\n", fp);
 			}
 			fputc('\n', fp);

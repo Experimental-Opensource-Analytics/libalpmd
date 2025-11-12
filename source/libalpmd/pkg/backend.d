@@ -280,22 +280,22 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 		if(syncpkg.md5sum && !syncpkg.sha256sum) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "md5sum: %s\n", syncpkg.md5sum);
 			_alpm_log(handle, ALPM_LOG_DEBUG, "checking md5sum for %s\n", pkgfile);
-			if(_alpm_test_checksum(pkgfile, cast(char*)syncpkg.md5sum, ALPM_PKG_VALIDATION_MD5SUM) != 0) {
+			if(_alpm_test_checksum(pkgfile, cast(char*)syncpkg.md5sum, AlpmPkgValidation.MD5) != 0) {
 				RET_ERR(handle, ALPM_ERR_PKG_INVALID_CHECKSUM, -1);
 			}
 			if(validation) {
-				*validation |= ALPM_PKG_VALIDATION_MD5SUM;
+				*validation |= AlpmPkgValidation.MD5;
 			}
 		}
 
 		if(syncpkg.sha256sum) {
 			_alpm_log(handle, ALPM_LOG_DEBUG, "sha256sum: %s\n", syncpkg.sha256sum);
 			_alpm_log(handle, ALPM_LOG_DEBUG, "checking sha256sum for %s\n", pkgfile);
-			if(_alpm_test_checksum(cast(char*)pkgfile, cast(char*)syncpkg.sha256sum, ALPM_PKG_VALIDATION_SHA256SUM) != 0) {
+			if(_alpm_test_checksum(cast(char*)pkgfile, cast(char*)syncpkg.sha256sum, AlpmPkgValidation.SHA256) != 0) {
 				RET_ERR(handle, ALPM_ERR_PKG_INVALID_CHECKSUM, -1);
 			}
 			if(validation) {
-				*validation |= ALPM_PKG_VALIDATION_SHA256SUM;
+				*validation |= AlpmPkgValidation.SHA256;
 			}
 		}
 	}
@@ -315,12 +315,12 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 			return -1;
 		}
 		if(validation && has_sig) {
-			*validation |= ALPM_PKG_VALIDATION_SIGNATURE;
+			*validation |= AlpmPkgValidation.Signature;
 		}
 	}
 
 	if(validation && !*validation) {
-		*validation = ALPM_PKG_VALIDATION_NONE;
+		*validation = AlpmPkgValidation.None;
 	}
 
 	return 0;
@@ -615,7 +615,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	// newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
 	newpkg.infolevel =AlpmDBInfRq.Base | AlpmDBInfRq.Desc | AlpmDBInfRq.Scriptlet;
-	newpkg.validation = ALPM_PKG_VALIDATION_NONE;
+	newpkg.validation = AlpmPkgValidation.None;
 
 	if(full) {
 		if(newpkg.files.length > 0) {

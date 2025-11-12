@@ -1265,14 +1265,14 @@ char * alpm_compute_sha256sum(  char*filename)
  * @return 0 if file matches the expected hash, 1 if they do not match, -1 on
  * error
  */
-int _alpm_test_checksum(  char*filepath,   char*expected, alpm_pkgvalidation_t type)
+int _alpm_test_checksum(  char*filepath,   char*expected, AlpmPkgValidation type)
 {
 	char* computed = void;
 	int ret = void;
 
-	if(type == ALPM_PKG_VALIDATION_MD5SUM) {
+	if(type == AlpmPkgValidation.MD5) {
 		computed = alpm_compute_md5sum(filepath);
-	} else if(type == ALPM_PKG_VALIDATION_SHA256SUM) {
+	} else if(type == AlpmPkgValidation.SHA256) {
 		computed = alpm_compute_sha256sum(filepath);
 	} else {
 		return -1;

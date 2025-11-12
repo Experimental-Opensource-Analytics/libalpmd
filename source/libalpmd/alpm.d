@@ -2389,23 +2389,18 @@ alias ALPM_PKG_FROM_SYNCDB = AlpmPkgFrom.ALPM_PKG_FROM_SYNCDB;
 
 
 /** Method used to validate a package. */
-enum alpm_pkgvalidation_t {
+enum AlpmPkgValidation {
 	/** The package's validation type is unknown */
-	ALPM_PKG_VALIDATION_UNKNOWN = 0,
+	Unknow = 0,
 	/** The package does not have any validation */
-	ALPM_PKG_VALIDATION_NONE = (1 << 0),
+	None = (1 << 0),
 	/** The package is validated with md5 */
-	ALPM_PKG_VALIDATION_MD5SUM = (1 << 1),
+	MD5 = (1 << 1),
 	/** The package is validated with sha256 */
-	ALPM_PKG_VALIDATION_SHA256SUM = (1 << 2),
+	SHA256 = (1 << 2),
 	/** The package is validated with a PGP signature */
-	ALPM_PKG_VALIDATION_SIGNATURE = (1 << 3)
+	Signature = (1 << 3)
 }
-alias ALPM_PKG_VALIDATION_UNKNOWN = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_UNKNOWN;
-alias ALPM_PKG_VALIDATION_NONE = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_NONE;
-alias ALPM_PKG_VALIDATION_MD5SUM = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_MD5SUM;
-alias ALPM_PKG_VALIDATION_SHA256SUM = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_SHA256SUM;
-alias ALPM_PKG_VALIDATION_SIGNATURE = alpm_pkgvalidation_t.ALPM_PKG_VALIDATION_SIGNATURE;
 
 
 /** Create a package from a file.

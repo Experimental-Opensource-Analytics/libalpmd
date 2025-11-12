@@ -92,7 +92,7 @@ class AlpmPkg {
 
 	/* Bitfield from AlpmDBInfRq */
 	int infolevel;
-	/* Bitfield from alpm_pkgvalidation_t */
+	/* Bitfield from AlpmPkgValidation */
 	int validation;
 
 public:
