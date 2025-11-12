@@ -1,9 +1,9 @@
 module libalpmd.pkg.pkg;
 
 import core.stdc.config: c_long, c_ulong;
+import core.sys.posix.sys.types : off_t;
 
 import core.sys.posix.unistd;
-import core.sys.posix.sys.types : off_t;
 
 import std.conv;
 import std.string;

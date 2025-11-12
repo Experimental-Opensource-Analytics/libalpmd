@@ -113,7 +113,7 @@ class AlpmHandle {
 	string lockfile;          /* Name of the lock file */
 	string gpgdir;            /* Directory where GnuPG files are stored */
 	string sandboxuser;       /* User to switch to for sensitive operations */
-	alpm_list_t* cachedirs;  /* Paths to pacman cache directories */
+	AlpmStrings cachedirs;  /* Paths to pacman cache directories */
 	alpm_list_t* hookdirs;   /* Paths to hook directories */
 	alpm_list_t* overwrite_files; /* Paths that may be overwritten */
 
@@ -145,6 +145,32 @@ class AlpmHandle {
 	string getDBPath() => this.dbpath;
 	string getLogfile() => this.logfile;
 	auto getSyncDBs() => this.dbs_sync;
+
+	AlpmStrings getCacheDirs() => this.cachedirs;
+
+	int  setCacheDirs(AlpmStrings cachedirs) {
+		if(!this.cachedirs.empty) {
+			this.cachedirs.clear();
+		}
+		foreach(cachedir; cachedirs[]) {
+			int ret = addCacheDir(cachedir);
+			if(ret) {
+				return ret;
+			}
+		}
+		
+		return 0;
+	}
+
+	int  addCacheDir(string dir) {
+		string newcachedir = canonicalizePath(dir);
+		if(!newcachedir) {
+			RET_ERR(this, ALPM_ERR_MEMORY, -1);
+		}
+		this.cachedirs.insert(newcachedir);
+		_alpm_log(this, ALPM_LOG_DEBUG, "option 'cachedir' = %s\n", cast(char*)newcachedir.toStringz);
+		return 0;
+	}
 
 	this() {
 		this.lockfd = -1;
@@ -266,7 +292,8 @@ version (HAVE_LIBCURL) {
 	FREE(handle.root);
 	FREE(handle.dbpath);
 	FREE(handle.dbext);
-	FREELIST(handle.cachedirs);
+	// FREELIST(handle.cachedirs);
+	destroy(handle.cachedirs);
 	FREELIST(handle.hookdirs);
 	FREE(handle.logfile);
 	FREE(handle.lockfile);
@@ -370,11 +397,6 @@ void * alpm_option_get_progresscb_ctx(AlpmHandle handle)
 alpm_list_t * alpm_option_get_hookdirs(AlpmHandle handle)
 {
 	return handle.hookdirs;
-}
-
-alpm_list_t * alpm_option_get_cachedirs(AlpmHandle handle)
-{
-	return handle.cachedirs;
 }
 
 string alpm_option_get_lockfile(AlpmHandle handle)
@@ -567,38 +589,6 @@ int  alpm_option_remove_hookdir(AlpmHandle handle, char* hookdir)
 	return 0;
 }
 
-int  alpm_option_add_cachedir(AlpmHandle handle,  char*cachedir)
-{
-	char* newcachedir = void;
-
-	//ASSERT(cachedir != null);
-	/* don't stat the cachedir yet, as it may not even be needed. we can
-	 * fail later if it is needed and the path is invalid. */
-
-		newcachedir = cast(char*)canonicalizePath(cachedir.to!string).ptr;
-	if(!newcachedir) {
-		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
-	}
-	handle.cachedirs = alpm_list_add(handle.cachedirs, newcachedir);
-	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'cachedir' = %s\n", newcachedir);
-	return 0;
-}
-
-int  alpm_option_set_cachedirs(AlpmHandle handle, alpm_list_t* cachedirs)
-{
-	alpm_list_t* i = void;
-	if(handle.cachedirs) {
-		FREELIST(handle.cachedirs);
-	}
-	for(i = cachedirs; i; i = i.next) {
-		int ret = alpm_option_add_cachedir(handle, cast(char*)i.data);
-		if(ret) {
-			return ret;
-		}
-	}
-	return 0;
-}
-
 int  alpm_option_remove_cachedir(AlpmHandle handle,   char*cachedir)
 {
 	char* vdata = null;
@@ -609,7 +599,7 @@ int  alpm_option_remove_cachedir(AlpmHandle handle,   char*cachedir)
 	if(!newcachedir) {
 		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
 	}
-	handle.cachedirs = alpm_list_remove_str(handle.cachedirs, newcachedir, &vdata);
+	handle.cachedirs.linearRemoveElement(newcachedir.to!string);
 	FREE(newcachedir);
 	if(vdata != null) {
 		FREE(vdata);

@@ -953,8 +953,8 @@ char* _alpm_filecache_find(AlpmHandle handle,   char*filename)
 	stat_t buf = void;
 
 	/* Loop through the cache dirs until we find a matching file */
-	for(i = handle.cachedirs; i; i = i.next) {
-		snprintf(path.ptr, PATH_MAX, "%s%s", cast(char*)i.data,
+	foreach(cachedir; handle.cachedirs[]) {
+		snprintf(path.ptr, PATH_MAX, "%s%s", cast(char*)cachedir,
 				filename);
 		if(stat(path.ptr, &buf) == 0) {
 			if(S_ISREG(buf.st_mode)) {
@@ -999,9 +999,11 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 	char* cachedir = void;
 	  char*tmpdir = void;
 
+	auto cacheDirRange = handle.cachedirs[];
+
 	/* Loop through the cache dirs until we find a usable directory */
-	for(i = handle.cachedirs; i; i = i.next) {
-		cachedir = cast(char*)i.data;
+	foreach(_cachedir; cacheDirRange) {
+		cachedir = cast(char*)_cachedir;
 		if(stat(cachedir, &buf) != 0) {
 			/* cache directory does not exist.... try creating it */
 			_alpm_log(handle, ALPM_LOG_WARNING, ("no %s cache exists, creating...\n"),
@@ -1031,8 +1033,9 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 			} else {
 				tmpdir = strdup("/tmp");
 			}
-	alpm_option_add_cachedir(handle, tmpdir);
-	cachedir = cast(char*)handle.cachedirs.prev.data;
+	handle.addCacheDir(tmpdir.to!string);
+	// cachedir = cast(char*)handle.cachedirs.prev.data;
+	cachedir = cast(char*)handle.cachedirs.back; //!Im not sure there
 	_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
 	_alpm_log(handle, ALPM_LOG_WARNING,
 			("couldn't find or create package cache, using %s instead\n"), cachedir);
