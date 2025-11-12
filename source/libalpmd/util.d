@@ -1,19 +1,16 @@
 module libalpmd.util;
-@nogc
- 
 
-import core.sys.posix.unistd;
-import core.sys.posix.string;
+import core.sys.posix.string :
+	strsignal;
+import core.sys.posix.stdio : 
+	snprintf, 
+	sprintf, 
+	fprintf, 
+	fflush, 
+	stderr;
 
 import stdfile = std.file;
 import stdio = std.stdio;
-
-
-// import core.uni;
-
-import core.stdc.string;
-import core.sys.posix.stdio;
-import core.stdc.fenv;
 import std.path;
 import std.digest.md;
 import std.digest.sha;
