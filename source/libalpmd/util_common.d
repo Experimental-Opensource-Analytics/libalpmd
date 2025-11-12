@@ -22,32 +22,33 @@ module libalpmd.util_common;
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import core.stdc.ctype;
-import core.stdc.errno;
-import core.stdc.stdlib;
-import core.stdc.string;
-import core.stdc.stdlib;
-import core.stdc.stdio;
-import core.stdc.errno;
-import core.stdc.string;
-import core.sys.posix.libgen;
+import core.stdc.errno :
+	errno, 
+	EINVAL,
+	EINTR;
+import core.stdc.ctype : 
+	isspace;
+import core.stdc.stdlib : 
+	free,
+	realloc,
+	malloc;
+import core.stdc.string : 
+	strrchr,
+	strdup,
+	strndup,
+	strlen,
+	memmove;
+import core.stdc.stdio : 
+	ferror,
+	feof,
+	clearerr,
+	FILE,
+	fgets;
+import core.sys.posix.sys.stat :
+	lstat,
+	stat_t;
 
 import std.conv;
-import core.sys.posix.stdlib;
-import core.sys.posix.unistd;
-import core.sys.posix.sys.socket; /* setsockopt, SO_KEEPALIVE */
-import core.sys.posix.sys.time;
-// import core.sys.posix.stdc;
-// import core.sys.posix.sys.stdc;
-
-import core.sys.posix.sys.stat;
-import core.sys.posix.sys.wait;
-import core.stdc.signal;
-import core.sys.posix.dirent;
-import core.sys.posix.stdio;
-import core.sys.posix.pwd;
-import etc.c.curl;
-// import util-common;
 
 /** Parse the basename of a program from a path.
 * @param path path to parse basename from
