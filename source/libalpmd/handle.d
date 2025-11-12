@@ -818,12 +818,12 @@ int assumeinstalled_cmp( void* d1,  void* d2)
 	 AlpmDepend dep2 = cast(AlpmDepend )d2;
 
 	if(dep1.name_hash != dep2.name_hash
-			|| strcmp(dep1.name, dep2.name) != 0) {
+			|| cmp(dep1.name, dep2.name) != 0) {
 		return -1;
 	}
 
 	if(dep1.version_ && dep2.version_
-			&& strcmp(dep1.version_, dep2.version_) == 0) {
+			&& cmp(dep1.version_, dep2.version_) == 0) {
 		return 0;
 	}
 

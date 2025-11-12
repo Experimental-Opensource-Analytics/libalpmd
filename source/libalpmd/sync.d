@@ -34,7 +34,8 @@ import core.sys.posix.unistd;
 import core.stdc.limits;
 import core.sys.posix.sys.stat;
 
-
+import std.array;
+import std.algorithm;
 /* libalpm */
 import libalpmd.sync;
 import libalpmd.alpm_list;
@@ -1092,10 +1093,10 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 private int dep_not_equal( AlpmDepend left,  AlpmDepend right)
 {
 	return left.name_hash != right.name_hash
-		|| strcmp(left.name, right.name) != 0
+		|| cmp(left.name, right.name) != 0
 		|| left.mod != right.mod
 		|| (left.version_ == null) != (right.version_ == null)
-		|| ((left.version_ && right.version_) && strcmp(left.version_, right.version_) != 0);
+		|| ((left.version_ && right.version_) && cmp(left.version_, right.version_) != 0);
 }
 
 private int check_pkg_field_matches_db(AlpmHandle handle,   char*field, alpm_list_t* left, alpm_list_t* right, libalpmd.alpm_list.alpm_list_old.alpm_list_fn_cmp cmp)

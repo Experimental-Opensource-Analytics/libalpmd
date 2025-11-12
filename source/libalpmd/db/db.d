@@ -46,6 +46,7 @@ import libalpmd.util;
 import libalpmd.conflict;
 
 import std.string;
+import std.bigint;
 
 enum AlpmDBInfRq {
 	Base = (1 << 0),
@@ -478,8 +479,8 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 				/* check provides */
 				foreach(provide; pkg.getProvides()[]) {
 					// AlpmDepend provide = cast(AlpmDepend )k.data;
-					if(strstr(provide.name, targ)) {
-						matched = provide.name;
+					if(strstr(cast(char*)provide.name.toStringz, targ)) {
+						matched = cast(char*)provide.name.toStringz;
 						break;
 					}
 				}

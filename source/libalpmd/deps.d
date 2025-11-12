@@ -28,6 +28,11 @@ import core.stdc.stdio;
 import core.stdc.string;
 import core.stdc.config;
 
+import std.conv;
+import std.algorithm;
+import std.string;
+
+
 
 /* libalpm */
 import libalpmd.deps;
@@ -40,7 +45,7 @@ import libalpmd.db;
 import libalpmd.handle;
 import libalpmd.trans;
 import libalpmd.alpm;
-import libalpmd.pkg;;
+import libalpmd.pkg;
 
 /** The basic dependency type.
  *
@@ -48,17 +53,17 @@ import libalpmd.pkg;;
  * but also conflicts and providers. */
 class AlpmDepend {
 	/**  Name of the provider to satisfy this dependency */
-	char* name;
+	string name;
 	/**  Version of the provider to match against (optional) */
-	char* version_;
+	string version_;
 	/** A description of why this dependency is needed (optional) */
-	char* desc;
+	string desc;
 	/** A hash of name (used internally to speed up conflict checks) */
 	c_ulong name_hash;
 	/** How the version should match against the provider */
 	alpm_depmod_t mod;
 
-	this(char* name, char* version_, char* desc, c_ulong name_hash, alpm_depmod_t mod) {
+	this(string name, string version_, string desc, c_ulong name_hash, alpm_depmod_t mod) {
 		this.name = name,
 		this.version_ = version_,
 		this.desc = desc,
@@ -70,9 +75,9 @@ class AlpmDepend {
 
 	auto dup() {
 		return new AlpmDepend(
-			this.name,
-			this.version_,
-			this.desc,
+			this.name.idup,
+			this.version_.idup,
+			this.desc.idup,
 			this.name_hash,
 			this.mod
 		);
@@ -85,7 +90,7 @@ alpm_list_t* list_depdup(alpm_list_t* old)
 {
 	alpm_list_t* i = void, new_ = null;
 	for(i = old; i; i = i.next) {
-		new_ = alpm_list_add(new_, cast(void*)_alpm_dep_dup(cast(AlpmDepend )i.data));
+		new_ = alpm_list_add(new_, cast(void*)((cast(AlpmDepend )i.data).dup));
 	}
 	return new_;
 }
@@ -117,7 +122,7 @@ private alpm_depmissing_t* depmiss_new(  char*target, AlpmDepend dep,   char*cau
 	CALLOC(miss, 1, alpm_depmissing_t.sizeof);
 
 	STRNDUP(miss.target, target, strlen(target));
-	miss.depend = _alpm_dep_dup(dep);
+	miss.depend = dep.dup();
 	STRNDUP(miss.causingpkg, causingpkg, strlen(causingpkg));
 
 	return miss;
@@ -470,11 +475,11 @@ private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
 {
 	if(pkg.name_hash != dep.name_hash
-			|| strcmp(cast(char*)pkg.name, dep.name) != 0) {
+			|| cmp(pkg.name, dep.name) != 0) {
 		/* skip more expensive checks */
 		return 0;
 	}
-	return dep_vercmp(cast(char*)pkg.version_, dep.mod, cast(char*)dep.version_);
+	return dep_vercmp(cast(char*)pkg.version_.toStringz, dep.mod, cast(char*)dep.version_.toStringz);
 }
 
 /**
@@ -496,12 +501,12 @@ int _alpm_depcmp_provides(AlpmDepend dep, AlpmDeps provisions)
 		if(dep.mod == ALPM_DEP_MOD_ANY) {
 			/* any version will satisfy the requirement */
 			satisfy = (provision.name_hash == dep.name_hash
-					&& strcmp(cast(char*)provision.name, dep.name) == 0);
+					&& cmp(provision.name, dep.name) == 0);
 		} else if(provision.mod == ALPM_DEP_MOD_EQ) {
 			/* provision specifies a version, so try it out */
 			satisfy = (provision.name_hash == dep.name_hash
-					&& strcmp(provision.name, dep.name) == 0
-					&& dep_vercmp(provision.version_, dep.mod, dep.version_));
+					&& cmp(provision.name, dep.name) == 0
+					&& dep_vercmp(cast(char*)provision.version_.toStringz, dep.mod, cast(char*)dep.version_.toStringz));
 		}
 	}
 
@@ -529,7 +534,8 @@ AlpmDepend alpm_dep_from_string(  char*depstring)
 
 	/* Note the extra space in ": " to avoid matching the epoch */
 	if((desc = strstr(depstring, ": ")) != null) {
-		STRNDUP(depend.desc, desc + 2, strlen(desc + 2));
+		// STRNDUP(depend.desc, desc + 2, strlen(desc + 2));
+		depend.desc = desc[2..strlen(desc) + 2].idup;
 		deplen = desc - depstring;
 	} else {
 		/* no description- point desc at NULL at end of string for later use */
@@ -573,34 +579,18 @@ AlpmDepend alpm_dep_from_string(  char*depstring)
 	/* copy the right parts to the right places */
 	import std.conv;
 	
-	STRNDUP(depend.name, depstring, ptr - depstring);
+	// STRNDUP(depend.name, depstring, ptr - depstring);
+	depend.name = depstring[0..ptr - depstring].idup;
 	depend.name_hash = alpmSDBMHash((depend.name).to!string);
 	if(version_) {
-		STRNDUP(depend.version_, version_, desc - version_);
+		// STRNDUP(depend.version_, version_, desc - version_);
+		depend.version_ = version_[0..desc - version_].idup;
 	}
 
 	return depend;
 
 error:
 	alpm_dep_free(cast(void*)depend);
-	return null;
-}
-
-AlpmDepend _alpm_dep_dup( AlpmDepend dep)
-{
-	AlpmDepend newdep = new AlpmDepend;
-	// CALLOC(newdep, 1, AlpmDepend.sSTATE_INTERRUPTEDizeof);
-
-	STRNDUP(newdep.name, dep.name, strlen(dep.name));
-	STRNDUP(newdep.version_, dep.version_, strlen(dep.version_));
-	STRNDUP(newdep.desc, dep.desc, strlen(dep.desc));
-	newdep.name_hash = dep.name_hash;
-	newdep.mod = dep.mod;
-
-	return newdep;
-
-error:
-	alpm_dep_free(cast(void*)newdep);
 	return null;
 }
 
@@ -717,7 +707,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 			continue;
 		}
 
-		pkg = _alpm_db_get_pkgfromcache(db, dep.name);
+		pkg = _alpm_db_get_pkgfromcache(db, cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
 				&& !alpm_pkg_find_n(excluding, pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
@@ -748,7 +738,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 		}
 		for(auto j = _alpm_db_get_pkgcache(db); j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
-			if((pkg.name_hash != dep.name_hash || strcmp(cast(char*)pkg.name, dep.name) != 0)
+			if((pkg.name_hash != dep.name_hash || cmp(pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
 					&& !alpm_pkg_find_n(excluding, pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
@@ -934,7 +924,7 @@ char * alpm_dep_compute_string( AlpmDepend dep)
 	//ASSERT(dep != null);
 
 	if(dep.name) {
-		name = dep.name;
+		name = cast(char*)dep.name;
 	} else {
 		name = cast(char*)"";
 	}
@@ -964,14 +954,14 @@ char * alpm_dep_compute_string( AlpmDepend dep)
 	}
 
 	if(dep.mod != ALPM_DEP_MOD_ANY && dep.version_) {
-		ver = dep.version_;
+		ver = cast(char*)dep.version_;
 	} else {
 		ver = cast(char*)"";
 	}
 
 	if(dep.desc) {
 		desc_delim = cast(char*)": ";
-		desc = dep.desc;
+		desc = cast(char*)dep.desc;
 	} else {
 		desc_delim = cast(char*)"";
 		desc = cast(char*)"";
