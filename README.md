@@ -1,6 +1,10 @@
 # libalpmd
 ## Experimental port of libalpm on D language.
 
+## Important:
+* Now all functionality is broken.
+* Published in order to hear your opinion.
+
 ## **Reasons:**
  * For my maybe-pet project
  * Trying to realize system-side library using all DLang futures and Phobos standart library (maybe using otherside packages aka Derelict-libarchive).
@@ -12,7 +16,8 @@
 
 **What is done:**
 
- * [x] Compilation
+ * [x] Converting using **ctod**
+ * [x] Compilation (In the process, I broke everything I could break.) 
  * [ ] Nothing else
 
 ## What is the stage of refactoring?
@@ -20,7 +25,8 @@
 [In two words...](https://www.youtube.com/watch?v=SvlryWVlgds)
 
 ## In plans
-* Try is on real tasks
+* Stabilizing the API
+* Try it on real tasks
 
 ## **What is working:**
 
