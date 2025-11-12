@@ -1420,7 +1420,6 @@ int alpmSplitName(string target, out string name, out string version_, ref c_ulo
 		if(ch == '-') {
 			if(found) {
 				break;
-
 			}
 			found = true;
 		}
@@ -1430,6 +1429,7 @@ int alpmSplitName(string target, out string name, out string version_, ref c_ulo
 	auto result = splitAtPosition(target, i);
 	name = result[0];
 	version_ = result[1];
+	name_hash = alpmSDBMHash(name);
 	return 0;
 }
 
