@@ -15,6 +15,10 @@
  * [x] Compilation
  * [ ] Nothing else
 
+## What is the stage of refactoring?
+
+[In two words...](https://www.youtube.com/watch?v=SvlryWVlgds)
+
 ## In plans
 * Try is on real tasks
 
@@ -28,8 +32,4 @@
 
 * > Can i use it?
 
-At that moment absolutly no.
-
-* > What is the stage of refactoring?
-
-[In two words...](https://www.youtube.com/watch?v=SvlryWVlgds)
+IF you can...
