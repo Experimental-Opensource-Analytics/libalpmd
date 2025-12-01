@@ -13,7 +13,6 @@ import core.stdc.stdio;
 import libalpmd.deps;
 import std.conv;
 
-
 /*
  *  alpm.c
  *
@@ -546,16 +545,6 @@ alpm_errno_t alpm_errno(AlpmHandle handle);
  * @{
  */
 
-/** Initializes the library.
- * Creates handle, connects to database and creates lockfile.
- * This must be called before any other functions are called.
- * @param root the root path for all filesystem operations
- * @param dbpath the absolute path to the libalpm database
- * @param err an optional variable to hold any error return codes
- * @return a context handle on success, NULL on error, err will be set if provided
- */
-AlpmHandle alpm_initialize(const(char)* root, const(char)* dbpath, alpm_errno_t* err);
-
 /** Release the library.
  * Disconnects from the database, removes handle and lockfile
  * This should be the last alpm call you make.
@@ -568,8 +557,6 @@ int alpm_release(AlpmHandle handle);
 
 /* End of libalpm_handle */
 /** @} */
-
-
 
 
 /**
@@ -1441,7 +1428,7 @@ int alpm_db_remove_cache_server(AlpmDB db, const(char)* url);
  * @return 0 on success, -1 on error (pm_errno is set accordingly),
  * 1 if all databases are up to to date
  */
-int alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force);
+// int alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force);
 
 /** Get the group cache of a package database.
  * @param db pointer to the package database to get the group from
@@ -1537,7 +1524,7 @@ alias ALPM_LOG_FUNCTION = alpm_loglevel_t.ALPM_LOG_FUNCTION;
  * @param fmt the printf like format string
  * @param args printf like arguments
  */
-alias alpm_cb_log = void function(void* ctx, alpm_loglevel_t level, const(char)* fmt, va_list args);
+alias alpm_cb_log = void function(void* ctx, alpm_loglevel_t level, const(char)* fmt, ...);
 
 /** A printf-like function for logging.
  * @param handle the context handle
@@ -3052,61 +3039,45 @@ alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
 AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 {
 	alpm_errno_t myerr = void;
-	const(char)* lf = "db.lck";
+	const(char)* lf = "/db.lck";
 	char* hookdir = void;
 	size_t hookdirlen = void, lockfilelen = void;
 	const(passwd)* pw = null;
 	AlpmHandle myhandle = new AlpmHandle();
 	char* tmp;
-
-	
-	if(cast(bool)(myerr = setDirectoryOption(root.to!string, &myhandle.root, 1))) {
+	if(cast(bool)(myerr = setDirectoryOption(root.to!string, myhandle.root, 1))) {
 		goto cleanup;
 	}
-	if(cast(bool)(myerr = setDirectoryOption(dbpath.to!string, &myhandle.dbpath, 1))) {
+	if(cast(bool)(myerr = setDirectoryOption(dbpath.to!string, myhandle.dbpath, 1))) {
 		goto cleanup;
 	}
 
-	/* to concatenate myhandle->root (ends with a slash) with SYSHOOKDIR (starts
-	 * with a slash) correctly, we skip SYSHOOKDIR[0]; the regular +1 therefore
-	 * disappears from the allocation */
-	hookdirlen = myhandle.root.length + strlen(SYSHOOKDIR);
-	MALLOC(hookdir, hookdirlen);
-	snprintf(hookdir, hookdirlen, "%s%s", myhandle.root.ptr, &SYSHOOKDIR[1]);
-	myhandle.hookdirs = alpm_list_add(null, hookdir);
-
-	/* set default database extension */
-	STRDUP(tmp, cast(char*)".db");
-	myhandle.dbext = tmp.to!string;
-
-	lockfilelen = myhandle.dbpath.length + strlen(lf) + 1;
-	MALLOC(myhandle.lockfile.ptr, lockfilelen);
-	snprintf(cast(char*)myhandle.lockfile.ptr, lockfilelen, "%s%s", myhandle.dbpath.ptr, lf);
+	myhandle.dbext = ".db";
+	myhandle.lockfile = dbpath.to!string ~ lf.to!string;
 
 	if(_alpm_db_register_local(myhandle) is null) {
 		myerr = myhandle.pm_errno;
-		goto cleanup;
+		throw new Exception("Cant register local");
+		// goto cleanup;
 	}
 
-version (HAVE_LIBCURL) {
-	curl_global_init(CURL_GLOBAL_ALL);
-	myhandle.curlm = curl_multi_init();
-}
+// version (HAVE_LIBCURL) {
+// 	curl_global_init(CURL_GLOBAL_ALL);
+// 	myhandle.curlm = curl_multi_init();
+// }
 
 	myhandle.parallel_downloads = 1;
 
-	/* set default sandboxuser */
-	//ASSERT((pw = getpwuid(0)) != null);
-	STRDUP(cast(char**)myhandle.sandboxuser.ptr, cast(char*)pw.pw_name);
+// 	/* set default sandboxuser */
+// 	//ASSERT((pw = getpwuid(0)) != null);
+// 	STRDUP(cast(char**)myhandle.sandboxuser.ptr, cast(char*)pw.pw_name);
 	
-version (ENABLE_NLS) {
-	bindtextdomain("libalpm", LOCALEDIR);
-}
+// version (ENABLE_NLS) {
+// 	bindtextdomain("libalpm", LOCALEDIR);
+// }
 
 	return myhandle;
 
-nomem:
-	myerr = ALPM_ERR_MEMORY;
 cleanup:
 	_alpm_handle_free(myhandle);
 	if(err) {

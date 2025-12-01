@@ -477,11 +477,14 @@ alpm_list_t * alpm_list_last(alpm_list_t* list)
 
 /* Misc */
 
+import std.stdio;
 size_t  alpm_list_count( alpm_list_t* list)
 {
 	size_t i = 0;
-	 alpm_list_t* lp = list;
+	alpm_list_t* lp = list;
+	writeln(lp);
 	while(lp) {
+		writeln("next");
 		++i;
 		lp = lp.next;
 	}

@@ -50,18 +50,16 @@ import libalpmd.db;
 import core.stdc.stdlib;
 import libalpmd.pkghash;
 import libalpmd.error;
+import std.string;
 
 
 
 
 char* get_sync_dir(AlpmHandle handle)
 {
+	char* syncpath = cast(char*)(handle.dbpath ~ "sync/").toStringz;
 	size_t len = handle.dbpath.length + 6;
-	char* syncpath = void;
 	stat_t buf = void;
-
-	MALLOC(syncpath, len);
-	snprintf(syncpath, len, "%s%s", handle.dbpath.ptr, "sync/".ptr);
 
 	if(stat(syncpath, &buf) != 0) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
@@ -150,35 +148,35 @@ valid:
 	return 0;
 }
 
-int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
+int  alpm_db_update(AlpmHandle handle, AlpmDBs dbs, int force) {
 	char* syncpath = void;
 	char* temporary_syncpath = void;
-	  char*dbext = cast(char*)handle.dbext;
-	alpm_list_t* i = void;
 	int ret = -1;
 	mode_t oldmask = void;
 	alpm_list_t* payloads = null;
 	alpm_event_t event = void;
 
 	/* Sanity checks */
-	//ASSERT(dbs != null);
+	// ASSERT(dbs != null);
 	handle.pm_errno = ALPM_ERR_OK;
 
 	syncpath = get_sync_dir(handle);
-	//ASSERT(syncpath != null);
-	temporary_syncpath = _alpm_temporary_download_dir_setup(syncpath, cast(char*)handle.sandboxuser);
-	//ASSERT(temporary_syncpath != null);
+	handle.sandboxuser = getenv("USER").to!string;
+	temporary_syncpath = cast(char*)"./tmp/".toStringz();
 
 	/* make sure we have a sane umask */
 	oldmask = umask(octal!"0022");
 
-	/* attempt to grab a lock */
-	if(handle.lock()) {
-		GOTO_ERR(handle, ALPM_ERR_HANDLE_LOCK, "cleanup");
-	}
+// 	/* attempt to grab a lock */
+	// if(handle.lock()) {
+	// // 	handle.unlock();
+	// // 	handle.lock();
+	// 	throw new Exception("LOCKED");
+	// // // 	// GOTO_ERR(handle, ALPM_ERR_HANDLE_LOCK, "cleanup");
+	// }
 
-	for(i = dbs; i; i = i.next) {
-		AlpmDB db = cast(AlpmDB)i.data;
+	foreach(i; dbs) {
+		AlpmDB db = cast(AlpmDB)i;
 		int dbforce = force;
 		dload_payload* payload = null;
 		size_t len = void;
@@ -188,8 +186,8 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 			continue;
 		}
 
-		//ASSERT(db != handle.db_local);
-		//ASSERT(db.servers != null);
+		// ASSERT(db != handle.db_local);
+		// ASSERT(db.servers != null);
 
 		/* force update of invalid databases to fix potential mismatched database/signature */
 		if(db.status & AlpmDBStatus.Invalid) {
@@ -198,21 +196,21 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 
 		siglevel = db.getSigLevel();
 
-		CALLOC(payload, 1, typeof(*payload).sizeof);
+		payload = new dload_payload;
 		payload.servers = db.servers;
 		/* print server + filename into a buffer */
-		len = db.treename.length + strlen(dbext) + 1;
+		len = db.treename.length + db.handle.dbext.length + 1;
 		MALLOC(payload.filepath, len);
-		snprintf(payload.filepath, len, "%s%s", db.treename.ptr, dbext);
+		payload.filepath = cast(char*)(db.treename ~ db.handle.dbext).toStringz;
 
 		STRDUP(payload.remote_name, payload.filepath);
 		payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)"");
 		payload.tempfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)".part");
-		if(!payload.destfile_name || !payload.tempfile_name) {
-			_alpm_dload_payload_reset(payload);
-			FREE(payload);
-			GOTO_ERR(handle, ALPM_ERR_MEMORY," cleanup");
-		}
+		// if(!payload.destfile_name || !payload.tempfile_name) {
+		// 	_alpm_dload_payload_reset(payload);
+		// 	FREE(payload);
+		// 	GOTO_ERR(handle, ALPM_ERR_MEMORY," cleanup");
+		// }
 
 		payload.handle = handle;
 		payload.force = dbforce;
@@ -223,64 +221,65 @@ int  alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force) {
 		payload.max_size = 128 * 1024 * 1024;
 		payloads = alpm_list_add(payloads, payload);
 	}
-	if(payloads == null) {
-		ret = 0;
-		goto cleanup;
-	}
+	debug { import std.stdio : writeln; try { writeln(payloads); } catch (Exception) {} }
+// 	if(payloads == null) {
+// 		ret = 0;
+// 		goto cleanup;
+// 	}
 
-	event.type = ALPM_EVENT_DB_RETRIEVE_START;
-	EVENT(handle, &event);
+	// event.type = ALPM_EVENT_DB_RETRIEVE_START;
+	// EVENT(handle, &event);
 	ret = _alpm_download(handle, payloads, syncpath, temporary_syncpath);
-	if(ret < 0) {
-		event.type = ALPM_EVENT_DB_RETRIEVE_FAILED;
-		EVENT(handle, &event);
-		goto cleanup;
-	}
-	event.type = ALPM_EVENT_DB_RETRIEVE_DONE;
-	EVENT(handle, &event);
+	// if(ret < 0) {
+	// 	event.type = ALPM_EVENT_DB_RETRIEVE_FAILED;
+	// 	EVENT(handle, &event);
+	// 	goto cleanup;
+	// }
+	// event.type = ALPM_EVENT_DB_RETRIEVE_DONE;
+	// EVENT(handle, &event);
 
-	for(i = dbs; i; i = i.next) {
-		AlpmDB db = cast(AlpmDB)i.data;
-		if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
-			continue;
-		}
+// 	foreach(i; dbs) {
+// 		AlpmDB db = cast(AlpmDB)i;
+// 		if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
+// 			continue;
+// 		}
 
-		/* Cache needs to be rebuilt */
-		_alpm_db_free_pkgcache(db);
+// 		/* Cache needs to be rebuilt */
+// 		_alpm_db_free_pkgcache(db);
 
-		/* clear all status flags regarding validity/existence */
-		db.status &= ~AlpmDBStatus.Valid;
-		db.status &= ~AlpmDBStatus.Invalid;
-		db.status &= ~AlpmDBStatus.Exists;
-		db.status &= ~AlpmDBStatus.Missing;
+// 		/* clear all status flags regarding validity/existence */
+// 		db.status &= ~AlpmDBStatus.Valid;
+// 		db.status &= ~AlpmDBStatus.Invalid;
+// 		db.status &= ~AlpmDBStatus.Exists;
+// 		db.status &= ~AlpmDBStatus.Missing;
 
-		/* if the download failed skip validation to preserve the download error */
-		if(sync_db_validate(db) != 0) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "failed to validate db: %s\n",
-					db.treename);
-			/* pm_errno should be set */
-			ret = -1;
-		}
-	}
+// 		/* if the download failed skip validation to preserve the download error */
+// 		if(sync_db_validate(db) != 0) {
+// 			_alpm_log(handle, ALPM_LOG_DEBUG, "failed to validate db: %s\n",
+// 					db.treename);
+// 			/* pm_errno should be set */
+// 			ret = -1;
+// 		}
+// 	}
 
 cleanup:
-	_alpm_handle_unlock(handle);
+	// _alpm_handle_unlock(handle);
 
-	if(ret == -1) {
-		/* pm_errno was set by the download code */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "failed to sync dbs: %s\n",
-				alpm_strerror(handle.pm_errno));
-	} else {
-		handle.pm_errno = ALPM_ERR_OK;
-	}
+	// if(ret == -1) {
+	// 	/* pm_errno was set by the download code */
+	// 	_alpm_log(handle, ALPM_LOG_DEBUG, "failed to sync dbs: %s\n",
+	// 			alpm_strerror(handle.pm_errno));
+	// } else {
+	// 	handle.pm_errno = ALPM_ERR_OK;
+	// }
 
-	if(payloads) {
-		alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
-		FREELIST(payloads);
-	}
-	FREE(temporary_syncpath);
-	FREE(syncpath);
-	umask(oldmask);
+	// if(payloads) {
+	// 	alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
+	// 	FREELIST(payloads);
+	// }
+	// FREE(temporary_syncpath);
+	// FREE(syncpath);
+	// umask(oldmask);
 	return ret;
 }
 
@@ -594,6 +593,7 @@ enum string READ_AND_SPLITDEP_N(string f) = `do {
 
 int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* likely_pkg)
 {
+	import std.string;
 	  char*entryname = void, filename = void;
 	AlpmPkg pkg = void;
 	archive_read_buffer buf;
@@ -783,8 +783,8 @@ version (HAVE_LIBGPGME) {} else {
 	db.handle = handle;
 	db.siglevel = level;
 
-	sync_db_validate(db);
+	// sync_db_validate(db);
 
-	handle.dbs_sync = alpm_new_list_add(handle.dbs_sync, db);
+	handle.dbs_sync.insertBack(db);
 	return db;
 }

@@ -34,7 +34,7 @@ import core.stdc.config: c_long, c_ulong;
  *  Copyright (c) 2006 by David Kimpe <dnaku@frugalware.org>
  *  Copyright (c) 2005, 2006 by Miklos Vajna <vmiklos@frugalware.org>
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  This program is //free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
@@ -71,6 +71,8 @@ import core.stdc.string;
 import libalpmd.util_common;
 import libalpmd.consts;
 import std.conv;
+
+import libalpmd.error;
 
 // fnmatch constants
 enum FNM_PATHNAME = 1;     // No wildcard can ever match '/'
@@ -109,6 +111,7 @@ import libalpmd.alpm_list;
 import libalpmd.handle;
 import libalpmd.trans;
 import derelict.libarchive;
+import core.vararg;
 // import ae.sys.git;
 
 struct archive_read_buffer {
@@ -180,6 +183,27 @@ enum ALPM_BUFFER_SIZE = BUFSIZ;
 enum ALPM_BUFFER_SIZE = 8192;
 }
 
+static void output_cb(void *ctx, alpm_loglevel_t level, const char *fmt, va_list list)
+{
+	import core.stdc.stdio;
+	import std.stdio;
+
+	// cast(void*)ctx;
+	// va_arg args;
+	// va
+	// writeln(list);
+	if(fmt[0] == '\0') {
+		return;
+	}
+	switch(level) {
+		case ALPM_LOG_ERROR: write("error: "); break;
+		case ALPM_LOG_WARNING: write("warning: "); break;
+		case ALPM_LOG_DEBUG: write("debug: "); break;
+		default: return; /* skip other messages */
+	}
+	vprintf(fmt, list);
+}
+
 noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
 	// _alpm_log(handle, ALPM_LOG_DEBUG, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
 	(handle).pm_errno = (err);
@@ -187,7 +211,7 @@ noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
 }
 
 noreturn RET_ERR(H = AlpmHandle, E)(H handle, E err, ...) {
-	// _alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
+	// _alpm_log(handle, ALPM_LOG_ERROR, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(cast(alpm_errno_t)err));
 	handle.pm_errno = cast(alpm_errno_t)(err);
 	assert(0, "ERROR BY RET_ERROR");
 }
@@ -1555,8 +1579,145 @@ ubyte[] alpmReadFile(string path) {
 //TODO! @nogc version
 string sanitizeUrl(string url) {
 	if(url[$-1] == '/'){
-		return url[0..$-2].idup;
+		return url[0..$-1].idup;
 	}
 	
 	return url;
+}
+
+static int download_with_xfercommand(void *ctx, const char *url,
+		const char *localpath, int force)
+{	
+	import std.stdio;
+	import std.process;
+	string[] args = [
+            "wget",
+            "--passive-ftp",
+            "-c"
+	];
+
+	args ~= url.to!string;
+	args ~= "--directory-prefix=" ~ localpath.to!string;
+	auto res = execute(args);
+	// writeln(res.output);
+	// writeln(res.status);
+	// debug { import std.stdio : writeln; try { writeln(args); } catch (Exception) {} }
+
+	// debug { import std.stdio : writeln; try { writeln(res.output); } catch (Exception) {} }
+	debug { import std.stdio : writeln; try { writeln(res.output); } catch (Exception) {} }
+
+
+	return res.status;
+	// return res.status;
+// 	int usepart = 0;
+// 	int cwdfd = -1;
+// 	sstat_t st;
+// 	char* destfile, tempfile, filename;
+// 	const char **argv;
+// 	size_t i;
+
+// 	// (void)ctx;
+
+// 	if(!config.xfercommand_argv) {
+// 		return -1;
+// 	}
+
+// 	filename = get_filename(url);
+// 	if(!filename) {
+// 		return -1;
+// 	}
+// 	destfile = get_destfile(localpath, filename);
+// 	tempfile = get_tempfile(localpath, filename);
+
+// 	if(force && stat(tempfile, &st) == 0) {
+// 		unlink(tempfile);
+// 	}
+// 	if(force && stat(destfile, &st) == 0) {
+// 		unlink(destfile);
+// 	}
+
+// 	if((argv = calloc(config.xfercommand_argc + 1, sizeof(char*))) is null) {
+// 		size_t bytes = (config.xfercommand_argc + 1) * (char*).sizeof;
+// 		pm_printf(ALPM_LOG_ERROR,
+// 				_n("malloc failure: could not allocate %zu byte\n",
+// 				   "malloc failure: could not allocate %zu bytes\n",
+// 					 bytes),
+// 				bytes);
+// 		goto cleanup;
+// 	}
+
+// 	for(i = 0; i <= config.xfercommand_argc; i++) {
+// 		const char *val = config.xfercommand_argv[i];
+// 		if(val && strcmp(val, "%o") == 0) {
+// 			usepart = 1;
+// 			val = tempfile;
+// 		} else if(val && strcmp(val, "%u") == 0) {
+// 			val = url;
+// 		}
+// 		argv[i] = val;
+// 	}
+
+// 	/* save the cwd so we can restore it later */
+// 	do {
+// 		cwdfd = open(".", O_RDONLY);
+// 	} while(cwdfd == -1 && errno == EINTR);
+// 	if(cwdfd < 0) {
+// 		pm_printf(ALPM_LOG_ERROR, _("could not get current working directory\n"));
+// 	}
+
+// 	/* cwd to the download directory */
+// 	if(chdir(localpath)) {
+// 		pm_printf(ALPM_LOG_WARNING, _("could not chdir to download directory %s\n"), localpath);
+// 		ret = -1;
+// 		goto cleanup;
+// 	}
+
+// 	if(config.logmask & ALPM_LOG_DEBUG) {
+// 		char* cmd = arg_to_string(config.xfercommand_argc, (char**)argv);
+// 		if(cmd) {
+// 			pm_printf(ALPM_LOG_DEBUG, "running command: %s\n", cmd);
+// 			//free(cmd);
+// 		}
+// 	}
+// 	retval = systemvp(argv[0], (char**)argv);
+
+// 	if(retval == -1) {
+// 		pm_printf(ALPM_LOG_WARNING, _("running XferCommand: fork failed!\n"));
+// 		ret = -1;
+// 	} else if(retval != 0) {
+// 		/* download failed */
+// 		pm_printf(ALPM_LOG_DEBUG, "XferCommand command returned non-zero status "
+// 				"code (%d)\n", retval);
+// 		ret = -1;
+// 	} else {
+// 		/* download was successful */
+// 		ret = 0;
+// 		if(usepart) {
+// 			if(rename(tempfile, destfile)) {
+// 				pm_printf(ALPM_LOG_ERROR, _("could not rename %s to %s (%s)\n"),
+// 						tempfile, destfile, strerror(errno));
+// 				ret = -1;
+// 			}
+// 		}
+// 	}
+
+// cleanup:
+// 	/* restore the old cwd if we have it */
+// 	if(cwdfd >= 0) {
+// 		if(fchdir(cwdfd) != 0) {
+// 			pm_printf(ALPM_LOG_ERROR, _("could not restore working directory (%s)\n"),
+// 					strerror(errno));
+// 		}
+// 		close(cwdfd);
+// 	}
+
+// 	if(ret == -1) {
+// 		/* hack to let an user the time to cancel a download */
+// 		sleep(2);
+// 	}
+// 	//free(destfile);
+// 	//free(tempfile);
+// 	//free(argv);
+
+// 	return ret;
 }

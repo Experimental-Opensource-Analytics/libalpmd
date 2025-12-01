@@ -1105,16 +1105,20 @@ private int curl_download_internal_sandboxed(AlpmHandle handle, alpm_list_t* pay
 
 private int payload_download_fetchcb(dload_payload* payload,   char*server,   char*localpath)
 {
+	import std.string;
+	// debug { import std.stdio : writeln; try { printf(server); } catch (Exception) {} }
 	int ret = void;
 	char* fileurl = void;
 	AlpmHandle handle = payload.handle;
 
 	size_t len = strlen(server) + strlen(payload.filepath) + 2;
-	MALLOC(fileurl, len);
-	snprintf(fileurl, len, "%s/%s", server, payload.filepath);
+
+	//I feel like a complete scumbag
+	fileurl = cast(char*)(server.to!string ~ "/"~ payload.filepath.to!string).toStringz;
+	debug { import std.stdio : writeln; try { printf(fileurl); } catch (Exception) {} }
 
 	ret = handle.fetchcb(handle.fetchcb_ctx, fileurl, localpath, payload.force);
-	free(fileurl);
+	// free(fileurl);
 
 	return ret;
 }
@@ -1192,40 +1196,40 @@ private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath
 	passwd* pw = null;
 	//ASSERT(payloads != null);
 	//ASSERT(localpath != null);
-	if(user != null) {
-		//ASSERT((pw = getpwnam(user)) != null);
-	}
-	alpm_list_t* p = void;
-	for(p = payloads; p; p = p.next) {
-		dload_payload* payload = cast(dload_payload* )p.data;
-		if(payload.destfile_name) {
-			  char*destfilename = basename(payload.destfile_name);
-			char* dest = _alpm_get_fullpath(localpath, destfilename, cast(char*)"");
-			stat_t deststat = void;
-			if(stat(dest, &deststat) == 0 && deststat.st_size != 0) {
-				payload.mtime_existing_file = deststat.st_mtime;
-			}
-			FREE(dest);
-		}
-		if(!payload.tempfile_name) {
-			continue;
-		}
-		  char*filename = basename(payload.tempfile_name);
-		char* src = _alpm_get_fullpath(localpath, filename, cast(char*)"");
-		stat_t st = void;
-		if(stat(src, &st) != 0 || st.st_size == 0) {
-			FREE(src);
-			continue;
-		}
-		if(rename(src, payload.tempfile_name) != 0) {
-			FREE(src);
-			continue;
-		}
-		if(pw != null) {
-			// //ASSERT(chown(payload.tempfile_name, pw.pw_uid, pw.pw_gid));
-		}
-		FREE(src);
-	}
+	// if(user != null) {
+	// 	ASSERT((pw = getpwnam(user)) != null);
+	// }
+	// alpm_list_t* p = void;
+	// for(p = payloads; p; p = p.next) {
+	// 	dload_payload* payload = cast(dload_payload* )p.data;
+	// 	if(payload.destfile_name) {
+	// 		  char*destfilename = basename(payload.destfile_name);
+	// 		char* dest = _alpm_get_fullpath(localpath, destfilename, cast(char*)"");
+	// 		stat_t deststat = void;
+	// 		if(stat(dest, &deststat) == 0 && deststat.st_size != 0) {
+	// 			payload.mtime_existing_file = deststat.st_mtime;
+	// 		}
+	// 		FREE(dest);
+	// 	}
+	// 	if(!payload.tempfile_name) {
+	// 		continue;
+	// 	}
+	// 	  char*filename = basename(payload.tempfile_name);
+	// 	char* src = _alpm_get_fullpath(localpath, filename, cast(char*)"");
+	// 	stat_t st = void;
+	// 	if(stat(src, &st) != 0 || st.st_size == 0) {
+	// 		FREE(src);
+	// 		continue;
+	// 	}
+	// 	if(rename(src, payload.tempfile_name) != 0) {
+	// 		FREE(src);
+	// 		continue;
+	// 	}
+	// 	if(pw != null) {
+	// 		// ASSERT(chown(payload.tempfile_name, pw.pw_uid, pw.pw_gid) != 0);
+	// 	}
+	// 	FREE(src);
+	// }
 }
 
 /* Returns -1 if an error happened for a required file
@@ -1234,99 +1238,149 @@ private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath
  */
 int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,   char*temporary_localpath)
 {
-	int ret = void;
+	import std.stdio;
+	handle.fetchcb = &download_with_xfercommand;
+	int ret;
 	int finalize_ret = void;
 	int childsig = 0;
-	prepare_resumable_downloads(payloads, localpath, cast(char*)handle.sandboxuser);
+	// prepare_resumable_downloads(payloads, localpath, cast(char*)handle.sandboxuser);
 
-	if(handle.fetchcb == null) {
-version (HAVE_LIBCURL) {
-		if(handle.sandboxuser) {
-			ret = curl_download_internal_sandboxed(handle, payloads, temporary_localpath, &childsig);
-		} else {
-			ret = curl_download_internal(handle, payloads);
-		}
-} else {
-		RET_ERR(handle, ALPM_ERR_EXTERNAL_DOWNLOAD, -1);
-}
-	} else {
+	// auto c = alpm_list_count(payloads);
+	// writeln(c);
+	// debug { import std.stdio : writeln; try { writeln(alpm_list_count(payloads)); } catch (Exception) {} }
+
+	// dload_payload* payload = cast(dload_payload*)payloads.data;
+
+	dload_payload* payload_ = cast(dload_payload*)payloads.data;
+	ret = payload_download_fetchcb(payload_, cast(char*)payload_.servers.data, localpath);
+	
+
+	// debug { import std.stdio : writeln; try { writeln(ret); } catch (Exception) {} }
+
+// 	if(handle.fetchcb == null) {
+// version (HAVE_LIBCURL) {
+// 		if(handle.sandboxuser) {
+// 			ret = curl_download_internal_sandboxed(handle, payloads, temporary_localpath, &childsig);
+// 		} else {
+// 			ret = curl_download_internal(handle, payloads);
+// 		}
+// } else {
+// 		RET_ERR(handle, ALPM_ERR_EXTERNAL_DOWNLOAD, -1);
+// }
+// 	} else {
+// 		debug { import std.stdio : writeln; try { writeln("USING STD FETCHCB"); } catch (Exception) {} }
 		alpm_list_t* p = void;
-		int updated = 0;
+// 		int updated = 0;
 		for(p = payloads; p; p = p.next) {
 			dload_payload* payload = cast(dload_payload*)p.data;
-			alpm_list_t* s = void;
-			ret = -1;
+			ret = payload_download_fetchcb(payload, cast(char*)payload.servers.data, localpath);
+			
+			// writeln(alpm_list_count(payload.servers));
+			// // printf("\n",payload.filepath);
+			// printf(cast(char*)payload.servers.data);
+			// printf("\n", cast(char*)payload.fileurl);
+			// auto fileurl = cast(char*) payload.fileurl;
+			// printf("\n", fileurl);
 
-			if(payload.fileurl) {
-				ret = handle.fetchcb(handle.fetchcb_ctx, payload.fileurl, temporary_localpath, payload.force);
-				if (ret != -1 && payload.download_signature) {
-					/* Download signature if requested */
-					char* sig_fileurl = void;
-					size_t sig_len = strlen(payload.fileurl) + 5;
-					int retsig = -1;
+			// writeln(cast(char*)payload.servers.data);
+			// alpm_list_t* s = void;
+			// ret = -1;
 
-					MALLOC(sig_fileurl, sig_len);
-					snprintf(sig_fileurl, sig_len, "%s.sig", payload.fileurl);
 
-					retsig = handle.fetchcb(handle.fetchcb_ctx, sig_fileurl, temporary_localpath,  payload.force);
-					free(sig_fileurl);
 
-					if(!payload.signature_optional) {
-						ret = retsig;
-					}
-				}
-			} else {
-				for(s = payload.cache_servers; s; s = s.next) {
-					ret = payload_download_fetchcb(cast(dload_payload*)payload, cast(char*)s.data, temporary_localpath);
-					if (ret != -1) {
-						goto download_signature;
-					}
-				}
-				for(s = payload.servers; s; s = s.next) {
-					ret = payload_download_fetchcb(cast(dload_payload*)payload, cast(char*)s.data, temporary_localpath);
-					if (ret != -1) {
-						goto download_signature;
-					}
-				}
+			// if(payload.fileurl != null) {
+			// 	debug { import std.stdio : writeln; try { writeln("FILEURL"); } catch (Exception) {} }
+			// 	printf("\n", cast(char*)payload.fileurl);
+			// 	ret = handle.fetchcb(handle.fetchcb_ctx, payload.fileurl, temporary_localpath, payload.force);
+			// 	if (ret != -1 && payload.download_signature) {
+			// 		/* Download signature if requested */
+			// 		char* sig_fileurl = void;
+			// 		size_t sig_len = strlen(payload.fileurl) + 5;
+			// 		int retsig = -1;
 
-download_signature:
-				if (ret != -1 && payload.download_signature) {
-					/* Download signature if requested */
-					char* sig_fileurl = void;
-					size_t sig_len = strlen(cast(char*)s.data) + strlen(payload.filepath) + 6;
-					int retsig = -1;
+			// 		MALLOC(sig_fileurl, sig_len);
+			// 		snprintf(sig_fileurl, sig_len, "%s.sig", payload.fileurl);
 
-					MALLOC(sig_fileurl, sig_len);
-					snprintf(sig_fileurl, sig_len, "%s/%s.sig", cast( char*)(s.data), payload.filepath);
+			// 		retsig = handle.fetchcb(handle.fetchcb_ctx, sig_fileurl, temporary_localpath,  payload.force);
+			// 		free(sig_fileurl);
 
-					retsig = handle.fetchcb(handle.fetchcb_ctx, sig_fileurl, temporary_localpath, payload.force);
-					free(sig_fileurl);
+			// 		if(!payload.signature_optional) {
+			// 			ret = retsig;
+			// 		}
+			// 	}
+			// } else {
+			// 	debug { import std.stdio : writeln; try { writeln("!FILEURL"); } catch (Exception) {} }
 
-					if(!payload.signature_optional) {
-						ret = retsig;
-					}
-				}
+			// 	// printf(cast(char*)s.data);
+			// 	// writeln(alpm_list_count(s));
+			// 	// printf(cast(char*)payload.servers.data);
+			// 	// printf(cast(char*)payload.filepath);
+
+			// 	// printf(cast(char*)payload.servers.data);
+				
+
+			// 	for(s = payload.cache_servers; s; s = s.next) {
+			// 		debug { import std.stdio : writeln; try { writeln("CACHE"); } catch (Exception) {} }
+			// 		// debug { import std.stdio : writeln; try { writeln(cast(char*) s.data); } catch (Exception) {} }
+
+			// 		printf(cast(char*)s.data);
+					// ret = payload_download_fetchcb(cast(dload_payload*)payload, cast(char*)payload.servers.data, temporary_localpath);
+				// 	if (ret != -1) {
+				// 		goto download_signature;
+				// 	}
+				// }
+				// for(s = payload.servers; s; s = s.next) {
+					// write
+					// writeln(alpm_list_count(payload.servers));
+					// debug { import std.stdio : writeln; try { writeln("SERBERS"); } catch (Exception) {} }
+					// printf(cast(char*)payload.filepath);
+					
+					// printf(cast(char*)s.data);
+
+				// 	ret = payload_download_fetchcb(cast(dload_payload*)payload, cast(char*)s.data, temporary_localpath);
+				// 	if (ret != -1) {
+				// 		goto download_signature;
+				// 	}
+				// }
+
+// download_signature:
+// 				if (ret != -1 && payload.download_signature) {
+// 					/* Download signature if requested */
+// 					char* sig_fileurl = void;
+// 					size_t sig_len = strlen(cast(char*)s.data) + strlen(payload.filepath) + 6;
+// 					int retsig = -1;
+
+// 					MALLOC(sig_fileurl, sig_len);
+// 					snprintf(sig_fileurl, sig_len, "%s/%s.sig", cast( char*)(s.data), payload.filepath);
+
+// 					retsig = handle.fetchcb(handle.fetchcb_ctx, sig_fileurl, temporary_localpath, payload.force);
+// 					free(sig_fileurl);
+
+// 					if(!payload.signature_optional) {
+// 						ret = retsig;
+// 					}
+// 				}
 			}
 
-			if(ret == -1 && !payload.errors_ok) {
-				RET_ERR(handle, ALPM_ERR_EXTERNAL_DOWNLOAD, -1);
-			} else if(ret == 0) {
-				updated = 1;
-			}
-		}
-		ret = updated ? 0 : 1;
-	}
+// 			if(ret == -1 && !payload.errors_ok) {
+// 				RET_ERR(handle, ALPM_ERR_EXTERNAL_DOWNLOAD, -1);
+// 			} else if(ret == 0) {
+// 				updated = 1;
+// 			}
+// 		}
+// 		ret = updated ? 0 : 1;
+	// }
 
-	finalize_ret = finalize_download_locations(payloads, localpath);
-	_alpm_remove_temporary_download_dir(temporary_localpath);
+// 	finalize_ret = finalize_download_locations(payloads, localpath);
+// 	_alpm_remove_temporary_download_dir(temporary_localpath);
 
-	/* propagate after finalizing so .part files get copied over */
-	if(childsig != 0) {
-		kill(getpid(), childsig);
-	}
-	if(finalize_ret != 0 && ret == 0) {
-		RET_ERR(handle, ALPM_ERR_RETRIEVE, -1);
-	}
+// 	/* propagate after finalizing so .part files get copied over */
+// 	if(childsig != 0) {
+// 		kill(getpid(), childsig);
+// 	}
+// 	if(finalize_ret != 0 && ret == 0) {
+// 		RET_ERR(handle, ALPM_ERR_RETRIEVE, -1);
+// 	}
 
 	return ret;
 }

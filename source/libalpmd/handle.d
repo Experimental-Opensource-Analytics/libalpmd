@@ -174,6 +174,7 @@ class AlpmHandle {
 
 	this() {
 		this.lockfd = -1;
+		trans = null;
 	}
 
 	/** Lock the database */
@@ -196,7 +197,7 @@ class AlpmHandle {
 		FREE(dir);
 
 		do {
-			this.lockfd = open(cast(char*)this.lockfile, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
+			this.lockfd = open(cast(char*)this.lockfile.toStringz, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
 		} while(this.lockfd == -1 && errno == EINTR);
 
 		return (this.lockfd >= 0 ? 0 : -1);
@@ -218,9 +219,10 @@ class AlpmHandle {
 	}
 
 	AlpmDB register_syncdb(string treename, int siglevel) {
+		import std.string;
 		assert(treename.length != 0);
 		/* Do not register a database if a transaction is on-going */
-		enforce(this.trans !is null, "Can't register db, the thansaction is on-going,");
+		enforce(this.trans is null, "Can't register db, the thansaction is on-going,");
 
 		/* ensure database name is unique */
 		if(treename == "local") {
@@ -228,10 +230,11 @@ class AlpmHandle {
 		}
 		foreach(i; dbs_sync[]) {
 			if(treename == i.treename)
-				RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
+				continue;
+				// RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
 
-		return _alpm_db_register_sync(this, cast(char*)treename, siglevel);
+		return _alpm_db_register_sync(this, cast(char*)treename.toStringz, siglevel);
 	}
 
 	void unregisterAllSyncDBs() {
@@ -519,10 +522,10 @@ string canonicalizePath(string path) {
 	return path;
 }
 
-alpm_errno_t setDirectoryOption(string value, string* storage, bool mustExist)
+alpm_errno_t setDirectoryOption(string value, out string storage, bool mustExist)
 {
 	stat_t st = void;
-	char[PATH_MAX] real_ = void;
+	char[PATH_MAX] real_ = "";
 	auto canonicalPath = value.idup;
 	if(mustExist) {
 		if(stat(canonicalPath.toStringz(), &st) == -1 || !S_ISDIR(st.st_mode)) {
@@ -534,7 +537,7 @@ alpm_errno_t setDirectoryOption(string value, string* storage, bool mustExist)
 		canonicalPath = real_.to!string;
 	}
 
-	*storage = canonicalizePath(canonicalPath);
+	storage = canonicalizePath(canonicalPath);
 
 	return cast(alpm_errno_t)0;
 }
@@ -637,7 +640,7 @@ int  alpm_option_set_gpgdir(AlpmHandle handle,   char*gpgdir)
 {
 	int err = void;
 
-	if(cast(bool)(err = setDirectoryOption(gpgdir.to!string, &handle.gpgdir, 0))) {
+	if(cast(bool)(err = setDirectoryOption(gpgdir.to!string, handle.gpgdir, 0))) {
 		RET_ERR(handle, err, -1);
 	}
 	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'gpgdir' = %s\n", handle.gpgdir);

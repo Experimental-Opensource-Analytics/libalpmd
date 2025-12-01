@@ -98,7 +98,6 @@ class AlpmDB {
 	/* alpm_db_usage_t */
 	int usage;
 
-
 	AlpmHandle getHandle() => this.handle;
 	string getName() => this.treename;
 
@@ -152,8 +151,8 @@ class AlpmDB {
 		//ASSERT(newurl != null);
 
 		db.servers = alpm_list_add(db.servers, cast(char*)newurl.toStringz());
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s\n",
-				db.treename, newurl);
+		// _alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s",
+				// db.treename, newurl);
 
 		return 0;
 	}
@@ -224,8 +223,8 @@ class AlpmDB {
 		//ASSERT(newurl != null);
 
 		this.cache_servers = alpm_list_add(this.cache_servers, cast(char*)newurl.toStringz);
-		_alpm_log(this.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
-				this.treename, newurl);
+		// _alpm_log(this.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
+				// this.treename, newurl);
 
 		return 0;
 	}
@@ -369,9 +368,7 @@ int  alpm_db_get_usage(AlpmDB db, int* usage)
 
 AlpmDB _alpm_db_new(  char*treename, int is_local)
 {
-	AlpmDB db = void;
-
-	CALLOC(db, 1, AlpmDB.sizeof);
+	AlpmDB db = new AlpmDB();
 	db.treename = treename.to!string;
 	if(is_local) {
 		db.status |= AlpmDBStatus.Local;
@@ -400,33 +397,26 @@ void _alpm_db_free(AlpmDB db)
 
 string _alpm_db_path(AlpmDB db)
 {
-	if(!db) {
+	if(db is null) {
 		return null;
 	}
-	if(!db._path) {
-		char*dbpath = void;
+	if(db._path is null) {
+		string dbpath = void;
 		size_t pathsize = void;
 
-		dbpath = cast(char*)db.handle.dbpath;
+		dbpath = db.handle.dbpath;
 		if(!dbpath) {
-			_alpm_log(db.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
-			RET_ERR(db.handle, ALPM_ERR_DB_OPEN, null);
+			// _alpm_log(db.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
+			// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, null);
 		}
 
 		if(db.status & AlpmDBStatus.Local) {
-			pathsize = strlen(dbpath) + db.treename.length + 2;
-			db._path = "";
-			snprintf(cast(char*)db._path, pathsize, "%s%s/", dbpath, cast(char*)db.treename);
+			db._path = dbpath ~ db.treename;
 		} else {
-			  char*dbext = cast(char*)db.handle.dbext;
-
-			pathsize = strlen(dbpath) + 5 + db.treename.length + strlen(dbext) + 1;
-			db._path = "";
-			/* all sync DBs now reside in the sync/ subdir of the dbpath */
-			snprintf(cast(char*)db._path, pathsize, "%ssync/%s%s", dbpath, cast(char*)db.treename, dbext);
+			db._path = dbpath ~ db.treename ~ db.handle.dbext;
 		}
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
-				db.treename, db._path);
+		// _alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
+				// db.treename, db._path);
 	}
 	return db._path;
 }
@@ -676,7 +666,7 @@ AlpmPkg _alpm_db_get_pkgfromcache(AlpmDB db,   char*target)
 
 /* Returns a new group cache from db.
  */
-private int load_grpcache(AlpmDB db)
+int load_grpcache(AlpmDB db)
 {
 	alpm_list_t* lp = void;
 

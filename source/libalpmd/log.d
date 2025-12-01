@@ -149,11 +149,11 @@ void _alpm_log(AlpmHandle handle, alpm_loglevel_t flag, string fmt, ...)
 {
 	va_list args = void;
 
-	if(handle is null || handle.logcb == null) {
-		return;
-	}
+	// if(handle is null || handle.logcb == null) {
+	// 	return;
+	// }
 
 	va_start(args, fmt);
-	handle.logcb(handle.logcb_ctx, flag, fmt.ptr, args);
+	output_cb(handle.logcb_ctx, flag, fmt.ptr, args);
 	va_end(args);
 }

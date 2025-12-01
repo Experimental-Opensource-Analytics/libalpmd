@@ -395,7 +395,7 @@ private int local_db_create(AlpmDB db,   char*dbpath)
 private int local_db_validate(AlpmDB db)
 {
 	dirent* ent = null;
-	  char*dbpath = void;
+	char*dbpath = void;
 	DIR* dbdir = void;
 	char[PATH_MAX] dbverpath = void;
 	FILE* dbverfile = void;
@@ -411,7 +411,8 @@ private int local_db_validate(AlpmDB db)
 
 	dbpath = cast(char*)_alpm_db_path(db);
 	if(dbpath == null) {
-		RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
+		throw new Exception("Error to opem dbpath");
+		// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbpath.to!string);
 	}
 
 	dbdir = opendir(dbpath);
@@ -431,7 +432,8 @@ private int local_db_validate(AlpmDB db)
 				return -1;
 			}
 		} else {
-			RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
+			throw new Exception("Error to opem dbpath");
+			// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbdir.to!string);
 		}
 	}
 	db.status |= AlpmDBStatus.Exists;
@@ -837,9 +839,8 @@ private int local_db_read(AlpmPkg info, int inforeq)
 					files.length++;
 					/* since we know the length of the file string already,
 					 * we can do malloc + memcpy rather than strdup */
-					len += 1;
-					MALLOC(cast(char*)files[files_count].name, len);
-					memcpy(cast(char*)files[files_count].name, line.ptr, len);
+					files ~= AlpmFile();
+					files[$-1].name = line.to!string;
 					files_count++;
 				}
 				/* attempt to hand back any memory we don't need */
@@ -1162,9 +1163,9 @@ int _alpm_local_db_remove(AlpmDB db, AlpmPkg info)
 
 int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 {
-	//ASSERT(pkg != null);
-	//ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
-	//ASSERT(pkg.origin_data.db == pkg.handle.db_local);
+	ASSERT(pkg !is null);
+	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
+	ASSERT(pkg.origin_data.db == pkg.handle.db_local);
 
 	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);
@@ -1204,6 +1205,7 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 	db.usage = ALPM_DB_USAGE_ALL;
 
 	if(local_db_validate(db)) {
+		// throw new Exception("Cant validate");
 		/* pm_errno set in local_db_validate() */
 		_alpm_db_free(db);
 		return null;
