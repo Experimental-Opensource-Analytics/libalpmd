@@ -326,13 +326,11 @@ private int checkdbdir(AlpmDB db)
 	if(stat(path, &buf) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
 				path);
-		if(_alpm_makepath(path) != 0) {
-			RET_ERR(db.handle, ALPM_ERR_SYSTEM, -1);
-		}
+		alpmMakePath(path.to!string);
 	} else if(!S_ISDIR(buf.st_mode)) {
 		_alpm_log(db.handle, ALPM_LOG_WARNING, ("removing invalid database: %s\n"), path);
-		if(unlink(path) != 0 || _alpm_makepath(path) != 0) {
-			RET_ERR(db.handle, ALPM_ERR_SYSTEM, -1);
+		if(unlink(path) != 0) {
+			alpmMakePath(path.to!string);
 		}
 	}
 	return 0;

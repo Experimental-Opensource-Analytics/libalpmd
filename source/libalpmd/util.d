@@ -226,54 +226,13 @@ auto RET_ERR_ASYNC_SAFE(H, E, T) (H handle, E err, T ret) {
 
 deprecated("Is not available. Use Phobos std.array.split function") char* strsep(char** str, char* delim);
 
-int _alpm_makepath(  char*path)
-{
-	return _alpm_makepath_mode(path, octal!"0755");
+void alpmMakePath(string path) {	
+	alpmMakePathMode(path, octal!"755");
 }
 
-/** Creates a directory, including parents if needed, similar to 'mkdir -p'.
- * @param path directory path to create
- * @param mode permission mode for created directories
- * @return 0 on success, 1 on error
- */
-int _alpm_makepath_mode(  char*path, mode_t mode)
-{
-	char* ptr = void, str = void;
-	mode_t oldmask = void;
-	int ret = 0;
-
-	STRDUP(str, path);
-
-	oldmask = umask(0000);
-
-	for(ptr = str; *ptr; ptr++) {
-		/* detect mid-path condition and zero length paths */
-		if(*ptr != '/' || ptr == str || ptr[-1] == '/') {
-			continue;
-		}
-
-		/* temporarily mask the end of the path */
-		*ptr = '\0';
-
-		if(mkdir(str, mode) < 0 && errno != EEXIST) {
-			ret = 1;
-			goto done;
-		}
-
-		/* restore path separator */
-		*ptr = '/';
-	}
-
-	/* end of the string. add the full path. It will already exist when the path
-	 * passed in has a trailing slash. */
-	if(mkdir(str, mode) < 0 && errno != EEXIST) {
-		ret = 1;
-	}
-
-done:
-	umask(oldmask);
-	free(str);
-	return ret;
+void alpmMakePathMode(string path, mode_t mode) {
+	stdfile.mkdirRecurse(path.to!string);
+	stdfile.setAttributes(path.to!string, mode);
 }
 
 /** Copies a file.
@@ -1035,10 +994,8 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 			/* cache directory does not exist.... try creating it */
 			_alpm_log(handle, ALPM_LOG_WARNING, ("no %s cache exists, creating...\n"),
 					cachedir);
-			if(_alpm_makepath(cachedir) == 0) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
-				return cachedir;
-			}
+			alpmMakePath(cachedir.to!string);
+			// _alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
 		} else if(!S_ISDIR(buf.st_mode)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"skipping cachedir, not a directory: %s\n", cachedir);

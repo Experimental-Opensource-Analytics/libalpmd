@@ -36,8 +36,8 @@ import core.sys.posix.unistd;
 
 
 /* libalpm */
-import libalpmd.handle;
 import std.conv;
+import std.file;
 
 import libalpmd.alpm_list;
 import libalpmd.util;
@@ -236,8 +236,29 @@ class AlpmHandle {
 		this.dbs_sync.clear;
 	}
 
+	string getSyncDir() {
+		string syncpath = this.dbpath ~ "sync/";
+		stat_t buf = void;
+
+		if(stat(syncpath.toStringz, &buf) != 0) {
+			// _alpm_log(handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
+			// 		syncpath);
+
+			mkdirRecurse(syncpath);
+		} else if(!S_ISDIR(buf.st_mode)) {
+			// _alpm_log(handle, ALPM_LOG_WARNING, ("removing invalid file: %s\n"), syncpath);
+			if(unlink(syncpath.toStringz) != 0 ) {
+				throw new FileException("Can't unlink syncpath" ~ syncpath);
+			}
+
+			mkdirRecurse(syncpath);
+		}
+
+		return syncpath;
+	}
+
 	void updateDBs(bool force = true) {
-		char* syncpath = void;
+		string syncpath = void;
 		char* temporary_syncpath = void;
 		int ret = -1;
 		mode_t oldmask = void;
@@ -248,9 +269,9 @@ class AlpmHandle {
 		// ASSERT(dbs != null);
 		this.pm_errno = ALPM_ERR_OK;
 
-		syncpath = get_sync_dir(this);
+		syncpath = this.getSyncDir;
 		this.sandboxuser = getenv("USER").to!string;
-		temporary_syncpath = cast(char*)"./tmp/".toStringz();
+		temporary_syncpath = cast(char*)"./tmp/".toStringz;
 
 		/* make sure we have a sane umask */
 		oldmask = umask(octal!"0022");
@@ -311,7 +332,7 @@ class AlpmHandle {
 
 		// event.type = ALPM_EVENT_DB_RETRIEVE_START;
 		// EVENT(this, &event);
-		ret = _alpm_download(this, payloads, syncpath, temporary_syncpath);
+		ret = _alpm_download(this, payloads, cast(char*)syncpath.toStringz, temporary_syncpath);
 		// if(ret < 0) {
 		// 	event.type = ALPM_EVENT_DB_RETRIEVE_FAILED;
 		// 	EVENT(this, &event);

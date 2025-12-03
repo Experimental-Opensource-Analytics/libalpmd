@@ -52,33 +52,6 @@ import libalpmd.pkghash;
 import libalpmd.error;
 import std.string;
 
-
-
-
-char* get_sync_dir(AlpmHandle handle)
-{
-	char* syncpath = cast(char*)(handle.dbpath ~ "sync/").toStringz;
-	size_t len = handle.dbpath.length + 6;
-	stat_t buf = void;
-
-	if(stat(syncpath, &buf) != 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
-				syncpath);
-		if(_alpm_makepath(syncpath) != 0) {
-			free(syncpath);
-			RET_ERR(handle, ALPM_ERR_SYSTEM, 0);
-		}
-	} else if(!S_ISDIR(buf.st_mode)) {
-		_alpm_log(handle, ALPM_LOG_WARNING, ("removing invalid file: %s\n"), syncpath);
-		if(unlink(syncpath) != 0 || _alpm_makepath(syncpath) != 0) {
-			free(syncpath);
-			RET_ERR(handle, ALPM_ERR_SYSTEM, 0);
-		}
-	}
-
-	return syncpath;
-}
-
 int sync_db_validate(AlpmDB db)
 {
 	int siglevel = void;

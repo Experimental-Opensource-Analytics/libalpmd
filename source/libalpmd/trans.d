@@ -410,7 +410,7 @@ int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char
 	MALLOC(tmpdir, len);
 	snprintf(tmpdir, len, "%stmp/", handle.root.ptr);
 	if(access(tmpdir, F_OK) != 0) {
-		_alpm_makepath_mode(tmpdir, octal!"01777");
+		alpmMakePathMode(tmpdir.to!string, octal!"01777");
 	}
 	snprintf(tmpdir, len, "%stmp/alpm_XXXXXX", handle.root.ptr);
 	if(mkdtemp(tmpdir) == null) {
