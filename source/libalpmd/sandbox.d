@@ -88,28 +88,26 @@ struct _alpm_sandbox_callback_context {
 	int callback_pipe;
 }
 
-
-
 int  alpm_sandbox_setup_child(AlpmHandle handle,   char*sandboxuser,   char*sandbox_path, bool restrict_syscalls)
 {
-	 passwd* pw = null;
+// 	 passwd* pw = null;
 
-	//ASSERT(sandboxuser != null);
-	//ASSERT(getuid() == 0);
-	//ASSERT((pw = getpwnam(sandboxuser)));
-	if(sandbox_path != null && !handle.disable_sandbox) {
-		_alpm_sandbox_fs_restrict_writes_to(handle, sandbox_path);
-	}
-static if (HasVersion!"HAVE_SYS_PRCTL_H" && HasVersion!"PR_SET_NO_NEW_PRIVS") {
-	/* make sure that we cannot gain more privileges later, failure is fine */
-	prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
-} /* HAVE_SYS_PRCTL && PR_SET_NO_NEW_PRIVS */
-	if(restrict_syscalls && !handle.disable_sandbox) {
-		_alpm_sandbox_syscalls_filter(handle);
-	}
-	//ASSERT(setgid(pw.pw_gid) == 0);
-	//ASSERT(setgroups(0, null) == 0);
-	//ASSERT(setuid(pw.pw_uid) == 0);
+// 	//ASSERT(sandboxuser != null);
+// 	//ASSERT(getuid() == 0);
+// 	//ASSERT((pw = getpwnam(sandboxuser)));
+// 	if(sandbox_path != null && !handle.disable_sandbox) {
+// 		_alpm_sandbox_fs_restrict_writes_to(handle, sandbox_path);
+// 	}
+// static if (HasVersion!"HAVE_SYS_PRCTL_H" && HasVersion!"PR_SET_NO_NEW_PRIVS") {
+// 	/* make sure that we cannot gain more privileges later, failure is fine */
+// 	prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+// } /* HAVE_SYS_PRCTL && PR_SET_NO_NEW_PRIVS */
+// 	if(restrict_syscalls && !handle.disable_sandbox) {
+// 		_alpm_sandbox_syscalls_filter(handle);
+// 	}
+// 	//ASSERT(setgid(pw.pw_gid) == 0);
+// 	//ASSERT(setgroups(0, null) == 0);
+// 	//ASSERT(setuid(pw.pw_uid) == 0);
 
 	return 0;
 }

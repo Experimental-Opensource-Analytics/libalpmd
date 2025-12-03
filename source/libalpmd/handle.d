@@ -78,6 +78,7 @@ class AlpmHandle {
 	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
 	File logstream;        /* log file stream pointer */
 	AlpmTrans trans;
+	uid_t user;
 
 	version (HAVE_LIBCURL) {
 		/* libcurl handle */
@@ -86,7 +87,11 @@ class AlpmHandle {
 	}
 
 	ushort disable_dl_timeout;
-	ushort disable_sandbox;
+	private {
+	bool disableSandboxFilesystem;
+	bool disableSandboxSyscalls;
+	}
+
 	uint parallel_downloads; /* number of download streams */
 
 	version (HAVE_LIBGPGME) {
@@ -383,6 +388,31 @@ class AlpmHandle {
 		// FREE(syncpath);
 		// umask(oldmask);
 		// return ret;
+	}
+
+	bool useSandbox() {
+		if(this.user == 0 && 
+		this.sandboxuser !is null && 
+		(!this.disableSandboxFilesystem || !this.disableSandboxSyscalls)){
+			return true;
+		}
+
+		return false;
+	}
+
+	int  getDisableSandbox(AlpmHandle handle){
+		if(this.disableSandboxFilesystem && this.disableSandboxSyscalls) {
+			return 2;
+		} else if (this.disableSandboxFilesystem || this.disableSandboxSyscalls) {
+			return 1;
+		}
+
+		return 0;
+	}
+
+	void alpm_option_set_disable_sandbox(AlpmHandle handle, bool disable_sandbox) {
+		this.disableSandboxFilesystem = disable_sandbox;
+		this.disableSandboxSyscalls= disable_sandbox;
 	}
 }
 
@@ -1106,16 +1136,5 @@ int  alpm_option_set_parallel_downloads(AlpmHandle handle, uint num_streams)
 {
 	//ASSERT(num_streams >= 1);
 	handle.parallel_downloads = num_streams;
-	return 0;
-}
-
-int  alpm_option_get_disable_sandbox(AlpmHandle handle)
-{
-	return handle.disable_sandbox;
-}
-
-int  alpm_option_set_disable_sandbox(AlpmHandle handle, ushort disable_sandbox)
-{
-	handle.disable_sandbox = disable_sandbox;
 	return 0;
 }

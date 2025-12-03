@@ -43,6 +43,8 @@ import core.sys.posix.stdio;
 import core.sys.posix.pwd;
 import etc.c.curl;
 
+import std.string;
+
 version (HAVE_NETINET_IN_H) {
 import core.sys.posix.netinet.in_; /* IPPROTO_TCP */
 }
@@ -1191,14 +1193,16 @@ private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 	return returnvalue;
 }
 
-private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath,   char*user)
-{
-	passwd* pw = null;
-	//ASSERT(payloads != null);
-	//ASSERT(localpath != null);
-	// if(user != null) {
-	// 	ASSERT((pw = getpwnam(user)) != null);
-	// }
+private void prepare_resumable_downloads(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,   char*user){
+	// if(handle is null)	return;
+	if(payloads is null)	return;
+	if(localpath is null)	return;
+
+	passwd* pw;
+
+	if(handle.useSandbox) {
+		if((pw = getpwnam(cast(char*)handle.sandboxuser.toStringz)) !is null) return;
+	}
 	// alpm_list_t* p = void;
 	// for(p = payloads; p; p = p.next) {
 	// 	dload_payload* payload = cast(dload_payload* )p.data;
@@ -1231,6 +1235,8 @@ private void prepare_resumable_downloads(alpm_list_t* payloads,   char*localpath
 	// 	FREE(src);
 	// }
 }
+
+
 
 /* Returns -1 if an error happened for a required file
  * Returns 0 if a payload was actually downloaded

@@ -167,14 +167,17 @@ void STRDUP(char** str,   char* _str) {
 	*str = cast(char*)strdup(_str);
 }
 
-void ASSERT(bool exp, ...) {
-	if(_arguments.length > 2) {
-		auto fn = _arguments[1];
-
-		// fn();
+enum ASSERT(alias fn = "")(bool exp, ...){
+	static if (fn is "") {
+		assert(exp);
 	}
-	
-	assert(exp);
+	else {
+		if(_arguments.length > 2) {
+			auto fn = _arguments[1];
+
+			mixin(fn);
+		}
+	}
 }
 
 version (BUFSIZ) {
