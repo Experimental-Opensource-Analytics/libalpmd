@@ -63,6 +63,7 @@ import libalpmd.alpm;
 import libalpmd.log;
 import libalpmd.util;
 import libalpmd.handle;
+import libalpmd.db;
 import libalpmd.sandbox;
 
 struct DLoadPayload {
@@ -102,6 +103,24 @@ version (HAVE_LIBCURL) {
 	int request_errors_ok; /* per-request errors-ok */
 }
 	FILE* localf; /* temp download file */
+
+	this(AlpmHandle handle, AlpmDB db, string temporary_syncpath, bool force) {
+		this.handle = handle;
+		const int sigLevel = db.getSigLevel();
+
+		this.servers = db.servers;
+		this.filepath = db.treename ~ handle.dbext;
+		this.remote_name = cast(char*)this.filepath.idup;
+
+		this.destfile_name = temporary_syncpath ~ this.remote_name.to!string ~ "";
+		this.tempfile_name = temporary_syncpath ~ this.remote_name.to!string ~ ".part";
+		this.force = force;
+		this.unlink_on_fail = true;
+		this.download_signature = (sigLevel & ALPM_SIG_DATABASE);
+		this.signature_optional = (sigLevel & ALPM_SIG_DATABASE_OPTIONAL);
+		/* set hard upper limit of 128 MiB */
+		this.max_size = 128 * 1024 * 1024;
+	}
 }
 
 
@@ -1539,7 +1558,7 @@ err:
 	return -1;
 }
 
-void _alpm_dload_payload_reset(dload_payload* payload)
+void _alpm_dload_payload_reset(DLoadPayload* payload)
 {
 	// //ASSERT(payload);
 

@@ -850,7 +850,7 @@ private int download_files(AlpmHandle handle)
 			payload.destfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~ "";
 			payload.tempfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~".part";
 			if(!payload.destfile_name || !payload.tempfile_name) {
-				_alpm_DLoadPayload_reset(payload);
+				_alpm_dload_payload_reset(payload);
 				FREE(payload);
 				GOTO_ERR(handle, ALPM_ERR_MEMORY, "finish");
 			}

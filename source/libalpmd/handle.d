@@ -271,37 +271,18 @@ class AlpmHandle {
 		this.lockDBs();
 
 		foreach(AlpmDB db; this.dbs_sync) {
-			int dbforce = force;
-			// int siglevel = void;
+			bool dbforce = force;
 
 			if(!(db.usage & AlpmDBUsage.Sync)) {
 				continue;
 			}
 
-			// ASSERT(db.servers != null);
-
 			/* force update of invalid databases to fix potential mismatched database/signature */
 			if(db.status & AlpmDBStatus.Invalid) {
-				dbforce = 1;
+				dbforce = true;
 			}
 
-			int siglevel = db.getSigLevel();
-
-			DLoadPayload* payload = new DLoadPayload;
-
-			payload.servers = db.servers;
-			payload.filepath = db.treename ~ dbext;
-			payload.remote_name = cast(char*)payload.filepath.idup;
-
-			payload.destfile_name = temporary_syncpath ~ payload.remote_name.to!string ~ "";
-			payload.tempfile_name = temporary_syncpath ~ payload.remote_name.to!string ~ ".part";
-			payload.handle = this;
-			payload.force = dbforce;
-			payload.unlink_on_fail = true;
-			payload.download_signature = (siglevel & ALPM_SIG_DATABASE);
-			payload.signature_optional = (siglevel & ALPM_SIG_DATABASE_OPTIONAL);
-			/* set hard upper limit of 128 MiB */
-			payload.max_size = 128 * 1024 * 1024;
+			DLoadPayload* payload = new DLoadPayload(this, db, temporary_syncpath, dbforce);			
 			payloads = alpm_list_add(payloads, payload);
 		}
 		if(payloads == null) {
