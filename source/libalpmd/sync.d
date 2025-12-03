@@ -58,6 +58,8 @@ import libalpmd.group;
 import libalpmd.deps;
 import libalpmd.error;
 
+import std.conv;
+
 
 struct keyinfo_t {
        char* uid;
@@ -837,15 +839,18 @@ private int download_files(AlpmHandle handle)
 		for(i = files; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			int siglevel = pkg.getDB().getSigLevel();
-			dload_payload* payload = null;
+			DLoadPayload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
 			STRDUP(payload.remote_name, cast(char*)pkg.filename);
-			STRDUP(payload.filepath, cast(char*)pkg.filename);
-			payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)"");
-			payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)".part");
+			// STRDUP(payload.filepath, cast(char*)pkg.filename);
+			payload.filepath = pkg.filename.dup;
+			// payload.destfile_name = temporary_syncpath ~ payload.remote_name ~ "";
+			// payload.tempfile_name = temporary_syncpath ~ payload.remote_name ~ ".part";
+			payload.destfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~ "";
+			payload.tempfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~".part";
 			if(!payload.destfile_name || !payload.tempfile_name) {
-				_alpm_dload_payload_reset(payload);
+				_alpm_DLoadPayload_reset(payload);
 				FREE(payload);
 				GOTO_ERR(handle, ALPM_ERR_MEMORY, "finish");
 			}

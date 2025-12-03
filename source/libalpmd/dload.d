@@ -65,22 +65,22 @@ import libalpmd.util;
 import libalpmd.handle;
 import libalpmd.sandbox;
 
-struct dload_payload {
+struct DLoadPayload {
 	AlpmHandle handle;
 	  char*tempfile_openmode;
 	/* name of the remote file */
 	char* remote_name;
 	/* temporary file name, to which the payload is downloaded */
-	char* tempfile_name;
+	string tempfile_name;
 	/* name to which the downloaded file will be renamed */
-	char* destfile_name;
+	string destfile_name;
 	/* client has to provide either
 	 *  1) fileurl - full URL to the file
 	 *  2) pair of (servers, filepath), in this case ALPM iterates over the
 	 *     server list and tries to download "$server/$filepath"
 	 */
 	char* fileurl;
-	char* filepath; /* download URL path */
+	string filepath; /* download URL path */
 	alpm_list_t* cache_servers;
 	alpm_list_t* servers;
 	c_long respcode;
@@ -92,7 +92,7 @@ struct dload_payload {
 	int force;
 	int allow_resume;
 	int errors_ok;
-	int unlink_on_fail;
+	bool unlink_on_fail;
 	int download_signature; /* specifies if an accompanion *.sig file need to be downloaded*/
 	int signature_optional; /* *.sig file is optional */
 version (HAVE_LIBCURL) {
@@ -141,7 +141,7 @@ private int finalize_download_file(  char*filename)
 	return 0;
 }
 
-private FILE* create_tempfile(dload_payload* payload,   char*localpath)
+private FILE* create_tempfile(DLoadPayload* payload,   char*localpath)
 {
 	int fd = void;
 	FILE* fp = void;
@@ -163,8 +163,8 @@ private FILE* create_tempfile(dload_payload* payload,   char*localpath)
 		return null;
 	}
 	/* fp now points to our alpmtmp.XXXXXX */
-	free(payload.tempfile_name);
-	payload.tempfile_name = randpath;
+	// free(payload.tempfile_name);
+	payload.tempfile_name = randpath.to!string;
 	free(payload.remote_name);
 	STRDUP(payload.remote_name, strrchr(randpath, '/') + 1);
 
@@ -270,7 +270,7 @@ private void server_hard_error(AlpmHandle handle,   char*server)
 	}
 }
 
-private   char*payload_next_server(dload_payload* payload)
+private   char*payload_next_server(DLoadPayload* payload)
 {
 	while(payload.cache_servers
 			&& should_skip_cache_server(payload.handle, payload.cache_servers.data)) {
@@ -303,7 +303,7 @@ private int dload_interrupted;
 
 private int dload_progress_cb(void* file, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t UNUSED)
 {
-	dload_payload* payload = cast(dload_payload*)file;
+	DLoadPayload* payload = cast(DLoadPayload*)file;
 	off_t current_size = void, total_size = void;
 	alpm_download_event_progress_t cb_data = {0};
 
@@ -407,7 +407,7 @@ private int utimes_long(  char*path, c_long seconds)
 private size_t dload_parseheader_cb(void* ptr, size_t size, size_t nmemb, void* user)
 {
 	size_t realsize = size * nmemb;
-	dload_payload* payload = cast(dload_payload*)user;
+	DLoadPayload* payload = cast(DLoadPayload*)user;
 	c_long respcode = void;
 	cast(void) ptr;
 
@@ -419,7 +419,7 @@ private size_t dload_parseheader_cb(void* ptr, size_t size, size_t nmemb, void* 
 	return realsize;
 }
 
-private void curl_set_handle_opts(CURL* curl, dload_payload* payload)
+private void curl_set_handle_opts(CURL* curl, DLoadPayload* payload)
 {
 	AlpmHandle handle = payload.handle;
 	  char*useragent = getenv("HTTP_USER_AGENT");
@@ -483,7 +483,7 @@ private void curl_set_handle_opts(CURL* curl, dload_payload* payload)
 }
 
 /* Return 0 if retry was successful, -1 otherwise */
-private int curl_retry_next_server(CURLM* curlm, CURL* curl, dload_payload* payload)
+private int curl_retry_next_server(CURLM* curlm, CURL* curl, DLoadPayload* payload)
 {
 	  char*server = null;
 	size_t len = void;
@@ -546,7 +546,7 @@ private int curl_retry_next_server(CURLM* curlm, CURL* curl, dload_payload* payl
  */
 private int curl_check_finished_download(AlpmHandle handle, CURLM* curlm, CURLMsg* msg, int* active_downloads_num)
 {
-	dload_payload* payload = null;
+	DLoadPayload* payload = null;
 	CURL* curl = msg.easy_handle;
 	CURLcode curlerr = void;
 	char* effective_url = void;
@@ -659,7 +659,7 @@ private int curl_check_finished_download(AlpmHandle handle, CURLM* curlm, CURLMs
 
 	/* Let's check if client requested downloading accompanion *.sig file */
 	if(!payload.signature && payload.download_signature && curlerr == CURLE_OK && payload.respcode < 400) {
-		dload_payload* sig = null;
+		DLoadPayload* sig = null;
 		char* url = payload.fileurl;
 		char* _effective_filename = void;
 		  char*effective_filename = void;
@@ -792,7 +792,7 @@ cleanup:
 /* Returns 0 in case if a new download transaction has been successfully started
  * Returns -1 if am error happened while starting a new download
  */
-private int curl_add_payload(AlpmHandle handle, CURLM* curlm, dload_payload* payload)
+private int curl_add_payload(AlpmHandle handle, CURLM* curlm, DLoadPayload* payload)
 {
 	size_t len = void;
 	CURL* curl = null;
@@ -867,10 +867,10 @@ cleanup:
  */
 private int compare_dload_payload_sizes( void* left_ptr,  void* right_ptr)
 {
-	dload_payload* left = void, right = void;
+	DLoadPayload* left = void, right = void;
 
-	left = cast(dload_payload*) left_ptr;
-	right = cast(dload_payload*) right_ptr;
+	left = cast(DLoadPayload*) left_ptr;
+	right = cast(DLoadPayload*) right_ptr;
 
 	return right.max_size - left.max_size;
 }
@@ -898,7 +898,7 @@ private int curl_download_internal(AlpmHandle handle, alpm_list_t* payloads)
 		CURLMcode mc = void;
 
 		for(; active_downloads_num < max_streams && p; active_downloads_num++) {
-			dload_payload* payload = p.data;
+			DLoadPayload* payload = p.data;
 
 			if(curl_add_payload(handle, curlm, payload) == 0) {
 				p = p.next;
@@ -1105,7 +1105,7 @@ private int curl_download_internal_sandboxed(AlpmHandle handle, alpm_list_t* pay
 
 }
 
-private int payload_download_fetchcb(dload_payload* payload,   char*server,   char*localpath)
+private int payload_download_fetchcb(DLoadPayload* payload,   char*server,   char*localpath)
 {
 	import std.string;
 	// debug { import std.stdio : writeln; try { printf(server); } catch (Exception) {} }
@@ -1113,7 +1113,7 @@ private int payload_download_fetchcb(dload_payload* payload,   char*server,   ch
 	char* fileurl = void;
 	AlpmHandle handle = payload.handle;
 
-	size_t len = strlen(server) + strlen(payload.filepath) + 2;
+	size_t len = strlen(server) + strlen(cast(char*)payload.filepath.toStringz) + 2;
 
 	//I feel like a complete scumbag
 	fileurl = cast(char*)(server.to!string ~ "/"~ payload.filepath.to!string).toStringz;
@@ -1151,13 +1151,13 @@ private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 	stat_t st = void;
 	int returnvalue = 0;
 	for(p = payloads; p; p = p.next) {
-		dload_payload* payload = cast(dload_payload*)p.data;
+		DLoadPayload* payload = cast(DLoadPayload*)p.data;
 		  char*filename = null;
 
-		if(payload.destfile_name && stat(payload.destfile_name, &st) == 0) {
-			filename = payload.destfile_name;
-		} else if(stat(payload.tempfile_name, &st) == 0) {
-			filename = payload.tempfile_name;
+		if(payload.destfile_name && stat(cast(char*)payload.destfile_name.toStringz, &st) == 0) {
+			filename = cast(char*)payload.destfile_name.toStringz;
+		} else if(stat(cast(char*)payload.tempfile_name.toStringz, &st) == 0) {
+			filename = cast(char*)payload.tempfile_name.toStringz;
 		}
 
 		if(filename) {
@@ -1176,7 +1176,7 @@ private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 			char* sig_filename = void;
 			int ret = void;
 
-			filename = payload.destfile_name ? payload.destfile_name : payload.tempfile_name;
+			filename = payload.destfile_name != "" ? cast(char*)payload.destfile_name.toStringz : cast(char*)payload.tempfile_name.toStringz;
 			sig_filename = _alpm_get_fullpath(cast(char*)"", filename, cast(char*)".sig");
 			// //ASSERT(sig_filename);
 			ret = move_file(sig_filename, localpath);
@@ -1205,7 +1205,7 @@ private void prepare_resumable_downloads(AlpmHandle handle, alpm_list_t* payload
 	}
 	// alpm_list_t* p = void;
 	// for(p = payloads; p; p = p.next) {
-	// 	dload_payload* payload = cast(dload_payload* )p.data;
+	// 	DLoadPayload* payload = cast(DLoadPayload* )p.data;
 	// 	if(payload.destfile_name) {
 	// 		  char*destfilename = basename(payload.destfile_name);
 	// 		char* dest = _alpm_get_fullpath(localpath, destfilename, cast(char*)"");
@@ -1255,9 +1255,9 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 	// writeln(c);
 	// debug { import std.stdio : writeln; try { writeln(alpm_list_count(payloads)); } catch (Exception) {} }
 
-	// dload_payload* payload = cast(dload_payload*)payloads.data;
+	// DLoadPayload* payload = cast(DLoadPayload*)payloads.data;
 
-	dload_payload* payload_ = cast(dload_payload*)payloads.data;
+	DLoadPayload* payload_ = cast(DLoadPayload*)payloads.data;
 	ret = payload_download_fetchcb(payload_, cast(char*)payload_.servers.data, localpath);
 	
 
@@ -1278,7 +1278,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 		alpm_list_t* p = void;
 // 		int updated = 0;
 		for(p = payloads; p; p = p.next) {
-			dload_payload* payload = cast(dload_payload*)p.data;
+			DLoadPayload* payload = cast(DLoadPayload*)p.data;
 			ret = payload_download_fetchcb(payload, cast(char*)payload.servers.data, localpath);
 			
 			// writeln(alpm_list_count(payload.servers));
@@ -1330,7 +1330,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 			// 		// debug { import std.stdio : writeln; try { writeln(cast(char*) s.data); } catch (Exception) {} }
 
 			// 		printf(cast(char*)s.data);
-					// ret = payload_download_fetchcb(cast(dload_payload*)payload, cast(char*)payload.servers.data, temporary_localpath);
+					// ret = payload_download_fetchcb(cast(DLoadPayload*)payload, cast(char*)payload.servers.data, temporary_localpath);
 				// 	if (ret != -1) {
 				// 		goto download_signature;
 				// 	}
@@ -1343,7 +1343,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 					
 					// printf(cast(char*)s.data);
 
-				// 	ret = payload_download_fetchcb(cast(dload_payload*)payload, cast(char*)s.data, temporary_localpath);
+				// 	ret = payload_download_fetchcb(cast(DLoadPayload*)payload, cast(char*)s.data, temporary_localpath);
 				// 	if (ret != -1) {
 				// 		goto download_signature;
 				// 	}
@@ -1449,7 +1449,7 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 			/* the file is locally cached so add it to the output right away */
 			alpm_list_append(fetched, filepath);
 		} else {
-			dload_payload* payload = null;
+			DLoadPayload* payload = null;
 			char* c = void;
 
 			// //ASSERT(url);
@@ -1461,8 +1461,8 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 			c = strrchr(url, '/');
 			if(c != null &&  strstr(c, ".pkg") && payload.remote_name && strlen(payload.remote_name) > 0) {
 				/* we probably have a usable package filename to download to */
-				payload.destfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)"");
-				payload.tempfile_name = _alpm_get_fullpath(temporary_cachedir, payload.remote_name, cast(char*)".part");
+				payload.destfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~ "";
+				payload.tempfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~ ".part";
 				payload.allow_resume = 1;
 
 				if(!payload.destfile_name || !payload.tempfile_name) {
@@ -1505,14 +1505,14 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 		}
 
 		for(i = cast( alpm_list_t*) payloads; i; i = i.next) {
-			dload_payload* payload = cast(dload_payload*)i.data;
+			DLoadPayload* payload = cast(DLoadPayload*)i.data;
 			char* filepath = void;
 
 			if(payload.destfile_name) {
-				  char*filename = basename(payload.destfile_name);
+				  char*filename = basename(cast(char*)payload.destfile_name.toStringz);
 				filepath = _alpm_filecache_find(handle, filename);
 			} else {
-				  char*filename = basename(payload.tempfile_name);
+				  char*filename = basename(cast(char*)payload.tempfile_name.toStringz);
 				filepath = _alpm_filecache_find(handle, filename);
 			}
 			if(filepath) {

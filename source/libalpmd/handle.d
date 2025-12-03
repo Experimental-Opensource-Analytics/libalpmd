@@ -299,7 +299,8 @@ class AlpmHandle {
 
 			siglevel = db.getSigLevel();
 
-			payload = new dload_payload;
+			DLoadPayload* payload = new DLoadPayload;
+
 			payload.servers = db.servers;
 			/* print server + filename into a buffer */
 			len = db.treename.length + this.dbext.length + 1;
