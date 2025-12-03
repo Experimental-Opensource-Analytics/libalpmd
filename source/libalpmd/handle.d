@@ -258,38 +258,26 @@ class AlpmHandle {
 	}
 
 	void updateDBs(bool force = true) {
-		string syncpath = void;
-		char* temporary_syncpath = void;
+		string syncpath = this.getSyncDir();
+		string temporary_syncpath = "./tmp/";
 		int ret = -1;
-		mode_t oldmask = void;
+		/* make sure we have a sane umask */
+		mode_t oldmask = umask(octal!"022");
 		alpm_list_t* payloads = null;
 		alpm_event_t event = void;
 
-		/* Sanity checks */
-		// ASSERT(dbs != null);
-		this.pm_errno = ALPM_ERR_OK;
-
-		syncpath = this.getSyncDir;
 		this.sandboxuser = getenv("USER").to!string;
-		temporary_syncpath = cast(char*)"./tmp/".toStringz;
-
-		/* make sure we have a sane umask */
-		oldmask = umask(octal!"0022");
 
 		this.lockDBs();
 
-		foreach(db; this.dbs_sync) {
-			// AlpmDB db = cast(AlpmDB)i;
+		foreach(AlpmDB db; this.dbs_sync) {
 			int dbforce = force;
-			dload_payload* payload = null;
-			size_t len = void;
-			int siglevel = void;
+			// int siglevel = void;
 
 			if(!(db.usage & AlpmDBUsage.Sync)) {
 				continue;
 			}
 
-			// ASSERT(db != this.db_local);
 			// ASSERT(db.servers != null);
 
 			/* force update of invalid databases to fix potential mismatched database/signature */
@@ -297,43 +285,33 @@ class AlpmHandle {
 				dbforce = 1;
 			}
 
-			siglevel = db.getSigLevel();
+			int siglevel = db.getSigLevel();
 
 			DLoadPayload* payload = new DLoadPayload;
 
 			payload.servers = db.servers;
-			/* print server + filename into a buffer */
-			len = db.treename.length + this.dbext.length + 1;
-			MALLOC(payload.filepath, len);
-			payload.filepath = cast(char*)(db.treename ~ this.dbext).toStringz;
+			payload.filepath = db.treename ~ dbext;
+			payload.remote_name = cast(char*)payload.filepath.idup;
 
-			STRDUP(payload.remote_name, payload.filepath);
-			payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)"");
-			payload.tempfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)".part");
-			// if(!payload.destfile_name || !payload.tempfile_name) {
-			// 	_alpm_dload_payload_reset(payload);
-			// 	FREE(payload);
-			// 	GOTO_ERR(this, ALPM_ERR_MEMORY," cleanup");
-			// }
-
+			payload.destfile_name = temporary_syncpath ~ payload.remote_name.to!string ~ "";
+			payload.tempfile_name = temporary_syncpath ~ payload.remote_name.to!string ~ ".part";
 			payload.handle = this;
 			payload.force = dbforce;
-			payload.unlink_on_fail = 1;
+			payload.unlink_on_fail = true;
 			payload.download_signature = (siglevel & ALPM_SIG_DATABASE);
 			payload.signature_optional = (siglevel & ALPM_SIG_DATABASE_OPTIONAL);
 			/* set hard upper limit of 128 MiB */
 			payload.max_size = 128 * 1024 * 1024;
 			payloads = alpm_list_add(payloads, payload);
 		}
-		debug { import std.stdio : writeln; try { writeln(payloads); } catch (Exception) {} }
-	// 	if(payloads == null) {
-	// 		ret = 0;
-	// 		goto cleanup;
-	// 	}
+		if(payloads == null) {
+			ret = 0;
+			goto cleanup;
+		}
 
 		// event.type = ALPM_EVENT_DB_RETRIEVE_START;
 		// EVENT(this, &event);
-		ret = _alpm_download(this, payloads, cast(char*)syncpath.toStringz, temporary_syncpath);
+		ret = _alpm_download(this, payloads, cast(char*)syncpath.toStringz, cast(char*)temporary_syncpath.toStringz);
 		// if(ret < 0) {
 		// 	event.type = ALPM_EVENT_DB_RETRIEVE_FAILED;
 		// 	EVENT(this, &event);
@@ -367,8 +345,6 @@ class AlpmHandle {
 	// 	}
 
 	cleanup:
-		// _alpm_handle_unlock(this);
-
 		// if(ret == -1) {
 		// 	/* pm_errno was set by the download code */
 		// 	_alpm_log(this, ALPM_LOG_DEBUG, "failed to sync dbs: %s\n",
@@ -378,12 +354,13 @@ class AlpmHandle {
 		// }
 
 		// if(payloads) {
-		// 	alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
+		// 	alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_DLoadPayload_reset);
 		// 	FREELIST(payloads);
 		// }
 		// FREE(temporary_syncpath);
 		// FREE(syncpath);
-		// umask(oldmask);
+		this.unlockDBs();
+		umask(oldmask);
 		// return ret;
 	}
 
@@ -407,7 +384,7 @@ class AlpmHandle {
 		return 0;
 	}
 
-	void alpm_option_set_disable_sandbox(AlpmHandle handle, bool disable_sandbox) {
+	void setDisableSandbox(bool disable_sandbox) {
 		this.disableSandboxFilesystem = disable_sandbox;
 		this.disableSandboxSyscalls= disable_sandbox;
 	}

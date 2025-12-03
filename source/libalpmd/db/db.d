@@ -257,7 +257,6 @@ class AlpmDB {
 	}
 
 	int getSigLevel() {
-		//ASSERT(this != null);
 		if(this.siglevel & ALPM_SIG_USE_DEFAULT) {
 			return this.handle.siglevel;
 		} else {
