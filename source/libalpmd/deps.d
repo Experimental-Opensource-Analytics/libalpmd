@@ -703,7 +703,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 		AlpmPkg pkg = void;
 		AlpmDB db = i;
 
-		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
+		if(!(db.usage & (AlpmDBUsage.Install | AlpmDBUsage.Upgrade))) {
 			continue;
 		}
 
@@ -733,7 +733,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 	/* 2. satisfiers (skip literals here) */
 	foreach(i; dbs[]) {
 		AlpmDB db = cast(AlpmDB)i;
-		if(!(db.usage & (ALPM_DB_USAGE_INSTALL|ALPM_DB_USAGE_UPGRADE))) {
+		if(!(db.usage & (AlpmDBUsage.Install | AlpmDBUsage.Upgrade))) {
 			continue;
 		}
 		for(auto j = _alpm_db_get_pkgcache(db); j; j = j.next) {

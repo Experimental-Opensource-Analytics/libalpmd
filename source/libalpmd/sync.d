@@ -231,7 +231,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 			AlpmDB sdb = cast(AlpmDB)j;
 			alpm_list_t* replacers = void;
 
-			if(!(sdb.usage & ALPM_DB_USAGE_UPGRADE)) {
+			if(!(sdb.usage & AlpmDBUsage.Upgrade)) {
 				continue;
 			}
 

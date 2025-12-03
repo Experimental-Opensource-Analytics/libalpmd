@@ -285,7 +285,7 @@ class AlpmHandle {
 			size_t len = void;
 			int siglevel = void;
 
-			if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
+			if(!(db.usage & AlpmDBUsage.Sync)) {
 				continue;
 			}
 

@@ -1446,23 +1446,23 @@ alpm_list_t* alpm_db_get_groupcache(AlpmDB db);
 int alpm_db_search(AlpmDB db, alpm_list_t* needles, alpm_list_t** ret);
 
 /** The usage level of a database. */
-enum alpm_db_usage_t {
+enum AlpmDBUsage {
        /** Enable refreshes for this database */
-       ALPM_DB_USAGE_SYNC = 1,
+       Sync = 1,
        /** Enable search for this database */
-       ALPM_DB_USAGE_SEARCH = (1 << 1),
+       Search = (1 << 1),
        /** Enable installing packages from this database */
-       ALPM_DB_USAGE_INSTALL = (1 << 2),
+       Install = (1 << 2),
        /** Enable sysupgrades with this database */
-       ALPM_DB_USAGE_UPGRADE = (1 << 3),
+       Upgrade = (1 << 3),
        /** Enable all usage levels */
-       ALPM_DB_USAGE_ALL = (1 << 4) - 1,
+       All = (1 << 4) - 1,
 }
-alias ALPM_DB_USAGE_SYNC = alpm_db_usage_t.ALPM_DB_USAGE_SYNC;
-alias ALPM_DB_USAGE_SEARCH = alpm_db_usage_t.ALPM_DB_USAGE_SEARCH;
-alias ALPM_DB_USAGE_INSTALL = alpm_db_usage_t.ALPM_DB_USAGE_INSTALL;
-alias ALPM_DB_USAGE_UPGRADE = alpm_db_usage_t.ALPM_DB_USAGE_UPGRADE;
-alias ALPM_DB_USAGE_ALL = alpm_db_usage_t.ALPM_DB_USAGE_ALL;
+// alias ALPM_DB_USAGE_SYNC = alpm_db_usage_t.ALPM_DB_USAGE_SYNC;
+// alias ALPM_DB_USAGE_SEARCH = alpm_db_usage_t.ALPM_DB_USAGE_SEARCH;
+// alias ALPM_DB_USAGE_INSTALL = alpm_db_usage_t.ALPM_DB_USAGE_INSTALL;
+// alias ALPM_DB_USAGE_UPGRADE = alpm_db_usage_t.ALPM_DB_USAGE_UPGRADE;
+// alias ALPM_DB_USAGE_ALL = alpm_db_usage_t.ALPM_DB_USAGE_ALL;
 
 
 /** @name Usage accessors

@@ -375,7 +375,7 @@ AlpmDB _alpm_db_new(  char*treename, int is_local)
 	} else {
 		db.status &= ~AlpmDBStatus.Local;
 	}
-	db.usage = ALPM_DB_USAGE_ALL;
+	db.usage = AlpmDBUsage.All;
 
 	return db;
 }
@@ -432,7 +432,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 {
 	alpm_list_t* i = void, j = void, k = void;
 
-	if(!(db.usage & ALPM_DB_USAGE_SEARCH)) {
+	if(!(db.usage & AlpmDBUsage.Search)) {
 		return 0;
 	}
 

@@ -1200,7 +1200,7 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 	}
 	db.ops = &local_db_ops;
 	db.handle = handle;
-	db.usage = ALPM_DB_USAGE_ALL;
+	db.usage = AlpmDBUsage.All;
 
 	if(local_db_validate(db)) {
 		// throw new Exception("Cant validate");
