@@ -53,6 +53,7 @@ import std.stdio;
 import std.string;
 import libalpmd.deps;
 import libalpmd.pkg;
+import libalpmd.dload;
 
 void EVENT(h, e)(h handle, e event) { 
 	if(handle.eventcb) { 
@@ -247,6 +248,141 @@ class AlpmHandle {
 			i = null;
 		}
 		this.dbs_sync.clear;
+	}
+
+	void updateDBs(bool force = true) {
+		char* syncpath = void;
+		char* temporary_syncpath = void;
+		int ret = -1;
+		mode_t oldmask = void;
+		alpm_list_t* payloads = null;
+		alpm_event_t event = void;
+
+		/* Sanity checks */
+		// ASSERT(dbs != null);
+		this.pm_errno = ALPM_ERR_OK;
+
+		syncpath = get_sync_dir(this);
+		this.sandboxuser = getenv("USER").to!string;
+		temporary_syncpath = cast(char*)"./tmp/".toStringz();
+
+		/* make sure we have a sane umask */
+		oldmask = umask(octal!"0022");
+
+	// 	/* attempt to grab a lock */
+		// if(this.lock()) {
+		// // 	this.unlock();
+		// // 	this.lock();
+		// 	throw new Exception("LOCKED");
+		// // // 	// GOTO_ERR(this, ALPM_ERR_HANDLE_LOCK, "cleanup");
+		// }
+
+		foreach(i; this.dbs_sync) {
+			AlpmDB db = cast(AlpmDB)i;
+			int dbforce = force;
+			dload_payload* payload = null;
+			size_t len = void;
+			int siglevel = void;
+
+			if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
+				continue;
+			}
+
+			// ASSERT(db != this.db_local);
+			// ASSERT(db.servers != null);
+
+			/* force update of invalid databases to fix potential mismatched database/signature */
+			if(db.status & AlpmDBStatus.Invalid) {
+				dbforce = 1;
+			}
+
+			siglevel = db.getSigLevel();
+
+			payload = new dload_payload;
+			payload.servers = db.servers;
+			/* print server + filename into a buffer */
+			len = db.treename.length + this.dbext.length + 1;
+			MALLOC(payload.filepath, len);
+			payload.filepath = cast(char*)(db.treename ~ this.dbext).toStringz;
+
+			STRDUP(payload.remote_name, payload.filepath);
+			payload.destfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)"");
+			payload.tempfile_name = _alpm_get_fullpath(temporary_syncpath, payload.remote_name, cast(char*)".part");
+			// if(!payload.destfile_name || !payload.tempfile_name) {
+			// 	_alpm_dload_payload_reset(payload);
+			// 	FREE(payload);
+			// 	GOTO_ERR(this, ALPM_ERR_MEMORY," cleanup");
+			// }
+
+			payload.handle = this;
+			payload.force = dbforce;
+			payload.unlink_on_fail = 1;
+			payload.download_signature = (siglevel & ALPM_SIG_DATABASE);
+			payload.signature_optional = (siglevel & ALPM_SIG_DATABASE_OPTIONAL);
+			/* set hard upper limit of 128 MiB */
+			payload.max_size = 128 * 1024 * 1024;
+			payloads = alpm_list_add(payloads, payload);
+		}
+		debug { import std.stdio : writeln; try { writeln(payloads); } catch (Exception) {} }
+	// 	if(payloads == null) {
+	// 		ret = 0;
+	// 		goto cleanup;
+	// 	}
+
+		// event.type = ALPM_EVENT_DB_RETRIEVE_START;
+		// EVENT(this, &event);
+		ret = _alpm_download(this, payloads, syncpath, temporary_syncpath);
+		// if(ret < 0) {
+		// 	event.type = ALPM_EVENT_DB_RETRIEVE_FAILED;
+		// 	EVENT(this, &event);
+		// 	goto cleanup;
+		// }
+		// event.type = ALPM_EVENT_DB_RETRIEVE_DONE;
+		// EVENT(this, &event);
+
+	// 	foreach(i; dbs) {
+	// 		AlpmDB db = cast(AlpmDB)i;
+	// 		if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
+	// 			continue;
+	// 		}
+
+	// 		/* Cache needs to be rebuilt */
+	// 		_alpm_db_free_pkgcache(db);
+
+	// 		/* clear all status flags regarding validity/existence */
+	// 		db.status &= ~AlpmDBStatus.Valid;
+	// 		db.status &= ~AlpmDBStatus.Invalid;
+	// 		db.status &= ~AlpmDBStatus.Exists;
+	// 		db.status &= ~AlpmDBStatus.Missing;
+
+	// 		/* if the download failed skip validation to preserve the download error */
+	// 		if(sync_db_validate(db) != 0) {
+	// 			_alpm_log(this, ALPM_LOG_DEBUG, "failed to validate db: %s\n",
+	// 					db.treename);
+	// 			/* pm_errno should be set */
+	// 			ret = -1;
+	// 		}
+	// 	}
+
+	cleanup:
+		// _alpm_handle_unlock(this);
+
+		// if(ret == -1) {
+		// 	/* pm_errno was set by the download code */
+		// 	_alpm_log(this, ALPM_LOG_DEBUG, "failed to sync dbs: %s\n",
+		// 			alpm_strerror(this.pm_errno));
+		// } else {
+		// 	this.pm_errno = ALPM_ERR_OK;
+		// }
+
+		// if(payloads) {
+		// 	alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
+		// 	FREELIST(payloads);
+		// }
+		// FREE(temporary_syncpath);
+		// FREE(syncpath);
+		// umask(oldmask);
+		// return ret;
 	}
 }
 
