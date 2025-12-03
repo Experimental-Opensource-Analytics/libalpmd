@@ -3091,7 +3091,7 @@ int  alpm_release(AlpmHandle myhandle)
 {
 	//ASSERT(myhandle.trans == null);
 
-	_alpm_handle_unlock(myhandle);
+	myhandle.unlockDBs();
 	_alpm_handle_free(myhandle);
 
 	return 0;

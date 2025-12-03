@@ -456,27 +456,6 @@ version (HAVE_LIBCURL) {
 	FREE(handle);
 }
 
-int _alpm_handle_unlock(AlpmHandle handle)
-{
-	if(handle.unlock() != 0) {
-		if(errno == ENOENT) {
-			_alpm_log(handle, ALPM_LOG_WARNING,
-					("lock file missing %s\n"), handle.lockfile);
-			// alpm_logaction(handle, ALPM_CALLER_PREFIX,
-					// "warning: lock file missing %s\n", handle.lockfile);
-			return 0;
-		} else {
-			_alpm_log(handle, ALPM_LOG_WARNING,
-					("could not remove lock file %s\n"), handle.lockfile);
-			// alpm_logaction(handle, ALPM_CALLER_PREFIX,
-			// 		"warning: could not remove lock file %s\n", handle.lockfile);
-			return -1;
-		}
-	}
-
-	return 0;
-}
-
 
 alpm_cb_log  alpm_option_get_logcb(AlpmHandle handle)
 {
