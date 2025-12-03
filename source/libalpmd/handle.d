@@ -278,8 +278,8 @@ class AlpmHandle {
 
 		this.lockDBs();
 
-		foreach(i; this.dbs_sync) {
-			AlpmDB db = cast(AlpmDB)i;
+		foreach(db; this.dbs_sync) {
+			// AlpmDB db = cast(AlpmDB)i;
 			int dbforce = force;
 			dload_payload* payload = null;
 			size_t len = void;
