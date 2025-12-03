@@ -328,7 +328,7 @@ int  alpm_trans_release(AlpmHandle handle)
 
 	/* unlock db */
 	if(!nolock_flag) {
-		_alpm_handle_unlock(handle);
+		handle.unlockDBs();
 	}
 
 	return 0;

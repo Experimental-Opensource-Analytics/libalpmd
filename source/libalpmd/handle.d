@@ -76,6 +76,7 @@ class AlpmHandle {
 	/* internal usage */
 	AlpmDB db_local;    /* local db pointer */
 	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
+	File lckFile;
 	File logstream;        /* log file stream pointer */
 	AlpmTrans trans;
 	uid_t user;
@@ -145,7 +146,6 @@ class AlpmHandle {
 	alpm_errno_t pm_errno;
 
 	/* lock file descriptor */
-	int lockfd;
 
 	string getRoot() => this.root;
 	string getDBPath() => this.dbpath;
@@ -179,49 +179,30 @@ class AlpmHandle {
 	}
 
 	this() {
-		this.lockfd = -1;
+		lckFile.close();
 		trans = null;
 	}
 
 	/** Lock the database */
-	int lock() {
-		char* dir = void, ptr = void;
+	void lockDBs() {
+		scope string dir = "./";
 
 		assert(this.lockfile != null);
-		assert(this.lockfd < 0);
 
-		/* create the dir of the lockfile first */
-		STRDUP(dir, cast(char*)this.lockfile);
-		ptr = strrchr(dir, '/');
-		if(ptr) {
-			*ptr = '\0';
-		}
-		if(_alpm_makepath(dir)) {
-			FREE(dir);
-			return -1;
-		}
-		FREE(dir);
+		dir = "./";
+		if(exists(dir ~ lockfile))
+			throw new Exception("Is Locked");
 
-		do {
-			this.lockfd = open(cast(char*)this.lockfile.toStringz, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0000);
-		} while(this.lockfd == -1 && errno == EINTR);
-
-		return (this.lockfd >= 0 ? 0 : -1);
+		mkdirRecurse(dir);
+		lckFile = File(dir ~ lockfile, "w+");
 	}
 
-	int  unlock() {
-		assert(this.lockfile != null);
-		assert(this.lockfd >= 0);
-
-		close(this.lockfd);
-		this.lockfd = -1;
-
-		if(unlink(cast(char*)this.lockfile) != 0) {
-			RET_ERR_ASYNC_SAFE(this, ALPM_ERR_SYSTEM, -1);
-			assert(0);
-		} else {
-			return 0;
+	void  unlockDBs() {
+		if(lckFile.isOpen) {
+			lckFile.close();
 		}
+		if(exists(lckFile.name))
+			lckFile.name.remove();
 	}
 
 	AlpmDB register_syncdb(string treename, int siglevel) {
@@ -274,13 +255,7 @@ class AlpmHandle {
 		/* make sure we have a sane umask */
 		oldmask = umask(octal!"0022");
 
-	// 	/* attempt to grab a lock */
-		// if(this.lock()) {
-		// // 	this.unlock();
-		// // 	this.lock();
-		// 	throw new Exception("LOCKED");
-		// // // 	// GOTO_ERR(this, ALPM_ERR_HANDLE_LOCK, "cleanup");
-		// }
+		this.lockDBs();
 
 		foreach(i; this.dbs_sync) {
 			AlpmDB db = cast(AlpmDB)i;
