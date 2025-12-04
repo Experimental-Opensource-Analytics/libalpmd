@@ -26,22 +26,22 @@ auto alpmStringsDup(AlpmStrings strings) {
 alias AlpmList(Item) = DList!Item;
 
 
-// 	///Lazy sorting function dor AlpmList
-// 	struct LazySortedRange(T) {
-// 		T list;
-// 		auto front() => list[].minElement();
-// 		void popFront() { 
-// 			list.linearRemoveElement(list[].minElement);
-// 		}
+///Lazy sorting function dor AlpmList
+struct LazySortedRange(T) {
+	T list;
+	auto front() => list[].minElement();
+	void popFront() { 
+		list.linearRemoveElement(list[].minElement);
+	}
 
-// 		@property bool empty() => list.empty;  
+	@property bool empty() => list.empty;  
 
-// 		this(T _list) {list = _list.dup;}
-// 	}
+	this(T _list) {list = _list.dup;}
+}
 
-// 	auto lazySort(T) (T _list) {
-// 		return LazySortedRange!T(_list);
-// 	}
+auto lazySort(T) (T _list) {
+	return LazySortedRange!T(_list);
+}
 
 // 	void  alpm_new_list_free(List, T = typeof(List.front))(List list)
 // 	{

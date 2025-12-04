@@ -89,8 +89,8 @@ struct AlpmHook {
 	string desc;
 	AlpmTriggers 	triggers;
 	AlpmStrings 	depends;
-	string[] cmd;
-	alpm_list_t* matches;
+	string[] 		cmd;
+	AlpmStrings 	matches;
 	alpm_hook_when_t when;
 	int abort_on_fail, needs_targets;
 }
@@ -108,9 +108,8 @@ private void _alpm_hook_free(AlpmHook* hook)
 		// wordsplit_free(hook.cmd);
 		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
 		hook.triggers.clear();
-		alpm_list_free(hook.matches);
-		// FREELIST(hook.depends);
-		hook.depends.clear;
+		hook.matches.clear();
+		hook.depends.clear();
 		free(hook);
 	}
 }
@@ -305,7 +304,11 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 
 private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
 {
-	alpm_list_t* i = void, j = void, install = null, upgrade = null, remove = null;
+	alpm_list_t* i = void, j = void;
+	AlpmStrings install;
+	AlpmStrings upgrade;
+	AlpmStrings remove_;
+
 	size_t isize = 0, rsize = 0;
 	int ret = 0;
 
@@ -319,7 +322,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 				continue;
 			}
 			if(alpmFnmatchPatternsNew(t.targets, filelist[f].name) == 0) {
-				install = alpm_list_add(install, cast(char*)filelist[f].name);
+				install.insertBack(filelist[f].name);
 				isize++;
 			}
 		}
@@ -334,7 +337,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 			size_t f = void;
 			for(f = 0; f < filelist.length; f++) {
 				if(alpmFnmatchPatternsNew(t.targets, filelist.ptr[f].name) == 0) {
-					remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
+					remove_.insertBack(filelist.ptr[f].name);
 					rsize++;
 				}
 			}
@@ -348,14 +351,16 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
 			if(alpmFnmatchPatternsNew(t.targets, filelist.ptr[f].name) == 0) {
-				remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
+				remove_.insertBack(filelist.ptr[f].name);
 				rsize++;
 			}
 		}
 	}
 
-	i = install = alpm_list_msort(install, isize, cast(alpm_list_fn_cmp)&strcmp);
-	j = remove = alpm_list_msort(remove, rsize, cast(alpm_list_fn_cmp)&strcmp);
+	// i = install = alpm_list_msort(install, isize, cast(alpm_list_fn_cmp)&strcmp);
+	install = AlpmStrings(install.lazySort());
+	// j = remove_ = alpm_list_msort(remove_, rsize, cast(alpm_list_fn_cmp)&strcmp);
+	remove_ = AlpmStrings(remove_.lazySort());
 	while(i) {
 		while(j && strcmp(cast(char*)i.data, cast(char*)j.data) > 0) {
 			j = j.next;
@@ -365,16 +370,16 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 		}
 		if(strcmp(cast(char*)i.data, cast(char*)j.data) == 0) {
 			char* path = cast(char*)i.data;
-			upgrade = alpm_list_add(upgrade, path);
+			upgrade.insertBack(path.to!string);
 			while(i && strcmp(cast(char*)i.data, path) == 0) {
 				alpm_list_t* next = i.next;
-				install = alpm_list_remove_item(install, i);
+				install.linearRemoveElement(i.data.to!string);
 				free(i);
 				i = next;
 			}
 			while(j && strcmp(cast(char*)j.data, cast(char*)path) == 0) {
 				alpm_list_t* next = j.next;
-				remove = alpm_list_remove_item(remove, j);
+				remove_.linearRemoveElement(j.data.to!string);
 				free(j);
 				j = next;
 			}
@@ -383,24 +388,29 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 		}
 	}
 
-	ret = (t.op & AlpmHookOp.Install && install)
-			|| (t.op & AlpmHookOp.Upgrade && upgrade)
-			|| (t.op & AlpmHookOp.Remove && remove);
+	ret = (t.op & AlpmHookOp.Install && !install.empty)
+			|| (t.op & AlpmHookOp.Upgrade && !upgrade.empty)
+			|| (t.op & AlpmHookOp.Remove && !remove_.empty);
 
 	if(hook.needs_targets) {
+
 enum string _save_matches(string _op, string _matches) = `
-	if(t.op & ` ~ _op ~ ` && ` ~ _matches ~ `) { 
-		hook.matches = alpm_list_join(hook.matches, ` ~ _matches ~ `); 
+	if(t.op & ` ~ _op ~ ` && !` ~ _matches ~ `.empty) { 
+		hook.matches.insertBack(` ~ _matches ~ `[]); 
 	} else { 
-		alpm_list_free(` ~ _matches ~ `); 
+		destroy(` ~ _matches ~ `); 
 	}`;
+
 		mixin(_save_matches!(`AlpmHookOp.Install`, `install`));
 		mixin(_save_matches!(`AlpmHookOp.Upgrade`, `upgrade`));
-		mixin(_save_matches!(`AlpmHookOp.Remove`, `remove`));
+		mixin(_save_matches!(`AlpmHookOp.Remove`, `remove_`));
 	} else {
-		alpm_list_free(install);
-		alpm_list_free(upgrade);
-		alpm_list_free(remove);
+		install.clear();
+		upgrade.clear();
+		remove_.clear();
+		// alpm_list_free(install);
+		// alpm_list_free(upgrade);
+		// alpm_list_free(remove_);
 	}
 
 	return ret;
@@ -408,7 +418,9 @@ enum string _save_matches(string _op, string _matches) = `
 
 private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
 {
-	alpm_list_t* install = null, upgrade = null, remove = null;
+	AlpmStrings install;
+	AlpmStrings upgrade;
+	AlpmStrings remove;
 
 	if(t.op & AlpmHookOp.Install || t.op & AlpmHookOp.Upgrade) {
 		alpm_list_t* i = void;
@@ -418,7 +430,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 				if(pkg.oldpkg) {
 					if(t.op & AlpmHookOp.Upgrade) {
 						if(hook.needs_targets) {
-							upgrade = alpm_list_add(upgrade, cast(char*)pkg.name);
+							upgrade.insertBack(pkg.name);
 						} else {
 							return 1;
 						}
@@ -426,7 +438,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 				} else {
 					if(t.op & AlpmHookOp.Install) {
 						if(hook.needs_targets) {
-							install = alpm_list_add(install, cast(char*)pkg.name);
+							install.insertBack(pkg.name);
 						} else {
 							return 1;
 						}
@@ -443,7 +455,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
 				if(!alpm_list_find(handle.trans.add, cast(void*)pkg, &_alpm_pkg_cmp)) {
 					if(hook.needs_targets) {
-						remove = alpm_list_add(remove, cast(char*)pkg.name);
+						remove.insertBack(pkg.name);
 					} else {
 						return 1;
 					}
@@ -454,11 +466,11 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 
 	/* if we reached this point we either need the target lists or we didn't
 	 * match anything and the following calls will all be no-ops */
-	hook.matches = alpm_list_join(hook.matches, install);
-	hook.matches = alpm_list_join(hook.matches, upgrade);
-	hook.matches = alpm_list_join(hook.matches, remove);
+	hook.matches.insertBack(install[]);
+	hook.matches.insertBack(upgrade[]);
+	hook.matches.insertBack(remove[]);
 
-	return install || upgrade || remove;
+	return !install.empty || !upgrade.empty || !remove.empty;
 }
 
 private int _alpm_hook_trigger_match(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
@@ -561,11 +573,10 @@ private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 	}
 
 	if(hook.needs_targets) {
-		alpm_list_t* ctx = void;
-		hook.matches = alpm_list_msort(hook.matches,
-				alpm_list_count(hook.matches), cast(alpm_list_fn_cmp)&strcmp);
+		AlpmStrings ctx = void;
+		hook.matches = AlpmStrings(hook.matches.lazySort());
 		/* hooks with multiple triggers could have duplicate matches */
-		ctx = hook.matches = _alpm_strlist_dedup(hook.matches);
+		ctx = hook.matches = AlpmStrings(hook.matches[].uniq!((a, b) => cmp(a, b) == 0));
 		return _alpm_run_chroot(handle, cast(char*)hook.cmd[0].toStringz, cast(char**)hook.cmd.map!(s => s.toStringz).array.ptr,
 				cast(_alpm_cb_io) &_alpm_hook_feed_targets, &ctx);
 	} else {
