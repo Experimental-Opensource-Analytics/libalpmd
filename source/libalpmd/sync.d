@@ -66,7 +66,7 @@ struct keyinfo_t {
        char* keyid;
 }
 
-AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* getDBsSync)
+AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
 {
 	alpm_list_t* i = void;
 	AlpmPkg spkg = null;
@@ -74,7 +74,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* getDBsSync)
 	//ASSERT(pkg != null);
 	pkg.handle.pm_errno = ALPM_ERR_OK;
 
-	for(i = getDBsSync; !spkg && i; i = i.next) {
+	for(i = dbs_sync; !spkg && i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
 		spkg = _alpm_db_get_pkgfromcache(db, cast(char*)pkg.name);
 	}

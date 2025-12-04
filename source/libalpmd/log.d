@@ -161,6 +161,6 @@ void _alpm_log(AlpmHandle handle, alpm_loglevel_t flag, string fmt, ...)
 	// }
 
 	va_start(args, fmt);
-	output_cb(handle.logcb_ctx, flag, fmt.ptr, args);
+	output_cb(handle.getLogCallback.ptr, flag, fmt.ptr, args);
 	va_end(args);
 }

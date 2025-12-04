@@ -74,6 +74,8 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 	}
 }
 
+alias AlpmCallbackLog = void delegate(string fmt, ...);
+
 class AlpmHandle {
 private:
 	AlpmDB 	dbLocal;    /* local db pointer */
@@ -106,8 +108,11 @@ public:
 	}
 
 	/* callback functions */
-	alpm_cb_log logcb;          /* Log callback function */
-	void* logcb_ctx;
+	// alpm_cb_log logcb;          /* Log callback function */
+	// void* logcb_ctx;
+
+	AlpmCallbackLog		cbLog; 
+
 	alpm_cb_download dlcb;      /* Download callback function */
 	void* dlcb_ctx;
 	alpm_cb_fetch fetchcb;      /* Download file callback function */
@@ -392,6 +397,12 @@ public:
 	void  setDlTimeoutDisables(bool disableDltimeout) {
 		this.disableDltimeout = disableDltimeout;
 	}
+
+	auto  getLogCallback() => this.cbLog;
+
+	void setLogCallback(AlpmCallbackLog cbLog) {
+		this.cbLog = cbLog;
+	}
 }
 
 /* free all in-memory resources */
@@ -459,16 +470,6 @@ version (HAVE_LIBCURL) {
 	FREE(handle);
 }
 
-
-alpm_cb_log  alpm_option_get_logcb(AlpmHandle handle)
-{
-	return handle.logcb;
-}
-
-void * alpm_option_get_logcb_ctx(AlpmHandle handle)
-{
-	return handle.logcb_ctx;
-}
 
 alpm_cb_download  alpm_option_get_dlcb(AlpmHandle handle)
 {
@@ -588,13 +589,6 @@ string alpm_option_get_dbext(AlpmHandle handle)
 int  alpm_option_get_parallel_downloads(AlpmHandle handle)
 {
 	return handle.parallel_downloads;
-}
-
-int  alpm_option_set_logcb(AlpmHandle handle, alpm_cb_log cb, void* ctx)
-{
-	handle.logcb = cb;
-	handle.logcb_ctx = ctx;
-	return 0;
 }
 
 int  alpm_option_set_dlcb(AlpmHandle handle, alpm_cb_download cb, void* ctx)
