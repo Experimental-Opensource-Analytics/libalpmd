@@ -84,8 +84,8 @@ alias AlpmTriggers = AlpmList!AlpmTrigger;
 struct AlpmHook {
 	string name;
 	string desc;
-	AlpmTriggers triggers;
-	alpm_list_t* depends;
+	AlpmTriggers 	triggers;
+	AlpmStrings 	depends;
 	char** cmd;
 	alpm_list_t* matches;
 	alpm_hook_when_t when;
@@ -106,7 +106,8 @@ private void _alpm_hook_free(AlpmHook* hook)
 		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
 		hook.triggers.clear();
 		alpm_list_free(hook.matches);
-		FREELIST(hook.depends);
+		// FREELIST(hook.depends);
+		hook.depends.clear;
 		free(hook);
 	}
 }
@@ -274,7 +275,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 		} else if(strcmp(key, "Depends") == 0) {
 			char* val;
 			STRDUP(val, value);
-			hook.depends = alpm_list_add(hook.depends, val);
+			hook.depends.insertBack(val.to!string);
 		} else if(strcmp(key, "AbortOnFail") == 0) {
 			hook.abort_on_fail = 1;
 		} else if(strcmp(key, "NeedsTargets") == 0) {
@@ -548,8 +549,8 @@ private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 {
 	alpm_list_t* i = void, pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
 
-	for(i = hook.depends; i; i = i.next) {
-		if(!alpm_find_satisfier(pkgs, cast(char*)i.data)) {
+	foreach(depend; hook.depends[]) {
+		if(!alpm_find_satisfier(pkgs, cast(char*)depend.toStringz)) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("unable to run hook %s: %s\n"),
 					hook.name, ("could not satisfy dependencies"));
 			return -1;
