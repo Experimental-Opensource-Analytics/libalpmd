@@ -66,7 +66,7 @@ struct keyinfo_t {
        char* keyid;
 }
 
-AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
+AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* getDBsSync)
 {
 	alpm_list_t* i = void;
 	AlpmPkg spkg = null;
@@ -74,7 +74,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
 	//ASSERT(pkg != null);
 	pkg.handle.pm_errno = ALPM_ERR_OK;
 
-	for(i = dbs_sync; !spkg && i; i = i.next) {
+	for(i = getDBsSync; !spkg && i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
 		spkg = _alpm_db_get_pkgfromcache(db, cast(char*)pkg.name);
 	}
@@ -229,7 +229,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 		}
 
 		/* Search for replacers then literal (if no replacer) in each sync database. */
-		foreach(j; handle.dbs_sync[]) {
+		foreach(j; handle.getDBsSync[]) {
 			AlpmDB sdb = cast(AlpmDB)j;
 			alpm_list_t* replacers = void;
 
@@ -393,7 +393,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	/* ensure all sync database are valid if we will be using them */
-	foreach(i;handle.dbs_sync[]) {
+	foreach(i;handle.getDBsSync[]) {
 		  AlpmDB db = cast(AlpmDB)i;
 		if(db.status & AlpmDBStatus.Invalid) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);

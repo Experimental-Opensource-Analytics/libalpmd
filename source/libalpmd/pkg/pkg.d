@@ -247,7 +247,7 @@ public:
 			if(db.status & AlpmDBStatus.Local) {
 				this.findRequiredBy(db, &reqs, optional);
 			} else {
-				foreach(i; this.handle.dbs_sync[]) {
+				foreach(i; this.handle.getDBsSync[]) {
 					db = cast(AlpmDB)i;
 					this.findRequiredBy(db, &reqs, optional);
 				}

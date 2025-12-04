@@ -879,7 +879,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 		AlpmPkg spkg = find_dep_satisfier(preferred, missdep);
 		if(!spkg) {
 			/* find a satisfier package in the given repositories */
-			spkg = resolvedep(handle, missdep, handle.dbs_sync, *packages, 0);
+			spkg = resolvedep(handle, missdep, handle.getDBsSync, *packages, 0);
 		}
 		if(spkg && _alpm_resolvedeps(handle, localpkgs, spkg, preferred, packages, rem, data) == 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,

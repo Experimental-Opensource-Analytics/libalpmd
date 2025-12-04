@@ -77,6 +77,7 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 class AlpmHandle {
 private:
 	AlpmDB 	dbLocal;    /* local db pointer */
+	AlpmDBs dbsSync;  /* List of (AlpmDB) */
 
 	AlpmStrings 	cachedirs;  /* Paths to pacman cache directories */
 	AlpmStrings 	hookdirs;   /* Paths to hook directories */
@@ -87,7 +88,6 @@ private:
 
 public:
 	/* internal usage */
-	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
 	File 	lckFile;
 	File 	logstream;        /* log file stream pointer */
 	AlpmTrans trans;
@@ -154,7 +154,6 @@ public:
 	string getRoot() => this.root;
 	string getDBPath() => this.dbpath;
 	string getLogfile() => this.logfile;
-	auto getSyncDBs() => this.dbs_sync;
 
 	this() {
 		lckFile.close();
@@ -162,6 +161,7 @@ public:
 	}
 
 	auto ref getDBLocal() @property => this.dbLocal;
+	auto ref getDBsSync()  @property => this.dbsSync;
 
 	/** Lock the database */
 	void lockDBs() {
@@ -195,7 +195,7 @@ public:
 		if(treename == "local") {
 			RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
 		}
-		foreach(i; dbs_sync[]) {
+		foreach(i; getDBsSync[]) {
 			if(treename == i.treename)
 				continue;
 				// RET_ERR(this, ALPM_ERR_DB_NOT_NULL, null);
@@ -208,12 +208,12 @@ public:
 		enforce(this.trans !is null, "The transaction is going-on");
 
 		/* unregister all sync dbs */
-		foreach(i; this.dbs_sync[]) {
+		foreach(i; this.getDBsSync[]) {
 			auto db = i;
 			db.ops.unregister(db);
 			i = null;
 		}
-		this.dbs_sync.clear;
+		this.getDBsSync.clear;
 	}
 
 	string getSyncDir() {
@@ -250,7 +250,7 @@ public:
 
 		this.lockDBs();
 
-		foreach(AlpmDB db; this.dbs_sync) {
+		foreach(AlpmDB db; this.getDBsSync) {
 			bool dbforce = force;
 
 			if(!(db.usage & AlpmDBUsage.Sync)) {
@@ -281,7 +281,7 @@ public:
 		// event.type = ALPM_EVENT_DB_RETRIEVE_DONE;
 		// EVENT(this, &event);
 
-		foreach(db; dbs_sync) {
+		foreach(db; getDBsSync) {
 			// AlpmDB db = cast(AlpmDB)i;
 			if(!(db.usage & AlpmDBUsage.Sync)) {
 				continue;
@@ -411,11 +411,11 @@ void _alpm_handle_free(AlpmHandle handle)
 	}
 
 	/* unregister all sync dbs */
-	foreach(i; handle.dbs_sync[]) {
+	foreach(i; handle.getDBsSync[]) {
 		db = cast(AlpmDB)i;
 		db.ops.unregister(db);
 	}
-	handle.dbs_sync.clear;
+	handle.getDBsSync.clear;
 
 	/* close logfile */
 	if(handle.logstream.isOpen) {

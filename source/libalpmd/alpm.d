@@ -2864,7 +2864,7 @@ int alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg);
  * This only checks the syncdb for a newer version. It does not access the network at all.
  * See \link alpm_db_update \endlink to update a database.
  */
-AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync);
+AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* getDBsSync);
 
 /** Get the md5 sum of file.
  * @param filename name of the file

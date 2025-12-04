@@ -132,7 +132,7 @@ class AlpmDB {
 			* alpm_get_syncdbs, because the db is removed from that list here.
 			*/
 			void* data = void;
-			handle.dbs_sync = alpm_new_list_remove(handle.dbs_sync,
+			handle.getDBsSync = alpm_new_list_remove(handle.getDBsSync,
 					this, &_alpm_db_cmp, &data);
 			if(data) {
 				found = 1;

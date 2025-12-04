@@ -629,6 +629,6 @@ version (HAVE_LIBGPGME) {} else {
 
 	// sync_db_validate(db);
 
-	handle.dbs_sync.insertBack(db);
+	handle.getDBsSync.insertBack(db);
 	return db;
 }
