@@ -234,6 +234,16 @@ void wordsplit_free(char** ws)
 	}
 }
 
+string[] toStringArr(char** stringsz) {
+	string[] strings;
+	while((*stringsz) !is null) {
+		char* newstr = *stringsz;
+		strings ~= newstr.to!string;
+	}
+
+	return strings;
+}
+
 char** wordsplit(const(char)* str)
 {
 	const(char)* c = str, end = void;

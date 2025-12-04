@@ -57,6 +57,9 @@ import ae.sys.file;
 import std.algorithm;
 import std.string;
 import std.conv;
+import std.string;
+import std.algorithm;
+import std.array;
 
 enum AlpmHookOp {
 	Install = (1 << 0),
@@ -86,7 +89,7 @@ struct AlpmHook {
 	string desc;
 	AlpmTriggers 	triggers;
 	AlpmStrings 	depends;
-	char** cmd;
+	string[] cmd;
 	alpm_list_t* matches;
 	alpm_hook_when_t when;
 	int abort_on_fail, needs_targets;
@@ -283,9 +286,9 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 		} else if(strcmp(key, "Exec") == 0) {
 			if(hook.cmd != null) {
 				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Exec");
-				wordsplit_free(hook.cmd);
+				hook.cmd.length = 0;
 			}
-			if((hook.cmd = wordsplit(value)) == null) {
+			if((hook.cmd = wordsplit(value).toStringArr) == null) {
 				if(errno == EINVAL) {
 					return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
 				} else {
@@ -563,10 +566,10 @@ private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 				alpm_list_count(hook.matches), cast(alpm_list_fn_cmp)&strcmp);
 		/* hooks with multiple triggers could have duplicate matches */
 		ctx = hook.matches = _alpm_strlist_dedup(hook.matches);
-		return _alpm_run_chroot(handle, hook.cmd[0], hook.cmd,
+		return _alpm_run_chroot(handle, cast(char*)hook.cmd[0].toStringz, cast(char**)hook.cmd.map!(s => s.toStringz).array.ptr,
 				cast(_alpm_cb_io) &_alpm_hook_feed_targets, &ctx);
 	} else {
-		return _alpm_run_chroot(handle, hook.cmd[0], hook.cmd, null, null);
+		return _alpm_run_chroot(handle, cast(char*)hook.cmd[0].toStringz, cast(char**)hook.cmd.map!(s => s.toStringz).array.ptr, null, null);
 	}
 }
 
