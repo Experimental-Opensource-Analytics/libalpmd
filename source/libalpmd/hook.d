@@ -26,7 +26,6 @@ import core.stdc.limits;
 import core.stdc.string;
 import core.stdc.stdlib;
 import libalpmd.handle;
-import libalpmd.ini;
 import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.util;
@@ -60,6 +59,7 @@ import std.conv;
 import std.string;
 import std.algorithm;
 import std.array;
+import inilike;
 
 enum AlpmHookOp {
 	Install = (1 << 0),
@@ -176,128 +176,71 @@ struct _alpm_hook_cb_ctx {
 	AlpmHook* hook;
 }
 
-private int _alpm_hook_parse_cb(  char*file, int line,   char*section, char* key, char* value, void* data)
+private int _alpm_hook_parse_cb(char*file, void* data)
 {
 	_alpm_hook_cb_ctx* ctx = cast(_alpm_hook_cb_ctx*)data;
-	AlpmHandle handle = ctx.handle;
+	// AlpmHandle handle = ctx.handle;
 	AlpmHook* hook = ctx.hook;
 
-	
-auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = null, char* arg5 = null) {
-		if (arg3 !is null && arg4 !is null && arg5 !is null) {
-			// _alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2, arg3, arg4, arg5);
-		} else if (arg3 !is null && arg4 !is null) {
-			// _alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2, arg3, arg4);
-		} else if (arg3 !is null) {
-			// _alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2, arg3);
-		} else {
-			// _alpm_log(handle, ALPM_LOG_ERROR, fmt, arg1, arg2);
-		}
-		return 1;
-	};
-	
-	auto warning = (char*  fmt, char*  arg1, int arg2, char*  arg3 = null, char*  arg4 = null, char*  arg5 = null) {
-		if (arg3 !is null && arg4 !is null && arg5 !is null) {
-			// _alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2, arg3, arg4, arg5);
-		} else if (arg3 !is null && arg4 !is null) {
-			// _alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2, arg3, arg4);
-		} else if (arg3 !is null) {
-			// _alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2, arg3);
-		} else {
-			// _alpm_log(handle, ALPM_LOG_WARNING, fmt, arg1, arg2);
-		}
-		return 0;
-	};
+	AlpmTrigger* t = new AlpmTrigger;
+	IniLikeFile hookFile = new IniLikeFile(file.to!string);
 
-	if(!section && !key) {
-		return error(cast(char*)"error while reading hook %s: %s\n", file, line, strerror(cast(char*)errno));
-	} else if(!section) {
-		return error(cast(char*)"hook %s line %d: invalid option %s\n", file, line, key);
-	} else if(!key) {
-		/* beginning a new section */
-		if(strcmp(section, "Trigger") == 0) {
-			AlpmTrigger* t;
-			CALLOC(t, AlpmTrigger.sizeof, 1);
-			hook.triggers.insertBack(*t);
-		} else if(strcmp(section, "Action") == 0) {
-			/* no special processing required */
-		} else {
-			return error(cast(char*)"hook %s line %d: invalid section %s\n", file, line, section);
+	auto trigGroup = hookFile.group("Trigger");
+	auto actionGroup = hookFile.group("Action");
+
+	void processOperations(string value) {
+		switch(value) {
+			case "Install": t.op |= AlpmHookOp.Install; break;
+			case "Upgrade": t.op |= AlpmHookOp.Upgrade; break;
+			case "Remove": t.op |= AlpmHookOp.Remove; break;
+			default:
+				logger.errorf("hook %s line %d: invalid value %s\n", file, value);
+			break;
 		}
-	} else if(strcmp(section, "Trigger") == 0) {
-		AlpmTrigger* t = &hook.triggers.back(); //??
-		if(strcmp(key, "Operation") == 0) {
-			if(strcmp(value, "Install") == 0) {
-				t.op |= AlpmHookOp.Install;
-			} else if(strcmp(value, "Upgrade") == 0) {
-				t.op |= AlpmHookOp.Upgrade;
-			} else if(strcmp(value, "Remove") == 0) {
-				t.op |= AlpmHookOp.Remove;
-			} else {
-				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
-			}
-		} else if(strcmp(key, "Type") == 0) {
-			if(t.type != 0) {
-				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Type");
-			}
-			if(strcmp(value, "Package") == 0) {
-				t.type = AlpmHookTriggerType.Package;
-			} else if(strcmp(value, "File") == 0) {
-				_alpm_log(handle, ALPM_LOG_DEBUG,
-						"File targets are deprecated, use Path instead\n");
-				t.type = AlpmHookTriggerType.Path;
-			} else if(strcmp(value, "Path") == 0) {
-				t.type = AlpmHookTriggerType.Path;
-			} else {
-				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
-			}
-		} else if(strcmp(key, "Target") == 0) {
-			char* val;
-			STRDUP(val, value);
-			t.targets.insertBack(val.to!string);
-		} else {
-			return error(cast(char*)"hook %s line %d: invalid option %s\n", file, line, key);
+	}
+
+	void processType(string value) {
+		switch(value) {
+			case "Package": t.type = AlpmHookTriggerType.Package; break;
+			case "File": 
+			case "Path": t.type = AlpmHookTriggerType.Path; break;
+			default:
+				logger.errorf("hook %s line %d: invalid value %s\n", file, value);
+			break;
 		}
-	} else if(strcmp(section, "Action") == 0) {
-		if(strcmp(key, "When") == 0) {
-			if(hook.when != 0) {
-				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"When");
-			}
-			if(strcmp(value, "PreTransaction") == 0) {
-				hook.when = AlpmHookWhen.PreTransaction;
-			} else if(strcmp(value, "PostTransaction") == 0) {
-				hook.when = AlpmHookWhen.PostTransaction;
-			} else {
-				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
-			}
-		} else if(strcmp(key, "Description") == 0) {
-			if(hook.desc != null) {
-				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Description");
-				FREE(hook.desc);
-			}
-			hook.desc = value.to!string;
-		} else if(strcmp(key, "Depends") == 0) {
-			char* val;
-			STRDUP(val, value);
-			hook.depends.insertBack(val.to!string);
-		} else if(strcmp(key, "AbortOnFail") == 0) {
-			hook.abort_on_fail = 1;
-		} else if(strcmp(key, "NeedsTargets") == 0) {
-			hook.needs_targets = 1;
-		} else if(strcmp(key, "Exec") == 0) {
-			if(hook.cmd != null) {
-				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Exec");
-				hook.cmd.length = 0;
-			}
-			if((hook.cmd = wordsplit(value).toStringArr) == null) {
-				if(errno == EINVAL) {
-					return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
-				} else {
-					return error(cast(char*)"hook %s line %d: unable to set option (%s)\n", file, line, strerror(errno));
-				}
-			}
-		} else {
-			return error(cast(char*)"hook %s line %d: invalid option %s\n", file, line, key);
+	}
+
+	foreach(Tuple!(string, "key", string, "value") pair; trigGroup.byKeyValue) {
+		switch(pair.key) {
+			case "Operation": processOperations(pair.value); break;
+			case "Type": processType(pair.value); break;
+			case "Target": t.targets.insertBack(pair.value); break;
+			default: break;
+		}
+	}
+
+	void processWhen(string value) {
+		switch(value) {
+			case "PreTransaction": hook.when = AlpmHookWhen.PreTransaction; break;
+			case "PostTransaction": hook.when = AlpmHookWhen.PreTransaction; break;
+			default:
+				logger.errorf("hook %s line %d: invalid value %s\n", file, value);
+			break;
+		}
+	}
+
+	foreach(Tuple!(string, "key", string, "value") pair; actionGroup.byKeyValue) {
+		switch(pair.key) {
+			case "When": processWhen(pair.value); break;
+			case "Description": hook.desc = pair.value; break;
+			case "Depends": hook.depends.insertBack(pair.value); break;
+			case "AbortOnFail": hook.abort_on_fail = true; break;
+			case "NeedsTargets": hook.needs_targets = true; break;
+			case "Exec":
+				if(hook.cmd.length != 0)
+					logger.warningf("hook %s line %d: overwriting previous definition of %s\n", file, cast(char*)"Exec");
+				hook.cmd = wordsplit(cast(char*)pair.value.ptr).toStringArr; break;
+			default: break;
 		}
 	}
 
@@ -663,7 +606,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 			CALLOC(ctx.hook, AlpmHook.sizeof, 1);
 
 			_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s\n", path.ptr);
-			if(parse_ini(path.ptr, &_alpm_hook_parse_cb, &ctx) != 0
+			if(_alpm_hook_parse_cb(path.ptr, cast(void*)&ctx) != 0
 					|| ctx.hook.isNotValid(path.ptr)) {
 				_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s failed\n", path.ptr);
 				destroy(ctx.hook);

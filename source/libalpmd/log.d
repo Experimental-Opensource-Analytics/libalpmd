@@ -37,7 +37,7 @@ import core.stdc.limits;
 import core.stdc.string;
 import core.stdc.stdlib;
 import libalpmd.handle;
-import libalpmd.ini;
+// import libalpmd.ini;
 import libalpmd.log;
 import libalpmd.trans;
 import libalpmd.util;
