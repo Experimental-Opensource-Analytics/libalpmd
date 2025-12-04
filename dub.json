@@ -1,20 +1,21 @@
 {
-	"name": "libalpmd",
 	"authors": [
-		"Roman Vlasov"
+		"Roman Vlasov aka Doctor"
 	],
-	"copyright": "Copyright © 2025, Roman Vlasov",
+	"copyright": "Copyright © 2025, Roman Vlasov aka Doctor",
 	"dependencies": {
+		"ae": "*",
 		"derelict-libarchive": "~>1.0.1",
-		"openssl": "~>3.4.0",
-		"ae" : "*"
+		"hlogger": "~>0.0.1",
+		"openssl": "~>3.4.0"
 	},
 	"description": "Port of libalpm to D language",
-	"license": "MIT",
-	"targetName": "libalpmd",
-	"dflags" : [
+	"dflags": [
 		"-verrors=0",
 		"-version=HAVE_LIBSSL",
 		"-unittest"
-	]
+	],
+	"license": "MIT",
+	"name": "libalpmd",
+	"targetName": "libalpmd"
 }

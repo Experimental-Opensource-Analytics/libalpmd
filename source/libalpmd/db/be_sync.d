@@ -31,6 +31,7 @@ import core.stdc.string;
 import std.conv;
 import core.stdc.stdio;
 /* libarchive */
+import hlogger;
 import derelict.libarchive;
 // import archive;
 // import archive_entry;
@@ -51,6 +52,7 @@ import core.stdc.stdlib;
 import libalpmd.pkghash;
 import libalpmd.error;
 import std.string;
+
 
 int sync_db_validate(AlpmDB db)
 {
@@ -605,7 +607,8 @@ AlpmDB _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
 {
 	AlpmDB db = void;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "registering sync database '%s'\n", treename);
+	logger.trace("registering sync database ", treename.to!string);
+	// _alpm_log(handle, ALPM_LOG_DEBUG, "registering sync database '%s'\n", treename);
 
 version (HAVE_LIBGPGME) {} else {
 	if(level != 0 && level != ALPM_SIG_USE_DEFAULT) {

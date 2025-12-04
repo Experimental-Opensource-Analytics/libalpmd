@@ -74,6 +74,13 @@ import libalpmd.log;
 import libalpmd.handle;
 import libalpmd.util;
 import libalpmd.alpm;
+import hlogger;
+
+static this() {
+	logger = new HLogger;
+}
+
+HLogger logger;
 
 enum char* ALPM_CALLER_PREFIX = cast(char*)"ALPM";
 
