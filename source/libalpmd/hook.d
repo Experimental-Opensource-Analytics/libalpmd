@@ -67,8 +67,7 @@ enum AlpmHookTriggerType {
 	Path
 }
 
-
-struct _alpm_trigger_t {
+struct AlpmTrigger {
 	AlpmHookOp op;
 	AlpmHookTriggerType type;
 	alpm_list_t* targets;
@@ -90,7 +89,7 @@ struct _alpm_hook_cb_ctx {
 	AlpmHook* hook;
 }
 
-private void _alpm_trigger_free(_alpm_trigger_t* trigger)
+private void _alpm_trigger_free(AlpmTrigger* trigger)
 {
 	if(trigger) {
 		FREELIST(trigger.targets);
@@ -112,7 +111,7 @@ private void _alpm_hook_free(AlpmHook* hook)
 	}
 }
 
-private int _alpm_trigger_validate(AlpmHandle handle, _alpm_trigger_t* trigger,   char*file)
+private int _alpm_trigger_validate(AlpmHandle handle, AlpmTrigger* trigger,   char*file)
 {
 	int ret = 0;
 
@@ -149,7 +148,7 @@ private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
 	}
 
 	for(i = hook.triggers; i; i = i.next) {
-		if(_alpm_trigger_validate(handle, cast(_alpm_trigger_t*)i.data, file) != 0) {
+		if(_alpm_trigger_validate(handle, cast(AlpmTrigger*)i.data, file) != 0) {
 			ret = -1;
 		}
 	}
@@ -212,8 +211,8 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 	} else if(!key) {
 		/* beginning a new section */
 		if(strcmp(section, "Trigger") == 0) {
-			_alpm_trigger_t* t;
-			CALLOC(t, _alpm_trigger_t.sizeof, 1);
+			AlpmTrigger* t;
+			CALLOC(t, AlpmTrigger.sizeof, 1);
 			hook.triggers = alpm_list_add(hook.triggers, t);
 		} else if(strcmp(section, "Action") == 0) {
 			/* no special processing required */
@@ -221,7 +220,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 			return error(cast(char*)"hook %s line %d: invalid section %s\n", file, line, section);
 		}
 	} else if(strcmp(section, "Trigger") == 0) {
-		_alpm_trigger_t* t = cast(_alpm_trigger_t*)hook.triggers.prev.data;
+		AlpmTrigger* t = cast(AlpmTrigger*)hook.triggers.prev.data;
 		if(strcmp(key, "Operation") == 0) {
 			if(strcmp(value, "Install") == 0) {
 				t.op |= AlpmHookOp.Install;
@@ -300,7 +299,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 	return 0;
 }
 
-private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
 {
 	alpm_list_t* i = void, j = void, install = null, upgrade = null, remove = null;
 	size_t isize = 0, rsize = 0;
@@ -403,7 +402,7 @@ enum string _save_matches(string _op, string _matches) = `
 	return ret;
 }
 
-private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
 {
 	alpm_list_t* install = null, upgrade = null, remove = null;
 
@@ -458,7 +457,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alp
 	return install || upgrade || remove;
 }
 
-private int _alpm_hook_trigger_match(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
 {
 	return t.type == AlpmHookTriggerType.Package
 		? _alpm_hook_trigger_match_pkg(handle, hook, t)
@@ -470,7 +469,7 @@ private int _alpm_hook_triggered(AlpmHandle handle, AlpmHook* hook)
 	alpm_list_t* i = void;
 	int ret = 0;
 	for(i = hook.triggers; i; i = i.next) {
-		if(_alpm_hook_trigger_match(handle, hook, cast(_alpm_trigger_t*)i.data)) {
+		if(_alpm_hook_trigger_match(handle, hook, cast(AlpmTrigger*)i.data)) {
 			if(!hook.needs_targets) {
 				return 1;
 			} else {
