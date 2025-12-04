@@ -669,7 +669,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 			if(parse_ini(path.ptr, &_alpm_hook_parse_cb, &ctx) != 0
 					|| _alpm_hook_validate(handle, ctx.hook, path.ptr)) {
 				_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s failed\n", path.ptr);
-				_alpm_hook_free(ctx.hook);
+				destroy(ctx.hook);
 				ret = -1;
 				continue;
 			}
@@ -737,7 +737,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 	}
 
 cleanup:
-	alpm_list_free_inner(hooks, cast(alpm_list_fn_free) &_alpm_hook_free);
+	// alpm_list_free_inner(hooks, cast(alpm_list_fn_free) &_alpm_hook_free);
 	alpm_list_free(hooks);
 
 	return ret;
