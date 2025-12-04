@@ -81,6 +81,7 @@ private:
 
 	bool disableSandboxFilesystem;
 	bool disableSandboxSyscalls;
+	bool disableDltimeout;
 
 public:
 	/* internal usage */
@@ -97,7 +98,6 @@ public:
 		alpm_list_t* server_errors;
 	}
 
-	ushort disable_dl_timeout;
 	uint parallel_downloads; /* number of download streams */
 
 	version (HAVE_LIBGPGME) {
@@ -384,6 +384,12 @@ public:
 	void  removeHookDir(string hookdir) {
 		string newhookdir = canonicalizePath(hookdir);
 		this.hookdirs.linearRemoveElement(newhookdir);
+	}
+
+	bool  isDlTimeoutDisabled() => this.disableDltimeout;
+
+	void  setDlTimeoutDisables(bool disableDltimeout) {
+		this.disableDltimeout = disableDltimeout;
 	}
 }
 
@@ -1014,17 +1020,6 @@ int  alpm_option_get_remote_file_siglevel(AlpmHandle handle)
 	} else {
 		return handle.remotefilesiglevel;
 	}
-}
-
-int  alpm_option_get_disable_dl_timeout(AlpmHandle handle)
-{
-	return handle.disable_dl_timeout;
-}
-
-int  alpm_option_set_disable_dl_timeout(AlpmHandle handle, ushort disable_dl_timeout)
-{
-	handle.disable_dl_timeout = disable_dl_timeout;
-	return 0;
 }
 
 int  alpm_option_set_parallel_downloads(AlpmHandle handle, uint num_streams)
