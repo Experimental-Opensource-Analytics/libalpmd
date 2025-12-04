@@ -17,8 +17,40 @@
 **What is done:**
 
  * [x] Converting using **ctod**
- * [x] Compilation (In the process, I broke everything I could break.) 
+ * [x] Compilation (In the process, I broke everything I could break.)
+ * [x] Downloading dbs 
  * [ ] Nothing else
+
+## How to use ##
+  **Sync db**
+  ```d
+  char* generateUrl(string treename) {
+    return cast(char*)("https://mirror.yandex.ru/archlinux/" ~ treename ~ "/os/x86_64/").ptr;
+  }
+
+  void sync() {
+        alpm_errno_t err;
+        handle = alpm_initialize(cast(char*)"./root/".ptr, cast(char*)"./root/db/sync".ptr, &err);
+        if(handle  is null) {
+            throw new Exception("Handle is null");
+        }
+
+        char* urlc;
+        urlc = generateUrl("core");
+        AlpmDB db = handle.register_syncdb("core", ALPM_SIG_USE_DEFAULT);
+        db.addServer(urlc);
+
+        urlc = generateUrl("extra");
+        db = handle.register_syncdb("extra", ALPM_SIG_USE_DEFAULT);
+        db.addServer(urlc);
+
+        urlc = generateUrl("multilib");
+        db = handle.register_syncdb("multilib", ALPM_SIG_USE_DEFAULT);
+        db.addServer(urlc);
+
+        handle.updateDBs();
+    }
+  ```
 
 ## What is the stage of refactoring?
 
