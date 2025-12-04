@@ -53,6 +53,8 @@ import core.stdc.stdint; /* intmax_t */
 import core.sys.posix.dirent;
 import core.sys.posix.sys.stat;
 import ae.sys.file;
+import std.algorithm;
+import std.string;
 
 
 enum _alpm_hook_op_t {
@@ -583,19 +585,20 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 	size_t suflen = strlen(ALPM_HOOK_SUFFIX), triggered = 0;
 	int ret = 0;
 
-	for(i = alpm_list_last(handle.hookdirs); i; i = alpm_list_previous(i)) {
+	foreach_reverse(string hookdir; handle.hookdirs[].reverse) {
+	// for(i = alpm_list_last(handle.hookdirs); i; i = alpm_list_previous(i)) {
 		char[PATH_MAX] path = void;
 		size_t dirlen = void;
 		dirent* entry = void;
 		DIR* d = void;
 
-		if((dirlen = strlen(cast(char*)i.data)) >= PATH_MAX) {
+		if((dirlen = strlen(cast(char*)hookdir.toStringz)) >= PATH_MAX) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("could not open directory: %s: %s\n"),
-					cast(char*)i.data, strerror(ENAMETOOLONG));
+					cast(char*)hookdir.toStringz, strerror(ENAMETOOLONG));
 			ret = -1;
 			continue;
 		}
-		memcpy(path.ptr, i.data, dirlen + 1);
+		memcpy(path.ptr, hookdir.toStringz, dirlen + 1);
 
 		if(((d = opendir(path.ptr)) is null)) {
 			if(errno == ENOENT) {

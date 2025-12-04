@@ -282,11 +282,11 @@ List alpm_new_list_remove(List, Item = typeof(List.front))(List haystack, Item n
 
 }
 
-// 	List alpm_new_list_remove_str(List haystack, char* needle, char** data)
-// 	{
-// 		return alpm_new_list_remove(haystack, cast(void*)needle,
-// 				cast(alpm_new_list_fn_cmp)&strcmp, cast(void**)data);
-// 	}
+	// List alpm_new_list_remove_str(List haystack, char* needle, char** data)
+	// {
+	// 	return alpm_new_list_remove(haystack, cast(void*)needle,
+	// 			cast(alpm_new_list_fn_cmp)&strcmp, cast(void**)data);
+	// }
 
 // 	List alpm_new_list_remove_dupes(List list)
 // 	{

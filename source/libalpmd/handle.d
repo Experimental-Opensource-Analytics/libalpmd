@@ -121,9 +121,9 @@ public:
 	string lockfile;          /* Name of the lock file */
 	string gpgdir;            /* Directory where GnuPG files are stored */
 	string sandboxuser;       /* User to switch to for sensitive operations */
-	AlpmStrings cachedirs;  /* Paths to pacman cache directories */
-	alpm_list_t* hookdirs;   /* Paths to hook directories */
-	alpm_list_t* overwrite_files; /* Paths that may be overwritten */
+	AlpmStrings 	cachedirs;  /* Paths to pacman cache directories */
+	AlpmStrings 	hookdirs;   /* Paths to hook directories */
+	alpm_list_t* 	overwrite_files; /* Paths that may be overwritten */
 
 	/* package lists */
 	alpm_list_t* noupgrade;   /* List of packages NOT to be upgraded */
@@ -152,24 +152,6 @@ public:
 	string getDBPath() => this.dbpath;
 	string getLogfile() => this.logfile;
 	auto getSyncDBs() => this.dbs_sync;
-
-	AlpmStrings getCacheDirs() => this.cachedirs;
-
-	void  setCacheDirs(AlpmStrings cachedirs) {
-		this.cachedirs.clear();
-
-		//DList[] don't works with st.algoithm.each
-		foreach(cachedir; cachedirs[]) {
-			addCacheDir(cachedir);
-		}
-	}
-
-	void addCacheDir(string dir) {
-		string newcachedir = canonicalizePath(dir);
-		this.cachedirs.insert(newcachedir);
-
-		logger.tracef("option 'cachedir' = %s\n", cast(char*)newcachedir.toStringz);
-	}
 
 	this() {
 		lckFile.close();
@@ -361,6 +343,46 @@ public:
 		this.disableSandboxFilesystem = disable_sandbox;
 		this.disableSandboxSyscalls= disable_sandbox;
 	}
+
+	void addCacheDir(string dir) {
+		string newcachedir = canonicalizePath(dir);
+		this.cachedirs.insert(newcachedir);
+
+		logger.tracef("option 'cachedir' = %s\n", cast(char*)newcachedir.toStringz);
+	}
+
+	AlpmStrings getCacheDirs() => this.cachedirs;
+
+	void  setCacheDirs(AlpmStrings cachedirs) {
+		this.cachedirs.clear();
+
+		//DList[] don't works with st.algoithm.each
+		foreach(cachedir; cachedirs[]) {
+			addCacheDir(cachedir);
+		}
+	}
+
+	void  addHookDir(string hookdir) {
+		string newhookdir = canonicalizePath(hookdir);
+		this.hookdirs.insertBack(newhookdir);
+		logger.tracef("option 'hookdir' = %s\n", newhookdir);
+	}
+
+	AlpmStrings getHookDirs() => this.hookdirs;
+
+	void setHookDirs(AlpmStrings hookdirs) {
+		this.hookdirs.clear();
+
+		//DList[] don't works with st.algoithm.each
+		foreach(hookdir; hookdirs[]) {
+			addHookDir(hookdir);
+		}
+	}
+
+	void  removeHookDir(string hookdir) {
+		string newhookdir = canonicalizePath(hookdir);
+		this.hookdirs.linearRemoveElement(newhookdir);
+	}
 }
 
 /* free all in-memory resources */
@@ -409,8 +431,8 @@ version (HAVE_LIBCURL) {
 	FREE(handle.dbpath);
 	FREE(handle.dbext);
 	// FREELIST(handle.cachedirs);
-	destroy(handle.cachedirs);
-	FREELIST(handle.hookdirs);
+	handle.cachedirs.clear();
+	handle.hookdirs.clear();
 	FREE(handle.logfile);
 	FREE(handle.lockfile);
 	FREELIST(handle.architectures);
@@ -487,11 +509,6 @@ alpm_cb_progress  alpm_option_get_progresscb(AlpmHandle handle)
 void * alpm_option_get_progresscb_ctx(AlpmHandle handle)
 {
 	return handle.progresscb_ctx;
-}
-
-alpm_list_t * alpm_option_get_hookdirs(AlpmHandle handle)
-{
-	return handle.hookdirs;
 }
 
 string alpm_option_get_lockfile(AlpmHandle handle)
@@ -632,56 +649,6 @@ alpm_errno_t setDirectoryOption(string value, out string storage, bool mustExist
 	storage = canonicalizePath(canonicalPath);
 
 	return cast(alpm_errno_t)0;
-}
-
-int  alpm_option_add_hookdir(AlpmHandle handle, char* hookdir)
-{
-	char* newhookdir = void;
-
-	//ASSERT(hookdir != null);
-
-	newhookdir = cast(char*)canonicalizePath(hookdir.to!string).ptr;
-	if(!newhookdir) {
-		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
-	}
-	handle.hookdirs = alpm_list_add(handle.hookdirs, newhookdir);
-	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'hookdir' = %s\n", newhookdir);
-	return 0;
-}
-
-int  alpm_option_set_hookdirs(AlpmHandle handle, alpm_list_t* hookdirs)
-{
-	alpm_list_t* i = void;
-
-	if(handle.hookdirs) {
-		FREELIST(handle.hookdirs);
-	}
-	for(i = hookdirs; i; i = i.next) {
-		int ret = alpm_option_add_hookdir(handle, cast(char*)i.data);
-		if(ret) {
-			return ret;
-		}
-	}
-	return 0;
-}
-
-int  alpm_option_remove_hookdir(AlpmHandle handle, char* hookdir)
-{
-	char* vdata = null;
-	char* newhookdir = void;
-	//ASSERT(hookdir != null);
-
-	newhookdir = cast(char*)canonicalizePath(hookdir.to!string).ptr;
-	if(!newhookdir) {
-		RET_ERR(handle, ALPM_ERR_MEMORY, -1);
-	}
-	handle.hookdirs = alpm_list_remove_str(handle.hookdirs, newhookdir, &vdata);
-	FREE(newhookdir);
-	if(vdata != null) {
-		FREE(vdata);
-		return 1;
-	}
-	return 0;
 }
 
 int  alpm_option_remove_cachedir(AlpmHandle handle,   char*cachedir)
