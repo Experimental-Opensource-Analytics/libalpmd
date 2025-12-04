@@ -81,7 +81,7 @@ struct _alpm_trigger_t {
 	alpm_list_t* targets;
 }
 
-struct _alpm_hook_t {
+struct AlpmHook {
 	char* name;
 	char* desc;
 	alpm_list_t* triggers;
@@ -94,7 +94,7 @@ struct _alpm_hook_t {
 
 struct _alpm_hook_cb_ctx {
 	AlpmHandle handle;
-	_alpm_hook_t* hook;
+	AlpmHook* hook;
 }
 
 private void _alpm_trigger_free(_alpm_trigger_t* trigger)
@@ -105,7 +105,7 @@ private void _alpm_trigger_free(_alpm_trigger_t* trigger)
 	}
 }
 
-private void _alpm_hook_free(_alpm_hook_t* hook)
+private void _alpm_hook_free(AlpmHook* hook)
 {
 	if(hook) {
 		free(hook.name);
@@ -144,7 +144,7 @@ private int _alpm_trigger_validate(AlpmHandle handle, _alpm_trigger_t* trigger, 
 	return ret;
 }
 
-private int _alpm_hook_validate(AlpmHandle handle, _alpm_hook_t* hook,   char*file)
+private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
 {
 	alpm_list_t* i = void;
 	int ret = 0;
@@ -183,7 +183,7 @@ private int _alpm_hook_parse_cb(  char*file, int line,   char*section, char* key
 {
 	_alpm_hook_cb_ctx* ctx = cast(_alpm_hook_cb_ctx*)data;
 	AlpmHandle handle = ctx.handle;
-	_alpm_hook_t* hook = ctx.hook;
+	AlpmHook* hook = ctx.hook;
 
 	
 auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = null, char* arg5 = null) {
@@ -307,7 +307,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 	return 0;
 }
 
-private int _alpm_hook_trigger_match_file(AlpmHandle handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
 {
 	alpm_list_t* i = void, j = void, install = null, upgrade = null, remove = null;
 	size_t isize = 0, rsize = 0;
@@ -410,7 +410,7 @@ enum string _save_matches(string _op, string _matches) = `
 	return ret;
 }
 
-private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
 {
 	alpm_list_t* install = null, upgrade = null, remove = null;
 
@@ -465,14 +465,14 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, _alpm_hook_t* hook, 
 	return install || upgrade || remove;
 }
 
-private int _alpm_hook_trigger_match(AlpmHandle handle, _alpm_hook_t* hook, _alpm_trigger_t* t)
+private int _alpm_hook_trigger_match(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
 {
 	return t.type == ALPM_HOOK_TYPE_PACKAGE
 		? _alpm_hook_trigger_match_pkg(handle, hook, t)
 		: _alpm_hook_trigger_match_file(handle, hook, t);
 }
 
-private int _alpm_hook_triggered(AlpmHandle handle, _alpm_hook_t* hook)
+private int _alpm_hook_triggered(AlpmHandle handle, AlpmHook* hook)
 {
 	alpm_list_t* i = void;
 	int ret = 0;
@@ -488,7 +488,7 @@ private int _alpm_hook_triggered(AlpmHandle handle, _alpm_hook_t* hook)
 	return ret;
 }
 
-private int _alpm_hook_cmp(_alpm_hook_t* h1, _alpm_hook_t* h2)
+private int _alpm_hook_cmp(AlpmHook* h1, AlpmHook* h2)
 {
 	size_t suflen = strlen(ALPM_HOOK_SUFFIX), l1 = void, l2 = void;
 	int ret = void;
@@ -505,7 +505,7 @@ private int _alpm_hook_cmp(_alpm_hook_t* h1, _alpm_hook_t* h2)
 private alpm_list_t* find_hook(alpm_list_t* haystack,  void* needle)
 {
 	while(haystack) {
-		_alpm_hook_t* h = cast(_alpm_hook_t*)haystack.data;
+		AlpmHook* h = cast(AlpmHook*)haystack.data;
 		if(h && strcmp(h.name, cast(char*)needle) == 0) {
 			return haystack;
 		}
@@ -552,7 +552,7 @@ private alpm_list_t* _alpm_strlist_dedup(alpm_list_t* list)
 	return list;
 }
 
-private int _alpm_hook_run_hook(AlpmHandle handle, _alpm_hook_t* hook)
+private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 {
 	alpm_list_t* i = void, pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
 
@@ -651,7 +651,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 				continue;
 			}
 
-			CALLOC(ctx.hook, _alpm_hook_t.sizeof, 1);
+			CALLOC(ctx.hook, AlpmHook.sizeof, 1);
 
 			_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s\n", path.ptr);
 			if(parse_ini(path.ptr, &_alpm_hook_parse_cb, &ctx) != 0
@@ -682,7 +682,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 			cast(alpm_list_fn_cmp)&_alpm_hook_cmp);
 
 	for(i = hooks; i; i = i.next) {
-		_alpm_hook_t* hook = cast(_alpm_hook_t*)i.data;
+		AlpmHook* hook = cast(AlpmHook*)i.data;
 		if(hook && hook.when == when && _alpm_hook_triggered(handle, hook)) {
 			hooks_triggered = alpm_list_add(hooks_triggered, hook);
 			triggered++;
@@ -697,7 +697,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 		hook_event.total = triggered;
 
 		for(i = hooks_triggered; i; i = i.next, hook_event.position++) {
-			_alpm_hook_t* hook = cast(_alpm_hook_t*)i.data;
+			AlpmHook* hook = cast(AlpmHook*)i.data;
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "running '%s'...\n", hook.name);
 
 			hook_event.type = ALPM_EVENT_HOOK_RUN_START;

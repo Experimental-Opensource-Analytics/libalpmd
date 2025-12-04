@@ -940,7 +940,7 @@ struct alpm_event_hook_run_t {
 struct alpm_event_pkg_retrieve_t {
 	/** Type of event */
 	alpm_event_type_t type;
-	/** Number of packages to download */
+
 	size_t num;
 	/** Total size of packages to download */
 	off_t total_size;
