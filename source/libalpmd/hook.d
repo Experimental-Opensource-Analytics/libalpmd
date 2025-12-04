@@ -81,7 +81,7 @@ struct AlpmTrigger {
 
 struct AlpmHook {
 	string name;
-	char* desc;
+	string desc;
 	alpm_list_t* triggers;
 	alpm_list_t* depends;
 	char** cmd;
@@ -99,7 +99,7 @@ private void _alpm_hook_free(AlpmHook* hook)
 {
 	if(hook) {
 		destroy(hook.name);
-		free(hook.desc);
+		destroy(hook.desc);
 		// wordsplit_free(hook.cmd);
 		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
 		alpm_list_free(hook.triggers);
@@ -268,7 +268,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Description");
 				FREE(hook.desc);
 			}
-			STRDUP(hook.desc, value);
+			hook.desc = value.to!string;
 		} else if(strcmp(key, "Depends") == 0) {
 			char* val;
 			STRDUP(val, value);
@@ -693,7 +693,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 
 			hook_event.type = ALPM_EVENT_HOOK_RUN_START;
 			hook_event.name = cast(char*)hook.name.toStringz;
-			hook_event.desc = hook.desc;
+			hook_event.desc = cast(char*)hook.desc.toStringz;
 			EVENT(handle, &hook_event);
 
 			if(_alpm_hook_run_hook(handle, hook) != 0 && hook.abort_on_fail) {
