@@ -100,7 +100,8 @@ struct AlpmHook {
 	string[] 		cmd;
 	AlpmStrings 	matches;
 	AlpmHookWhen 	when;
-	int abort_on_fail, needs_targets;
+	bool abort_on_fail;
+	bool needs_targets;
 }
 
 struct _alpm_hook_cb_ctx {
