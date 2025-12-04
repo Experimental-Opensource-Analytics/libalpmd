@@ -74,6 +74,10 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 }
 
 class AlpmHandle {
+private:
+	bool disableSandboxFilesystem;
+	bool disableSandboxSyscalls;
+public:
 	/* internal usage */
 	AlpmDB db_local;    /* local db pointer */
 	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
@@ -89,11 +93,6 @@ class AlpmHandle {
 	}
 
 	ushort disable_dl_timeout;
-	private {
-	bool disableSandboxFilesystem;
-	bool disableSandboxSyscalls;
-	}
-
 	uint parallel_downloads; /* number of download streams */
 
 	version (HAVE_LIBGPGME) {
@@ -259,12 +258,12 @@ class AlpmHandle {
 	}
 
 	void updateDBs(bool force = true) {
-		string syncpath = this.getSyncDir();
-		string temporary_syncpath = "./tmp/";
+		scope string syncpath = this.getSyncDir();
+		scope string temporary_syncpath = "./tmp/";
 		int ret = -1;
 		/* make sure we have a sane umask */
 		Environment.saveMask();
-		alpm_list_t* payloads = null;
+		scope alpm_list_t* payloads = null;
 		alpm_event_t event = void;
 
 		this.sandboxuser = Environment.getUserName();
@@ -287,7 +286,7 @@ class AlpmHandle {
 			payloads = alpm_list_add(payloads, payload);
 		}
 		if(payloads == null) {
-			ret = 0;
+			// ret = 0;
 			goto cleanup;
 		}
 
@@ -302,29 +301,29 @@ class AlpmHandle {
 		// event.type = ALPM_EVENT_DB_RETRIEVE_DONE;
 		// EVENT(this, &event);
 
-	// 	foreach(i; dbs) {
-	// 		AlpmDB db = cast(AlpmDB)i;
-	// 		if(!(db.usage & ALPM_DB_USAGE_SYNC)) {
-	// 			continue;
-	// 		}
+		foreach(db; dbs_sync) {
+			// AlpmDB db = cast(AlpmDB)i;
+			if(!(db.usage & AlpmDBUsage.Sync)) {
+				continue;
+			}
 
-	// 		/* Cache needs to be rebuilt */
-	// 		_alpm_db_free_pkgcache(db);
+			/* Cache needs to be rebuilt */
+			_alpm_db_free_pkgcache(db);
 
-	// 		/* clear all status flags regarding validity/existence */
-	// 		db.status &= ~AlpmDBStatus.Valid;
-	// 		db.status &= ~AlpmDBStatus.Invalid;
-	// 		db.status &= ~AlpmDBStatus.Exists;
-	// 		db.status &= ~AlpmDBStatus.Missing;
+			/* clear all status flags regarding validity/existence */
+			db.status &= ~AlpmDBStatus.Valid;
+			db.status &= ~AlpmDBStatus.Invalid;
+			db.status &= ~AlpmDBStatus.Exists;
+			db.status &= ~AlpmDBStatus.Missing;
 
-	// 		/* if the download failed skip validation to preserve the download error */
-	// 		if(sync_db_validate(db) != 0) {
-	// 			_alpm_log(this, ALPM_LOG_DEBUG, "failed to validate db: %s\n",
-	// 					db.treename);
-	// 			/* pm_errno should be set */
-	// 			ret = -1;
-	// 		}
-	// 	}
+			/* if the download failed skip validation to preserve the download error */
+			if(sync_db_validate(db) != 0) {
+				// _alpm_log(this, ALPM_LOG_DEBUG, "failed to validate db: %s\n",
+				// 		db.treename);
+				/* pm_errno should be set */
+				// ret = -1;
+			}
+		}
 
 	cleanup:
 		// if(ret == -1) {
