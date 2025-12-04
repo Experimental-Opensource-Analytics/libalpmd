@@ -78,6 +78,7 @@ class AlpmHandle {
 private:
 	AlpmDB 	dbLocal;    /* local db pointer */
 	AlpmDBs dbsSync;  /* List of (AlpmDB) */
+	File 	lckFile;
 
 	AlpmStrings 	cachedirs;  /* Paths to pacman cache directories */
 	AlpmStrings 	hookdirs;   /* Paths to hook directories */
@@ -88,7 +89,6 @@ private:
 
 public:
 	/* internal usage */
-	File 	lckFile;
 	File 	logstream;        /* log file stream pointer */
 	AlpmTrans trans;
 	uid_t 	user;
@@ -149,19 +149,17 @@ public:
 	/* error code */
 	alpm_errno_t pm_errno;
 
-	/* lock file descriptor */
-
-	string getRoot() => this.root;
-	string getDBPath() => this.dbpath;
-	string getLogfile() => this.logfile;
-
-	this() {
+	~this() {
 		lckFile.close();
 		trans = null;
 	}
 
-	auto ref getDBLocal() @property => this.dbLocal;
 	auto ref getDBsSync()  @property => this.dbsSync;
+	auto ref getDBLocal() @property => this.dbLocal;
+
+	string getRoot() => this.root;
+	string getDBPath() => this.dbpath;
+	string getLogfile() => this.logfile;
 
 	/** Lock the database */
 	void lockDBs() {
