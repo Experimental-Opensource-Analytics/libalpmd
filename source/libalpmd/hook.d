@@ -56,24 +56,21 @@ import ae.sys.file;
 import std.algorithm;
 import std.string;
 
-
 enum AlpmHookOp {
 	Install = (1 << 0),
 	Upgrade = (1 << 1),
 	Remove = (1 << 2),
 }
 
-enum _alpm_trigger_type_t {
-	ALPM_HOOK_TYPE_PACKAGE = 1,
-	ALPM_HOOK_TYPE_PATH,
+enum AlpmHookTriggerType {
+	Package = 1,
+	Path
 }
-alias ALPM_HOOK_TYPE_PACKAGE = _alpm_trigger_type_t.ALPM_HOOK_TYPE_PACKAGE;
-alias ALPM_HOOK_TYPE_PATH = _alpm_trigger_type_t.ALPM_HOOK_TYPE_PATH;
 
 
 struct _alpm_trigger_t {
 	AlpmHookOp op;
-	_alpm_trigger_type_t type;
+	AlpmHookTriggerType type;
 	alpm_list_t* targets;
 }
 
@@ -240,13 +237,13 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"Type");
 			}
 			if(strcmp(value, "Package") == 0) {
-				t.type = ALPM_HOOK_TYPE_PACKAGE;
+				t.type = AlpmHookTriggerType.Package;
 			} else if(strcmp(value, "File") == 0) {
 				_alpm_log(handle, ALPM_LOG_DEBUG,
 						"File targets are deprecated, use Path instead\n");
-				t.type = ALPM_HOOK_TYPE_PATH;
+				t.type = AlpmHookTriggerType.Path;
 			} else if(strcmp(value, "Path") == 0) {
-				t.type = ALPM_HOOK_TYPE_PATH;
+				t.type = AlpmHookTriggerType.Path;
 			} else {
 				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
 			}
@@ -463,7 +460,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alp
 
 private int _alpm_hook_trigger_match(AlpmHandle handle, AlpmHook* hook, _alpm_trigger_t* t)
 {
-	return t.type == ALPM_HOOK_TYPE_PACKAGE
+	return t.type == AlpmHookTriggerType.Package
 		? _alpm_hook_trigger_match_pkg(handle, hook, t)
 		: _alpm_hook_trigger_match_file(handle, hook, t);
 }
