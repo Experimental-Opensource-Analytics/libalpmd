@@ -331,7 +331,7 @@ public:
 		return false;
 	}
 
-	int  getDisableSandbox(AlpmHandle handle){
+	int  getDisableSandbox(){
 		if(this.disableSandboxFilesystem && this.disableSandboxSyscalls) {
 			return 2;
 		} else if (this.disableSandboxFilesystem || this.disableSandboxSyscalls) {
