@@ -76,8 +76,12 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 
 class AlpmHandle {
 private:
+	AlpmStrings 	cachedirs;  /* Paths to pacman cache directories */
+	AlpmStrings 	hookdirs;   /* Paths to hook directories */
+
 	bool disableSandboxFilesystem;
 	bool disableSandboxSyscalls;
+
 public:
 	/* internal usage */
 	AlpmDB 	db_local;    /* local db pointer */
@@ -121,8 +125,6 @@ public:
 	string lockfile;          /* Name of the lock file */
 	string gpgdir;            /* Directory where GnuPG files are stored */
 	string sandboxuser;       /* User to switch to for sensitive operations */
-	AlpmStrings 	cachedirs;  /* Paths to pacman cache directories */
-	AlpmStrings 	hookdirs;   /* Paths to hook directories */
 	alpm_list_t* 	overwrite_files; /* Paths that may be overwritten */
 
 	/* package lists */

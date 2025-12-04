@@ -585,7 +585,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 	size_t suflen = strlen(ALPM_HOOK_SUFFIX), triggered = 0;
 	int ret = 0;
 
-	foreach_reverse(string hookdir; handle.hookdirs[].reverse) {
+	foreach_reverse(string hookdir; handle.getHookDirs[].reverse) {
 	// for(i = alpm_list_last(handle.hookdirs); i; i = alpm_list_previous(i)) {
 		char[PATH_MAX] path = void;
 		size_t dirlen = void;
