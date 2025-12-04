@@ -102,25 +102,21 @@ struct AlpmHook {
 	AlpmHookWhen 	when;
 	bool abort_on_fail;
 	bool needs_targets;
+
+	~this() {
+		destroy(this.name);
+		destroy(this.desc);
+		cmd.length = 0;
+		// alpm_list_free_inner(this.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
+		this.triggers.clear();
+		this.matches.clear();
+		this.depends.clear();
+	}
 }
 
 struct _alpm_hook_cb_ctx {
 	AlpmHandle handle;
 	AlpmHook* hook;
-}
-
-private void _alpm_hook_free(AlpmHook* hook)
-{
-	if(hook) {
-		destroy(hook.name);
-		destroy(hook.desc);
-		// wordsplit_free(hook.cmd);
-		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
-		hook.triggers.clear();
-		hook.matches.clear();
-		hook.depends.clear();
-		free(hook);
-	}
 }
 
 private int _alpm_trigger_validate(AlpmHandle handle, AlpmTrigger* trigger,   char*file)
