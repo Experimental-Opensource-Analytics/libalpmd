@@ -53,8 +53,10 @@ import core.stdc.stdint; /* intmax_t */
 import core.sys.posix.dirent;
 import core.sys.posix.sys.stat;
 import ae.sys.file;
+
 import std.algorithm;
 import std.string;
+import std.conv;
 
 enum AlpmHookOp {
 	Install = (1 << 0),
@@ -68,9 +70,13 @@ enum AlpmHookTriggerType {
 }
 
 struct AlpmTrigger {
-	AlpmHookOp op;
+	AlpmHookOp 			op;
 	AlpmHookTriggerType type;
-	alpm_list_t* targets;
+	AlpmStrings 		targets;
+
+	~this() {
+		targets.clear();
+	}
 }
 
 struct AlpmHook {
@@ -89,21 +95,13 @@ struct _alpm_hook_cb_ctx {
 	AlpmHook* hook;
 }
 
-private void _alpm_trigger_free(AlpmTrigger* trigger)
-{
-	if(trigger) {
-		FREELIST(trigger.targets);
-		free(trigger);
-	}
-}
-
 private void _alpm_hook_free(AlpmHook* hook)
 {
 	if(hook) {
 		free(hook.name);
 		free(hook.desc);
 		// wordsplit_free(hook.cmd);
-		alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
+		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
 		alpm_list_free(hook.triggers);
 		alpm_list_free(hook.matches);
 		FREELIST(hook.depends);
@@ -115,7 +113,7 @@ private int _alpm_trigger_validate(AlpmHandle handle, AlpmTrigger* trigger,   ch
 {
 	int ret = 0;
 
-	if(trigger.targets == null) {
+	if(trigger.targets.empty) {
 		ret = -1;
 		_alpm_log(handle, ALPM_LOG_ERROR,
 				("Missing trigger targets in hook: %s\n"), file);
@@ -249,7 +247,7 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 		} else if(strcmp(key, "Target") == 0) {
 			char* val;
 			STRDUP(val, value);
-			t.targets = alpm_list_add(t.targets, val);
+			t.targets.insertBack(val.to!string);
 		} else {
 			return error(cast(char*)"hook %s line %d: invalid option %s\n", file, line, key);
 		}
@@ -314,7 +312,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 			if(alpm_option_match_noextract(handle, cast(char*)filelist[f].name) == 0) {
 				continue;
 			}
-			if(alpmFnmatchPatterns(t.targets, filelist[f].name) == 0) {
+			if(alpmFnmatchPatternsNew(t.targets, filelist[f].name) == 0) {
 				install = alpm_list_add(install, cast(char*)filelist[f].name);
 				isize++;
 			}
@@ -329,7 +327,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 			AlpmFileList filelist = pkg.files;
 			size_t f = void;
 			for(f = 0; f < filelist.length; f++) {
-				if(alpmFnmatchPatterns(t.targets, filelist.ptr[f].name) == 0) {
+				if(alpmFnmatchPatternsNew(t.targets, filelist.ptr[f].name) == 0) {
 					remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
 					rsize++;
 				}
@@ -343,7 +341,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 		AlpmFileList filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
-			if(alpmFnmatchPatterns(t.targets, filelist.ptr[f].name) == 0) {
+			if(alpmFnmatchPatternsNew(t.targets, filelist.ptr[f].name) == 0) {
 				remove = alpm_list_add(remove, cast(char*)filelist.ptr[f].name);
 				rsize++;
 			}
@@ -410,7 +408,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 		alpm_list_t* i = void;
 		for(i = handle.trans.add; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			if(alpmFnmatchPatterns(t.targets, pkg.name) == 0) {
+			if(alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
 				if(pkg.oldpkg) {
 					if(t.op & AlpmHookOp.Upgrade) {
 						if(hook.needs_targets) {
@@ -436,7 +434,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 		alpm_list_t* i = void;
 		for(i = handle.trans.remove; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			if(pkg && alpmFnmatchPatterns(t.targets, pkg.name) == 0) {
+			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
 				if(!alpm_list_find(handle.trans.add, cast(void*)pkg, &_alpm_pkg_cmp)) {
 					if(hook.needs_targets) {
 						remove = alpm_list_add(remove, cast(char*)pkg.name);

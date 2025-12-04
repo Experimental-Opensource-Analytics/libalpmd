@@ -1491,6 +1491,36 @@ version (AT_SYMLINK_NOFOLLOW) { //!Fix AT_SYMLINK_NOFOLLOW version trigger
 * @return 0 if string matches pattern, negative if they don't match and
 * positive if the last match was inverted
 */
+int alpmFnmatchPatternsNew(List)(List patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
+	// alpm_list_t* i = void;
+	char* pattern = void;
+	short inverted = void;
+
+	foreach_reverse(i; patterns[]) {
+		pattern = cast(char*)i.toStringz;
+
+		inverted = pattern[0] == '!';
+		if(inverted || pattern[0] == '\\') {
+			pattern++;
+		}
+
+		if(alpmFnMatch(pattern.to!string, _string.to!string) == 0) {
+			return inverted;
+		}
+	}
+
+	return -1;
+}
+
+/** Checks whether a string matches at least one shell wildcard pattern.
+* Checks for matches with fnmatch. Matches are inverted by prepending
+* patterns with an exclamation mark. Preceding exclamation marks may bestrtoll
+* escaped. Subsequent matches override previous ones.
+* @param patterns patterns to match against
+* @param string string to check against pattern
+* @return 0 if string matches pattern, negative if they don't match and
+* positive if the last match was inverted
+*/
 int alpmFnmatchPatterns(alpm_list_t* patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
 	alpm_list_t* i = void;
 	char* pattern = void;
