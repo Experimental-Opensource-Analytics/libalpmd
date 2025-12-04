@@ -68,7 +68,7 @@ import libalpmd.sandbox;
 
 struct DLoadPayload {
 	AlpmHandle handle;
-	  char*tempfile_openmode;
+	char*tempfile_openmode;
 	/* name of the remote file */
 	char* remote_name;
 	/* temporary file name, to which the payload is downloaded */

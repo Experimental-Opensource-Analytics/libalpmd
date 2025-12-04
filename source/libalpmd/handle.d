@@ -55,6 +55,7 @@ import libalpmd.deps;
 import libalpmd.pkg;
 import libalpmd.dload;
 import libalpmd.env;
+import std.algorithm;
 
 void EVENT(h, e)(h handle, e event) { 
 	if(handle.eventcb) { 
@@ -79,12 +80,12 @@ private:
 	bool disableSandboxSyscalls;
 public:
 	/* internal usage */
-	AlpmDB db_local;    /* local db pointer */
+	AlpmDB 	db_local;    /* local db pointer */
 	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
-	File lckFile;
-	File logstream;        /* log file stream pointer */
+	File 	lckFile;
+	File 	logstream;        /* log file stream pointer */
 	AlpmTrans trans;
-	uid_t user;
+	uid_t 	user;
 
 	version (HAVE_LIBCURL) {
 		/* libcurl handle */
@@ -154,28 +155,20 @@ public:
 
 	AlpmStrings getCacheDirs() => this.cachedirs;
 
-	int  setCacheDirs(AlpmStrings cachedirs) {
-		if(!this.cachedirs.empty) {
-			this.cachedirs.clear();
-		}
+	void  setCacheDirs(AlpmStrings cachedirs) {
+		this.cachedirs.clear();
+
+		//DList[] don't works with st.algoithm.each
 		foreach(cachedir; cachedirs[]) {
-			int ret = addCacheDir(cachedir);
-			if(ret) {
-				return ret;
-			}
+			addCacheDir(cachedir);
 		}
-		
-		return 0;
 	}
 
-	int  addCacheDir(string dir) {
+	void addCacheDir(string dir) {
 		string newcachedir = canonicalizePath(dir);
-		if(!newcachedir) {
-			RET_ERR(this, ALPM_ERR_MEMORY, -1);
-		}
 		this.cachedirs.insert(newcachedir);
-		_alpm_log(this, ALPM_LOG_DEBUG, "option 'cachedir' = %s\n", cast(char*)newcachedir.toStringz);
-		return 0;
+
+		logger.tracef("option 'cachedir' = %s\n", cast(char*)newcachedir.toStringz);
 	}
 
 	this() {
@@ -318,8 +311,7 @@ public:
 
 			/* if the download failed skip validation to preserve the download error */
 			if(sync_db_validate(db) != 0) {
-				// _alpm_log(this, ALPM_LOG_DEBUG, "failed to validate db: %s\n",
-				// 		db.treename);
+				logger.trace("failed to validate db: ", db.treename);
 				/* pm_errno should be set */
 				// ret = -1;
 			}
