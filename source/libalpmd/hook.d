@@ -84,6 +84,14 @@ struct AlpmTrigger {
 
 alias AlpmTriggers = AlpmList!AlpmTrigger;
 
+/** Kind of hook. */
+enum AlpmHookWhen {
+	/* Pre transaction hook */
+	PreTransaction = 1,
+	/* Post transaction hook */
+	PostTransaction
+}
+
 struct AlpmHook {
 	string name;
 	string desc;
@@ -91,7 +99,7 @@ struct AlpmHook {
 	AlpmStrings 	depends;
 	string[] 		cmd;
 	AlpmStrings 	matches;
-	alpm_hook_when_t when;
+	AlpmHookWhen 	when;
 	int abort_on_fail, needs_targets;
 }
 
@@ -166,7 +174,7 @@ private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
 		ret = -1;
 		_alpm_log(handle, ALPM_LOG_ERROR,
 				("Missing When option in hook: %s\n"), file);
-	} else if(hook.when != ALPM_HOOK_PRE_TRANSACTION && hook.abort_on_fail) {
+	} else if(hook.when != AlpmHookWhen.PreTransaction && hook.abort_on_fail) {
 		_alpm_log(handle, ALPM_LOG_WARNING,
 				("AbortOnFail set for PostTransaction hook: %s\n"), file);
 	}
@@ -262,9 +270,9 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 				warning(cast(char*)"hook %s line %d: overwriting previous definition of %s\n", file, line, cast(char*)"When");
 			}
 			if(strcmp(value, "PreTransaction") == 0) {
-				hook.when = ALPM_HOOK_PRE_TRANSACTION;
+				hook.when = AlpmHookWhen.PreTransaction;
 			} else if(strcmp(value, "PostTransaction") == 0) {
-				hook.when = ALPM_HOOK_POST_TRANSACTION;
+				hook.when = AlpmHookWhen.PostTransaction;
 			} else {
 				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
 			}
@@ -584,7 +592,7 @@ private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 	}
 }
 
-int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
+int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 {
 	alpm_event_hook_t event = { when: when };
 	alpm_event_hook_run_t hook_event = void;
@@ -682,7 +690,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 		closedir(d);
 	}
 
-	if(ret != 0 && when == ALPM_HOOK_PRE_TRANSACTION) {
+	if(ret != 0 && when == AlpmHookWhen.PreTransaction) {
 		goto cleanup;
 	}
 
@@ -720,7 +728,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 			hook_event.type = ALPM_EVENT_HOOK_RUN_DONE;
 			EVENT(handle, &hook_event);
 
-			if(ret != 0 && when == ALPM_HOOK_PRE_TRANSACTION) {
+			if(ret != 0 && when == AlpmHookWhen.PreTransaction) {
 				break;
 			}
 		}

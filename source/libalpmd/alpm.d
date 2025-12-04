@@ -11,6 +11,7 @@ import core.stdc.string;
 import core.stdc.stdio;
 // import libalpmd.be_local;
 import libalpmd.deps;
+import libalpmd.hook;
 import std.conv;
 
 /*
@@ -903,23 +904,12 @@ struct alpm_event_pacsave_created_t {
 	const(char)* file;
 }
 
-/** Kind of hook. */
-enum alpm_hook_when_t {
-	/* Pre transaction hook */
-	ALPM_HOOK_PRE_TRANSACTION = 1,
-	/* Post transaction hook */
-	ALPM_HOOK_POST_TRANSACTION
-}
-alias ALPM_HOOK_PRE_TRANSACTION = alpm_hook_when_t.ALPM_HOOK_PRE_TRANSACTION;
-alias ALPM_HOOK_POST_TRANSACTION = alpm_hook_when_t.ALPM_HOOK_POST_TRANSACTION;
-
-
 /** pre/post transaction hooks are to be ran. */
 struct alpm_event_hook_t {
 	/** Type of event*/
 	alpm_event_type_t type;
 	/** Type of hook */
-	alpm_hook_when_t when;
+	AlpmHookWhen when;
 }
 
 /** A pre/post transaction hook was ran. */

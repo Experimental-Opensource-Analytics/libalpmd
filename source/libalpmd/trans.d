@@ -253,7 +253,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NOHOOKS) &&
-			_alpm_hook_run(handle, ALPM_HOOK_PRE_TRANSACTION) != 0) {
+			_alpm_hook_run(handle, AlpmHookWhen.PreTransaction) != 0) {
 		RET_ERR(handle, ALPM_ERR_TRANS_HOOK_FAILED, -1);
 	}
 
@@ -289,7 +289,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction completed\n");
 
 		if(!(trans.flags & ALPM_TRANS_FLAG_NOHOOKS)) {
-			_alpm_hook_run(handle, ALPM_HOOK_POST_TRANSACTION);
+			_alpm_hook_run(handle, AlpmHookWhen.PostTransaction);
 		}
 	}
 
