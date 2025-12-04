@@ -57,15 +57,11 @@ import std.algorithm;
 import std.string;
 
 
-enum _alpm_hook_op_t {
-	ALPM_HOOK_OP_INSTALL = (1 << 0),
-	ALPM_HOOK_OP_UPGRADE = (1 << 1),
-	ALPM_HOOK_OP_REMOVE = (1 << 2),
+enum AlpmHookOp {
+	Install = (1 << 0),
+	Upgrade = (1 << 1),
+	Remove = (1 << 2),
 }
-alias ALPM_HOOK_OP_INSTALL = _alpm_hook_op_t.ALPM_HOOK_OP_INSTALL;
-alias ALPM_HOOK_OP_UPGRADE = _alpm_hook_op_t.ALPM_HOOK_OP_UPGRADE;
-alias ALPM_HOOK_OP_REMOVE = _alpm_hook_op_t.ALPM_HOOK_OP_REMOVE;
-
 
 enum _alpm_trigger_type_t {
 	ALPM_HOOK_TYPE_PACKAGE = 1,
@@ -76,7 +72,7 @@ alias ALPM_HOOK_TYPE_PATH = _alpm_trigger_type_t.ALPM_HOOK_TYPE_PATH;
 
 
 struct _alpm_trigger_t {
-	_alpm_hook_op_t op;
+	AlpmHookOp op;
 	_alpm_trigger_type_t type;
 	alpm_list_t* targets;
 }
@@ -231,11 +227,11 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 		_alpm_trigger_t* t = cast(_alpm_trigger_t*)hook.triggers.prev.data;
 		if(strcmp(key, "Operation") == 0) {
 			if(strcmp(value, "Install") == 0) {
-				t.op |= ALPM_HOOK_OP_INSTALL;
+				t.op |= AlpmHookOp.Install;
 			} else if(strcmp(value, "Upgrade") == 0) {
-				t.op |= ALPM_HOOK_OP_UPGRADE;
+				t.op |= AlpmHookOp.Upgrade;
 			} else if(strcmp(value, "Remove") == 0) {
-				t.op |= ALPM_HOOK_OP_REMOVE;
+				t.op |= AlpmHookOp.Remove;
 			} else {
 				return error(cast(char*)"hook %s line %d: invalid value %s\n", file, line, value);
 			}
@@ -387,9 +383,9 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, _al
 		}
 	}
 
-	ret = (t.op & ALPM_HOOK_OP_INSTALL && install)
-			|| (t.op & ALPM_HOOK_OP_UPGRADE && upgrade)
-			|| (t.op & ALPM_HOOK_OP_REMOVE && remove);
+	ret = (t.op & AlpmHookOp.Install && install)
+			|| (t.op & AlpmHookOp.Upgrade && upgrade)
+			|| (t.op & AlpmHookOp.Remove && remove);
 
 	if(hook.needs_targets) {
 enum string _save_matches(string _op, string _matches) = `
@@ -398,9 +394,9 @@ enum string _save_matches(string _op, string _matches) = `
 	} else { 
 		alpm_list_free(` ~ _matches ~ `); 
 	}`;
-		mixin(_save_matches!(`ALPM_HOOK_OP_INSTALL`, `install`));
-		mixin(_save_matches!(`ALPM_HOOK_OP_UPGRADE`, `upgrade`));
-		mixin(_save_matches!(`ALPM_HOOK_OP_REMOVE`, `remove`));
+		mixin(_save_matches!(`AlpmHookOp.Install`, `install`));
+		mixin(_save_matches!(`AlpmHookOp.Upgrade`, `upgrade`));
+		mixin(_save_matches!(`AlpmHookOp.Remove`, `remove`));
 	} else {
 		alpm_list_free(install);
 		alpm_list_free(upgrade);
@@ -414,13 +410,13 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alp
 {
 	alpm_list_t* install = null, upgrade = null, remove = null;
 
-	if(t.op & ALPM_HOOK_OP_INSTALL || t.op & ALPM_HOOK_OP_UPGRADE) {
+	if(t.op & AlpmHookOp.Install || t.op & AlpmHookOp.Upgrade) {
 		alpm_list_t* i = void;
 		for(i = handle.trans.add; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			if(alpmFnmatchPatterns(t.targets, pkg.name) == 0) {
 				if(pkg.oldpkg) {
-					if(t.op & ALPM_HOOK_OP_UPGRADE) {
+					if(t.op & AlpmHookOp.Upgrade) {
 						if(hook.needs_targets) {
 							upgrade = alpm_list_add(upgrade, cast(char*)pkg.name);
 						} else {
@@ -428,7 +424,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alp
 						}
 					}
 				} else {
-					if(t.op & ALPM_HOOK_OP_INSTALL) {
+					if(t.op & AlpmHookOp.Install) {
 						if(hook.needs_targets) {
 							install = alpm_list_add(install, cast(char*)pkg.name);
 						} else {
@@ -440,7 +436,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, _alp
 		}
 	}
 
-	if(t.op & ALPM_HOOK_OP_REMOVE) {
+	if(t.op & AlpmHookOp.Remove) {
 		alpm_list_t* i = void;
 		for(i = handle.trans.remove; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
