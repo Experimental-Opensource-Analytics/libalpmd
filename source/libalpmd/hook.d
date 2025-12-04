@@ -554,7 +554,7 @@ private alpm_list_t* _alpm_strlist_dedup(alpm_list_t* list)
 
 private int _alpm_hook_run_hook(AlpmHandle handle, _alpm_hook_t* hook)
 {
-	alpm_list_t* i = void, pkgs = _alpm_db_get_pkgcache(handle.db_local);
+	alpm_list_t* i = void, pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
 
 	for(i = hook.depends; i; i = i.next) {
 		if(!alpm_find_satisfier(pkgs, cast(char*)i.data)) {

@@ -105,7 +105,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 		alpm_list_t* i = void;
 		for(i = lp; i; i = i.next) {
 			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
-			AlpmPkg info = _alpm_db_get_pkgfromcache(handle.db_local, miss.target);
+			AlpmPkg info = _alpm_db_get_pkgfromcache(handle.getDBLocal, miss.target);
 			if(info) {
 				AlpmPkg copy = void;
 				if(!alpm_pkg_find_n(trans.remove, info.name)) {
@@ -123,7 +123,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
-		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.db_local),
+		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
 				trans.remove, null, 1);
 	}
 	return 0;
@@ -160,7 +160,7 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
-		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.db_local),
+		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
 				trans.remove, null, 1);
 	}
 }
@@ -175,7 +175,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 {
 	alpm_list_t* i = void;
 
-	for(i = _alpm_db_get_pkgcache(handle.db_local); i; i = alpm_list_next(i)) {
+	for(i = _alpm_db_get_pkgcache(handle.getDBLocal); i; i = alpm_list_next(i)) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		auto optdeps = pkg.getOptDepends();
 
@@ -214,7 +214,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_list_t* lp = void;
 	AlpmTrans trans = handle.trans;
-	AlpmDB db = handle.db_local;
+	AlpmDB db = handle.getDBLocal;
 	alpm_event_t event = void;
 
 	if((trans.flags & ALPM_TRANS_FLAG_RECURSE)
@@ -501,7 +501,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 			/* one last check- does any other package own this file? */
 			alpm_list_t* local = void, local_pkgs = void;
 			int found = 0;
-			local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
+			local_pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
 			for(local = local_pkgs; local && !found; local = local.next) {
 				AlpmPkg local_pkg = cast(AlpmPkg)local.data;
 				AlpmFileList filelist;
@@ -709,7 +709,7 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 		/* run the pre-remove scriptlet if it exists */
 		if(oldpkg.hasScriptlet() &&
 				!(handle.trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
-			char* scriptlet = _alpm_local_db_pkgpath(handle.db_local,
+			char* scriptlet = _alpm_local_db_pkgpath(handle.getDBLocal,
 					oldpkg, cast(char*)"install");
 			_alpm_runscriptlet(handle, scriptlet, cast(char*)"pre_remove", pkgver, null, 0);
 			free(scriptlet);
@@ -729,7 +729,7 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 	/* run the post-remove script if it exists */
 	if(!newpkg && oldpkg.hasScriptlet() &&
 			!(handle.trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
-		char* scriptlet = _alpm_local_db_pkgpath(handle.db_local,
+		char* scriptlet = _alpm_local_db_pkgpath(handle.getDBLocal,
 				oldpkg, cast(char*)"install");
 		_alpm_runscriptlet(handle, scriptlet, cast(char*)"post_remove", pkgver, null, 0);
 		free(scriptlet);
@@ -742,12 +742,12 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 
 	/* remove the package from the database */
 	_alpm_log(handle, ALPM_LOG_DEBUG, "removing database entry '%s'\n", pkgname);
-	if(_alpm_local_db_remove(handle.db_local, oldpkg) == -1) {
+	if(_alpm_local_db_remove(handle.getDBLocal, oldpkg) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not remove database entry %s-%s\n"),
 				pkgname, pkgver);
 	}
 	/* remove the package from the cache */
-	if(_alpm_db_remove_pkgfromcache(handle.db_local, oldpkg) == -1) {
+	if(_alpm_db_remove_pkgfromcache(handle.getDBLocal, oldpkg) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not remove entry '%s' from cache\n"),
 				pkgname);
 	}

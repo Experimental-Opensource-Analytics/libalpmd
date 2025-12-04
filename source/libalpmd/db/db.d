@@ -123,8 +123,8 @@ class AlpmDB {
 		handle.pm_errno = ALPM_ERR_OK;
 		//ASSERT(handle.trans == null);
 
-		if(this is handle.db_local) {
-			handle.db_local = null;
+		if(this is handle.getDBLocal) {
+			handle.getDBLocal = null;
 			found = 1;
 		} else {
 			/* Warning : this function shouldn't be used to unregister all sync

@@ -239,7 +239,7 @@ public:
 
 		if(this.origin == ALPM_PKG_FROM_FILE) {
 			/* The sane option; search locally for things that require this. */
-			this.findRequiredBy(this.handle.db_local, &reqs, optional);
+			this.findRequiredBy(this.handle.getDBLocal, &reqs, optional);
 		} else {
 			/* We have a DB package. if it is a local package, then we should
 			* only search the local DB; else search all known sync databases. */

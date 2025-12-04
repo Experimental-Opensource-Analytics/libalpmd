@@ -1167,7 +1167,7 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 {
 	ASSERT(pkg !is null);
 	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
-	ASSERT(pkg.origin_data.db == pkg.handle.db_local);
+	ASSERT(pkg.origin_data.db == pkg.handle.getDBLocal);
 
 	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);
@@ -1178,7 +1178,7 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 	/* set reason (in pkgcache) */
 	pkg.reason = reason;
 	/* write DESC */
-	if(_alpm_local_db_write(pkg.handle.db_local, pkg, AlpmDBInfRq.Desc)) {
+	if(_alpm_local_db_write(pkg.handle.getDBLocal, pkg, AlpmDBInfRq.Desc)) {
 		RET_ERR(pkg.handle, ALPM_ERR_DB_WRITE, -1);
 	}
 
@@ -1213,7 +1213,7 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 		return null;
 	}
 
-	handle.db_local = db;
+	handle.getDBLocal = db;
 	return db;
 }
 

@@ -335,7 +335,7 @@ private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 private AlpmPkg _alpm_find_file_owner(AlpmHandle handle,   char*path)
 {
 	alpm_list_t* i = void;
-	for(i = handle.db_local.getPkgCache(); i; i = i.next) {
+	for(i = handle.getDBLocal.getPkgCache(); i; i = i.next) {
 		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			return cast(AlpmPkg)i.data;
 		}
@@ -437,7 +437,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		/* CHECK 2: check every target against the filesystem */
 		_alpm_log(handle, ALPM_LOG_DEBUG, "searching for filesystem conflicts: %s\n",
 				p1.name);
-		dbpkg = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)p1.name);
+		dbpkg = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)p1.name);
 
 		/* Do two different checks here. If the package is currently installed,
 		 * then only check files that are new in the new package. If the package
@@ -538,7 +538,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 					 * so they can be compared directly */
 					continue;
 				}
-				localp2 = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)p2.name);
+				localp2 = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)p2.name);
 
 				/* localp2->files will be removed (target conflicts are handled by CHECK 1) */
 				if(localp2 && alpm_filelist_contains(localp2.getFiles(), relative_path.to!string)) {
@@ -575,7 +575,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				char* dir = cast(char*) malloc(dir_len);
 				snprintf(dir, dir_len, "%s/", relative_path);
 
-				owners = alpm_db_find_file_owners(handle.db_local, dir);
+				owners = alpm_db_find_file_owners(handle.getDBLocal, dir);
 				if(owners) {
 					alpm_list_t* pkgs = null, diff = void;
 
@@ -604,7 +604,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			// if(!resolved_conflict && _alpm_needbackup(relative_path, p1)) {
 			if(!resolved_conflict && p1.needBackup(relative_path.to!string)) {
 
-				alpm_list_t* local_pkgs = _alpm_db_get_pkgcache(handle.db_local);
+				alpm_list_t* local_pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
 				int found = 0;
 				for(k = local_pkgs; k && !found; k = k.next) {
 					if(alpm_filelist_contains((cast(AlpmPkg)k.data).getFiles(), relative_path.to!string)) {

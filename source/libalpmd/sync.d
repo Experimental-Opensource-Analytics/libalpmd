@@ -215,7 +215,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	ASSERT(trans.state == AlpmTransState.Initialized);
 
 	_alpm_log(handle, ALPM_LOG_DEBUG, "checking for package upgrades\n");
-	for(auto i = _alpm_db_get_pkgcache(handle.db_local); i; i = i.next) {
+	for(auto i = _alpm_db_get_pkgcache(handle.getDBLocal); i; i = i.next) {
 		AlpmPkg lpkg = cast(AlpmPkg)i.data;
 
 		if(alpm_pkg_find_n(trans.remove, lpkg.name)) {
@@ -279,7 +279,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 				continue;
 			}
 			if(trans !is null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
-				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.db_local, cast(char*)pkg.name);
+				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.getDBLocal, cast(char*)pkg.name);
 				if(local && pkg.compareVersions(local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
 					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
@@ -426,7 +426,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* Compute the fake local database for resolvedeps (partial fix for the
 		 * phonon/qt issue) */
-		localpkgs = alpm_list_diff(_alpm_db_get_pkgcache(handle.db_local),
+		localpkgs = alpm_list_diff(_alpm_db_get_pkgcache(handle.getDBLocal),
 				trans.add, &_alpm_pkg_cmp);
 
 		/* Resolve packages in the transaction one at a time, in addition
@@ -583,7 +583,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* 2. we check for target vs db conflicts (and resolve)*/
 		_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs db and db vs targets\n");
-		deps = handle.db_local.outerConflicts(trans.add);
+		deps = handle.getDBLocal.outerConflicts(trans.add);
 
 		for(auto i = deps; i; i = i.next) {
 			alpm_question_conflict_t question = {
@@ -619,7 +619,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			if(question.remove) {
 				/* append to the removes list */
 				AlpmPkg sync = alpm_pkg_find_n(trans.add, name1);
-				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)name2);
+				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)name2);
 				_alpm_log(handle, ALPM_LOG_DEBUG, "electing '%s' for removal\n", name2);
 				sync.removes.insertFront(local);
 			} else { /* abort */
@@ -661,7 +661,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checking dependencies\n");
-		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.db_local),
+		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
 				trans.remove, trans.add, 1);
 		if(deps) {
 			(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
@@ -679,7 +679,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	for(auto i = trans.add; i; i = i.next) {
 		/* update download size field */
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
-		AlpmPkg lpkg = handle.db_local.getPkg(cast(char*)spkg.name);
+		AlpmPkg lpkg = handle.getDBLocal.getPkg(cast(char*)spkg.name);
 		if(compute_download_size(spkg) < 0) {
 			ret = -1;
 			goto cleanup;

@@ -553,7 +553,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 
 		pkg = cast(AlpmPkg)targ.data;
 		/* is this package already installed? */
-		local_pkg = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkg.name);
+		local_pkg = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)pkg.name);
 		if(local_pkg) {
 			calculate_removed_size(handle, mount_points, local_pkg);
 		}

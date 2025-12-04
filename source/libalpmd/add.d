@@ -61,7 +61,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 		RET_ERR(handle, ALPM_ERR_TRANS_DUP_TARGET, -1);
 	}
 
-	if((local = _alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkgname)) !is null) {
+	if((local = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)pkgname)) !is null) {
 		string localpkgname = local.name;
 		string localpkgver = local.version_;
 		int cmp = pkg.compareVersions(local);
@@ -164,7 +164,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			cast(char*)_alpm_db_path(handle.db_local), cast(char*)newpkg.name, cast(char*)newpkg.version_, dbfile);
+			cast(char*)_alpm_db_path(handle.getDBLocal), cast(char*)newpkg.name, cast(char*)newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
@@ -398,7 +398,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	int ret = 0, errors = 0;
 	int is_upgrade = 0;
 	AlpmPkg oldpkg = null;
-	AlpmDB db = handle.db_local;
+	AlpmDB db = handle.getDBLocal;
 	AlpmTrans trans = handle.trans;
 	alpm_progress_t progress = ALPM_PROGRESS_ADD_START;
 	alpm_event_package_operation_t event = void;

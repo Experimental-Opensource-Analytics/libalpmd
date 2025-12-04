@@ -176,7 +176,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* vertices = null;
 	alpm_list_t* localpkgs = alpm_list_diff(
-			handle.db_local.getPkgCache(), targets, &_alpm_pkg_cmp);
+			handle.getDBLocal.getPkgCache(), targets, &_alpm_pkg_cmp);
 
 	if(ignore) {
 		alpm_list_t* oldlocal = localpkgs;
@@ -762,7 +762,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 						pkg.name, dep.name);
 
 				/* provide is already installed so return early instead of prompting later */
-				if(_alpm_db_get_pkgfromcache(handle.db_local, cast(char*)pkg.name)) {
+				if(_alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)pkg.name)) {
 					alpm_list_free(providers);
 					return pkg;
 				}
@@ -886,7 +886,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 					"pulling dependency %s (needed by %s)\n",
 					spkg.name, pkg.name);
 			alpm_depmissing_free(miss);
-		} else if(resolvedep(handle, missdep, (dbs = alpm_new_list_add(AlpmDBs(), handle.db_local)), rem, 0)) {
+		} else if(resolvedep(handle, missdep, (dbs = alpm_new_list_add(AlpmDBs(), handle.getDBLocal)), rem, 0)) {
 			alpm_depmissing_free(miss);
 		} else {
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;

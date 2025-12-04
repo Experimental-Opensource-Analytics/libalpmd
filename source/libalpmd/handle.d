@@ -76,6 +76,8 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 
 class AlpmHandle {
 private:
+	AlpmDB 	dbLocal;    /* local db pointer */
+
 	AlpmStrings 	cachedirs;  /* Paths to pacman cache directories */
 	AlpmStrings 	hookdirs;   /* Paths to hook directories */
 
@@ -85,7 +87,6 @@ private:
 
 public:
 	/* internal usage */
-	AlpmDB 	db_local;    /* local db pointer */
 	AlpmDBs dbs_sync;  /* List of (AlpmDB) */
 	File 	lckFile;
 	File 	logstream;        /* log file stream pointer */
@@ -159,6 +160,8 @@ public:
 		lckFile.close();
 		trans = null;
 	}
+
+	auto ref getDBLocal() @property => this.dbLocal;
 
 	/** Lock the database */
 	void lockDBs() {
@@ -403,7 +406,7 @@ void _alpm_handle_free(AlpmHandle handle)
 	}
 
 	/* close local database */
-	if((db = handle.db_local) !is null) {
+	if((db = handle.getDBLocal) !is null) {
 		db.ops.unregister(db);
 	}
 
@@ -939,7 +942,7 @@ int  alpm_option_remove_architecture(AlpmHandle handle, char* arch)
 
 AlpmDB alpm_get_localdb(AlpmHandle handle)
 {
-	return handle.db_local;
+	return handle.getDBLocal;
 }
 
 int  alpm_option_set_checkspace(AlpmHandle handle, int checkspace)
