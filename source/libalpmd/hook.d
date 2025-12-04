@@ -80,6 +80,30 @@ struct AlpmTrigger {
 	~this() {
 		targets.clear();
 	}
+
+	bool isNotValid(char* file) {
+		bool ret = false;
+
+		if(this.targets.empty) {
+			ret = true;
+			logger.errorf(
+					("Missing trigger targets in hook: %s\n"), file);
+		}
+
+		if(this.type == 0) {
+			ret = true;
+			logger.errorf(
+					("Missing trigger type in hook: %s\n"), file);
+		}
+
+		if(this.op == 0) {
+			ret = true;
+			logger.errorf(
+					("Missing trigger operation in hook: %s\n"), file);
+		}
+
+		return ret;
+	}
 }
 
 alias AlpmTriggers = AlpmList!AlpmTrigger;
@@ -119,31 +143,6 @@ struct _alpm_hook_cb_ctx {
 	AlpmHook* hook;
 }
 
-private int _alpm_trigger_validate(AlpmHandle handle, AlpmTrigger* trigger,   char*file)
-{
-	int ret = 0;
-
-	if(trigger.targets.empty) {
-		ret = -1;
-		_alpm_log(handle, ALPM_LOG_ERROR,
-				("Missing trigger targets in hook: %s\n"), file);
-	}
-
-	if(trigger.type == 0) {
-		ret = -1;
-		_alpm_log(handle, ALPM_LOG_ERROR,
-				("Missing trigger type in hook: %s\n"), file);
-	}
-
-	if(trigger.op == 0) {
-		ret = -1;
-		_alpm_log(handle, ALPM_LOG_ERROR,
-				("Missing trigger operation in hook: %s\n"), file);
-	}
-
-	return ret;
-}
-
 private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
 {
 	alpm_list_t* i = void;
@@ -156,7 +155,7 @@ private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
 	}
 
 	foreach(trigger; hook.triggers[]) {
-		if(_alpm_trigger_validate(handle, &trigger, file) != 0) {
+		if(trigger.isNotValid(file)) {
 			ret = -1;
 		}
 	}
