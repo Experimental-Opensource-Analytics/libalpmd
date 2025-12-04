@@ -80,7 +80,7 @@ struct AlpmTrigger {
 }
 
 struct AlpmHook {
-	char* name;
+	string name;
 	char* desc;
 	alpm_list_t* triggers;
 	alpm_list_t* depends;
@@ -98,7 +98,7 @@ struct _alpm_hook_cb_ctx {
 private void _alpm_hook_free(AlpmHook* hook)
 {
 	if(hook) {
-		free(hook.name);
+		destroy(hook.name);
 		free(hook.desc);
 		// wordsplit_free(hook.cmd);
 		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
@@ -482,10 +482,10 @@ private int _alpm_hook_cmp(AlpmHook* h1, AlpmHook* h2)
 {
 	size_t suflen = strlen(ALPM_HOOK_SUFFIX), l1 = void, l2 = void;
 	int ret = void;
-	l1 = strlen(h1.name) - suflen;
-	l2 = strlen(h2.name) - suflen;
+	l1 = h1.name.length - suflen;
+	l2 = h2.name.length - suflen;
 	/* exclude the suffixes from comparison */
-	ret = strncmp(h1.name, h2.name, l1 <= l2 ? l1 : l2);
+	ret = cmp(h1.name, h2.name);
 	if(ret == 0 && l1 != l2) {
 		return l1 < l2 ? -1 : 1;
 	}
@@ -496,7 +496,7 @@ private alpm_list_t* find_hook(alpm_list_t* haystack,  void* needle)
 {
 	while(haystack) {
 		AlpmHook* h = cast(AlpmHook*)haystack.data;
-		if(h && strcmp(h.name, cast(char*)needle) == 0) {
+		if(h && cmp(h.name, needle.to!string) == 0) {
 			return haystack;
 		}
 		haystack = haystack.next;
@@ -652,7 +652,8 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 				continue;
 			}
 
-			STRDUP(ctx.hook.name, entry.d_name.ptr);
+			ctx.hook.name = entry.d_name.dup;
+			// STRDUP(ctx.hook.name, entry.d_name.ptr);
 			hooks = alpm_list_add(hooks, ctx.hook);
 		}
 		if(errno != 0) {
@@ -691,7 +692,7 @@ int _alpm_hook_run(AlpmHandle handle, alpm_hook_when_t when)
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "running '%s'...\n", hook.name);
 
 			hook_event.type = ALPM_EVENT_HOOK_RUN_START;
-			hook_event.name = hook.name;
+			hook_event.name = cast(char*)hook.name.toStringz;
 			hook_event.desc = hook.desc;
 			EVENT(handle, &hook_event);
 
