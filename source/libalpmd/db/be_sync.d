@@ -53,6 +53,9 @@ import libalpmd.pkghash;
 import libalpmd.error;
 import std.string;
 
+class AlpmDBSync : AlpmDB {
+	
+}
 
 int sync_db_validate(AlpmDB db)
 {

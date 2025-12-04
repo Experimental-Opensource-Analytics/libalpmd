@@ -318,6 +318,10 @@ enum string LAZY_LOAD(string info) = `
 	}
  }
 
+ class AlpmDBLocal : AlpmDB {
+	
+ }
+
 private int checkdbdir(AlpmDB db)
 {
 	stat_t buf = void;

@@ -89,6 +89,17 @@ class AlpmDB {
 	alpm_list_t* cache_servers;
 	alpm_list_t* servers;
 	const (db_operations)* ops;
+	// abstract int validate() {
+	// 	return 0;
+	// }
+
+	// abstract int populate() {
+	// 	return 0;
+	// }
+
+	// abstract void unregister() {
+
+	// }
 
 	/* bitfields for validity, local, loaded caches, etc. */
 	/* From _alpm_dbstatus_t */
@@ -101,7 +112,7 @@ class AlpmDB {
 	AlpmHandle getHandle() => this.handle;
 	string getName() => this.treename;
 
-	int  unregister() {
+	int  unregisterDB() {
 		int found = 0;
 		// AlpmHandle handle = void;
 
@@ -144,7 +155,7 @@ class AlpmDB {
 
 		/* Sanity checks */
 		//ASSERT(db != null);
-		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
+		// (cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(url != null && strlen(url) != 0);
 
 		string newurl = sanitizeUrl(url.to!string);
