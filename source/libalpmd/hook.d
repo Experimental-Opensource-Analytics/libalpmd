@@ -79,10 +79,12 @@ struct AlpmTrigger {
 	}
 }
 
+alias AlpmTriggers = AlpmList!AlpmTrigger;
+
 struct AlpmHook {
 	string name;
 	string desc;
-	alpm_list_t* triggers;
+	AlpmTriggers triggers;
 	alpm_list_t* depends;
 	char** cmd;
 	alpm_list_t* matches;
@@ -102,7 +104,7 @@ private void _alpm_hook_free(AlpmHook* hook)
 		destroy(hook.desc);
 		// wordsplit_free(hook.cmd);
 		// alpm_list_free_inner(hook.triggers, cast(alpm_list_fn_free) &_alpm_trigger_free);
-		alpm_list_free(hook.triggers);
+		hook.triggers.clear();
 		alpm_list_free(hook.matches);
 		FREELIST(hook.depends);
 		free(hook);
@@ -139,14 +141,14 @@ private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
 	alpm_list_t* i = void;
 	int ret = 0;
 
-	if(hook.triggers == null) {
+	if(hook.triggers.empty) {
 		/* special case: allow triggerless hooks as a way of creating dummy
 		 * hooks that can be used to mask lower priority hooks */
 		return 0;
 	}
 
-	for(i = hook.triggers; i; i = i.next) {
-		if(_alpm_trigger_validate(handle, cast(AlpmTrigger*)i.data, file) != 0) {
+	foreach(trigger; hook.triggers[]) {
+		if(_alpm_trigger_validate(handle, &trigger, file) != 0) {
 			ret = -1;
 		}
 	}
@@ -211,14 +213,14 @@ auto error = (char* fmt, char* arg1, int arg2, char* arg3 = null, char* arg4 = n
 		if(strcmp(section, "Trigger") == 0) {
 			AlpmTrigger* t;
 			CALLOC(t, AlpmTrigger.sizeof, 1);
-			hook.triggers = alpm_list_add(hook.triggers, t);
+			hook.triggers.insertBack(*t);
 		} else if(strcmp(section, "Action") == 0) {
 			/* no special processing required */
 		} else {
 			return error(cast(char*)"hook %s line %d: invalid section %s\n", file, line, section);
 		}
 	} else if(strcmp(section, "Trigger") == 0) {
-		AlpmTrigger* t = cast(AlpmTrigger*)hook.triggers.prev.data;
+		AlpmTrigger* t = &hook.triggers.back(); //??
 		if(strcmp(key, "Operation") == 0) {
 			if(strcmp(value, "Install") == 0) {
 				t.op |= AlpmHookOp.Install;
@@ -466,8 +468,8 @@ private int _alpm_hook_triggered(AlpmHandle handle, AlpmHook* hook)
 {
 	alpm_list_t* i = void;
 	int ret = 0;
-	for(i = hook.triggers; i; i = i.next) {
-		if(_alpm_hook_trigger_match(handle, hook, cast(AlpmTrigger*)i.data)) {
+	foreach(trigger; hook.triggers[]) {
+		if(_alpm_hook_trigger_match(handle, hook, &trigger)) {
 			if(!hook.needs_targets) {
 				return 1;
 			} else {
