@@ -136,46 +136,44 @@ struct AlpmHook {
 		this.matches.clear();
 		this.depends.clear();
 	}
+
+	bool isNotValid(char* file) {
+		bool ret = false;
+
+		if(this.triggers.empty) {
+			/* special case: allow triggerless hooks as a way of creating dummy
+			* hooks that can be used to mask lower priority hooks */
+			return 0;
+		}
+
+		foreach(trigger; this.triggers[]) {
+			if(trigger.isNotValid(file)) {
+				ret = true;
+			}
+		}
+
+		if(this.cmd == null) {
+			ret = true;
+			logger.errorf(
+					"Missing Exec option in hook: %s\n", file);
+		}
+
+		if(this.when == 0) {
+			ret = true;
+			logger.errorf(
+					"Missing When option in hook: %s\n", file);
+		} else if(this.when != AlpmHookWhen.PreTransaction && this.abort_on_fail) {
+			logger.warningf(
+				"AbortOnFail set for PostTransaction hook: %s\n", file);
+		}
+
+		return ret;
+	}
 }
 
 struct _alpm_hook_cb_ctx {
 	AlpmHandle handle;
 	AlpmHook* hook;
-}
-
-private int _alpm_hook_validate(AlpmHandle handle, AlpmHook* hook,   char*file)
-{
-	alpm_list_t* i = void;
-	int ret = 0;
-
-	if(hook.triggers.empty) {
-		/* special case: allow triggerless hooks as a way of creating dummy
-		 * hooks that can be used to mask lower priority hooks */
-		return 0;
-	}
-
-	foreach(trigger; hook.triggers[]) {
-		if(trigger.isNotValid(file)) {
-			ret = -1;
-		}
-	}
-
-	if(hook.cmd == null) {
-		ret = -1;
-		_alpm_log(handle, ALPM_LOG_ERROR,
-				("Missing Exec option in hook: %s\n"), file);
-	}
-
-	if(hook.when == 0) {
-		ret = -1;
-		_alpm_log(handle, ALPM_LOG_ERROR,
-				("Missing When option in hook: %s\n"), file);
-	} else if(hook.when != AlpmHookWhen.PreTransaction && hook.abort_on_fail) {
-		_alpm_log(handle, ALPM_LOG_WARNING,
-				("AbortOnFail set for PostTransaction hook: %s\n"), file);
-	}
-
-	return ret;
 }
 
 private int _alpm_hook_parse_cb(  char*file, int line,   char*section, char* key, char* value, void* data)
@@ -666,7 +664,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 
 			_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s\n", path.ptr);
 			if(parse_ini(path.ptr, &_alpm_hook_parse_cb, &ctx) != 0
-					|| _alpm_hook_validate(handle, ctx.hook, path.ptr)) {
+					|| ctx.hook.isNotValid(path.ptr)) {
 				_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s failed\n", path.ptr);
 				destroy(ctx.hook);
 				ret = -1;
