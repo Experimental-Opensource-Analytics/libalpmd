@@ -54,6 +54,7 @@ import std.string;
 import libalpmd.deps;
 import libalpmd.pkg;
 import libalpmd.dload;
+import libalpmd.env;
 
 void EVENT(h, e)(h handle, e event) { 
 	if(handle.eventcb) { 
@@ -262,11 +263,11 @@ class AlpmHandle {
 		string temporary_syncpath = "./tmp/";
 		int ret = -1;
 		/* make sure we have a sane umask */
-		mode_t oldmask = umask(octal!"022");
+		Environment.saveMask();
 		alpm_list_t* payloads = null;
 		alpm_event_t event = void;
 
-		this.sandboxuser = getenv("USER").to!string;
+		this.sandboxuser = Environment.getUserName();
 
 		this.lockDBs();
 
@@ -341,7 +342,7 @@ class AlpmHandle {
 		// FREE(temporary_syncpath);
 		// FREE(syncpath);
 		this.unlockDBs();
-		umask(oldmask);
+		Environment.restoreMask();
 		// return ret;
 	}
 
