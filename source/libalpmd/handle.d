@@ -55,6 +55,8 @@ import libalpmd.deps;
 import libalpmd.pkg;
 import libalpmd.dload;
 import libalpmd.env;
+import libalpmd.question;
+
 import std.algorithm;
 
 void EVENT(h, e)(h handle, e event) { 

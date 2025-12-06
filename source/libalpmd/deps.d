@@ -32,10 +32,6 @@ import std.conv;
 import std.algorithm;
 import std.string;
 
-
-
-/* libalpm */
-import libalpmd.deps;
 import libalpmd.alpm_list;
 import libalpmd.util;
 import libalpmd.log;
@@ -45,6 +41,7 @@ import libalpmd.db;
 import libalpmd.handle;
 import libalpmd.trans;
 import libalpmd.alpm;
+import libalpmd.question;
 import libalpmd.pkg;
 
 /** The basic dependency type.

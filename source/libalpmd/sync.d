@@ -57,6 +57,7 @@ import libalpmd.signing;
 import libalpmd.group;
 import libalpmd.deps;
 import libalpmd.error;
+import libalpmd.question;
 
 import std.conv;
 
