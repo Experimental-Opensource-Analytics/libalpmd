@@ -69,17 +69,14 @@ class AlpmConflict {
 		reason = reason.dup;
 	}
 
-	~this() {
-		destroy!false(package1);
-		destroy!false(package2);
-	}
+	~this() {}
 
 	/**
 	* @brief Creates a copy of a conflict.
 	*/
 	AlpmConflict dup() => new AlpmConflict(
-			package1.dup,
-			package2.dup,
+			package1,
+			package2,
 			reason
 		);
 }
@@ -193,6 +190,18 @@ alpm_list_t * alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist)
 	return _alpm_innerconflicts(handle, pkglist);
 }
 
+/**
+ * File conflict type.
+ * Whether the conflict results from a file existing on the filesystem, or with
+ * another target in the transaction.
+ */
+enum AlpmFileConflictType {
+	/** The conflict results with a another target in the transaction */
+	Target = 1,
+	/** The conflict results from a file existing on the filesystem */
+	Filesystem
+}
+
 /** File conflict.
  *
  * A conflict that has happened due to a two packages containing the same file,
@@ -202,7 +211,7 @@ class AlpmFileConflict {
 	/** The name of the package that caused the conflict */
 	char* target;
 	/** The type of conflict */
-	alpm_fileconflicttype_t type;
+	AlpmFileConflictType type;
 	/** The name of the file that the package conflicts with */
 	char* file;
 	/** The name of the package that also owns the file if there is one*/
@@ -227,13 +236,13 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 	STRDUP(conflict.target, cast(char*)pkg1.name);
 	STRDUP(conflict.file, filestr);
 	if(!pkg2) {
-		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
+		conflict.type = AlpmFileConflictType.Filesystem;
 		STRDUP(conflict.ctarget, cast(char*)"");
 	} else if(pkg2.origin == ALPM_PKG_FROM_LOCALDB) {
-		conflict.type = ALPM_FILECONFLICT_FILESYSTEM;
+		conflict.type = AlpmFileConflictType.Filesystem;
 		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
 	} else {
-		conflict.type = ALPM_FILECONFLICT_TARGET;
+		conflict.type = AlpmFileConflictType.Target;
 		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
 	}
 

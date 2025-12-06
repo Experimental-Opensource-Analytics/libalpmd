@@ -408,22 +408,6 @@ alias ALPM_DEP_MOD_LE = alpm_depmod_t.ALPM_DEP_MOD_LE;
 alias ALPM_DEP_MOD_GT = alpm_depmod_t.ALPM_DEP_MOD_GT;
 alias ALPM_DEP_MOD_LT = alpm_depmod_t.ALPM_DEP_MOD_LT;
 
-
-/**
- * File conflict type.
- * Whether the conflict results from a file existing on the filesystem, or with
- * another target in the transaction.
- */
-enum alpm_fileconflicttype_t {
-	/** The conflict results with a another target in the transaction */
-	ALPM_FILECONFLICT_TARGET = 1,
-	/** The conflict results from a file existing on the filesystem */
-	ALPM_FILECONFLICT_FILESYSTEM
-}
-alias ALPM_FILECONFLICT_TARGET = alpm_fileconflicttype_t.ALPM_FILECONFLICT_TARGET;
-alias ALPM_FILECONFLICT_FILESYSTEM = alpm_fileconflicttype_t.ALPM_FILECONFLICT_FILESYSTEM;
-
-
 /** Missing dependency. */
 struct alpm_depmissing_t {
 	/** Name of the package that has the dependency */
