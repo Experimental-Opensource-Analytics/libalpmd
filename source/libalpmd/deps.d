@@ -708,18 +708,14 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
 				&& !alpm_pkg_find_n(excluding, pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
-				alpm_question_install_ignorepkg_t question = {
-					type: ALPM_QUESTION_INSTALL_IGNOREPKG,
-					install: 0,
-					pkg: pkg
-				};
+				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				if(prompt) {
-					QUESTION(handle, &question);
+					QUESTION(handle, question);
 				} else {
 					_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
 							pkg.name, pkg.version_);
 				}
-				if(!question.install) {
+				if(!question.getAnswer()) {
 					ignored = 1;
 					continue;
 				}
@@ -739,18 +735,14 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
 					&& !alpm_pkg_find_n(excluding, pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
-					alpm_question_install_ignorepkg_t question = {
-						type: ALPM_QUESTION_INSTALL_IGNOREPKG,
-						install: 0,
-						pkg: pkg
-					};
+					auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 					if(prompt) {
-						QUESTION(handle, &question);
+						QUESTION(handle, question);
 					} else {
 						_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
 								pkg.name, pkg.version_);
 					}
-					if(!question.install) {
+					if(!question.getAnswer()) {
 						ignored = 1;
 						continue;
 					}
@@ -772,19 +764,14 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 
 	count = cast(int)alpm_list_count(providers);
 	if(count >= 1) {
-		alpm_question_select_provider_t question = {
-			type: ALPM_QUESTION_SELECT_PROVIDER,
-			/* default to first provider if there is no QUESTION callback */
-			use_index: 0,
-			providers: providers,
-			depend: dep
-		};
+		auto question = new AlpmQuestionSelectProvider(providers, dep);
 		if(count > 1) {
 			/* if there is more than one provider, we ask the user */
-			QUESTION(handle, &question);
+			QUESTION(handle, question);
 		}
-		if(question.use_index >= 0 && question.use_index < count) {
-			alpm_list_t* nth = alpm_list_nth(providers, question.use_index);
+		auto answer = question.getAnswer();
+		if(answer >= 0 && answer < count) {
+			alpm_list_t* nth = alpm_list_nth(providers, answer);
 			AlpmPkg pkg = cast(AlpmPkg)nth.data;
 			alpm_list_free(providers);
 			return pkg;

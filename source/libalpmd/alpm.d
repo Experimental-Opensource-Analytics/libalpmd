@@ -1401,23 +1401,9 @@ int alpm_option_set_eventcb(AlpmHandle handle, alpm_cb_event cb, void* ctx);
 
 /** Returns the callback used for questions.
  * @param handle the context handle
- * @return the currently set question callback
- */
-alpm_cb_question alpm_option_get_questioncb(AlpmHandle handle);
-
-/** Returns the callback used for questions.
- * @param handle the context handle
  * @return the currently set question callback context
  */
 void* alpm_option_get_questioncb_ctx(AlpmHandle handle);
-
-/** Sets the callback used for questions.
- * @param handle the context handle
- * @param cb the cb to use
- * @param ctx user-provided context to pass to cb
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
-int alpm_option_set_questioncb(AlpmHandle handle, alpm_cb_question cb, void* ctx);
 
 /**Returns the callback used for operation progress.
  * @param handle the context handle

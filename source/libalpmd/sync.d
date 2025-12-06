@@ -153,13 +153,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 			}
 		}
 		if(found) {
-			alpm_question_replace_t question = {
-				type: ALPM_QUESTION_REPLACE_PKG,
-				replace: 0,
-				oldpkg: lpkg,
-				newpkg: spkg,
-				newdb: sdb
-			};
+			auto question = new AlpmQuestionReplace(lpkg, spkg, sdb);
 			AlpmPkg tpkg = void;
 			/* check IgnorePkg/IgnoreGroup */
 			if(alpm_pkg_should_ignore(handle, spkg)
@@ -170,8 +164,8 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 				continue;
 			}
 
-			QUESTION(handle, &question);
-			if(!question.replace) {
+			QUESTION(handle, question);
+			if(!question.getAnswer()) {
 				continue;
 			}
 
@@ -290,14 +284,10 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 				}
 			}
 			if(alpm_pkg_should_ignore(db.handle, pkg)) {
-				alpm_question_install_ignorepkg_t question = {
-					type: ALPM_QUESTION_INSTALL_IGNOREPKG,
-					install: 0,
-					pkg: pkg
-				};
+				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				ignorelist = alpm_list_add(ignorelist, cast(void*)pkg);
-				QUESTION(db.handle, &question);
-				if(!question.install) {
+				QUESTION(db.handle, question);
+				if(!question.getAnswer()) {
 					continue;
 				}
 			}
@@ -447,13 +437,10 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		/* If there were unresolvable top-level packages, prompt the user to
 		   see if they'd like to ignore them rather than failing the sync */
 		if(unresolvable[].count) {
-			alpm_question_remove_pkgs_t question = {
-				type: ALPM_QUESTION_REMOVE_PKGS,
-				skip: 0,
-				packages: unresolvable
-			};
-			QUESTION(handle, &question);
-			if(question.skip) {
+			auto question = new AlpmQuestionRemovePkg(unresolvable);
+			QUESTION(handle, question);
+
+			if(question.getAnswer()) {
 				/* User wants to remove the unresolvable packages from the
 				   transaction. The packages will be removed from the actual
 				   transaction when the transaction packages are replaced with a
@@ -587,14 +574,10 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		deps = handle.getDBLocal.outerConflicts(trans.add);
 
 		for(auto i = deps; i; i = i.next) {
-			alpm_question_conflict_t question = {
-				type: ALPM_QUESTION_CONFLICT_PKG,
-				remove: 0,
-				conflict: cast(AlpmConflict)i.data
-			};
 			AlpmConflict conflict = cast(AlpmConflict)i.data;
 			string name1 = conflict.package1.name;
 			string name2 = conflict.package2.name;
+			auto question = new AlpmQuestionConflict(conflict);
 			int found = 0;
 
 			/* if name2 (the local package) is not elected for removal,
@@ -616,8 +599,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			logger.tracef("package '%s-%s' conflicts with '%s-%s'\n",
 					name1, conflict.package1.version_, name2,conflict.package2.version_);
 
-			QUESTION(handle, &question);
-			if(question.remove) {
+			QUESTION(handle, question);
+			if(question.getAnswer()) {
 				/* append to the removes list */
 				AlpmPkg sync = alpm_pkg_find_n(trans.add, name1);
 				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)name2);
@@ -714,14 +697,10 @@ off_t  alpm_pkg_download_size(AlpmPkg newpkg)
  */
 private int prompt_to_delete(AlpmHandle handle,   char*filepath, alpm_errno_t reason)
 {
-	alpm_question_corrupted_t question = {
-		type: ALPM_QUESTION_CORRUPTED_PKG,
-		remove: 0,
-		filepath: filepath,
-		reason: reason
-	};
-	QUESTION(handle, &question);
-	if(question.remove) {
+	auto question = new AlpmQuestionCorrupted(filepath.to!string, reason);
+	QUESTION(handle, question);
+	
+	if(question.getAnswer()) {
 		char* sig_filepath = void;
 
 		unlink(filepath);
@@ -730,7 +709,7 @@ private int prompt_to_delete(AlpmHandle handle,   char*filepath, alpm_errno_t re
 		unlink(sig_filepath);
 		FREE(sig_filepath);
 	}
-	return question.remove;
+	return question.getAnswer();
 }
 
 private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)

@@ -39,8 +39,7 @@ import libalpmd.alpm;
 import libalpmd.handle;
 import libalpmd.alpm_list;
 import libalpmd.db;
-
-
+import libalpmd.question;
 
 int  alpm_decode_signature(  char*base64_data, ubyte** data, size_t* data_len)
 {
@@ -487,15 +486,10 @@ int _alpm_key_import(AlpmHandle handle,   char*uid,   char*fpr)
 	}
 
 
-	alpm_question_import_key_t question = {
-				type: ALPM_QUESTION_IMPORT_KEY,
-				_import: 0,
-				uid: uid,
-				fingerprint: fpr
-			};
+	auto question = new AlpmQuestionImportKey(uid.to!string, fpr.to!string);
 	QUESTION(handle, &question);
 
-	if(question.import_) {
+	if(question.getAnswer()) {
 		/* Try to import the key from a WKD first */
 		if(email_from_uid(uid, &email) == 0) {
 			ret = key_import_wkd(handle, email, fpr);

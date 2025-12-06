@@ -65,9 +65,9 @@ void EVENT(h, e)(h handle, e event) {
 	}
 } 
 
-void QUESTION(H, Q)(H h, Q q) {
-	if((h).questioncb) {
-		(h).questioncb((h).questioncb_ctx, cast(alpm_question_t *) (q));
+void QUESTION(AlpmHandle h, AlpmQuestion q) {
+	if(h.questioncb) {
+		h.questioncb(q);
 	}
 }
 void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
@@ -112,15 +112,14 @@ public:
 
 	/* callback functions */
 
-	AlpmLogCallback		logCb; 
-	AlpmDlCallback 		dlcb;      /* Download callback function */
+	AlpmLogCallback			logcb; 
+	AlpmDlCallback 			dlcb;      /* Download callback function */
+	AlpmQuestionCallback 	questioncb;
 
 	alpm_cb_fetch fetchcb;      /* Download file callback function */
 	void* fetchcb_ctx;
 	alpm_cb_event eventcb;
 	void* eventcb_ctx;
-	alpm_cb_question questioncb;
-	void* questioncb_ctx;
 	alpm_cb_progress progresscb;
 	void* progresscb_ctx;
 
@@ -398,16 +397,22 @@ public:
 		this.disableDltimeout = disableDltimeout;
 	}
 
-	auto  getLogCallback() => this.logCb;
+	auto  getLogCallback() => this.logcb;
 
-	void setLogCallback(AlpmLogCallback logCb) {
-		this.logCb = logCb;
+	void setLogCallback(AlpmLogCallback logcb) {
+		this.logcb = logcb;
 	}
 
 	AlpmDlCallback  getDlCallback(AlpmHandle handle) => this.dlcb;
 
 	void  setDlCallback(AlpmDlCallback cb) {
 		this.dlcb = cb;
+	}
+
+	AlpmQuestionCallback  getQuestionCallback() => this.questioncb;
+
+	void  setQuestionCallback(AlpmQuestionCallback cb) {
+		this.questioncb = cb;
 	}
 }
 
@@ -494,16 +499,6 @@ alpm_cb_event  alpm_option_get_eventcb(AlpmHandle handle)
 void * alpm_option_get_eventcb_ctx(AlpmHandle handle)
 {
 	return handle.eventcb_ctx;
-}
-
-alpm_cb_question  alpm_option_get_questioncb(AlpmHandle handle)
-{
-	return handle.questioncb;
-}
-
-void * alpm_option_get_questioncb_ctx(AlpmHandle handle)
-{
-	return handle.questioncb_ctx;
 }
 
 alpm_cb_progress  alpm_option_get_progresscb(AlpmHandle handle)
@@ -597,13 +592,6 @@ int  alpm_option_set_eventcb(AlpmHandle handle, alpm_cb_event cb, void* ctx)
 {
 	handle.eventcb = cb;
 	handle.eventcb_ctx = ctx;
-	return 0;
-}
-
-int  alpm_option_set_questioncb(AlpmHandle handle, alpm_cb_question cb, void* ctx)
-{
-	handle.questioncb = cb;
-	handle.questioncb_ctx = ctx;
 	return 0;
 }
 
