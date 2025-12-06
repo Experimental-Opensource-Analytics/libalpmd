@@ -209,7 +209,7 @@ enum AlpmFileConflictType {
  * by that package. */
 class AlpmFileConflict {
 	/** The name of the package that caused the conflict */
-	char* target;
+	string target;
 	/** The type of conflict */
 	AlpmFileConflictType type;
 	/** The name of the file that the package conflicts with */
@@ -233,7 +233,7 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 {
 	AlpmFileConflict conflict = new AlpmFileConflict();
 
-	STRDUP(conflict.target, cast(char*)pkg1.name);
+	conflict.target = pkg1.name;
 	STRDUP(conflict.file, filestr);
 	if(!pkg2) {
 		conflict.type = AlpmFileConflictType.Filesystem;
