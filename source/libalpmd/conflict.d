@@ -213,7 +213,7 @@ class AlpmFileConflict {
 	/** The type of conflict */
 	AlpmFileConflictType type;
 	/** The name of the file that the package conflicts with */
-	char* file;
+	string file;
 	/** The name of the package that also owns the file if there is one*/
 	char* ctarget;
 }
@@ -234,7 +234,7 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 	AlpmFileConflict conflict = new AlpmFileConflict();
 
 	conflict.target = pkg1.name;
-	STRDUP(conflict.file, filestr);
+	conflict.file = filestr.to!string;
 	if(!pkg2) {
 		conflict.type = AlpmFileConflictType.Filesystem;
 		STRDUP(conflict.ctarget, cast(char*)"");
