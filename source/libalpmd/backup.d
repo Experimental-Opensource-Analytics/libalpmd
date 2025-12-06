@@ -1,72 +1,54 @@
 module libalpmd.backup;
-@nogc  
-   
-/*
- *  backup.c
- *
- *  Copyright (c) 2006-2025 Pacman Development Team <pacman-dev@lists.archlinux.org>
- *  Copyright (c) 2005 by Judd Vinet <jvinet@zeroflux.org>
- *  Copyright (c) 2005 by Aurelien Foret <orelien@chez.com>
- *  Copyright (c) 2005 by Christian Hamar <krics@linuxforum.hu>
- *  Copyright (c) 2006 by Miklos Vajna <vmiklos@frugalware.org>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
-import core.stdc.stdlib;
-import core.stdc.string;
-
-/* libalpm */
-import libalpmd.backup;
 import libalpmd.alpm_list;
-import libalpmd.log;
-import libalpmd.util;
-import libalpmd.alpm;
-import libalpmd.pkg;
 import std.string;
 
 /** Local package or package file backup entry */
 class AlpmBackup {
+private:
        	/** Name of the file (without .pacsave extension) */
        	string name;
        	/** Hash of the filename (used internally) */
 		string hash;	
 
+public:
 	   	AlpmBackup dup() {
-			auto newBackup = new AlpmBackup;
-			newBackup.name = name.dup;
-			newBackup.hash = hash.dup;
+			auto newBackup = new AlpmBackup(
+				this.name,
+				this.hash
+			);
 			return newBackup;
 		}
 
-		int splitString(string _string) {
+		void fillByString(string _string) {
 			auto splitter = _string.split('\t');
 			this.name = splitter[0].dup;
 			this.hash = splitter[1].dup;
-
-			return 0;
 		}
 
-		~this() {
-			FREE(this.name);
-			FREE(this.hash);
+		this(string name) {
+			this.name = name;
 		}
-}
 
-void _alpm_backup_free(AlpmBackup backup)
-{
-	destroy!false(backup);
+		this(string name, string hash) {
+			this.name = name;
+			this.hash = hash;
+		}
+
+		~this() {}
+
+		override string toString() const {
+			return "name\thash\n";
+		}
+
+		string getHash() => hash;
+
+		void setHash(string hash) {
+			this.hash = hash;
+		}
+
+		bool isBackup(string file) => name == file;
+		bool isHash(string hash) => this.hash == hash;
 }
 
 alias AlpmBackups = DList!AlpmBackup;

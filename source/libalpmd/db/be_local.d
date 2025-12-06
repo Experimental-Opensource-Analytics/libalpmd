@@ -862,10 +862,7 @@ nomem:
 				while( fgets(line.ptr, line.sizeof, fp) && _alpm_strip_newline(line.ptr, 0)) {
 					AlpmBackup backup = void;
 					CALLOC(backup, 1, AlpmBackup.sizeof);
-					if(backup.splitString(line.to!string)) {
-						FREE(backup);
-						goto error;
-					}
+					backup.fillByString(line.to!string);
 					info.backup.insertFront(backup);
 				}
 			}
@@ -1102,7 +1099,8 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 			fputs("%BACKUP%\n", fp);
 			foreach(backup; info.backup) {
 				//  AlpmBackup backup = lpa;
-				fprintf(fp, "%s\t%s\n", cast(char*)backup.name, cast(char*)backup.hash);
+				fprintf(fp, cast(char*)backup.toString().toStringz);
+				
 			}
 			fputc('\n', fp);
 		}

@@ -285,7 +285,7 @@ version (none) {
 		} else {
 			AlpmBackup oldbackup = void;
 			if(oldpkg && ((oldbackup = oldpkg.needBackup(entryname.to!string)) !is null)) {
-				hash_orig = cast(char*)oldbackup.hash;
+				hash_orig = cast(char*)oldbackup.getHash();
 				needbackup = 1;
 			} else if(backup) {
 				/* allow adding backup files retroactively */
@@ -311,8 +311,7 @@ version (none) {
 	}
 
 	if(backup) {
-		FREE(backup.hash);
-		backup.hash = alpm_compute_md5sum(filename.ptr).to!string;
+		backup.setHash(alpm_compute_md5sum(filename.ptr).to!string);
 	}
 
 	if(notouch) {
@@ -336,7 +335,7 @@ version (none) {
 		strncat(origfile.ptr, filename.ptr, filename_len);
 
 		hash_local = alpm_compute_md5sum(origfile.ptr);
-		hash_pkg = cast(char*) backup ? cast(char*)backup.hash : alpm_compute_md5sum(filename.ptr);
+		hash_pkg = cast(char*) backup ? cast(char*)backup.getHash () : alpm_compute_md5sum(filename.ptr);
 
 		_alpm_log(handle, ALPM_LOG_DEBUG, "checking hashes for %s\n", origfile.ptr);
 		_alpm_log(handle, ALPM_LOG_DEBUG, "current:  %s\n", hash_local);

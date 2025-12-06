@@ -205,9 +205,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				AlpmDepend provide = alpm_dep_from_string(ptr);
 				newpkg.provides.insertFront(provide);
 			} else if(strcmp(key, "backup") == 0) {
-				AlpmBackup backup = void;
-				CALLOC(backup, 1, AlpmBackup.sizeof);
-				backup.name = ptr.to!string;
+				AlpmBackup backup = new AlpmBackup(ptr.to!string);
 				newpkg.backup.insertFront(backup);
 			} else if(strcmp(key, "xdata") == 0) {
 				AlpmPkgXData pd = AlpmPkgXData.parseFrom(ptr.to!string);

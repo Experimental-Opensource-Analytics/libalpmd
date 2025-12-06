@@ -473,7 +473,7 @@ public:
 		}
 
 		foreach(_backup; backup[]) {
-			if(file == _backup.name) {
+			if(_backup.isBackup(file)) {
 				return _backup;
 			}
 		}
