@@ -1235,15 +1235,6 @@ struct alpm_download_event_completed_t {
 	int result;
 }
 
-/** Type of download progress callbacks.
- * @param ctx user-provided context
- * @param filename the name of the file being downloaded
- * @param event the event type
- * @param data the event data of type alpm_download_event_*_t
- */
-alias alpm_cb_download = void function(void* ctx, const(char)* filename, alpm_download_event_type_t event, void* data);
-
-
 /** A callback for downloading files
  * @param ctx user-provided context
  * @param url the URL of the file to be downloaded
@@ -1537,45 +1528,6 @@ alias alpm_cb_log = void function(void* ctx, alpm_loglevel_t level, const(char)*
  * @{
  */
 
-/** Returns the callback used for logging.
- * @param handle the context handle
- * @return the currently set log callback
- */
-alpm_cb_log alpm_option_get_logcb(AlpmHandle handle);
-
-/** Returns the callback used for logging.
- * @param handle the context handle
- * @return the currently set log callback context
- */
-void* alpm_option_get_logcb_ctx(AlpmHandle handle);
-
-/** Sets the callback used for logging.
- * @param handle the context handle
- * @param cb the cb to use
- * @param ctx user-provided context to pass to cb
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
-int alpm_option_set_logcb(AlpmHandle handle, alpm_cb_log cb, void* ctx);
-
-/** Returns the callback used to report download progress.
- * @param handle the context handle
- * @return the currently set download callback
- */
-alpm_cb_download alpm_option_get_dlcb(AlpmHandle handle);
-
-/** Returns the callback used to report download progress.
- * @param handle the context handle
- * @return the currently set download callback context
- */
-void* alpm_option_get_dlcb_ctx(AlpmHandle handle);
-
-/** Sets the callback used to report download progress.
- * @param handle the context handle
- * @param cb the cb to use
- * @param ctx user-provided context to pass to cb
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
-int alpm_option_set_dlcb(AlpmHandle handle, alpm_cb_download cb, void* ctx);
 
 /** Returns the downloading callback.
  * @param handle the context handle

@@ -291,7 +291,7 @@ bool _alpm_sandbox_process_cb_download(AlpmHandle handle, int callback_pipe) {
 	filename[filename_size] = '\0';
 
 	if(handle.dlcb) {
-		handle.dlcb(handle.dlcb_ctx, filename, type, &cb_data);
+		handle.dlcb(filename, type, &cb_data);
 	}
 	FREE(filename);
 	return true;
