@@ -215,7 +215,7 @@ class AlpmFileConflict {
 	/** The name of the file that the package conflicts with */
 	string file;
 	/** The name of the package that also owns the file if there is one*/
-	char* ctarget;
+	string ctarget;
 }
 
 /**
@@ -237,13 +237,13 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 	conflict.file = filestr.to!string;
 	if(!pkg2) {
 		conflict.type = AlpmFileConflictType.Filesystem;
-		STRDUP(conflict.ctarget, cast(char*)"");
+		conflict.ctarget = "";
 	} else if(pkg2.origin == ALPM_PKG_FROM_LOCALDB) {
 		conflict.type = AlpmFileConflictType.Filesystem;
-		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
+		conflict.ctarget = pkg2.name;
 	} else {
 		conflict.type = AlpmFileConflictType.Target;
-		STRDUP(conflict.ctarget, cast(char*)pkg2.name);
+		conflict.ctarget = pkg2.name;
 	}
 
 	conflicts = alpm_list_add(conflicts, cast(void*)conflict);
