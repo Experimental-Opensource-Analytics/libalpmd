@@ -118,13 +118,13 @@ version (HAVE_LINUX_LANDLOCK_H) {
 	}
 version (LANDLOCK_ACCESS_FS_REFER) {
 	if(abi < 2) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("landlock ABI < 2, LANDLOCK_ACCESS_FS_REFER is not supported\n"));
+		logger.tracef(("landlock ABI < 2, LANDLOCK_ACCESS_FS_REFER is not supported\n"));
 		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_REFER;
 	}
 } /* LANDLOCK_ACCESS_FS_REFER */
 version (LANDLOCK_ACCESS_FS_TRUNCATE) {
 	if(abi < 3) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("landlock ABI < 3, LANDLOCK_ACCESS_FS_TRUNCATE is not supported\n"));
+		logger.tracef(("landlock ABI < 3, LANDLOCK_ACCESS_FS_TRUNCATE is not supported\n"));
 		ruleset_attr.handled_access_fs &= ~LANDLOCK_ACCESS_FS_TRUNCATE;
 	}
 } /* LANDLOCK_ACCESS_FS_TRUNCATE */
@@ -168,7 +168,7 @@ version (LANDLOCK_ACCESS_FS_TRUNCATE) {
 	close(path_beneath.parent_fd);
 	close(ruleset_fd);
 	if(result == 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("filesystem access has been restricted to %s, landlock ABI is %d\n"), path, abi);
+		logger.tracef(("filesystem access has been restricted to %s, landlock ABI is %d\n"), path, abi);
 		return true;
         }
 	return false;

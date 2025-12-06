@@ -50,11 +50,11 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	pkgver = pkg.version_;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package '%s'\n", pkgname);
+	logger.tracef("adding package '%s'\n", pkgname);
 
 	if((dup = alpm_pkg_find_n(trans.add, pkgname)) !is null ) {
 		if(dup == pkg) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
+			logger.tracef("skipping duplicate target: %s\n", pkgname);
 			return 0;
 		}
 		/* error for separate packages with the same name */
@@ -85,7 +85,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	/* add the package to the transaction */
 	pkg.reason = ALPM_PKG_REASON_EXPLICIT;
-	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package %s-%s to the transaction add list\n",
+	logger.tracef("adding package %s-%s to the transaction add list\n",
 						pkgname, pkgver);
 	trans.add = alpm_list_add(trans.add, cast(void*)pkg);
 
@@ -158,7 +158,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 		dbfile = cast(char*)"mtree";
 	} else if(*entryname == '.') {
 		/* reserve all files starting with '.' for future possibilities */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "skipping extraction of '%s'\n", entryname);
+		logger.tracef("skipping extraction of '%s'\n", entryname);
 		archive_read_data_skip(archive);
 		return 0;
 	}
@@ -202,7 +202,7 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 
 	/* if a file is in NoExtract then we never extract it */
 	if(alpmFnmatchPatterns(handle.noextract, entryname.to!string) == 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "%s is in NoExtract,"
+		logger.tracef("%s is in NoExtract,"
 				~ " skipping extraction of %s\n",
 				entryname, filename.ptr);
 		archive_read_data_skip(archive);
@@ -263,7 +263,7 @@ version (none) {
 		}
 }
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "extract: skipping dir extraction of %s\n",
+		logger.tracef("extract: skipping dir extraction of %s\n",
 				filename.ptr);
 		archive_read_data_skip(archive);
 		return 0;
@@ -275,7 +275,7 @@ version (none) {
 		return 1;
 	} else if(S_ISDIR(entrymode)) {
 		/* case 4: trying to overwrite file with dir */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "extract: overwriting file with dir %s\n",
+		logger.tracef("extract: overwriting file with dir %s\n",
 				filename.ptr);
 	} else {
 		/* case 3: trying to overwrite file with file */
@@ -304,7 +304,7 @@ version (none) {
 		isnewfile = (lstat(filename.ptr, &lsbuf) != 0 && errno == ENOENT);
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "extracting %s\n", filename.ptr);
+	logger.tracef("extracting %s\n", filename.ptr);
 	if(perform_extraction(handle, archive, entry, filename.ptr)) {
 		errors++;
 		return errors;
@@ -337,15 +337,15 @@ version (none) {
 		hash_local = alpm_compute_md5sum(origfile.ptr);
 		hash_pkg = cast(char*) backup ? cast(char*)backup.getHash () : alpm_compute_md5sum(filename.ptr);
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "checking hashes for %s\n", origfile.ptr);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "current:  %s\n", hash_local);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "new:      %s\n", hash_pkg);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "original: %s\n", hash_orig);
+		logger.tracef("checking hashes for %s\n", origfile.ptr);
+		logger.tracef("current:  %s\n", hash_local);
+		logger.tracef("new:      %s\n", hash_pkg);
+		logger.tracef("original: %s\n", hash_orig);
 
 		if(hash_local && hash_pkg && strcmp(hash_local, hash_pkg) == 0) {
 			/* local and new files are the same, updating anyway to get
 			 * correct timestamps */
-			_alpm_log(handle, ALPM_LOG_DEBUG, "action: installing new file: %s\n",
+			logger.tracef("action: installing new file: %s\n",
 					origfile.ptr);
 			if(try_rename(handle, filename.ptr, origfile.ptr)) {
 				errors++;
@@ -361,7 +361,7 @@ version (none) {
 		} else if(hash_orig && hash_local && strcmp(hash_orig, hash_local) == 0) {
 			/* installed file has NOT been changed by user,
 			 * update to the new version */
-			_alpm_log(handle, ALPM_LOG_DEBUG, "action: installing new file: %s\n",
+			logger.tracef("action: installing new file: %s\n",
 					origfile.ptr);
 			if(try_rename(handle, filename.ptr, origfile.ptr)) {
 				errors++;
@@ -441,7 +441,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 
 	pkgfile = cast(char*)newpkg.origin_data.file;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "%s package %s-%s\n",
+	logger.tracef("%s package %s-%s\n",
 			log_msg, newpkg.name, newpkg.version_);
 		/* pre_install/pre_upgrade scriptlet */
 	if(newpkg.hasScriptlet() &&
@@ -502,7 +502,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	}
 
 	if(trans.flags & ALPM_TRANS_FLAG_DBONLY) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "extracting db files\n");
+		logger.tracef("extracting db files\n");
 		while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
 			  char*entryname = cast(char*)archive_entry_pathname(entry);
 			if(entryname[0] == '.') {
@@ -512,7 +512,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 			}
 		}
 	} else {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "extracting files\n");
+		logger.tracef("extracting files\n");
 
 		/* call PROGRESS once with 0 percent, as we sort-of skip that here */
 		PROGRESS(handle, progress, newpkg.name, 0, pkg_count, pkg_current);
@@ -572,8 +572,8 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	/* make an install date (in UTC) */
 	newpkg.installdate = time(null);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "updating database\n");
-	_alpm_log(handle, ALPM_LOG_DEBUG, "adding database entry '%s'\n", newpkg.name);
+	logger.tracef("updating database\n");
+	logger.tracef("adding database entry '%s'\n", newpkg.name);
 
 	if(_alpm_local_db_write(db, newpkg, AlpmDBInfRq.All)) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not update database entry %s-%s\n"),

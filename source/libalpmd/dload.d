@@ -469,11 +469,11 @@ private void curl_set_handle_opts(CURL* curl, DLoadPayload* payload)
 	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 	curl_easy_setopt(curl, CURLOPT_PRIVATE, cast(void*)payload);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "%s: url is %s\n",
+	logger.tracef("%s: url is %s\n",
 		payload.remote_name, payload.fileurl);
 
 	if(payload.max_size) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "%s: maxsize %jd\n",
+		logger.tracef("%s: maxsize %jd\n",
 				payload.remote_name, cast(intmax_t)payload.max_size);
 		curl_easy_setopt(curl, CURLOPT_MAXFILESIZE_LARGE,
 				cast(curl_off_t)payload.max_size);
@@ -582,14 +582,14 @@ private int curl_check_finished_download(AlpmHandle handle, CURLM* curlm, CURLMs
 
 	curl_gethost(payload.fileurl, hostname.ptr, hostname.sizeof);
 	curlerr = msg.data.result;
-	_alpm_log(handle, ALPM_LOG_DEBUG, "%s: %s returned result %d from transfer\n",
+	logger.tracef("%s: %s returned result %d from transfer\n",
 			payload.remote_name, "curl", curlerr);
 
 	/* was it a success? */
 	switch(curlerr) {
 		case CURLE_OK:
 			/* get http/ftp response code */
-			_alpm_log(handle, ALPM_LOG_DEBUG, "%s: response code %ld\n",
+			logger.tracef("%s: response code %ld\n",
 					payload.remote_name, payload.respcode);
 			if(payload.respcode >= 400) {
 				if(!payload.request_errors_ok) {
@@ -736,7 +736,7 @@ private int curl_check_finished_download(AlpmHandle handle, CURLM* curlm, CURLMs
 	/* time condition was met and we didn't download anything. we need to
 	 * clean up the 0 byte .part file that's left behind. */
 	if(timecond == 1 && bytes_dl == 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "%s: file met time condition\n",
+		logger.tracef("%s: file met time condition\n",
 			payload.remote_name);
 		ret = 1;
 		unlink(payload.tempfile_name);
@@ -965,7 +965,7 @@ private int curl_download_internal(AlpmHandle handle, alpm_list_t* payloads)
 		}
 	}
 	int ret = err ? -1 : updated ? 0 : 1;
-	_alpm_log(handle, ALPM_LOG_DEBUG, "curl_download_internal return code is %d\n", ret);
+	logger.tracef("curl_download_internal return code is %d\n", ret);
 	alpm_list_free(payloads);
 	return ret;
 }

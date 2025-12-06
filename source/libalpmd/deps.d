@@ -249,7 +249,7 @@ private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, alpm_
 	} else {
 		AlpmPkg ancestorpkg = cast(AlpmPkg)ancestor.data;
 		AlpmPkg childpkg = cast(AlpmPkg)vertex.data;
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("dependency cycle detected:\n"));
+		logger.tracef(("dependency cycle detected:\n"));
 		if(reverse) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					("%s will be removed after its %s dependency\n"),
@@ -289,7 +289,7 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 		return null;
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "started sorting dependencies\n");
+	logger.tracef("started sorting dependencies\n");
 
 	vertices = dep_graph_init(handle, targets, ignore);
 
@@ -329,7 +329,7 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 		}
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "sorting dependencies finished\n");
+	logger.tracef("sorting dependencies finished\n");
 
 	if(reverse) {
 		/* reverse the order */
@@ -385,7 +385,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 	/* look for unsatisfied dependencies of the upgrade list */
 	for(i = upgrade; i; i = i.next) {
 		AlpmPkg tp = cast(AlpmPkg)i.data;
-		_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: package %s-%s\n",
+		logger.tracef("checkdeps: package %s-%s\n",
 				tp.name, tp.version_);
 
 		foreach(depend; tp.getDepends()[]) {
@@ -403,7 +403,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 				/* Unsatisfied dependency in the upgrade list */
 				alpm_depmissing_t* miss = void;
 				char* missdepstring = alpm_dep_compute_string(depend);
-				_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: missing dependency '%s' for package '%s'\n",
+				logger.tracef("checkdeps: missing dependency '%s' for package '%s'\n",
 						missdepstring, tp.name);
 				free(missdepstring);
 				miss = depmiss_new(cast(char*)tp.name, depend, null);
@@ -435,7 +435,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 						!_alpm_depcmp_provides(depend, handle.assumeinstalled)) {
 					alpm_depmissing_t* miss = void;
 					char* missdepstring = alpm_dep_compute_string(depend);
-					_alpm_log(handle, ALPM_LOG_DEBUG, "checkdeps: transaction would break '%s' dependency of '%s'\n",
+					logger.tracef("checkdeps: transaction would break '%s' dependency of '%s'\n",
 							missdepstring, lp.name);
 					free(missdepstring);
 					miss = depmiss_new(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
@@ -758,7 +758,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 						continue;
 					}
 				}
-				_alpm_log(handle, ALPM_LOG_DEBUG, "provider found (%s provides %s)\n",
+				logger.tracef("provider found (%s provides %s)\n",
 						pkg.name, dep.name);
 
 				/* provide is already installed so return early instead of prompting later */
@@ -859,7 +859,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	   on that list */
 	*packages = alpm_list_add(*packages, cast(void*)pkg);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "started resolving dependencies\n");
+	logger.tracef("started resolving dependencies\n");
 	targ = alpm_list_add(null, cast(void*)pkg);
 	deps = alpm_checkdeps(handle, localpkgs, rem, targ, 0);
 	alpm_list_free(targ);
@@ -911,7 +911,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	} else {
 		alpm_list_free(packages_copy);
 	}
-	_alpm_log(handle, ALPM_LOG_DEBUG, "finished resolving dependencies\n");
+	logger.tracef("finished resolving dependencies\n");
 	return ret;
 }
 

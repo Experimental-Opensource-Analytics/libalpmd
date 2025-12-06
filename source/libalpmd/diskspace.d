@@ -63,6 +63,9 @@ version (HAVE_SYS_TYPES_H) {
 import core.sys.posix.sys.types;
 }
 
+import std.algorithm;
+import std.conv;
+
 /* libalpm */
 import libalpmd.diskspace;
 import libalpmd.alpm_list;
@@ -121,7 +124,7 @@ alias MOUNT_FSINFO_FAIL = mount_fsinfo.MOUNT_FSINFO_FAIL;
 
 struct alpm_mountpoint_t {
 	/* mount point information */
-	char* mount_dir;
+	string mount_dir;
 	size_t mount_dir_len;
 	/* storage for additional disk usage calculations */
 	blkcnt_t blocks_needed;
@@ -134,10 +137,10 @@ struct alpm_mountpoint_t {
 
 private int mount_point_cmp(void* p1,void* p2)
 {
-	 alpm_mountpoint_t* mp1 = cast(alpm_mountpoint_t*)p1;
-	 alpm_mountpoint_t* mp2 = cast(alpm_mountpoint_t*)p2;
+	alpm_mountpoint_t* mp1 = cast(alpm_mountpoint_t*)p1;
+	alpm_mountpoint_t* mp2 = cast(alpm_mountpoint_t*)p2;
 	/* the negation will sort all mountpoints before their parent */
-	return -strcmp(mp1.mount_dir, mp2.mount_dir);
+	return -cmp(mp1.mount_dir, mp2.mount_dir);
 }
 
 private void mount_point_list_free(alpm_list_t* mount_points)
@@ -163,7 +166,7 @@ version (HAVE_GETMNTENT) {
 		return -1;
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "loading fsinfo for %s\n", mountpoint.mount_dir);
+	logger.tracef("loading fsinfo for %s\n", mountpoint.mount_dir);
 	mountpoint.read_only = mountpoint.fsp.f_flag & ST_RDONLY;
 	mountpoint.fsinfo_loaded = MOUNT_FSINFO_LOADED;
 } else {
@@ -276,7 +279,7 @@ static if (HasVersion!"HAVE_GETMNTINFO_STATVFS" && HasVersion!"HAVE_STRUCT_STATV
 			&mount_point_cmp);
 	for(ptr = mount_points; ptr != null; ptr = ptr.next) {
 		mp = cast(alpm_mountpoint_t*)ptr.data;
-		_alpm_log(handle, ALPM_LOG_DEBUG, "discovered mountpoint: %s\n", mp.mount_dir);
+		logger.tracef("discovered mountpoint: %s\n", mp.mount_dir);
 	}
 	return mount_points;
 }
@@ -289,7 +292,7 @@ private alpm_mountpoint_t* match_mount_point( alpm_list_t* mount_points,   char*
 		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)mp.data;
 
 		/* first, check if the prefix matches */
-		if(strncmp(data.mount_dir, real_path, data.mount_dir_len) == 0) {
+		if(cmp(data.mount_dir, real_path.to!string) == 0) {
 			/* now, the hard work- a file like '/etc/myconfig' shouldn't map to a
 			 * mountpoint '/e', but only '/etc'. If the mountpoint ends in a trailing
 			 * slash, we know we didn't have a mismatch, otherwise we have to do some

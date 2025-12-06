@@ -582,12 +582,12 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 
 			if(name_len < suflen
 					|| strcmp(entry.d_name.ptr + name_len - suflen, ALPM_HOOK_SUFFIX) != 0) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "skipping non-hook file %s\n", path.ptr);
+				logger.tracef("skipping non-hook file %s\n", path.ptr);
 				continue;
 			}
 
 			if(find_hook(hooks, entry.d_name.ptr)) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "skipping overridden hook %s\n", path.ptr);
+				logger.tracef("skipping overridden hook %s\n", path.ptr);
 				continue;
 			}
 
@@ -599,16 +599,16 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 			}
 
 			if(S_ISDIR(buf.st_mode)) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "skipping directory %s\n", path.ptr);
+				logger.tracef("skipping directory %s\n", path.ptr);
 				continue;
 			}
 
 			CALLOC(ctx.hook, AlpmHook.sizeof, 1);
 
-			_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s\n", path.ptr);
+			logger.tracef("parsing hook file %s\n", path.ptr);
 			if(_alpm_hook_parse_cb(path.ptr, cast(void*)&ctx) != 0
 					|| ctx.hook.isNotValid(path.ptr)) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "parsing hook file %s failed\n", path.ptr);
+				logger.tracef("parsing hook file %s failed\n", path.ptr);
 				destroy(ctx.hook);
 				ret = -1;
 				continue;

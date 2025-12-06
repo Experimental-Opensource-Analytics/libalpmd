@@ -111,7 +111,7 @@ private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1,
 	if(!conflict_isin(conflict, *baddeps)) {
 		char* conflict_str = alpm_dep_compute_string(reason);
 		*baddeps = alpm_list_add(*baddeps, cast(void*)conflict);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "package %s conflicts with %s (by %s)\n",
+		logger.tracef("package %s conflicts with %s (by %s)\n",
 				pkg1.name, pkg2.name, conflict_str);
 		free(conflict_str);
 	} else {
@@ -182,7 +182,7 @@ alpm_list_t* _alpm_innerconflicts(AlpmHandle handle, alpm_list_t* packages)
 {
 	alpm_list_t* baddeps = null;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs targets\n");
+	logger.tracef("check targets vs targets\n");
 	check_conflict(handle, packages, packages, &baddeps, 0);
 
 	return baddeps;
@@ -238,7 +238,7 @@ private alpm_list_t* add_fileconflict(AlpmHandle handle, alpm_list_t* conflicts,
 	}
 
 	conflicts = alpm_list_add(conflicts, cast(void*)conflict);
-	_alpm_log(handle, ALPM_LOG_DEBUG, "found file conflict %s, packages %s and %s\n",
+	logger.tracef("found file conflict %s, packages %s and %s\n",
 	          filestr, pkg1.name, pkg2 ? cast(char*)pkg2.name : "(filesystem)");
 
 	return conflicts;
@@ -292,7 +292,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 		snprintf(full_path.ptr, PATH_MAX, "%s%s%s", handle.root.ptr, dirpath, name);
 
 		if(lstat(full_path.ptr, &sbuf) != 0) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "could not stat %s\n", full_path.ptr);
+			logger.tracef("could not stat %s\n", full_path.ptr);
 			closedir(dir);
 			return 0;
 		}
@@ -390,7 +390,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		         numtargs, current);
 
 		/* CHECK 1: check every target against every target */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "searching for file conflicts: %s\n",
+		logger.tracef("searching for file conflicts: %s\n",
 				p1.name);
 		for(j = i.next; j; j = j.next) {
 			alpm_list_t* common_files = void;
@@ -435,7 +435,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		}
 
 		/* CHECK 2: check every target against the filesystem */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "searching for filesystem conflicts: %s\n",
+		logger.tracef("searching for filesystem conflicts: %s\n",
 				p1.name);
 		dbpkg = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)p1.name);
 
@@ -476,12 +476,12 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 				continue;
 			}
 
-			_alpm_log(handle, ALPM_LOG_DEBUG, "checking possible conflict: %s\n", path.ptr);
+			logger.tracef("checking possible conflict: %s\n", path.ptr);
 
 			pfile_isdir = path[pathlen - 1] == '/';
 			if(pfile_isdir) {
 				if(S_ISDIR(lsbuf.st_mode)) {
-					_alpm_log(handle, ALPM_LOG_DEBUG, "file is a directory, not a conflict\n");
+					logger.tracef("file is a directory, not a conflict\n");
 					continue;
 				}
 				/* if we made it to here, we want all subsequent path comparisons to

@@ -215,13 +215,13 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			} else {
 				  char*pkgname = cast(char*)(newpkg.name ? newpkg.name : "error") ;
 				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in package description\n"), pkgname, key);
-				_alpm_log(handle, ALPM_LOG_DEBUG, "%s: unknown key '%s' in description file line %d\n",
+				logger.tracef("%s: unknown key '%s' in description file line %d\n",
 									pkgname, key, linenum);
 			}
 		}
 	}
 	if(ret != ARCHIVE_EOF) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "error parsing package descfile\n");
+		logger.tracef("error parsing package descfile\n");
 		return -1;
 	}
 
@@ -276,8 +276,8 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 
 	if(syncpkg && (!has_sig || !syncpkg.base64_sig)) {
 		if(syncpkg.md5sum && !syncpkg.sha256sum) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "md5sum: %s\n", syncpkg.md5sum);
-			_alpm_log(handle, ALPM_LOG_DEBUG, "checking md5sum for %s\n", pkgfile);
+			logger.tracef("md5sum: %s\n", syncpkg.md5sum);
+			logger.tracef("checking md5sum for %s\n", pkgfile);
 			if(_alpm_test_checksum(pkgfile, cast(char*)syncpkg.md5sum, AlpmPkgValidation.MD5) != 0) {
 				RET_ERR(handle, ALPM_ERR_PKG_INVALID_CHECKSUM, -1);
 			}
@@ -287,8 +287,8 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 		}
 
 		if(syncpkg.sha256sum) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "sha256sum: %s\n", syncpkg.sha256sum);
-			_alpm_log(handle, ALPM_LOG_DEBUG, "checking sha256sum for %s\n", pkgfile);
+			logger.tracef("sha256sum: %s\n", syncpkg.sha256sum);
+			logger.tracef("checking sha256sum for %s\n", pkgfile);
 			if(_alpm_test_checksum(cast(char*)pkgfile, cast(char*)syncpkg.sha256sum, AlpmPkgValidation.SHA256) != 0) {
 				RET_ERR(handle, ALPM_ERR_PKG_INVALID_CHECKSUM, -1);
 			}
@@ -301,7 +301,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 	/* even if we don't have a sig, run the check code if level tells us to */
 	if(level & ALPM_SIG_PACKAGE) {
 		  char*sig = syncpkg ? cast(char*)syncpkg.base64_sig : null;
-		_alpm_log(handle, ALPM_LOG_DEBUG, "sig data: %s\n", sig ? sig : "<from .sig>");
+		logger.tracef("sig data: %s\n", sig ? sig : "<from .sig>");
 		if(!has_sig && !(level & ALPM_SIG_PACKAGE_OPTIONAL)) {
 			handle.pm_errno = ALPM_ERR_PKG_MISSING_SIG;
 			return -1;
@@ -433,7 +433,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 		size = archive_read_data(_archive, mtree_data.ptr + mtree_cursize, ALPM_BUFFER_SIZE);
 
 		if(size < 0) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, ("error while reading package %s: %s\n"),
+			logger.tracef(("error while reading package %s: %s\n"),
 					pkg.filename, archive_error_string(_archive));
 			GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 		}
@@ -469,7 +469,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	}
 
 	if(ret != ARCHIVE_EOF && ret != ARCHIVE_OK) { /* An error occurred */
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("error while reading mtree of package %s: %s\n"),
+		logger.tracef(("error while reading mtree of package %s: %s\n"),
 				pkg.filename, archive_error_string(mtree));
 		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
@@ -485,7 +485,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 
 	free(mtree_data.ptr);
 	_alpm_archive_read_free(mtree);
-	_alpm_log(handle, ALPM_LOG_DEBUG, "finished mtree reading for %s\n", pkg.filename);
+	logger.tracef("finished mtree reading for %s\n", pkg.filename);
 	return 0;
 error:
 	/* throw away any files we loaded from the mtree */
@@ -540,7 +540,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	newpkg.filename = pkgfile.to!string;
 	newpkg.size = st.st_size;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "starting package load for %s\n", pkgfile);
+	logger.tracef("starting package load for %s\n", pkgfile);
 
 	/* If full is false, only read through the archive until we find our needed
 	 * metadata. If it is true, read through the entire archive, which serves

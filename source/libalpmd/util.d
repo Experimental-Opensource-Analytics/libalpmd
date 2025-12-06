@@ -208,7 +208,7 @@ static void output_cb(void *ctx, alpm_loglevel_t level, const char *fmt, va_list
 }
 
 noreturn GOTO_ERR(H, E, L)(H handle, E err, L label) {
-	// _alpm_log(handle, ALPM_LOG_DEBUG, "got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
+	// logger.tracef("got error %d at %s (%s: %d) : %s\n", err, __FUNCTION__, __FILE__, __LINE__, alpm_strerror(err));
 	(handle).pm_errno = (err);
 	assert(0, "ERROR BY GOTO_ERROR");
 }
@@ -355,7 +355,7 @@ int _alpm_open_archive(AlpmHandle handle,   char*path, stat_t* buf, archive** ar
 	_alpm_archive_read_support_filter_all(*archive);
 	archive_read_support_format_all(*archive);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "opening archive %s\n", path);
+	logger.tracef("opening archive %s\n", path);
 	OPEN(fd, path, O_RDONLY | O_CLOEXEC);
 	if(fd < 0) {
 		_alpm_log(handle, ALPM_LOG_ERROR,
@@ -477,7 +477,7 @@ int _alpm_unpack(AlpmHandle handle,   char*path,   char*prefix, alpm_list_t* lis
 				}
 				continue;
 			} else {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "extracting: %s\n", entryname);
+				logger.tracef("extracting: %s\n", entryname);
 			}
 		}
 
@@ -536,9 +536,9 @@ ssize_t _alpm_files_in_directory(AlpmHandle handle,   char*path, int full_count)
 
 	if(!dir) {
 		if(errno == ENOTDIR) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "%s was not a directory\n", path);
+			logger.tracef("%s was not a directory\n", path);
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "could not read directory %s\n",
+			logger.tracef("could not read directory %s\n",
 					path);
 		}
 		return -1;
@@ -711,7 +711,7 @@ enum TAIL = 0;
 		goto cleanup;
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "executing \"%s\" under chroot \"%s\"\n",
+	logger.tracef("executing \"%s\" under chroot \"%s\"\n",
 			cmd, handle.root);
 
 	/* Flush open fds before fork() to avoid cloning buffers */
@@ -861,7 +861,7 @@ enum string STOP_POLLING(string p) = `do { close(` ~ p ~ `.fd); ` ~ p ~ `.fd = -
 
 		/* check the return status, make sure it is 0 (success) */
 		if(WIFEXITED(status)) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "call to waitpid succeeded\n");
+			logger.tracef("call to waitpid succeeded\n");
 			if(WEXITSTATUS(status) != 0) {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("command failed to execute correctly\n"));
 				retval = 1;
@@ -898,7 +898,7 @@ int _alpm_ldconfig(AlpmHandle handle)
 {
 	char[PATH_MAX] line = void;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "running ldconfig\n");
+	logger.tracef("running ldconfig\n");
 
 	snprintf(line.ptr, PATH_MAX, "%setc/ld.so.conf", handle.root.ptr);
 		if(access(line.ptr, F_OK) == 0) {
@@ -945,7 +945,7 @@ char* _alpm_filecache_find(AlpmHandle handle,   char*filename)
 		if(stat(path.ptr, &buf) == 0) {
 			if(S_ISREG(buf.st_mode)) {
 				retpath = strdup(path.ptr);
-				_alpm_log(handle, ALPM_LOG_DEBUG, "found cached pkg: %s\n", retpath);
+				logger.tracef("found cached pkg: %s\n", retpath);
 				return retpath;
 			} else {
 				_alpm_log(handle, ALPM_LOG_WARNING,
@@ -995,7 +995,7 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 			_alpm_log(handle, ALPM_LOG_WARNING, ("no %s cache exists, creating...\n"),
 					cachedir);
 			alpmMakePath(cachedir.to!string);
-			// _alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
+			// logger.tracef("using cachedir: %s\n", cachedir);
 		} else if(!S_ISDIR(buf.st_mode)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"skipping cachedir, not a directory: %s\n", cachedir);
@@ -1006,7 +1006,7 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"skipping cachedir, no write bits set: %s\n", cachedir);
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
+			logger.tracef("using cachedir: %s\n", cachedir);
 			return cachedir;
 		}
 	}
@@ -1020,7 +1020,7 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
 	handle.addCacheDir(tmpdir.to!string);
 	// cachedir = cast(char*)handle.cachedirs.prev.data;
 	cachedir = cast(char*)handle.getCacheDirs[].back; //!Im not sure there
-	_alpm_log(handle, ALPM_LOG_DEBUG, "using cachedir: %s\n", cachedir);
+	logger.tracef("using cachedir: %s\n", cachedir);
 	_alpm_log(handle, ALPM_LOG_WARNING,
 			("couldn't find or create package cache, using %s instead\n"), cachedir);
 	return cachedir;
@@ -1463,19 +1463,19 @@ version (AT_SYMLINK_NOFOLLOW) { //!Fix AT_SYMLINK_NOFOLLOW version trigger
 
 	if(ret != 0) {
 		if(amode & R_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not readable: %s\n",
+			logger.tracef("\"%s%s\" is not readable: %s\n",
 					dir, file, strerror(errno));
 		}
 		if(amode & W_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not writable: %s\n",
+			logger.tracef("\"%s%s\" is not writable: %s\n",
 					dir, file, strerror(errno));
 		}
 		if(amode & X_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" is not executable: %s\n",
+			logger.tracef("\"%s%s\" is not executable: %s\n",
 					dir, file, strerror(errno));
 		}
 		if(amode == F_OK) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "\"%s%s\" does not exist: %s\n",
+			logger.tracef("\"%s%s\" does not exist: %s\n",
 					dir, file, strerror(errno));
 		}
 	}

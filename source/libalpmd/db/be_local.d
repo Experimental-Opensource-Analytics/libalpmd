@@ -1193,7 +1193,7 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 {
 	AlpmDB db = void;
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "registering local database\n");
+	logger.tracef("registering local database\n");
 
 	db = _alpm_db_new(cast(char*)"local", 1);
 	if(db is null) {

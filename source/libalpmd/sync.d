@@ -100,7 +100,7 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 	/* 1. literal was found in sdb */
 	int cmp = spkg.compareVersions(lpkg);
 	if(cmp > 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "new version of '%s' found (%s => %s)\n",
+		logger.tracef("new version of '%s' found (%s => %s)\n",
 				lpkg.name, lpkg.version_, spkg.version_);
 		/* check IgnorePkg/IgnoreGroup */
 		if(alpm_pkg_should_ignore(handle, spkg)
@@ -108,7 +108,7 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package upgrade (%s => %s)\n",
 					lpkg.name, lpkg.version_, spkg.version_);
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "adding package %s-%s to the transaction targets\n",
+			logger.tracef("adding package %s-%s to the transaction targets\n",
 					spkg.name, spkg.version_);
 			return 1;
 		}
@@ -184,7 +184,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 							lpkg.name, spkg.name);
 					continue;
 				}
-				_alpm_log(handle, ALPM_LOG_DEBUG, "appending %s to the removes list of %s\n",
+				logger.tracef("appending %s to the removes list of %s\n",
 						lpkg.name, tpkg.name);
 				tpkg.removes.insertFront(lpkg);
 				/* check the to-be-replaced package's reason field */
@@ -214,17 +214,17 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	//ASSERT(trans != null);
 	ASSERT(trans.state == AlpmTransState.Initialized);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "checking for package upgrades\n");
+	logger.tracef("checking for package upgrades\n");
 	for(auto i = _alpm_db_get_pkgcache(handle.getDBLocal); i; i = i.next) {
 		AlpmPkg lpkg = cast(AlpmPkg)i.data;
 
 		if(alpm_pkg_find_n(trans.remove, lpkg.name)) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "%s is marked for removal -- skipping\n", lpkg.name);
+			logger.tracef("%s is marked for removal -- skipping\n", lpkg.name);
 			continue;
 		}
 
 		if(alpm_pkg_find_n(trans.add, lpkg.name)) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "%s is already in the target list -- skipping\n", lpkg.name);
+			logger.tracef("%s is already in the target list -- skipping\n", lpkg.name);
 			continue;
 		}
 
@@ -346,7 +346,7 @@ private int compute_download_size(AlpmPkg newpkg)
 		stat_t st = void;
 		if(stat(fpath, &st) == 0) {
 			/* subtract the size of the .part file */
-			_alpm_log(handle, ALPM_LOG_DEBUG, "using (package - .part) size\n");
+			logger.tracef("using (package - .part) size\n");
 			size = newpkg.size - st.st_size;
 			size = size < 0 ? 0 : size;
 		}
@@ -358,7 +358,7 @@ private int compute_download_size(AlpmPkg newpkg)
 	}
 
 finish:
-	_alpm_log(handle, ALPM_LOG_DEBUG, "setting download size %jd for pkg %s\n",
+	logger.tracef("setting download size %jd for pkg %s\n",
 			cast(intmax_t)size, newpkg.name);
 
 	newpkg.infolevel |= AlpmDBInfRq.DSize;
@@ -413,7 +413,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		/* Resolve targets dependencies */
 		event.type = ALPM_EVENT_RESOLVEDEPS_START;
 		EVENT(handle, &event);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "resolving target's dependencies\n");
+		logger.tracef("resolving target's dependencies\n");
 
 		/* build remove list for resolvedeps */
 		for(auto i = trans.add; i; i = i.next) {
@@ -518,10 +518,10 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		event.type = ALPM_EVENT_INTERCONFLICTS_START;
 		EVENT(handle, &event);
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "looking for conflicts\n");
+		logger.tracef("looking for conflicts\n");
 
 		/* 1. check for conflicts in the target list */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs targets\n");
+		logger.tracef("check targets vs targets\n");
 		deps = _alpm_innerconflicts(handle, trans.add);
 
 		for(auto i = deps; i; i = i.next) {
@@ -537,7 +537,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				continue;
 			}
 
-			_alpm_log(handle, ALPM_LOG_DEBUG, "conflicting packages in the sync list: '%s' <-> '%s'\n",
+			logger.tracef("conflicting packages in the sync list: '%s' <-> '%s'\n",
 					name1, name2);
 
 			/* if sync1 provides sync2, we remove sync2 from the targets, and vice versa */
@@ -582,7 +582,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		deps = null;
 
 		/* 2. we check for target vs db conflicts (and resolve)*/
-		_alpm_log(handle, ALPM_LOG_DEBUG, "check targets vs db and db vs targets\n");
+		logger.tracef("check targets vs db and db vs targets\n");
 		deps = handle.getDBLocal.outerConflicts(trans.add);
 
 		for(auto i = deps; i; i = i.next) {
@@ -612,7 +612,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				continue;
 			}
 
-			_alpm_log(handle, ALPM_LOG_DEBUG, "package '%s-%s' conflicts with '%s-%s'\n",
+			logger.tracef("package '%s-%s' conflicts with '%s-%s'\n",
 					name1, conflict.package1.version_, name2,conflict.package2.version_);
 
 			QUESTION(handle, &question);
@@ -620,7 +620,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				/* append to the removes list */
 				AlpmPkg sync = alpm_pkg_find_n(trans.add, name1);
 				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)name2);
-				_alpm_log(handle, ALPM_LOG_DEBUG, "electing '%s' for removal\n", name2);
+				logger.tracef("electing '%s' for removal\n", name2);
 				sync.removes.insertFront(local);
 			} else { /* abort */
 				_alpm_log(handle, ALPM_LOG_ERROR, "unresolvable package conflicts detected\n");
@@ -650,7 +650,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			// AlpmPkg rpkg = cast(AlpmPkg)j.data;
 			if(!alpm_pkg_find_n(trans.remove, rpkg.name)) {
 				AlpmPkg copy = void;
-				_alpm_log(handle, ALPM_LOG_DEBUG, "adding '%s' to remove list\n", rpkg.name);
+				logger.tracef("adding '%s' to remove list\n", rpkg.name);
 				if((copy = rpkg.dup) !is null) {
 					return -1;
 				}
@@ -660,7 +660,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "checking dependencies\n");
+		logger.tracef("checking dependencies\n");
 		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
 				trans.remove, trans.add, 1);
 		if(deps) {
@@ -806,7 +806,7 @@ private int download_files(AlpmHandle handle)
 			off_t* file_sizes = void;
 			size_t idx = void, num_files = void;
 
-			_alpm_log(handle, ALPM_LOG_DEBUG, "checking available disk space for download\n");
+			logger.tracef("checking available disk space for download\n");
 
 			num_files = alpm_list_count(files);
 			CALLOC(file_sizes, num_files, off_t.sizeof);
@@ -941,7 +941,7 @@ private int check_keyring(AlpmHandle handle)
 					alpm_list_t* k = void;
 					for(k = keys; k; k = k.next) {
 						char* key = k.data;
-						_alpm_log(handle, ALPM_LOG_DEBUG, "found signature key: %s\n", key);
+						logger.tracef("found signature key: %s\n", key);
 						if(!alpm_list_find(errors, key, &key_cmp) &&
 								_alpm_key_in_keychain(handle, key) == 0) {
 							keyinfo = cast(keyinfo_t*) malloc(keyinfo_t.sizeof);
@@ -1224,7 +1224,7 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 				spkg.name);
 		AlpmPkg pkgfile = _alpm_pkg_load_internal(handle, filepath, 1);
 		if(!pkgfile) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "failed to load pkgfile internal\n");
+			logger.tracef("failed to load pkgfile internal\n");
 			error = 1;
 		} else {
 			error |= check_pkg_matches_db(spkg, pkgfile);
@@ -1326,7 +1326,7 @@ int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 		event.type = ALPM_EVENT_FILECONFLICTS_START;
 		EVENT(handle, &event);
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "looking for file conflicts\n");
+		logger.tracef("looking for file conflicts\n");
 		alpm_list_t* conflict = _alpm_db_find_fileconflicts(handle,
 				trans.add, trans.remove);
 		if(conflict) {
@@ -1349,7 +1349,7 @@ int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 		event.type = ALPM_EVENT_DISKSPACE_START;
 		EVENT(handle, &event);
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "checking available disk space\n");
+		logger.tracef("checking available disk space\n");
 		if(_alpm_check_diskspace(handle) == -1) {
 			_alpm_log(handle, ALPM_LOG_ERROR, "not enough free disk space\n");
 			return -1;
@@ -1379,7 +1379,7 @@ int _alpm_sync_commit(AlpmHandle handle)
 	}
 
 	/* install targets */
-	_alpm_log(handle, ALPM_LOG_DEBUG, "installing packages\n");
+	logger.tracef("installing packages\n");
 	if(_alpm_upgrade_packages(handle) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, "could not commit transaction\n");
 		return -1;

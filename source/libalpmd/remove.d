@@ -77,11 +77,11 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 
 	if(alpm_pkg_find_n(trans.remove, pkgname)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "skipping duplicate target: %s\n", pkgname);
+		logger.tracef("skipping duplicate target: %s\n", pkgname);
 		return 0;
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "adding package %s to the transaction remove list\n",
+	logger.tracef("adding package %s to the transaction remove list\n",
 			pkgname);
 	if((copy = pkg.dup) !is null) {
 		return -1;
@@ -110,7 +110,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 			if(info) {
 				AlpmPkg copy = void;
 				if(!alpm_pkg_find_n(trans.remove, info.name)) {
-					_alpm_log(handle, ALPM_LOG_DEBUG, "pulling %s in target list\n",
+					logger.tracef("pulling %s in target list\n",
 							info.name);
 					if((copy = info.dup) !is null) {
 						return -1;
@@ -220,7 +220,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	if((trans.flags & ALPM_TRANS_FLAG_RECURSE)
 			&& !(trans.flags & ALPM_TRANS_FLAG_CASCADE)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "finding removable dependencies\n");
+		logger.tracef("finding removable dependencies\n");
 		if(_alpm_recursedeps(db, &trans.remove,
 				trans.flags & ALPM_TRANS_FLAG_RECURSEALL)) {
 			return -1;
@@ -231,7 +231,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 		event.type = ALPM_EVENT_CHECKDEPS_START;
 		EVENT(handle, &event);
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "looking for unsatisfied dependencies\n");
+		logger.tracef("looking for unsatisfied dependencies\n");
 		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(db), trans.remove, null, 1);
 		if(lp != null) {
 
@@ -259,7 +259,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 	/* -Rcs == -Rc then -Rs */
 	if((trans.flags & ALPM_TRANS_FLAG_CASCADE)
 			&& (trans.flags & ALPM_TRANS_FLAG_RECURSE)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "finding removable dependencies\n");
+		logger.tracef("finding removable dependencies\n");
 		if(_alpm_recursedeps(db, &trans.remove,
 					trans.flags & ALPM_TRANS_FLAG_RECURSEALL)) {
 			return -1;
@@ -454,7 +454,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 	file_len = snprintf(file.ptr, PATH_MAX, "%s%s", handle.root.ptr, cast(char*)fileobj.name);
 	if(file_len <= 0 || file_len >= PATH_MAX) {
 		/* 0 is a valid value from snprintf, but should be impossible here */
-		_alpm_log(handle, ALPM_LOG_DEBUG, "path too long to unlink %s%s\n",
+		logger.tracef("path too long to unlink %s%s\n",
 				handle.root, fileobj.name);
 		return -1;
 	} else if(file[file_len - 1] == '/') {
@@ -465,7 +465,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 	}
 
 	if(llstat(file.ptr, &buf)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "file %s does not exist\n", file.ptr);
+		logger.tracef("file %s does not exist\n", file.ptr);
 		return 1;
 	}
 
@@ -478,7 +478,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 			file_len++;
 			file[file_len] = '\0';
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "path too long to unlink %s%s\n",
+			logger.tracef("path too long to unlink %s%s\n",
 					handle.root, fileobj.name);
 			return -1;
 		}
@@ -486,7 +486,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 		files = _alpm_files_in_directory(handle, file.ptr, 0);
 		if(files > 0) {
 			/* if we have files, no need to remove the directory */
-			_alpm_log(handle, ALPM_LOG_DEBUG, "keeping directory %s (contains files)\n",
+			logger.tracef("keeping directory %s (contains files)\n",
 					file.ptr);
 		} else if(files < 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -537,7 +537,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 		auto backup = oldpkg.needBackup(fileobj.name);
 		if(backup) {
 			if(nosave) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "transaction is set to NOSAVE, not backing up '%s'\n", file.ptr);
+				logger.tracef("transaction is set to NOSAVE, not backing up '%s'\n", file.ptr);
 			} else {
 				char* filehash = alpm_compute_md5sum(file.ptr);
 				int cmp = filehash ? backup.isHash(filehash.to!string) : 0;
@@ -571,7 +571,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 			}
 		}
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "unlinking %s\n", file.ptr);
+		logger.tracef("unlinking %s\n", file.ptr);
 
 		if(unlink(file.ptr) == -1) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("cannot remove %s (%s)\n"),
@@ -635,7 +635,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 		}
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "removing %zu files\n", filelist.length);
+	logger.tracef("removing %zu files\n", filelist.length);
 
 	if(!newpkg) {
 		/* init progress bar, but only on true remove transactions */
@@ -700,11 +700,11 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 	};
 
 	if(newpkg) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "removing old package first (%s-%s)\n",
+		logger.tracef("removing old package first (%s-%s)\n",
 				pkgname, pkgver);
 	} else {
 		EVENT(handle, &event);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "removing package %s-%s\n",
+		logger.tracef("removing package %s-%s\n",
 				pkgname, pkgver);
 
 		/* run the pre-remove scriptlet if it exists */
@@ -742,7 +742,7 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 	}
 
 	/* remove the package from the database */
-	_alpm_log(handle, ALPM_LOG_DEBUG, "removing database entry '%s'\n", pkgname);
+	logger.tracef("removing database entry '%s'\n", pkgname);
 	if(_alpm_local_db_remove(handle.getDBLocal, oldpkg) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not remove database entry %s-%s\n"),
 				pkgname, pkgver);

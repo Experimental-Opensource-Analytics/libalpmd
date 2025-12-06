@@ -161,7 +161,7 @@ version (HAVE_LIBSECCOMP) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("error restricting syscalls via seccomp: %d!\n"), ret);
 	}
 	else {
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("successfully restricted %d syscalls via seccomp\n"), restrictedSyscallsCount);
+		logger.tracef(("successfully restricted %d syscalls via seccomp\n"), restrictedSyscallsCount);
 	}
 
 	seccomp_release(ctx);

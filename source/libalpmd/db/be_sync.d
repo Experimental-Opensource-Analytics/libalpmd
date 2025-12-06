@@ -611,7 +611,7 @@ AlpmDB _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
 	AlpmDB db = void;
 
 	logger.trace("registering sync database ", treename.to!string);
-	// _alpm_log(handle, ALPM_LOG_DEBUG, "registering sync database '%s'\n", treename);
+	// logger.tracef("registering sync database '%s'\n", treename);
 
 version (HAVE_LIBGPGME) {} else {
 	if(level != 0 && level != ALPM_SIG_USE_DEFAULT) {

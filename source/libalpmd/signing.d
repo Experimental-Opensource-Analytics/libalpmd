@@ -165,7 +165,7 @@ private int init_gpgme(AlpmHandle handle)
 	if(alpmAccess(handle, sigdir, "pubring.gpg", R_OK)
 			|| alpmAccess(handle, sigdir, "trustdb.gpg", R_OK)) {
 		handle.pm_errno = ALPM_ERR_NOT_A_FILE;
-		_alpm_log(handle, ALPM_LOG_DEBUG, "Signature verification will fail!\n");
+		logger.tracef("Signature verification will fail!\n");
 		_alpm_log(handle, ALPM_LOG_WARNING,
 				("Public keyring not found; have you run '%s'?\n"),
 				"pacman-key --init");
@@ -174,7 +174,7 @@ private int init_gpgme(AlpmHandle handle)
 	/* calling gpgme_check_version() returns the current version and runs
 	 * some internal library setup code */
 	version_ = gpgme_check_version(null);
-	_alpm_log(handle, ALPM_LOG_DEBUG, "GPGME version: %s\n", version_);
+	logger.tracef("GPGME version: %s\n", version_);
 	gpgme_set_locale(null, LC_CTYPE, setlocale(LC_CTYPE, null));
 version (LC_MESSAGES) {
 	gpgme_set_locale(null, LC_MESSAGES, setlocale(LC_MESSAGES, null));
@@ -196,7 +196,7 @@ version (LC_MESSAGES) {
 	mixin(CHECK_ERR!());
 	gpg_err = gpgme_get_engine_info(&enginfo);
 	mixin(CHECK_ERR!());
-	_alpm_log(handle, ALPM_LOG_DEBUG, "GPGME engine info: file=%s, home=%s\n",
+	logger.tracef("GPGME engine info: file=%s, home=%s\n",
 			enginfo.file_name, enginfo.home_dir);
 
 	init = 1;
@@ -221,7 +221,7 @@ int _alpm_key_in_keychain(AlpmHandle handle,   char*fpr)
 	int ret = -1;
 
 	if(alpm_list_find_str(handle.known_keys, fpr)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "key %s found in cache\n", fpr);
+		logger.tracef("key %s found in cache\n", fpr);
 		return 1;
 	}
 
@@ -233,23 +233,23 @@ int _alpm_key_in_keychain(AlpmHandle handle,   char*fpr)
 	gpg_err = gpgme_new(&ctx);
 	mixin(CHECK_ERR!());
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "looking up key %s locally\n", fpr);
+	logger.tracef("looking up key %s locally\n", fpr);
 
 	gpg_err = gpgme_get_key(ctx, fpr, &key, 0);
 	if(gpg_err_code(gpg_err) == GPG_ERR_EOF) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed, unknown key\n");
+		logger.tracef("key lookup failed, unknown key\n");
 		ret = 0;
 	} else if(gpg_err_code(gpg_err) == GPG_ERR_NO_ERROR) {
 		if(key.expired) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup success, but key is expired\n");
+			logger.tracef("key lookup success, but key is expired\n");
 			ret = 0;
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup success, key exists\n");
+			logger.tracef("key lookup success, key exists\n");
 			handle.known_keys = alpm_list_add(handle.known_keys, strdup(fpr));
 			ret = 1;
 		}
 	} else {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "gpg error: %s\n", gpgme_strerror(gpg_err));
+		logger.tracef("gpg error: %s\n", gpgme_strerror(gpg_err));
 	}
 	gpgme_key_unref(key);
 
@@ -284,21 +284,21 @@ private int key_import_wkd(AlpmHandle handle,   char*email,   char*fpr)
 	gpg_err = gpgme_set_keylist_mode(ctx, mode);
 	mixin(CHECK_ERR!());
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, ("looking up key %s using WKD\n"), email);
+	logger.tracef(("looking up key %s using WKD\n"), email);
 	gpg_err = gpgme_get_key(ctx, email, &key, 0);
 	if(gpg_err_code(gpg_err) == GPG_ERR_NO_ERROR) {
 		/* check if correct key was imported via WKD */
 		if(fpr && _alpm_key_in_keychain(handle, fpr)) {
 			ret = 0;
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed: WKD imported wrong fingerprint or key expired\n");
+			logger.tracef("key lookup failed: WKD imported wrong fingerprint or key expired\n");
 		}
 	}
 	gpgme_key_unref(key);
 
 gpg_error:
 	if(ret != 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, ("gpg error: %s\n"), gpgme_strerror(gpg_err));
+		logger.tracef(("gpg error: %s\n"), gpgme_strerror(gpg_err));
 	}
 	gpgme_release(ctx);
 	return ret;
@@ -339,11 +339,11 @@ private int key_search_keyserver(AlpmHandle handle,   char*fpr, alpm_pgpkey_t* p
 	gpg_err = gpgme_set_keylist_mode(ctx, mode);
 	mixin(CHECK_ERR!());
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "looking up key %s remotely\n", fpr);
+	logger.tracef("looking up key %s remotely\n", fpr);
 
 	gpg_err = gpgme_get_key(ctx, full_fpr, &key, 0);
 	if(gpg_err_code(gpg_err) == GPG_ERR_EOF) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed, unknown key\n");
+		logger.tracef("key lookup failed, unknown key\n");
 		/* Try an alternate lookup using the 8 character fingerprint value, since
 		 * busted-ass keyservers can't support lookups using subkeys with the full
 		 * value as of now. This is why 2012 is not the year of PGP encryption. */
@@ -353,7 +353,7 @@ private int key_search_keyserver(AlpmHandle handle,   char*fpr, alpm_pgpkey_t* p
 					"looking up key %s remotely\n", short_fpr);
 			gpg_err = gpgme_get_key(ctx, short_fpr, &key, 0);
 			if(gpg_err_code(gpg_err) == GPG_ERR_EOF) {
-				_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed, unknown key\n");
+				logger.tracef("key lookup failed, unknown key\n");
 				ret = 0;
 			}
 		} else {
@@ -386,7 +386,7 @@ private int key_search_keyserver(AlpmHandle handle,   char*fpr, alpm_pgpkey_t* p
 
 gpg_error:
 	if(ret != 1) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "gpg error: %s\n", gpgme_strerror(gpg_err));
+		logger.tracef("gpg error: %s\n", gpgme_strerror(gpg_err));
 	}
 	free(full_fpr);
 	gpgme_release(ctx);
@@ -416,7 +416,7 @@ private int key_import_keyserver(AlpmHandle handle, alpm_pgpkey_t* key)
 	gpg_err = gpgme_new(&ctx);
 	mixin(CHECK_ERR!());
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "importing key\n");
+	logger.tracef("importing key\n");
 
 	keys[0] = key.data;
 	keys[1] = null;
@@ -425,10 +425,10 @@ private int key_import_keyserver(AlpmHandle handle, alpm_pgpkey_t* key)
 	result = gpgme_op_import_result(ctx);
 	/* we know we tried to import exactly one key, so check for this */
 	if(result.considered != 1 || !result.imports) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "could not import key, 0 results\n");
+		logger.tracef("could not import key, 0 results\n");
 		ret = -1;
 	} else if(result.imports.result != GPG_ERR_NO_ERROR) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "gpg error: %s\n", gpgme_strerror(gpg_err));
+		logger.tracef("gpg error: %s\n", gpgme_strerror(gpg_err));
 		ret = -1;
 	} else {
 		ret = 0;
@@ -565,7 +565,7 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 		sigpath = _alpm_sigpath(handle, path);
 		if(alpmAccess(handle, null, sigpath, R_OK) != 0
 				|| (sigfile = fopen(sigpath, "rb")) == null) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "sig path %s could not be opened\n",
+			logger.tracef("sig path %s could not be opened\n",
 					sigpath);
 			GOTO_ERR(handle, ALPM_ERR_SIG_MISSING, error);
 		}
@@ -582,7 +582,7 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 		goto error;
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "checking signature for %s\n", path);
+	logger.tracef("checking signature for %s\n", path);
 
 	gpg_err = gpgme_new(&ctx);
 	mixin(CHECK_ERR!());
@@ -614,12 +614,12 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 	verify_result = gpgme_op_verify_result(ctx);
 	mixin(CHECK_ERR!());
 	if(!verify_result || !verify_result.signatures) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "no signatures returned\n");
+		logger.tracef("no signatures returned\n");
 		GOTO_ERR(handle, ALPM_ERR_SIG_MISSING, gpg_error);
 	}
 	for(gpgsig = verify_result.signatures, sigcount = 0;
 			gpgsig; gpgsig = gpgsig.next, sigcount++){}
-	_alpm_log(handle, ALPM_LOG_DEBUG, "%d signatures returned\n", sigcount);
+	logger.tracef("%d signatures returned\n", sigcount);
 
 	CALLOC(siglist.results, sigcount, alpm_sigresult_t.sizeof);
 	siglist.count = sigcount;
@@ -632,29 +632,29 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 		gpgme_key_t key = void;
 		alpm_sigresult_t* result = void;
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "fingerprint: %s\n", gpgsig.fpr);
+		logger.tracef("fingerprint: %s\n", gpgsig.fpr);
 		summary_list = list_sigsum(gpgsig.summary);
 		for(summary = summary_list; summary; summary = summary.next) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "summary: %s\n", cast( char*)summary.data);
+			logger.tracef("summary: %s\n", cast( char*)summary.data);
 		}
 		alpm_list_free(summary_list);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "status: %s\n", gpgme_strerror(gpgsig.status));
-		_alpm_log(handle, ALPM_LOG_DEBUG, "timestamp: %lu\n", gpgsig.timestamp);
+		logger.tracef("status: %s\n", gpgme_strerror(gpgsig.status));
+		logger.tracef("timestamp: %lu\n", gpgsig.timestamp);
 
 		if(cast(time_t)gpgsig.timestamp > time(null)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"signature timestamp is greater than system time.\n");
 		}
 
-		_alpm_log(handle, ALPM_LOG_DEBUG, "exp_timestamp: %lu\n", gpgsig.exp_timestamp);
-		_alpm_log(handle, ALPM_LOG_DEBUG, "validity: %s; reason: %s\n",
+		logger.tracef("exp_timestamp: %lu\n", gpgsig.exp_timestamp);
+		logger.tracef("validity: %s; reason: %s\n",
 				string_validity(gpgsig.validity),
 				gpgme_strerror(gpgsig.validity_reason));
 
 		result = siglist.results + sigcount;
 		gpg_err = gpgme_get_key(ctx, gpgsig.fpr, &key, 0);
 		if(gpg_err_code(gpg_err) == GPG_ERR_EOF) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "key lookup failed, unknown key\n");
+			logger.tracef("key lookup failed, unknown key\n");
 			gpg_err = GPG_ERR_NO_ERROR;
 			/* we dupe the fpr in this case since we have no key to point at */
 			STRDUP(result.key.fingerprint, gpgsig.fpr);
@@ -811,15 +811,15 @@ int _alpm_check_pgp_helper(AlpmHandle handle,   char*path,   char*base64_sig, in
 	ret = _alpm_gpgme_checksig(handle, path, base64_sig, siglist);
 	if(ret && handle.pm_errno == ALPM_ERR_SIG_MISSING) {
 		if(optional) {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "missing optional signature\n");
+			logger.tracef("missing optional signature\n");
 			handle.pm_errno = ALPM_ERR_OK;
 			ret = 0;
 		} else {
-			_alpm_log(handle, ALPM_LOG_DEBUG, "missing required signature\n");
+			logger.tracef("missing required signature\n");
 			/* ret will already be -1 */
 		}
 	} else if(ret) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "signature check failed\n");
+		logger.tracef("signature check failed\n");
 		/* ret will already be -1 */
 	} else {
 		size_t num = void;
@@ -827,25 +827,25 @@ int _alpm_check_pgp_helper(AlpmHandle handle,   char*path,   char*base64_sig, in
 			switch(siglist.results[num].status) {
 				case ALPM_SIGSTATUS_VALID:
 				case ALPM_SIGSTATUS_KEY_EXPIRED:
-					_alpm_log(handle, ALPM_LOG_DEBUG, "signature is valid\n");
+					logger.tracef("signature is valid\n");
 					switch(siglist.results[num].validity) {
 						case ALPM_SIGVALIDITY_FULL:
-							_alpm_log(handle, ALPM_LOG_DEBUG, "signature is fully trusted\n");
+							logger.tracef("signature is fully trusted\n");
 							break;
 						case ALPM_SIGVALIDITY_MARGINAL:
-							_alpm_log(handle, ALPM_LOG_DEBUG, "signature is marginal trust\n");
+							logger.tracef("signature is marginal trust\n");
 							if(!marginal) {
 								ret = -1;
 							}
 							break;
 						case ALPM_SIGVALIDITY_UNKNOWN:
-							_alpm_log(handle, ALPM_LOG_DEBUG, "signature is unknown trust\n");
+							logger.tracef("signature is unknown trust\n");
 							if(!unknown) {
 								ret = -1;
 							}
 							break;
 						case ALPM_SIGVALIDITY_NEVER:
-							_alpm_log(handle, ALPM_LOG_DEBUG, "signature should never be trusted\n");
+							logger.tracef("signature should never be trusted\n");
 							ret = -1;
 							break;
 					default: break;}
@@ -854,7 +854,7 @@ int _alpm_check_pgp_helper(AlpmHandle handle,   char*path,   char*base64_sig, in
 				case ALPM_SIGSTATUS_KEY_UNKNOWN:
 				case ALPM_SIGSTATUS_KEY_DISABLED:
 				case ALPM_SIGSTATUS_INVALID:
-					_alpm_log(handle, ALPM_LOG_DEBUG, "signature is not valid\n");
+					logger.tracef("signature is not valid\n");
 					ret = -1;
 					break;
 			default: break;}

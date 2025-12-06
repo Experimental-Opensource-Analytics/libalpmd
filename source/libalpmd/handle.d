@@ -222,7 +222,7 @@ public:
 		stat_t buf = void;
 
 		if(stat(syncpath.toStringz, &buf) != 0) {
-			// _alpm_log(handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
+			// logger.tracef("database dir '%s' does not exist, creating it\n",
 			// 		syncpath);
 
 			mkdirRecurse(syncpath);
@@ -680,7 +680,7 @@ int  alpm_option_set_logfile(AlpmHandle handle,   char*logfile)
 	if(handle.logstream.isOpen()) {
 		handle.logstream.close();
 	}
-	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'logfile' = %s\n", handle.logfile);
+	logger.tracef("option 'logfile' = %s\n", handle.logfile);
 	return 0;
 }
 
@@ -691,7 +691,7 @@ int  alpm_option_set_gpgdir(AlpmHandle handle,   char*gpgdir)
 	if(cast(bool)(err = setDirectoryOption(gpgdir.to!string, handle.gpgdir, 0))) {
 		RET_ERR(handle, err, -1);
 	}
-	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'gpgdir' = %s\n", handle.gpgdir);
+	logger.tracef("option 'gpgdir' = %s\n", handle.gpgdir);
 	return 0;
 }
 
@@ -703,7 +703,7 @@ int  alpm_option_set_sandboxuser(AlpmHandle handle,   char*sandboxuser)
 
 	STRDUP(cast(char**)handle.sandboxuser.ptr, sandboxuser);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'sandboxuser' = %s\n", handle.sandboxuser);
+	logger.tracef("option 'sandboxuser' = %s\n", handle.sandboxuser);
 	return 0;
 }
 
@@ -937,7 +937,7 @@ int  alpm_option_set_dbext(AlpmHandle handle, char* dbext)
 
 	STRDUP(cast(char**)handle.dbext.ptr, dbext);
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "option 'dbext' = %s\n", handle.dbext);
+	logger.tracef("option 'dbext' = %s\n", handle.dbext);
 	return 0;
 }
 

@@ -128,7 +128,7 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 	alpm_list_t* invalid = null;
 
 	if(!handle.architectures) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "skipping architecture checks\n");
+		logger.tracef("skipping architecture checks\n");
 		return null;
 	}
 	for(i = pkgs; i; i = i.next) {
@@ -201,7 +201,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "sorting by dependencies\n");
+		logger.tracef("sorting by dependencies\n");
 		if(trans.add) {
 			alpm_list_t* add_orig = trans.add;
 			trans.add = _alpm_sortbydeps(handle, add_orig, trans.remove, 0);
@@ -392,7 +392,7 @@ int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char
 	size_t len = void;
 
 	if(alpmAccess(handle, null, filepath.to!string, R_OK) != 0) {
-		_alpm_log(handle, ALPM_LOG_DEBUG, "scriptlet '%s' not found\n", filepath);
+		logger.tracef("scriptlet '%s' not found\n", filepath);
 		return 0;
 	}
 
@@ -453,7 +453,7 @@ int _alpm_runscriptlet(AlpmHandle handle,   char*filepath,   char*script,   char
 				scriptpath, script, ver);
 	}
 
-	_alpm_log(handle, ALPM_LOG_DEBUG, "executing \"%s\"\n", cmdline.ptr);
+	logger.tracef("executing \"%s\"\n", cmdline.ptr);
 
 
 	retval = _alpm_run_chroot(handle, cast(char*)SCRIPTLET_SHELL, argv.ptr, null, null);
