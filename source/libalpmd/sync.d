@@ -374,7 +374,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 {
 	alpm_list_t* j = void;
 	alpm_list_t* deps = null;
-	alpm_list_t* unresolvable = null;
+	AlpmPkgs unresolvable;
 	int from_sync = 0;
 	int ret = 0;
 	AlpmTrans trans = handle.trans;
@@ -435,7 +435,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			if(_alpm_resolvedeps(handle, localpkgs, pkg, trans.add,
 						&resolved, remove, data) == -1) {
-				unresolvable = alpm_list_add(unresolvable, cast(void*)pkg);
+				unresolvable.insertBack(pkg);
 			}
 			/* Else, [resolved] now additionally contains [pkg] and all of its
 			   dependencies not already on the list */
@@ -445,7 +445,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* If there were unresolvable top-level packages, prompt the user to
 		   see if they'd like to ignore them rather than failing the sync */
-		if(unresolvable != null) {
+		if(unresolvable[].count) {
 			alpm_question_remove_pkgs_t question = {
 				type: ALPM_QUESTION_REMOVE_PKGS,
 				skip: 0,
@@ -467,7 +467,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			} else {
 				/* pm_errno was set by resolvedeps, callback may have overwrote it */
 				alpm_list_free(resolved);
-				alpm_list_free(unresolvable);
+				unresolvable.clear();
 				ret = -1;
 				GOTO_ERR(handle, ALPM_ERR_UNSATISFIED_DEPS, "cleanup");
 			}
@@ -574,7 +574,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 					rsync.name, rsync.version_, sync.name, sync.version_);
 			trans.add = alpm_list_remove(trans.add, cast(void*)rsync, &_alpm_pkg_cmp, null);
 			/* rsync is not a transaction target anymore */
-			trans.unresolvable = alpm_list_add(trans.unresolvable, cast(void*)rsync);
+			trans.unresolvable.insertBack(rsync);
 		}
 
 		alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);

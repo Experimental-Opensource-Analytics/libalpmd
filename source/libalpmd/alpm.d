@@ -1051,7 +1051,7 @@ struct alpm_question_remove_pkgs_t {
 	/** Answer: whether or not to skip packages */
 	int skip;
 	/** List of AlpmPkg with unresolved dependencies */
-	alpm_list_t* packages;
+	AlpmPkgs packages;
 }
 
 /** Provider selection */

@@ -88,7 +88,7 @@ class AlpmTrans {
 	/* bitfield of alpm_transflag_t flags */
 	int flags;
 	AlpmTransState state;
-	alpm_list_t* unresolvable;  /* list of (AlpmPkg) */
+	AlpmPkgs unresolvable;  /* list of (AlpmPkg) */
 	alpm_list_t* add;           /* list of (AlpmPkg) */
 	alpm_list_t* remove;        /* list of (AlpmPkg) */
 	alpm_list_t* skip_remove;   /* list of (char *) */
@@ -340,9 +340,9 @@ void _alpm_trans_free(AlpmTrans trans)
 		return;
 	}
 
-	alpm_list_free_inner(trans.unresolvable,
-			cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
-	alpm_list_free(trans.unresolvable);
+	// alpm_list_free_inner(trans.unresolvable,
+			// cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
+	// alpm_list_free(trans.unresolvable);
 	alpm_list_free_inner(trans.add, cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
 	alpm_list_free(trans.add);
 	alpm_list_free_inner(trans.remove, cast(alpm_list_fn_free)&_alpm_pkg_free);
