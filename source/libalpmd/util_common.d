@@ -50,20 +50,6 @@ import core.sys.posix.sys.stat :
 
 import std.conv;
 
-/** Parse the basename of a program from a path.
-* @param path path to parse basename from
-*
-* @return everything following the final '/'
-*/
-const(char)* mbasename(const(char)* path)
-{
-	const(char)* last = strrchr(path, '/');
-	if(last) {
-		return last + 1;
-	}
-	return path;
-}
-
 /** Parse the dirname of a program from a path.
 * The path returned should be freed.
 * @param path path to parse dirname from

@@ -33,12 +33,13 @@ import core.stdc.errno;
 import core.stdc.string;
 import core.stdc.limits;
 import core.sys.posix.dirent;
-import std.regex;
 import core.sys.posix.unistd;
 import core.sys.posix.sys.stat;
 import core.sys.posix.sys.types;
 
+import std.regex;
 import std.conv;
+import std.path;
 
 /* libalpm */
 import libalpmd.remove;
@@ -376,7 +377,7 @@ private void shift_pacsave(AlpmHandle handle,   char*file)
 		return;
 	}
 
-	basename = cast(char*)mbasename(cast(char*)file);
+	basename = cast(char*)baseName(file.to!string);
 	basename_len = strlen(basename);
 
 	snprintf(regstr.ptr, PATH_MAX, "^%s\\.pacsave\\.([[:digit:]]+)$", basename);
