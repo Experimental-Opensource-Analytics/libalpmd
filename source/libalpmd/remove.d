@@ -372,7 +372,7 @@ private void shift_pacsave(AlpmHandle handle,   char*file)
 	c_ulong log_max = 0;
 	size_t basename_len = void;
 
-	dirname = cast(char*)mdirname(cast(char*)file);
+	dirname = cast(char*)dirName(file.to!string);
 	if(!dirname) {
 		return;
 	}

@@ -50,42 +50,6 @@ import core.sys.posix.sys.stat :
 
 import std.conv;
 
-/** Parse the dirname of a program from a path.
-* The path returned should be freed.
-* @param path path to parse dirname from
-*
-* @return everything preceding the final '/'
-*/
-char* mdirname(const(char)* path)
-{
-	char* ret = void, last = void;
-
-	/* null or empty path */
-	if(path == null || *path == '\0') {
-		return strdup(".");
-	}
-
-	if((ret = strdup(path)) == null) {
-		return null;
-	}
-
-	last = strrchr(ret, '/');
-
-	if(last != null) {
-		/* we found a '/', so terminate our string */
-		if(last == ret) {
-			/* return "/" for root */
-			last++;
-		}
-		*last = '\0';
-		return ret;
-	}
-
-	/* no slash found */
-	free(ret);
-	return strdup(".");
-}
-
 /** lstat wrapper that treats /path/dirsymlink/ the same as /path/dirsymlink.
  * Linux lstat follows POSIX semantics and still performs a dereference on
  * the first, and for uses of lstat in libalpm this is not what we want.
