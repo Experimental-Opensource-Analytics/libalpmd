@@ -60,6 +60,7 @@ import std.string;
 import std.algorithm;
 import std.array;
 import inilike;
+import libalpmd.event;
 
 enum AlpmHookOp {
 	Install = (1 << 0),
@@ -531,8 +532,8 @@ private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 
 int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 {
-	alpm_event_hook_t event = { when: when };
-	alpm_event_hook_run_t hook_event = void;
+	AlpmEventHook event = new AlpmEventHook(AlpmEventDefStatus.Start, when);
+	AlpmEventHookRun hook_event = new AlpmEventHookRun();
 	alpm_list_t* i = void, hooks = null, hooks_triggered = null;
 	size_t suflen = strlen(ALPM_HOOK_SUFFIX), triggered = 0;
 	int ret = 0;
@@ -643,8 +644,8 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 	}
 
 	if(hooks_triggered != null) {
-		event.type = ALPM_EVENT_HOOK_START;
-		EVENT(handle, cast(void*)&event);
+		event.setStatus(AlpmEventDefStatus.Start);
+		EVENT(handle, event);
 
 		hook_event.position = 1;
 		hook_event.total = triggered;
@@ -653,17 +654,17 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 			AlpmHook* hook = cast(AlpmHook*)i.data;
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "running '%s'...\n", hook.name);
 
-			hook_event.type = ALPM_EVENT_HOOK_RUN_START;
-			hook_event.name = cast(char*)hook.name.toStringz;
-			hook_event.desc = cast(char*)hook.desc.toStringz;
-			EVENT(handle, &hook_event);
+			hook_event.status = AlpmEventDefStatus.Start;
+			hook_event.name = hook.name;
+			hook_event.desc = hook.desc;
+			EVENT(handle, hook_event);
 
 			if(_alpm_hook_run_hook(handle, hook) != 0 && hook.abort_on_fail) {
 				ret = -1;
 			}
 
-			hook_event.type = ALPM_EVENT_HOOK_RUN_DONE;
-			EVENT(handle, &hook_event);
+			hook_event.status = AlpmEventDefStatus.Done;
+			EVENT(handle, hook_event);
 
 			if(ret != 0 && when == AlpmHookWhen.PreTransaction) {
 				break;
@@ -672,8 +673,8 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 
 		alpm_list_free(hooks_triggered);
 
-		event.type = ALPM_EVENT_HOOK_DONE;
-		EVENT(handle, cast(void*)&event);
+		event.setStatus = AlpmEventDefStatus.Done;
+		EVENT(handle, event);
 	}
 
 cleanup:

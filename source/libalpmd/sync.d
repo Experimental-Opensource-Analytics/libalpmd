@@ -58,6 +58,7 @@ import libalpmd.group;
 import libalpmd.deps;
 import libalpmd.error;
 import libalpmd.question;
+import libalpmd.event;
 
 import std.conv;
 
@@ -369,7 +370,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	int from_sync = 0;
 	int ret = 0;
 	AlpmTrans trans = handle.trans;
-	alpm_event_t event = void;
+	AlpmEvent event = void;
 
 	if(data) {
 		*data = null;
@@ -402,8 +403,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* Build up list by repeatedly resolving each transaction package */
 		/* Resolve targets dependencies */
-		event.type = ALPM_EVENT_RESOLVEDEPS_START;
-		EVENT(handle, &event);
+		event = new AlpmEventResolveDeps(AlpmEventDefStatus.Start);
+		EVENT(handle, event);
 		logger.tracef("resolving target's dependencies\n");
 
 		/* build remove list for resolvedeps */
@@ -497,14 +498,14 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		alpm_list_free(trans.add);
 		trans.add = resolved;
 
-		event.type = ALPM_EVENT_RESOLVEDEPS_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventResolveDeps(AlpmEventDefStatus.Done);
+		EVENT(handle, event);
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NOCONFLICTS)) {
 		/* check for inter-conflicts and whatnot */
-		event.type = ALPM_EVENT_INTERCONFLICTS_START;
-		EVENT(handle, &event);
+		event = new AlpmEventInterConflicts(AlpmEventDefStatus.Start);
+		EVENT(handle, event);
 
 		logger.tracef("looking for conflicts\n");
 
@@ -621,8 +622,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				goto cleanup;
 			}
 		}
-		event.type = ALPM_EVENT_INTERCONFLICTS_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventInterConflicts(AlpmEventDefStatus.Done);
+		EVENT(handle, event);
 		alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 		alpm_list_free(deps);
 	}
@@ -699,7 +700,6 @@ private int prompt_to_delete(AlpmHandle handle,   char*filepath, alpm_errno_t re
 {
 	auto question = new AlpmQuestionCorrupted(filepath.to!string, reason);
 	QUESTION(handle, question);
-	
 	if(question.getAnswer()) {
 		char* sig_filepath = void;
 
@@ -764,7 +764,7 @@ private int download_files(AlpmHandle handle)
 	char* temporary_cachedir = null;
 	alpm_list_t* i = void, files = null;
 	int ret = 0;
-	alpm_event_t event = void;
+	AlpmEventPkgRetriev event = void;
 	alpm_list_t* payloads = null;
 
 	cachedir = _alpm_filecache_setup(handle);
@@ -804,18 +804,18 @@ private int download_files(AlpmHandle handle)
 			}
 		}
 
-		event.type = ALPM_EVENT_PKG_RETRIEVE_START;
-		event.pkg_retrieve.total_size = 0;
-		event.pkg_retrieve.num = 0;
+		event = new AlpmEventPkgRetriev(AlpmEventPkgRetrievStatus.Start);
+		event.total_size = 0;
+		event.num = 0;
 
 		/* sum up the number of packages to download and its total size */
 		for(i = files; i; i = i.next) {
 			AlpmPkg spkg = cast(AlpmPkg)i.data;
-			event.pkg_retrieve.total_size += spkg.download_size;
-			event.pkg_retrieve.num++;
+			event.total_size += spkg.download_size;
+			event.num++;
 		}
 
-		EVENT(handle, &event);
+		EVENT(handle, event);
 		for(i = files; i; i = i.next) {
 			AlpmPkg pkg = cast(AlpmPkg)i.data;
 			int siglevel = pkg.getDB().getSigLevel();
@@ -847,13 +847,13 @@ private int download_files(AlpmHandle handle)
 
 		ret = _alpm_download(handle, payloads, cachedir, temporary_cachedir);
 		if(ret == -1) {
-			event.type = ALPM_EVENT_PKG_RETRIEVE_FAILED;
-			EVENT(handle, &event);
+			event = new AlpmEventPkgRetriev(AlpmEventPkgRetrievStatus.Failed);
+			EVENT(handle, event);
 			_alpm_log(handle, ALPM_LOG_WARNING, "failed to retrieve some files\n");
 			goto finish;
 		}
-		event.type = ALPM_EVENT_PKG_RETRIEVE_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventPkgRetriev(AlpmEventPkgRetrievStatus.Done);
+		EVENT(handle, event);
 	}
 
 finish:
@@ -893,7 +893,7 @@ private int check_keyring(AlpmHandle handle)
 	keyinfo_t* keyinfo = void;
 
 	event.type = ALPM_EVENT_KEYRING_START;
-	EVENT(handle, &event);
+	EVENT(handle, event);
 
 	numtargs = alpm_list_count(handle.trans.add);
 
@@ -943,11 +943,11 @@ private int check_keyring(AlpmHandle handle)
 	PROGRESS(handle, ALPM_PROGRESS_KEYRING_START, "", 100,
 			numtargs, current);
 	event.type = ALPM_EVENT_KEYRING_DONE;
-	EVENT(handle, &event);
+	EVENT(handle, event);
 
 	if(errors) {
 		event.type = ALPM_EVENT_KEY_DOWNLOAD_START;
-		EVENT(handle, &event);
+		EVENT(handle, event);
 		int fail = 0;
 		alpm_list_t* k = void;
 		for(k = errors; k; k = k.next) {
@@ -961,7 +961,7 @@ private int check_keyring(AlpmHandle handle)
 		}
 		alpm_list_free(errors);
 		event.type = ALPM_EVENT_KEY_DOWNLOAD_DONE;
-		EVENT(handle, &event);
+		EVENT(handle, event);
 		if(fail) {
 			_alpm_log(handle, ALPM_LOG_ERROR, "required key missing from keyring\n");
 			return -1;
@@ -985,11 +985,11 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 	size_t current = 0;
 	ulong current_bytes = 0;
 	alpm_list_t* i = void, errors = null;
-	alpm_event_t event = void;
+	AlpmEvent event = void;
 
 	/* Check integrity of packages */
-	event.type = ALPM_EVENT_INTEGRITY_START;
-	EVENT(handle, &event);
+	event = new AlpmEventIntegrity(AlpmEventDefStatus.Start);
+	EVENT(handle, event);
 
 	for(i = handle.trans.add; i; i = i.next, current++) {
 		validity v = { cast(AlpmPkg)i.data, null, null, 0, 0, cast(alpm_errno_t)0 };
@@ -1029,8 +1029,8 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 
 	PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", 100,
 			total, current);
-	event.type = ALPM_EVENT_INTEGRITY_DONE;
-	EVENT(handle, &event);
+	event = new AlpmEventIntegrity(AlpmEventDefStatus.Done);
+	EVENT(handle, event);
 
 	if(errors) {
 		for(i = errors; i; i = i.next) {
@@ -1169,11 +1169,12 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 	size_t current = 0, current_bytes = 0;
 	int errors = 0;
 	alpm_list_t* i = void, delete_list = null;
-	alpm_event_t event = void;
+	AlpmEvent event;
 
 	/* load packages from disk now that they are known-valid */
-	event.type = ALPM_EVENT_LOAD_START;
-	EVENT(handle, &event);
+	event = new AlpmEventLoad(AlpmEventDefStatus.Start);
+
+	EVENT(handle, event);
 
 	for(i = handle.trans.add; i; i = i.next, current++) {
 		int error = 0;
@@ -1233,8 +1234,8 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 
 	PROGRESS(handle, ALPM_PROGRESS_LOAD_START, "", 100,
 			total, current);
-	event.type = ALPM_EVENT_LOAD_DONE;
-	EVENT(handle, &event);
+	event = new AlpmEventLoad(AlpmEventDefStatus.Done);
+	EVENT(handle, event);
 
 	if(errors) {
 		for(i = delete_list; i; i = i.next) {
@@ -1299,12 +1300,12 @@ version (HAVE_LIBGPGME) {
 int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 {
 	AlpmTrans trans = handle.trans;
-	alpm_event_t event = void;
+	AlpmEventWithDefStatus event;
 
 	/* fileconflict check */
 	if(!(trans.flags & ALPM_TRANS_FLAG_DBONLY)) {
-		event.type = ALPM_EVENT_FILECONFLICTS_START;
-		EVENT(handle, &event);
+		event = new AlpmEventFileConflicts(AlpmEventDefStatus.Start);
+		EVENT(handle, event);
 
 		logger.tracef("looking for file conflicts\n");
 		alpm_list_t* conflict = _alpm_db_find_fileconflicts(handle,
@@ -1320,14 +1321,14 @@ int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 			RET_ERR(handle, ALPM_ERR_FILE_CONFLICTS, -1);
 		}
 
-		event.type = ALPM_EVENT_FILECONFLICTS_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventFileConflicts(AlpmEventDefStatus.Done);
+		EVENT(handle, event);
 	}
 
 	/* check available disk space */
 	if(handle.checkspace && !(trans.flags & ALPM_TRANS_FLAG_DBONLY)) {
-		event.type = ALPM_EVENT_DISKSPACE_START;
-		EVENT(handle, &event);
+		event = new AlpmEventDiskSpace(AlpmEventDefStatus.Start);
+		EVENT(handle, event);
 
 		logger.tracef("checking available disk space\n");
 		if(_alpm_check_diskspace(handle) == -1) {
@@ -1335,8 +1336,8 @@ int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 			return -1;
 		}
 
-		event.type = ALPM_EVENT_DISKSPACE_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventDiskSpace(AlpmEventDefStatus.Done);
+		EVENT(handle, event);
 	}
 
 	return 0;

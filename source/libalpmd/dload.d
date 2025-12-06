@@ -65,6 +65,7 @@ import libalpmd.util;
 import libalpmd.handle;
 import libalpmd.db;
 import libalpmd.sandbox;
+import libalpmd.event;
 
 struct DLoadPayload {
 	AlpmHandle handle;
@@ -1433,7 +1434,7 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 	char* temporary_cachedir = null;
 	alpm_list_t* payloads = null;
 	 alpm_list_t* i = void;
-	alpm_event_t event = void;
+	AlpmEventPkgRetriev event = void;
 
 	//ASSERT(*fetched == null);
 
@@ -1509,18 +1510,18 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 	}
 
 	if(payloads) {
-		event.type = ALPM_EVENT_PKG_RETRIEVE_START;
-		event.pkg_retrieve.num = alpm_list_count(payloads);
-		event.pkg_retrieve.total_size = 0;
-		EVENT(handle, &event);
+		event = new AlpmEventPkgRetriev(AlpmEventPkgRetrievStatus.Start);
+		event.num = alpm_list_count(payloads);
+		event.total_size = 0;
+		EVENT(handle, event);
 		if(_alpm_download(handle, payloads, cachedir, temporary_cachedir) == -1) {
 			_alpm_log(handle, ALPM_LOG_WARNING, ("failed to retrieve some files\n"));
-			event.type = ALPM_EVENT_PKG_RETRIEVE_FAILED;
-			EVENT(handle, &event);
+			event.status = AlpmEventPkgRetrievStatus.Failed;
+			EVENT(handle, event);
 			GOTO_ERR(handle, ALPM_ERR_RETRIEVE, "err");
 		} else {
-			event.type = ALPM_EVENT_PKG_RETRIEVE_DONE;
-			EVENT(handle, &event);
+			event.status = AlpmEventPkgRetrievStatus.Done;
+			EVENT(handle, event);
 		}
 
 		for(i = cast( alpm_list_t*) payloads; i; i = i.next) {

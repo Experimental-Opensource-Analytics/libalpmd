@@ -72,6 +72,7 @@ import libalpmd.sync;
 import libalpmd.alpm;
 import libalpmd.deps;
 import libalpmd.hook;
+import libalpmd.event;
 
 enum AlpmTransState {
 	Idle = 0,
@@ -222,7 +223,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 {
 	AlpmTrans trans = void;
-	alpm_event_any_t event = void;
+	AlpmEvent event;
 
 	/* Sanity checks */
 
@@ -260,8 +261,8 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	trans.state = AlpmTransState.Commiting;
 
 	//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction started\n");
-	event.type = ALPM_EVENT_TRANSACTION_START;
-	EVENT(handle, cast(void*)&event);
+	event = new AlpmEventTransaction(AlpmEventDefStatus.Start);
+	EVENT(handle, event);
 
 	if(trans.add == null) {
 		if(_alpm_remove_packages(handle, 1) == -1) {
@@ -284,8 +285,8 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	if(trans.state == AlpmTransState.Interrupted) {
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction interrupted\n");
 	} else {
-		event.type = ALPM_EVENT_TRANSACTION_DONE;
-		EVENT(handle, cast(void*)&event);
+		event = new AlpmEventTransaction(AlpmEventDefStatus.Done);
+		EVENT(handle, event);
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction completed\n");
 
 		if(!(trans.flags & ALPM_TRANS_FLAG_NOHOOKS)) {

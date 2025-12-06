@@ -41,8 +41,6 @@ import std.regex;
 import std.conv;
 import std.path;
 
-/* libalpm */
-import libalpmd.remove;
 import libalpmd.alpm_list;
 import libalpmd.alpm;
 import libalpmd.trans;
@@ -55,9 +53,7 @@ import libalpmd.deps;
 import libalpmd.handle;
 import libalpmd.filelist;
 import libalpmd.util_common;
-// import libalpmd.be_local;
-
-
+import libalpmd.event;
 
 int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
@@ -186,12 +182,8 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 				// AlpmDepend optdep = cast(AlpmDepend)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
 				if(libalpmd.deps.alpm_find_satisfier(lp, optstring)) {
-					alpm_event_optdep_removal_t event = {
-						type: ALPM_EVENT_OPTDEP_REMOVAL,
-						pkg: pkg,
-						optdep: optdep
-					};
-					EVENT(handle, &event);
+					auto event = new AlpmEventOptDepRemoval(pkg, optdep);
+					EVENT(handle, event);
 				}
 				free(optstring);
 			}
@@ -216,7 +208,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 	alpm_list_t* lp = void;
 	AlpmTrans trans = handle.trans;
 	AlpmDB db = handle.getDBLocal;
-	alpm_event_t event = void;
+	AlpmEventCheckDeps event;
 
 	if((trans.flags & ALPM_TRANS_FLAG_RECURSE)
 			&& !(trans.flags & ALPM_TRANS_FLAG_CASCADE)) {
@@ -228,8 +220,8 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
-		event.type = ALPM_EVENT_CHECKDEPS_START;
-		EVENT(handle, &event);
+		event = new AlpmEventCheckDeps(AlpmEventDefStatus.Start);
+		EVENT(handle, event);
 
 		logger.tracef("looking for unsatisfied dependencies\n");
 		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(db), trans.remove, null, 1);
@@ -272,8 +264,8 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
-		event.type = ALPM_EVENT_CHECKDEPS_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventCheckDeps(AlpmEventDefStatus.Done);
+		EVENT(handle, event);
 	}
 
 	return 0;
@@ -543,11 +535,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 				int cmp = filehash ? backup.isHash(filehash.to!string) : 0;
 				FREE(filehash);
 				if(cmp != 0) {
-					alpm_event_pacsave_created_t event = {
-						type: ALPM_EVENT_PACSAVE_CREATED,
-						oldpkg: oldpkg,
-						file: cast(char*)file
-					};
+					auto event = new AlpmEventPacsaveCreated(oldpkg, file.to!string);
 					char* newpath = void;
 					size_t len = strlen(file.ptr) + 8 + 1;
 					MALLOC(newpath, len);
@@ -562,7 +550,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 						free(newpath);
 						return -1;
 					}
-					EVENT(handle, &event);
+					EVENT(handle, event);
 					//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 							// "warning: %s saved as %s\n", file.ptr, newpath);
 					free(newpath);
@@ -690,20 +678,21 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
  */
 int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg, size_t targ_count, size_t pkg_count)
 {
-	 string pkgname = oldpkg.name;
-	  char*pkgver = cast(char*)oldpkg.version_;
-	alpm_event_package_operation_t event = {
-		type: ALPM_EVENT_PACKAGE_OPERATION_START,
-		operation: ALPM_PACKAGE_REMOVE,
-		oldpkg: oldpkg,
-		newpkg: null
-	};
+	string pkgname = oldpkg.name;
+	char*pkgver = cast(char*)oldpkg.version_;
+
+	AlpmEventPackageOperation event;
+	event = new AlpmEventPackageOperation(
+		AlpmEventDefStatus.Start,
+		AlpmPackageOperationType.Remove,
+		oldpkg,
+		newpkg);
 
 	if(newpkg) {
 		logger.tracef("removing old package first (%s-%s)\n",
 				pkgname, pkgver);
 	} else {
-		EVENT(handle, &event);
+		EVENT(handle, event);
 		logger.tracef("removing package %s-%s\n",
 				pkgname, pkgver);
 
@@ -737,8 +726,12 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 	}
 
 	if(!newpkg) {
-		event.type = ALPM_EVENT_PACKAGE_OPERATION_DONE;
-		EVENT(handle, &event);
+		event = new AlpmEventPackageOperation(
+			AlpmEventDefStatus.Done,
+			AlpmPackageOperationType.Remove,
+			oldpkg,
+			newpkg);
+		EVENT(handle, event);
 	}
 
 	/* remove the package from the database */

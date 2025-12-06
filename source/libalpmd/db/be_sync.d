@@ -52,6 +52,7 @@ import core.stdc.stdlib;
 import libalpmd.pkghash;
 import libalpmd.error;
 import std.string;
+import libalpmd.event;
 
 class AlpmDBSync : AlpmDB {
 	
@@ -78,13 +79,10 @@ int sync_db_validate(AlpmDB db)
 
 	/* we can skip any validation if the database doesn't exist */
 	if(alpmAccess(db.handle, null, dbpath.to!string, R_OK) != 0 && errno == ENOENT) {
-		alpm_event_database_missing_t event = {
-			type: ALPM_EVENT_DATABASE_MISSING,
-			dbname: cast(char*)db.treename
-		};
+		auto event = new AlpmEventDbMissing(db.treename); 
 		db.status &= ~AlpmDBStatus.Exists;
 		db.status |= AlpmDBStatus.Missing;
-		EVENT(db.handle, &event);
+		EVENT(db.handle, event);
 		goto valid;
 	}
 	db.status |= AlpmDBStatus.Exists;

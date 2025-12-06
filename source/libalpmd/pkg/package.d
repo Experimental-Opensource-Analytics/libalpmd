@@ -6,5 +6,5 @@ public {
     import libalpmd.pkg.version_;
     import libalpmd.pkg.xdata;
     import libalpmd.pkg.backend;
-
+    import libalpmd.pkg.ops;
 }

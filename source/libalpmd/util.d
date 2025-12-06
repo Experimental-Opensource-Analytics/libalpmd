@@ -71,6 +71,7 @@ import core.stdc.string;
 import libalpmd.util_common;
 import libalpmd.consts;
 import std.conv;
+import libalpmd.event;
 
 import libalpmd.error;
 
@@ -604,12 +605,9 @@ alias _alpm_cb_io = ssize_t function(void* buf, ssize_t len, void* ctx);
 
 void _alpm_chroot_process_output(AlpmHandle handle,   char*line)
 {
-	alpm_event_scriptlet_info_t event = {
-		type: ALPM_EVENT_SCRIPTLET_INFO,
-		line: line
-	};
+	auto event = new AlpmEventScriptletInfo(line.to!string);
 	//alpm_logaction(handle, "ALPM-SCRIPTLET", "%s", line);
-	EVENT(handle, &event);
+	EVENT(handle, event);
 }
 
 int _alpm_chroot_read_from_child(AlpmHandle handle, int fd, char* buf, ssize_t* buf_size, ssize_t buf_limit)

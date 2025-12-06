@@ -28,6 +28,7 @@ import libalpmd.db;
 import libalpmd.remove;
 import libalpmd.handle;
 import libalpmd.filelist;
+import libalpmd.event;
 
 
 // import libalpmd.be_local;
@@ -315,16 +316,14 @@ version (none) {
 	}
 
 	if(notouch) {
-		alpm_event_pacnew_created_t event = {
-			type: ALPM_EVENT_PACNEW_CREATED,
-			from_noupgrade: 1,
-			oldpkg: oldpkg,
-			newpkg: newpkg,
-			file: cast(  char*)filename
-		};
+		auto event = new AlpmEventPacnewCreated(
+			true, 
+			oldpkg, 
+			newpkg, 
+			filename.to!string);
 		/* "remove" the .pacnew suffix */
 		filename[filename_len] = '\0';
-		EVENT(handle, &event);
+		EVENT(handle, event);
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 				// "warning: %s installed as %s.pacnew\n", filename.ptr, filename.ptr);
 	} 
@@ -369,17 +368,12 @@ version (none) {
 		} else {
 			/* none of the three files matched another,  leave the unpacked
 			 * file alongside the local file */
-			alpm_event_pacnew_created_t event = {
-				type: ALPM_EVENT_PACNEW_CREATED,
-				from_noupgrade: 0,
-				oldpkg: oldpkg,
-				newpkg: newpkg,
-				file: cast(const char*)origfile
-			};
+			auto event = new AlpmEventPacnewCreated(false, oldpkg, newpkg, origfile.to!string);
+
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"action: keeping current file and installing"
 					~ " new one with .pacnew ending\n");
-			EVENT(handle, &event);
+			EVENT(handle, event);
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 					// "warning: %s installed as %s\n", origfile.ptr, filename.ptr);
 		}
@@ -400,7 +394,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	AlpmDB db = handle.getDBLocal;
 	AlpmTrans trans = handle.trans;
 	alpm_progress_t progress = ALPM_PROGRESS_ADD_START;
-	alpm_event_package_operation_t event = void;
+	AlpmEventPackageOperation event = void;
 	  char*log_msg = cast(char*)"adding";
 	  char*pkgfile = void;
 	archive* archive = void;
@@ -416,28 +410,30 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		if(cmp < 0) {
 			log_msg = cast(char*)"downgrading";
 			progress = ALPM_PROGRESS_DOWNGRADE_START;
-			event.operation = ALPM_PACKAGE_DOWNGRADE;
+			event.operation = AlpmPackageOperationType.Downgrade;
 		} else if(cmp == 0) {
 			log_msg = cast(char*)"reinstalling";
 			progress = ALPM_PROGRESS_REINSTALL_START;
-			event.operation = ALPM_PACKAGE_REINSTALL;
+			event.operation = AlpmPackageOperationType.Reinstall;
 		} else {
 			log_msg = cast(char*)"upgrading";
 			progress = ALPM_PROGRESS_UPGRADE_START;
-			event.operation = ALPM_PACKAGE_UPGRADE;
+			event.operation = AlpmPackageOperationType.Upgrade;
 		}
 		is_upgrade = 1;
 
 		/* copy over the install reason */
 		newpkg.reason = oldpkg.getReason();
 	} else {
-		event.operation = ALPM_PACKAGE_INSTALL;
+		event.operation = AlpmPackageOperationType.Install;
 	}
 
-	event.type = ALPM_EVENT_PACKAGE_OPERATION_START;
-	event.oldpkg = oldpkg;
-	event.newpkg = newpkg;
-	EVENT(handle, &event);
+	event = new AlpmEventPackageOperation(
+		AlpmEventDefStatus.Start, 
+		event.operation, 
+		oldpkg, newpkg);
+
+	EVENT(handle, event);
 
 	pkgfile = cast(char*)newpkg.origin_data.file;
 
@@ -593,19 +589,19 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	PROGRESS(handle, progress, newpkg.name, 100, pkg_count, pkg_current);
 
 	switch(event.operation) {
-		case ALPM_PACKAGE_INSTALL:
+		case AlpmPackageOperationType.Install:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "installed %s (%s)\n",
 					// newpkg.name, newpkg.version_);
 			break;
-		case ALPM_PACKAGE_DOWNGRADE:
+		case AlpmPackageOperationType.Downgrade:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "downgraded %s (%s -> %s)\n",
 					// newpkg.name, oldpkg.version_, newpkg.version_);
 			break;
-		case ALPM_PACKAGE_REINSTALL:
+		case AlpmPackageOperationType.Reinstall:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "reinstalled %s (%s)\n",
 					// newpkg.name, newpkg.version_);
 			break;
-		case ALPM_PACKAGE_UPGRADE:
+		case AlpmPackageOperationType.Upgrade:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "upgraded %s (%s -> %s)\n",
 					// newpkg.name, oldpkg.version_, newpkg.version_);
 			break;
@@ -625,8 +621,13 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		free(scriptlet);
 	}
 
-	event.type = ALPM_EVENT_PACKAGE_OPERATION_DONE;
-	 EVENT(handle, &event);
+	// event.setStatus(AlpmEventDefStatus.Done);
+	event = new AlpmEventPackageOperation(
+		AlpmEventDefStatus.Done,
+		event.operation,
+		event.oldpkg,
+		event.newpkg);
+	 EVENT(handle, event);
 
 	return ret;
 }

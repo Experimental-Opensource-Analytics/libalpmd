@@ -56,12 +56,13 @@ import libalpmd.pkg;
 import libalpmd.dload;
 import libalpmd.env;
 import libalpmd.question;
+import libalpmd.event;
 
 import std.algorithm;
 
-void EVENT(h, e)(h handle, e event) { 
+void EVENT(AlpmHandle handle, AlpmEvent event) { 
 	if(handle.eventcb) { 
-		handle.eventcb(handle.eventcb_ctx, cast(alpm_event_t*) event);
+		handle.eventcb(event);
 	}
 } 
 
@@ -77,7 +78,8 @@ void PROGRESS(H, E, P, PER, N, R)(H h, E e, P p, PER per, N n, R r){
 }
 
 alias AlpmLogCallback = void delegate(string fmt, ...);
-alias AlpmDlCallback = void delegate(const(char)* filename, alpm_download_event_type_t event, void* data);
+alias AlpmDlCallback = void delegate(const(char)* filename, AlpmEventDownload event, void* data);
+
 
 class AlpmHandle {
 private:
@@ -115,11 +117,10 @@ public:
 	AlpmLogCallback			logcb; 
 	AlpmDlCallback 			dlcb;      /* Download callback function */
 	AlpmQuestionCallback 	questioncb;
+	AlpmEventCallback		eventcb;
 
 	alpm_cb_fetch fetchcb;      /* Download file callback function */
 	void* fetchcb_ctx;
-	alpm_cb_event eventcb;
-	void* eventcb_ctx;
 	alpm_cb_progress progresscb;
 	void* progresscb_ctx;
 
@@ -246,7 +247,6 @@ public:
 		/* make sure we have a sane umask */
 		Environment.saveMask();
 		scope alpm_list_t* payloads = null;
-		alpm_event_t event = void;
 
 		this.sandboxuser = Environment.getUserName();
 
@@ -414,6 +414,12 @@ public:
 	void  setQuestionCallback(AlpmQuestionCallback cb) {
 		this.questioncb = cb;
 	}
+
+	AlpmEventCallback getEventCallback() => this.eventcb;
+
+	void setEventCallback(AlpmEventCallback cb) {
+		this.eventcb = cb;
+	}
 }
 
 /* free all in-memory resources */
@@ -489,16 +495,6 @@ alpm_cb_fetch  alpm_option_get_fetchcb(AlpmHandle handle)
 void * alpm_option_get_fetchcb_ctx(AlpmHandle handle)
 {
 	return handle.fetchcb_ctx;
-}
-
-alpm_cb_event  alpm_option_get_eventcb(AlpmHandle handle)
-{
-	return handle.eventcb;
-}
-
-void * alpm_option_get_eventcb_ctx(AlpmHandle handle)
-{
-	return handle.eventcb_ctx;
 }
 
 alpm_cb_progress  alpm_option_get_progresscb(AlpmHandle handle)
@@ -585,13 +581,6 @@ int  alpm_option_set_fetchcb(AlpmHandle handle, alpm_cb_fetch cb, void* ctx)
 {
 	handle.fetchcb = cb;
 	handle.fetchcb_ctx = ctx;
-	return 0;
-}
-
-int  alpm_option_set_eventcb(AlpmHandle handle, alpm_cb_event cb, void* ctx)
-{
-	handle.eventcb = cb;
-	handle.eventcb_ctx = ctx;
 	return 0;
 }
 
