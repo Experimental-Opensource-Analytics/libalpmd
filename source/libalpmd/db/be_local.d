@@ -539,6 +539,16 @@ enum string LAZY_LOAD(string info) = `
 
 		return 0;
 	}
+
+	override void unregister() {
+		int found;
+		handle.getDBLocal = null;
+		found = 1;
+
+		if(!found) {
+			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
+		}
+	}
  }
 
 private int checkdbdir(AlpmDB db)

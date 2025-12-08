@@ -72,12 +72,6 @@ enum AlpmDBStatus {
 	GrpCache = (1 << 12)
 }
 
-struct db_operations {
-	int function(AlpmDB) validate;
-	int function(AlpmDB) populate;
-	void function(AlpmDB) unregister;
-}
-
 /* Database */
 class AlpmDB {
 	AlpmHandle handle;
@@ -88,7 +82,7 @@ class AlpmDB {
 	AlpmGroups	 	grpcache;
 	AlpmStrings		cache_servers;
 	AlpmStrings		servers;
-	const (db_operations)* ops;
+	// const (db_operations)* ops;
 	abstract int validate() {
 		return 0;
 	}
@@ -97,9 +91,9 @@ class AlpmDB {
 		return 0;
 	}
 
-	// abstract void unregister() {
+	abstract void unregister() {
 
-	// }
+	}
 
 	/* bitfields for validity, local, loaded caches, etc. */
 	/* From _alpm_dbstatus_t */
@@ -170,40 +164,38 @@ class AlpmDB {
 		return this._path;
 	}
 
-	int  unregisterDB() {
-		int found = 0;
-		// AlpmHandle handle = void;
+	// int  unregisterDB() {
+	// 	int found = 0;
+	// 	// AlpmHandle handle = void;
 
-		/* Sanity checks */
-		//ASSERT(db != null);
-		/* Do not unregister a database if a transaction is on-going */
-		// handle = db.handle;
-		handle.pm_errno = ALPM_ERR_OK;
-		//ASSERT(handle.trans == null);
+	// 	/* Sanity checks */
+	// 	//ASSERT(db != null);
+	// 	/* Do not unregister a database if a transaction is on-going */
+	// 	// handle = db.handle;
+	// 	handle.pm_errno = ALPM_ERR_OK;
+	// 	//ASSERT(handle.trans == null);
 
-		if(this is handle.getDBLocal) {
-			handle.getDBLocal = null;
-			found = 1;
-		} else {
-			/* Warning : this function shouldn't be used to unregister all sync
-			* databases by walking through the list returned by
-			* alpm_get_syncdbs, because the db is removed from that list here.
-			*/
-			void* data = void;
-			handle.getDBsSync = alpm_new_list_remove(handle.getDBsSync,
-					this, &_alpm_db_cmp, &data);
-			if(data) {
-				found = 1;
-			}
-		}
+	// 	if(this is handle.getDBLocal) {
+	// 		handle.getDBLocal = null;
+	// 		found = 1;
+	// 	} else {
+	// 		/* Warning : this function shouldn't be used to unregister all sync
+	// 		* databases by walking through the list returned by
+	// 		* alpm_get_syncdbs, because the db is removed from that list here.
+	// 		*/
+	// 		void* data = void;
+	// 		handle.getDBsSync = alpm_new_list_remove(handle.getDBsSync,
+	// 				this, &_alpm_db_cmp, &data);
+	// 		if(data) {
+	// 			found = 1;
+	// 		}
+	// 	}
 
-		if(!found) {
-			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
-		}
 
-		this.ops.unregister(this);
-		return 0;
-	}
+
+	// 	// this.ops.unregister(this);
+	// 	return 0;
+	// }
 
 	AlpmStrings getChacheServers() => this.cache_servers;
 
@@ -339,7 +331,7 @@ class AlpmDB {
 	{
 		//ASSERT(db != null);
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		return this.ops.validate(this);
+		return this.validate();
 	}
 
 	AlpmPkg getPkg(char*name)
@@ -585,7 +577,7 @@ class AlpmDB {
 
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "loading package cache for repository '%s'\n",
 				this.treename);
-		if(this.ops.populate(this) == -1) {
+		if(this.populate() == -1) {
 			_alpm_log(this.handle, ALPM_LOG_DEBUG,
 					"failed to load package cache for repository '%s'\n", this.treename);
 			return -1;

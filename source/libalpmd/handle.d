@@ -213,7 +213,7 @@ public:
 		/* unregister all sync dbs */
 		foreach(i; this.getDBsSync[]) {
 			auto db = i;
-			db.ops.unregister(db);
+			// db.unregister(db);
 			i = null;
 		}
 		this.getDBsSync.clear;
@@ -434,13 +434,13 @@ void _alpm_handle_free(AlpmHandle handle)
 
 	/* close local database */
 	if((db = handle.getDBLocal) !is null) {
-		db.ops.unregister(db);
+		// db.ops.unregister(db);
 	}
 
 	/* unregister all sync dbs */
 	foreach(i; handle.getDBsSync[]) {
 		db = cast(AlpmDB)i;
-		db.ops.unregister(db);
+		// db.ops.unregister(db);
 	}
 	handle.getDBsSync.clear;
 
