@@ -429,42 +429,34 @@ class AlpmDB {
 		return 0;
 	}
 
+	void  setUsage(int usage) {
+		this.usage = usage;
+	}
+
+	int  getUsage() {
+		return this.usage;
+	}
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
-/* Helper function for alpm_db_unregister{_all} */
-void _alpm_db_unregister(AlpmDB db)
-{
-	if(db is null) {
-		return;
-	}
+// /* Helper function for alpm_db_unregister{_all} */
+// void _alpm_db_unregister(AlpmDB db)
+// {
+// 	if(db is null) {
+// 		return;
+// 	}
 
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
-	_alpm_db_free(db);
-}
+// 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
+// 	_alpm_db_free(db);
+// }
 
-int  alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
-{
-	//ASSERT(db != null && ret != null && *ret == null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
+// int  alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
+// {
+// 	//ASSERT(db != null && ret != null && *ret == null);
+// 	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
 
-	return _alpm_db_search(db, needles, ret);
-}
-
-int  alpm_db_set_usage(AlpmDB db, int usage)
-{
-	//ASSERT(db != null);
-	db.usage = usage;
-	return 0;
-}
-
-int  alpm_db_get_usage(AlpmDB db, int* usage)
-{
-	//ASSERT(db != null);
-	//ASSERT(usage != null);
-	*usage = db.usage;
-	return 0;
-}
+// 	return _alpm_db_search(db, needles, ret);
+// }
 
 AlpmDB _alpm_db_new(  char*treename, int is_local)
 {

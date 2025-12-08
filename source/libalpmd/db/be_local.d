@@ -1185,7 +1185,7 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 private  const(db_operations) local_db_ops = {
 	validate: &local_db_validate,
 	populate: &local_db_populate,
-	unregister: &_alpm_db_unregister,
+	// unregister: &_alpm_db_unregister,
 };
 
 AlpmDB _alpm_db_register_local(AlpmHandle handle)

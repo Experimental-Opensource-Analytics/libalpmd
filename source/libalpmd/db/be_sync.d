@@ -597,7 +597,7 @@ error:
 db_operations sync_db_ops = {
 	validate: &sync_db_validate,
 	populate: &sync_db_populate,
-	unregister: &_alpm_db_unregister,
+	// unregister: &_alpm_db_unregister,
 };
 
 AlpmDB _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
