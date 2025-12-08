@@ -980,7 +980,7 @@ int  alpm_db_check_pgp_signature(AlpmDB db, alpm_siglist_t* siglist)
 	//ASSERT(siglist != null);
 	db.handle.pm_errno = ALPM_ERR_OK;
 
-	return _alpm_gpgme_checksig(db.handle, cast(char*)_alpm_db_path(db), null, siglist);
+	return _alpm_gpgme_checksig(db.handle, cast(char*)db.calcPath(), null, siglist);
 }
 
 int  alpm_siglist_cleanup(alpm_siglist_t* siglist)

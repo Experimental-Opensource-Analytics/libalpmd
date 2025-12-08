@@ -165,7 +165,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			cast(char*)_alpm_db_path(handle.getDBLocal), cast(char*)newpkg.name, cast(char*)newpkg.version_, dbfile);
+			cast(char*)handle.getDBLocal.calcPath(), cast(char*)newpkg.name, cast(char*)newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 

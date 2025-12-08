@@ -325,7 +325,7 @@ enum string LAZY_LOAD(string info) = `
 private int checkdbdir(AlpmDB db)
 {
 	stat_t buf = void;
-	  char*path = cast(char*)_alpm_db_path(db);
+	  char*path = cast(char*)db.calcPath();
 
 	if(stat(path, &buf) != 0) {
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "database dir '%s' does not exist, creating it\n",
@@ -411,7 +411,7 @@ private int local_db_validate(AlpmDB db)
 		return -1;
 	}
 
-	dbpath = cast(char*)_alpm_db_path(db);
+	dbpath = cast(char*)db.calcPath();
 	if(dbpath == null) {
 		throw new Exception("Error to opem dbpath");
 		// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbpath.to!string);
@@ -501,7 +501,7 @@ private int local_db_populate(AlpmDB db)
 		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
 	}
 
-	dbpath = cast(char*)_alpm_db_path(db);
+	dbpath = cast(char*)db.calcPath();
 	if(dbpath == null) {
 		/* pm_errno set in _alpm_db_path() */
 		return -1;
@@ -625,7 +625,7 @@ char* _alpm_local_db_pkgpath(AlpmDB db, AlpmPkg info,   char*filename)
 	char* pkgpath = void;
 	  char*dbpath = void;
 
-	dbpath = cast(char*)_alpm_db_path(db);
+	dbpath = cast(char*)db.calcPath();
 	len = strlen(dbpath) + info.name.length + info.version_.length + 3;
 	len += filename ? strlen(filename) : 0;
 	MALLOC(pkgpath, len);

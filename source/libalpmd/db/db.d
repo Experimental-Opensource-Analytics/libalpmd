@@ -142,6 +142,32 @@ class AlpmDB {
 	AlpmHandle getHandle() => this.handle;
 	string getName() => this.treename;
 
+	string calcPath()
+	{
+		// if(db is null) {
+		// 	return null;
+		// }
+		if(this._path is null) {
+			string dbpath = void;
+			size_t pathsize = void;
+
+			dbpath = this.handle.dbpath;
+			if(!dbpath) {
+				// _alpm_log(this.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
+				// RET_ERR(this.handle, ALPM_ERR_DB_OPEN, null);
+			}
+
+			if(this.status & AlpmDBStatus.Local) {
+				this._path = dbpath ~ this.treename;
+			} else {
+				this._path = dbpath ~ this.treename ~ this.handle.dbext;
+			}
+			// _alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
+					// db.treename, db._path);
+		}
+		return this._path;
+	}
+
 	int  unregisterDB() {
 		int found = 0;
 		// AlpmHandle handle = void;
@@ -543,32 +569,6 @@ class AlpmDB {
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
-
-string _alpm_db_path(AlpmDB db)
-{
-	if(db is null) {
-		return null;
-	}
-	if(db._path is null) {
-		string dbpath = void;
-		size_t pathsize = void;
-
-		dbpath = db.handle.dbpath;
-		if(!dbpath) {
-			// _alpm_log(db.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
-			// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, null);
-		}
-
-		if(db.status & AlpmDBStatus.Local) {
-			db._path = dbpath ~ db.treename;
-		} else {
-			db._path = dbpath ~ db.treename ~ db.handle.dbext;
-		}
-		// _alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
-				// db.treename, db._path);
-	}
-	return db._path;
-}
 
 int _alpm_db_cmp( void* d1,  void* d2)
 {
