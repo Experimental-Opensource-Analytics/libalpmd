@@ -382,7 +382,7 @@ class AlpmDB {
 		this.pkgcache = null;
 		this.status &= ~AlpmDBStatus.PkgCache;
 
-		free_groupcache(this);
+		this.freeGroupCache();
 	}
 
 	AlpmPkgHash getPkgCacheHash() {
@@ -391,7 +391,7 @@ class AlpmDB {
 		}
 
 		if(!(this.status & AlpmDBStatus.PkgCache)) {
-			if(load_pkgcache(this)) {
+			if(this.loadPkgCache()) {
 				/* handle->error set in local/sync-db-populate */
 				return null;
 			}
@@ -473,7 +473,7 @@ class AlpmDB {
 				/* we didn't find the group, so create a new one with this name */
 				auto grp = new AlpmGroup(grpname.to!string);
 				if(!grp) {
-					free_groupcache(this);
+					this.freeGroupCache();
 					return -1;
 				}
 				grp.packages.insertBack(pkg);
@@ -570,6 +570,39 @@ class AlpmDB {
 	override int opCmp(Object other) const {
 		return cmp(this.treename, (cast(AlpmDB)other).treename);
 	}
+
+	/* Returns a new package cache from db.
+	* It frees the cache if it already exists.
+	*/
+	private int loadPkgCache()
+	{
+		// _alpm_db_free_pkgcache(db);
+		this.freePkgCache();
+
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "loading package cache for repository '%s'\n",
+				this.treename);
+		if(this.ops.populate(this) == -1) {
+			_alpm_log(this.handle, ALPM_LOG_DEBUG,
+					"failed to load package cache for repository '%s'\n", this.treename);
+			return -1;
+		}
+
+		this.status |= AlpmDBStatus.PkgCache;
+		return 0;
+	}
+
+	private void freeGroupCache()
+	{
+		if(!(this.status & AlpmDBStatus.GrpCache)) {
+			return;
+		}
+
+		_alpm_log(this.handle, ALPM_LOG_DEBUG,
+				"freeing group cache for repository '%s'\n", this.treename);
+
+		this.grpcache.clear();
+		this.status &= ~AlpmDBStatus.GrpCache;
+	}
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
@@ -579,39 +612,6 @@ int _alpm_db_cmp( void* d1,  void* d2)
 	  AlpmDB db1 = cast(AlpmDB)d1;
 	  AlpmDB db2 = cast(AlpmDB)d2;
 	return db1.treename == db2.treename;
-}
-
-/* Returns a new package cache from db.
- * It frees the cache if it already exists.
- */
-private int load_pkgcache(AlpmDB db)
-{
-	// _alpm_db_free_pkgcache(db);
-	db.freePkgCache();
-
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "loading package cache for repository '%s'\n",
-			db.treename);
-	if(db.ops.populate(db) == -1) {
-		_alpm_log(db.handle, ALPM_LOG_DEBUG,
-				"failed to load package cache for repository '%s'\n", db.treename);
-		return -1;
-	}
-
-	db.status |= AlpmDBStatus.PkgCache;
-	return 0;
-}
-
-private void free_groupcache(AlpmDB db)
-{
-	if(db is null || !(db.status & AlpmDBStatus.GrpCache)) {
-		return;
-	}
-
-	_alpm_log(db.handle, ALPM_LOG_DEBUG,
-			"freeing group cache for repository '%s'\n", db.treename);
-
-	db.grpcache.clear();
-	db.status &= ~AlpmDBStatus.GrpCache;
 }
 
 /* "duplicate" pkg then add it to pkgcache */
@@ -643,7 +643,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 		RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 	}
 
-	free_groupcache(db);
+	db.freeGroupCache();
 
 	return 0;
 }
@@ -669,7 +669,7 @@ int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
 
 	destroy!false(data);
 
-	free_groupcache(db);
+	db.freeGroupCache();
 
 	return 0;
 }
