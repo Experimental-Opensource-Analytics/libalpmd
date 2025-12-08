@@ -123,6 +123,22 @@ class AlpmDB {
 		// return db;
 	}
 
+	~this()
+	{
+		//ASSERT(db != null);
+		/* cleanup pkgcache */
+		// _alpm_db_free_pkgcache(db);
+		this.freePkgCache();
+		/* cleanup server list */
+		FREELIST(this.cache_servers);
+		FREELIST(this.servers);
+		FREE(this._path);
+		FREE(this.treename);
+		// FREE(db);
+
+		return;
+	}
+
 	AlpmHandle getHandle() => this.handle;
 	string getName() => this.treename;
 
@@ -527,22 +543,6 @@ class AlpmDB {
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
-
-void _alpm_db_free(AlpmDB db)
-{
-	//ASSERT(db != null);
-	/* cleanup pkgcache */
-	// _alpm_db_free_pkgcache(db);
-	db.freePkgCache();
-	/* cleanup server list */
-	FREELIST(db.cache_servers);
-	FREELIST(db.servers);
-	FREE(db._path);
-	FREE(db.treename);
-	FREE(db);
-
-	return;
-}
 
 string _alpm_db_path(AlpmDB db)
 {

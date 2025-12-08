@@ -1206,7 +1206,8 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 	if(local_db_validate(db)) {
 		// throw new Exception("Cant validate");
 		/* pm_errno set in local_db_validate() */
-		_alpm_db_free(db);
+		// _alpm_db_free(db);
+		db = null;
 		return null;
 	}
 
