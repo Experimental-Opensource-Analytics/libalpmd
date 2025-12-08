@@ -338,11 +338,7 @@ int sync_db_populate(AlpmDB db)
 		GOTO_ERR(db.handle, ALPM_ERR_LIBARCHIVE, "cleanup");
 	}
 
-	count = alpm_list_count(db.pkgcache.list);
-	if(count > 0) {
-		db.pkgcache.list = alpm_list_msort(db.pkgcache.list,
-				count, &_alpm_pkg_cmp);
-	}
+	db.pkgcache.trySort();
 	_alpm_log(db.handle, ALPM_LOG_DEBUG,
 			"added %zu packages to package cache for db '%s'\n",
 			count, db.treename);

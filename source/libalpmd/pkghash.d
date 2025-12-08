@@ -67,6 +67,7 @@ private const (double) max_hash_load = 0.68;
 private const (double) initial_hash_load = 0.58;
 
 class AlpmPkgHash {
+private:
 	/** data held by the hash table */
 	alpm_list_t** hash_table;
 	/** head node of the hash table data in normal list format */
@@ -77,6 +78,8 @@ class AlpmPkgHash {
 	uint entries;
 	/** max number of entries before a resize is needed */
 	uint limit;
+
+public:
 
 	this(uint size) {
 		uint i = void, loopsize = void;
@@ -321,5 +324,17 @@ class AlpmPkgHash {
 		}
 
 		return null;
+	}
+
+	auto getList() {
+		return this.list;
+	}
+
+	void trySort() {
+		auto count = alpm_list_count(this.list);
+		if(count > 0) {
+			this.list = alpm_list_msort(this.list,
+					count, &_alpm_pkg_cmp);
+		}
 	}
 }

@@ -599,9 +599,8 @@ private int local_db_populate(AlpmDB db)
 	}
 
 	closedir(dbdir);
-	if(count > 0) {
-		db.pkgcache.list = alpm_list_msort(db.pkgcache.list, count, cast(alpm_list_fn_cmp)&_alpm_pkg_cmp);
-	}
+
+	db.pkgcache.trySort();
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "added %zu packages to package cache for db '%s'\n",
 			count, db.treename);
 

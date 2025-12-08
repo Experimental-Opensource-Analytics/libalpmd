@@ -332,9 +332,6 @@ class AlpmDB {
 
 		logger.tracef("freeing package cache for repository '%s'\n", this.treename);
 
-		alpm_list_free_inner(this.pkgcache.list,
-				cast(alpm_list_fn_free)&_alpm_pkg_free);
-		// _alpm_pkghash_free(this.pkgcache);
 		this.pkgcache = null;
 		this.status &= ~AlpmDBStatus.PkgCache;
 
@@ -363,7 +360,7 @@ class AlpmDB {
 			return null;
 		}
 
-		return this.pkgcache.list;
+		return this.pkgcache.getList();
 	}
 }
 
