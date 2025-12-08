@@ -126,39 +126,6 @@ class AlpmDB {
 		return this._path;
 	}
 
-	// int  unregisterDB() {
-	// 	int found = 0;
-	// 	// AlpmHandle handle = void;
-
-	// 	/* Sanity checks */
-	// 	//ASSERT(db != null);
-	// 	/* Do not unregister a database if a transaction is on-going */
-	// 	// handle = db.handle;
-	// 	handle.pm_errno = ALPM_ERR_OK;
-	// 	//ASSERT(handle.trans == null);
-
-	// 	if(this is handle.getDBLocal) {
-	// 		handle.getDBLocal = null;
-	// 		found = 1;
-	// 	} else {
-	// 		/* Warning : this function shouldn't be used to unregister all sync
-	// 		* databases by walking through the list returned by
-	// 		* alpm_get_syncdbs, because the db is removed from that list here.
-	// 		*/
-	// 		void* data = void;
-	// 		handle.getDBsSync = alpm_new_list_remove(handle.getDBsSync,
-	// 				this, &_alpm_db_cmp, &data);
-	// 		if(data) {
-	// 			found = 1;
-	// 		}
-	// 	}
-
-
-
-	// 	// this.ops.unregister(this);
-	// 	return 0;
-	// }
-
 	AlpmStrings getChacheServers() => this.cache_servers;
 
 	int  addServer(char*url)
