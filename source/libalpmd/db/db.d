@@ -603,6 +603,40 @@ class AlpmDB {
 		this.grpcache.clear();
 		this.status &= ~AlpmDBStatus.GrpCache;
 	}
+
+	/* "duplicate" pkg then add it to pkgcache */
+	int addPkgInCache(AlpmPkg pkg)
+	{
+		AlpmPkg newpkg = null;
+
+		if(pkg is null || !(this.status & AlpmDBStatus.PkgCache)) {
+			return -1;
+		}
+
+		if((newpkg = pkg.dup) !is null) {
+			/* we return memory on "non-fatal" error in _alpm_pkg_dup */
+			destroy!false(newpkg);
+			return -1;
+		}
+
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "adding entry '%s' in '%s' cache\n",
+							newpkg.name, this.treename);
+		if(newpkg.origin == ALPM_PKG_FROM_FILE) {
+			free(cast(void*)newpkg.origin_data.file);
+		}
+		newpkg.origin = (this.status & AlpmDBStatus.Local)
+			? ALPM_PKG_FROM_LOCALDB
+			: ALPM_PKG_FROM_SYNCDB;
+		newpkg.origin_data.db = this;
+		if(this.pkgcache.addSorted(newpkg) is null) {
+			destroy!false(newpkg);
+			RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
+		}
+
+		this.freeGroupCache();
+
+		return 0;
+	}
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
@@ -612,40 +646,6 @@ int _alpm_db_cmp( void* d1,  void* d2)
 	  AlpmDB db1 = cast(AlpmDB)d1;
 	  AlpmDB db2 = cast(AlpmDB)d2;
 	return db1.treename == db2.treename;
-}
-
-/* "duplicate" pkg then add it to pkgcache */
-int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
-{
-	AlpmPkg newpkg = null;
-
-	if(db is null || pkg is null || !(db.status & AlpmDBStatus.PkgCache)) {
-		return -1;
-	}
-
-	if((newpkg = pkg.dup) !is null) {
-		/* we return memory on "non-fatal" error in _alpm_pkg_dup */
-		destroy!false(newpkg);
-		return -1;
-	}
-
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "adding entry '%s' in '%s' cache\n",
-						newpkg.name, db.treename);
-	if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-		free(cast(void*)newpkg.origin_data.file);
-	}
-	newpkg.origin = (db.status & AlpmDBStatus.Local)
-		? ALPM_PKG_FROM_LOCALDB
-		: ALPM_PKG_FROM_SYNCDB;
-	newpkg.origin_data.db = db;
-	if(db.pkgcache.addSorted(newpkg) is null) {
-		destroy!false(newpkg);
-		RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
-	}
-
-	db.freeGroupCache();
-
-	return 0;
 }
 
 int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
