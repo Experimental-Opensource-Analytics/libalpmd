@@ -54,74 +54,168 @@ import libalpmd.error;
 import std.string;
 import libalpmd.event;
 
-// class AlpmDBSync : AlpmDB {
-	
-// }
+class AlpmDBSync : AlpmDB {
 
-int sync_db_validate(AlpmDB db)
-{
-	int siglevel = void;
-	  char*dbpath = void;
-
-	if(db.status & AlpmDBStatus.Valid || db.status & AlpmDBStatus.Missing) {
-		return 0;
-	}
-	if(db.status & AlpmDBStatus.Invalid) {
-		db.handle.pm_errno = ALPM_ERR_DB_INVALID_SIG;
-		return -1;
+	this(char* treename) {
+		super(treename);
+		this.status &= ~AlpmDBStatus.Local;
+		this.usage = AlpmDBUsage.All;
 	}
 
-	dbpath = cast(char*)db.calcPath();
-	if(!dbpath) {
-		/* pm_errno set in _alpm_db_path() */
-		return -1;
-	}
+	override int validate()
+	{
+		int siglevel = void;
+		char*dbpath = void;
 
-	/* we can skip any validation if the database doesn't exist */
-	if(alpmAccess(db.handle, null, dbpath.to!string, R_OK) != 0 && errno == ENOENT) {
-		auto event = new AlpmEventDbMissing(db.treename); 
-		db.status &= ~AlpmDBStatus.Exists;
-		db.status |= AlpmDBStatus.Missing;
-		EVENT(db.handle, event);
-		goto valid;
-	}
-	db.status |= AlpmDBStatus.Exists;
-	db.status &= ~AlpmDBStatus.Missing;
+		AlpmDB db = this;
 
-	/* this takes into account the default verification level if UNKNOWN
-	 * was assigned to this db */
-	siglevel = db.getSigLevel();
+		if(db.status & AlpmDBStatus.Valid || db.status & AlpmDBStatus.Missing) {
+			return 0;
+		}
+		if(db.status & AlpmDBStatus.Invalid) {
+			db.handle.pm_errno = ALPM_ERR_DB_INVALID_SIG;
+			return -1;
+		}
 
-	if(siglevel & ALPM_SIG_DATABASE) {
-		int retry = void, ret = void;
-		do {
-			retry = 0;
-			alpm_siglist_t* siglist = void;
-			import libalpmd.signing;
-			ret = _alpm_check_pgp_helper(db.handle, dbpath, null,
-					siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
-					siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK, &siglist);
-			if(ret) {
-				retry = _alpm_process_siglist(db.handle, cast(char*)db.treename, siglist,
+		dbpath = cast(char*)db.calcPath();
+		if(!dbpath) {
+			/* pm_errno set in _alpm_db_path() */
+			return -1;
+		}
+
+		/* we can skip any validation if the database doesn't exist */
+		if(alpmAccess(db.handle, null, dbpath.to!string, R_OK) != 0 && errno == ENOENT) {
+			auto event = new AlpmEventDbMissing(db.treename); 
+			db.status &= ~AlpmDBStatus.Exists;
+			db.status |= AlpmDBStatus.Missing;
+			EVENT(db.handle, event);
+			goto valid;
+		}
+		db.status |= AlpmDBStatus.Exists;
+		db.status &= ~AlpmDBStatus.Missing;
+
+		/* this takes into account the default verification level if UNKNOWN
+		* was assigned to this db */
+		siglevel = db.getSigLevel();
+
+		if(siglevel & ALPM_SIG_DATABASE) {
+			int retry = void, ret = void;
+			do {
+				retry = 0;
+				alpm_siglist_t* siglist = void;
+				import libalpmd.signing;
+				ret = _alpm_check_pgp_helper(db.handle, dbpath, null,
 						siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
-						siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK);
-			}
-			alpm_siglist_cleanup(siglist);
-			free(siglist);
-		} while(retry);
+						siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK, &siglist);
+				if(ret) {
+					retry = _alpm_process_siglist(db.handle, cast(char*)db.treename, siglist,
+							siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
+							siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK);
+				}
+				alpm_siglist_cleanup(siglist);
+				free(siglist);
+			} while(retry);
 
-		if(ret) {
+			if(ret) {
+				db.status &= ~AlpmDBStatus.Valid;
+				db.status |= AlpmDBStatus.Invalid;
+				db.handle.pm_errno = ALPM_ERR_DB_INVALID_SIG;
+				return 1;
+			}
+		}
+
+	valid:
+		db.status |= AlpmDBStatus.Valid;
+		db.status &= ~AlpmDBStatus.Invalid;
+		return 0;
+	}	
+
+	override int populate()
+	{
+		AlpmDB db = this;
+		char*dbpath = void;
+		size_t est_count = void, count = void;
+		int fd = void;
+		int ret = 0;
+		int archive_ret = void;
+		stat_t buf = void;
+		archive* archive = void;
+		archive_entry* entry = void;
+		AlpmPkg pkg = null;
+
+		if(db.status & AlpmDBStatus.Invalid) {
+			RET_ERR(db.handle, ALPM_ERR_DB_INVALID, -1);
+		}
+		if(db.status & AlpmDBStatus.Missing) {
+			RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
+		}
+		dbpath = cast(char*)db.calcPath();
+		if(!dbpath) {
+			/* pm_errno set in _alpm_db_path() */
+			return -1;
+		}
+
+		fd = _alpm_open_archive(db.handle, dbpath, &buf,
+				&archive, ALPM_ERR_DB_OPEN);
+		if(fd < 0) {
 			db.status &= ~AlpmDBStatus.Valid;
 			db.status |= AlpmDBStatus.Invalid;
-			db.handle.pm_errno = ALPM_ERR_DB_INVALID_SIG;
-			return 1;
+			return -1;
 		}
-	}
+		est_count = estimate_package_count(&buf, archive);
 
-valid:
-	db.status |= AlpmDBStatus.Valid;
-	db.status &= ~AlpmDBStatus.Invalid;
-	return 0;
+		/* currently only .files dbs contain file lists - make flexible when required*/
+		if(strcmp(cast(char*)db.handle.dbext, ".files") == 0) {
+			/* files databases are about four times larger on average */
+			est_count /= 4;
+		}
+
+		db.pkgcache = new AlpmPkgHash(cast(uint)est_count);
+		if(db.pkgcache is null) {
+			ret = -1;
+			GOTO_ERR(db.handle, ALPM_ERR_MEMORY," cleanup");
+		}
+
+		while((archive_ret = archive_read_next_header(archive, &entry)) == ARCHIVE_OK) {
+			mode_t mode = archive_entry_mode(entry);
+			if(!S_ISDIR(mode)) {
+				/* we have desc or depends - parse it */
+				if(sync_db_read(db, archive, entry, &pkg) != 0) {
+					_alpm_log(db.handle, ALPM_LOG_ERROR,
+							("could not parse package description file '%s' from db '%s'\n"),
+							archive_entry_pathname(entry), db.treename);
+					ret = -1;
+				}
+			}
+		}
+		/* the db file was successfully read, but contained errors */
+		if(ret == -1) {
+			db.status &= ~AlpmDBStatus.Valid;
+			db.status |= AlpmDBStatus.Invalid;
+			db.freePkgCache();
+			GOTO_ERR(db.handle, ALPM_ERR_DB_INVALID, "cleanup");
+		}
+		/* reading the db file failed */
+		if(archive_ret != ARCHIVE_EOF) {
+			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not read db '%s' (%s)\n"),
+					db.treename, archive_error_string(archive));
+			db.freePkgCache();
+			ret = -1;
+			GOTO_ERR(db.handle, ALPM_ERR_LIBARCHIVE, "cleanup");
+		}
+
+		db.pkgcache.trySort();
+		_alpm_log(db.handle, ALPM_LOG_DEBUG,
+				"added %zu packages to package cache for db '%s'\n",
+				count, db.treename);
+
+	cleanup:
+		_alpm_archive_read_free(archive);
+		if(fd >= 0) {
+			close(fd);
+		}
+		return ret;
+	}
 }
 
 /* Forward decl so I don't reorganize the whole file right now */
@@ -263,92 +357,6 @@ version (ARCHIVE_COMPRESSION_UU) {
 	}
 
 	return cast(size_t)((st.st_size / per_package) + 1);
-}
-
-int sync_db_populate(AlpmDB db)
-{
-	  char*dbpath = void;
-	size_t est_count = void, count = void;
-	int fd = void;
-	int ret = 0;
-	int archive_ret = void;
-	stat_t buf = void;
-	archive* archive = void;
-	archive_entry* entry = void;
-	AlpmPkg pkg = null;
-
-	if(db.status & AlpmDBStatus.Invalid) {
-		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, -1);
-	}
-	if(db.status & AlpmDBStatus.Missing) {
-		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
-	}
-	dbpath = cast(char*)db.calcPath();
-	if(!dbpath) {
-		/* pm_errno set in _alpm_db_path() */
-		return -1;
-	}
-
-	fd = _alpm_open_archive(db.handle, dbpath, &buf,
-			&archive, ALPM_ERR_DB_OPEN);
-	if(fd < 0) {
-		db.status &= ~AlpmDBStatus.Valid;
-		db.status |= AlpmDBStatus.Invalid;
-		return -1;
-	}
-	est_count = estimate_package_count(&buf, archive);
-
-	/* currently only .files dbs contain file lists - make flexible when required*/
-	if(strcmp(cast(char*)db.handle.dbext, ".files") == 0) {
-		/* files databases are about four times larger on average */
-		est_count /= 4;
-	}
-
-	db.pkgcache = new AlpmPkgHash(cast(uint)est_count);
-	if(db.pkgcache is null) {
-		ret = -1;
-		GOTO_ERR(db.handle, ALPM_ERR_MEMORY," cleanup");
-	}
-
-	while((archive_ret = archive_read_next_header(archive, &entry)) == ARCHIVE_OK) {
-		mode_t mode = archive_entry_mode(entry);
-		if(!S_ISDIR(mode)) {
-			/* we have desc or depends - parse it */
-			if(sync_db_read(db, archive, entry, &pkg) != 0) {
-				_alpm_log(db.handle, ALPM_LOG_ERROR,
-						("could not parse package description file '%s' from db '%s'\n"),
-						archive_entry_pathname(entry), db.treename);
-				ret = -1;
-			}
-		}
-	}
-	/* the db file was successfully read, but contained errors */
-	if(ret == -1) {
-		db.status &= ~AlpmDBStatus.Valid;
-		db.status |= AlpmDBStatus.Invalid;
-		db.freePkgCache();
-		GOTO_ERR(db.handle, ALPM_ERR_DB_INVALID, "cleanup");
-	}
-	/* reading the db file failed */
-	if(archive_ret != ARCHIVE_EOF) {
-		_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not read db '%s' (%s)\n"),
-				db.treename, archive_error_string(archive));
-		db.freePkgCache();
-		ret = -1;
-		GOTO_ERR(db.handle, ALPM_ERR_LIBARCHIVE, "cleanup");
-	}
-
-	db.pkgcache.trySort();
-	_alpm_log(db.handle, ALPM_LOG_DEBUG,
-			"added %zu packages to package cache for db '%s'\n",
-			count, db.treename);
-
-cleanup:
-	_alpm_archive_read_free(archive);
-	if(fd >= 0) {
-		close(fd);
-	}
-	return ret;
 }
 
 /* This function validates %FILENAME%. filename must be between 3 and
@@ -594,11 +602,11 @@ error:
 	return -1;
 }
 
-db_operations sync_db_ops = {
-	validate: &sync_db_validate,
-	populate: &sync_db_populate,
-	// unregister: &_alpm_db_unregister,
-};
+// db_operations sync_db_ops = {
+// 	validate: &sync_db_validate,
+// 	populate: &sync_db_populate,
+// 	// unregister: &_alpm_db_unregister,
+// };
 
 AlpmDB _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
 {
@@ -613,11 +621,11 @@ version (HAVE_LIBGPGME) {} else {
 	}
 }
 
-	db = new AlpmDB(treename, 0);
+	db = new AlpmDBSync(treename);
 	if(db is null) {
 		RET_ERR(handle, ALPM_ERR_DB_CREATE, null);
 	}
-	db.ops = &sync_db_ops;
+	// db.ops = &sync_db_ops;
 	db.handle = handle;
 	db.siglevel = level;
 

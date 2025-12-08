@@ -318,9 +318,228 @@ enum string LAZY_LOAD(string info) = `
 	}
  }
 
-//  class AlpmDBLocal : AlpmDB {
+ class AlpmDBLocal : AlpmDB {
 
-//  }
+	this(char* treename) {
+		super(treename);
+		// this.treename = treename.to!string;
+		this.status |= AlpmDBStatus.Local;
+		this.usage = AlpmDBUsage.All;
+	}
+
+	override int validate()
+	{
+		dirent* ent = null;
+		char*dbpath = void;
+		DIR* dbdir = void;
+		char[PATH_MAX] dbverpath = void;
+		FILE* dbverfile = void;
+		int t = void;
+		size_t version_ = void;
+
+		if(this.status & AlpmDBStatus.Valid) {
+			return 0;
+		}
+		if(this.status & AlpmDBStatus.Invalid) {
+			return -1;
+		}
+
+		dbpath = cast(char*)this.calcPath();
+		if(dbpath == null) {
+			throw new Exception("Error to opem dbpath");
+			// RET_ERR(this.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbpath.to!string);
+		}
+
+		dbdir = opendir(dbpath);
+		if(dbdir == null) {
+			if(errno == ENOENT) {
+				/* local database dir doesn't exist yet - create it */
+				if(local_db_create(this, dbpath) == 0) {
+					this.status |= AlpmDBStatus.Valid;
+					this.status &= ~AlpmDBStatus.Invalid;
+					this.status |= AlpmDBStatus.Exists;
+					this.status &= ~AlpmDBStatus.Missing;
+					return 0;
+				} else {
+					this.status &= ~AlpmDBStatus.Exists;
+					this.status |= AlpmDBStatus.Missing;
+					/* pm_errno is set by local_db_create */
+					return -1;
+				}
+			} else {
+				throw new Exception("Error to opem dbpath");
+				// RET_ERR(this.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbdir.to!string);
+			}
+		}
+		this.status |= AlpmDBStatus.Exists;
+		this.status &= ~AlpmDBStatus.Missing;
+
+		snprintf(dbverpath.ptr, PATH_MAX, "%sALPM_DB_VERSION", dbpath);
+
+		if((dbverfile = fopen(dbverpath.ptr, "r")) == null) {
+			/* create dbverfile if local database is empty - otherwise version error */
+			while((ent = readdir(dbdir)) != null) {
+				char*name = ent.d_name.ptr;
+				if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+					continue;
+				} else {
+					goto version_error;
+				}
+			}
+
+			if(local_db_add_version(this, dbpath) != 0) {
+				goto version_error;
+			}
+			goto version_latest;
+		}
+
+		t = fscanf(dbverfile, "%zu", &version_);
+		fclose(dbverfile);
+
+		if(t != 1) {
+			goto version_error;
+		}
+
+		if(version_ != ALPM_LOCAL_DB_VERSION) {
+			goto version_error;
+		}
+
+	version_latest:
+		closedir(dbdir);
+		this.status |= AlpmDBStatus.Valid;
+		this.status &= ~AlpmDBStatus.Invalid;
+		return 0;
+
+	version_error:
+		closedir(dbdir);
+		this.status &= ~AlpmDBStatus.Valid;
+		this.status |= AlpmDBStatus.Invalid;
+		this.handle.pm_errno = ALPM_ERR_DB_VERSION;
+		return -1;
+	}
+
+	override int populate()
+	{
+		size_t est_count = void;
+		size_t count = 0;
+		stat_t buf = void;
+		dirent* ent = null;
+		char*dbpath = void;
+		DIR* dbdir = void;
+
+		if(this.status & AlpmDBStatus.Invalid) {
+			RET_ERR(this.handle, ALPM_ERR_DB_INVALID, -1);
+		}
+		if(this.status & AlpmDBStatus.Missing) {
+			RET_ERR(this.handle, ALPM_ERR_DB_NOT_FOUND, -1);
+		}
+
+		dbpath = cast(char*)this.calcPath();
+		if(dbpath == null) {
+			/* pm_errno set in _alpm_db_path() */
+			return -1;
+		}
+
+		dbdir = opendir(dbpath);
+		if(dbdir == null) {
+			RET_ERR(this.handle, ALPM_ERR_DB_OPEN, -1);
+		}
+		if(fstat(dirfd(dbdir), &buf) != 0) {
+			RET_ERR(this.handle, ALPM_ERR_DB_OPEN, -1);
+		}
+		this.status |= AlpmDBStatus.Exists;
+		this.status &= ~AlpmDBStatus.Missing;
+		if(buf.st_nlink >= 2) {
+			est_count = buf.st_nlink;
+		} else {
+			/* Some filesystems don't subscribe to the two-implicit links school of
+			* thought, e.g. BTRFS, HFS+. See
+			* http://kerneltrap.org/mailarchive/linux-btrfs/2010/1/23/6723483/thread
+			*/
+			est_count = 0;
+			while(readdir(dbdir) != null) {
+				est_count++;
+			}
+			rewinddir(dbdir);
+		}
+		if(est_count >= 2) {
+			/* subtract the '.' and '..' pointers to get # of children */
+			est_count -= 2;
+		}
+
+		this.pkgcache = new AlpmPkgHash(cast(uint)est_count);
+		if(this.pkgcache is null){
+			closedir(dbdir);
+			RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
+		}
+
+		while((ent = readdir(dbdir)) != null) {
+			char*name = ent.d_name.ptr;
+
+			AlpmPkg pkg = void;
+
+			if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+				continue;
+			}
+			if(!is_dir(dbpath, ent)) {
+				continue;
+			}
+
+			pkg = new AlpmPkg();
+			if(pkg is null) {
+				closedir(dbdir);
+				RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
+			}
+			/* split the db entry name */
+			if(alpmSplitName(name.to!string, pkg.name, pkg.version_, pkg.name_hash) != 0) {
+				_alpm_log(this.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
+						name);
+				destroy!false(pkg);
+				continue;
+			}
+
+			/* duplicated database entries are not allowed */
+			if(this.pkgcache.find(cast(char*)pkg.name)) {
+				_alpm_log(this.handle, ALPM_LOG_ERROR, ("duplicated database entry '%s'\n"), pkg.name);
+				destroy!false(pkg);
+				continue;
+			}
+
+			pkg.origin = ALPM_PKG_FROM_LOCALDB;
+			pkg.origin_data.db = this;
+			// pkg.ops = &local_pkg_ops;
+			pkg.handle = this.handle;
+
+			/* explicitly read with only 'BASE' data, accessors will handle the rest */
+			if(local_db_read(pkg,AlpmDBInfRq.Base) == -1) {
+				_alpm_log(this.handle, ALPM_LOG_ERROR, ("corrupted database entry '%s'\n"), name);
+				destroy!false(pkg);
+				continue;
+			}
+
+			/* treat local metadata errors as warning-only,
+			* they are already installed and otherwise they can't be operated on */
+			pkg.checkMeta();
+
+			/* add to the collection */
+			_alpm_log(this.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
+					pkg.name, this.treename);
+			if(this.pkgcache.add(pkg) is null) {
+				destroy!false(pkg);
+				RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
+			}
+			count++;
+		}
+
+		closedir(dbdir);
+
+		this.pkgcache.trySort();
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "added %zu packages to package cache for db '%s'\n",
+				count, this.treename);
+
+		return 0;
+	}
+ }
 
 private int checkdbdir(AlpmDB db)
 {
@@ -390,219 +609,6 @@ private int local_db_create(AlpmDB db,   char*dbpath)
 	if(local_db_add_version(db, dbpath) != 0) {
 		return 1;
 	}
-
-	return 0;
-}
-
-private int local_db_validate(AlpmDB db)
-{
-	dirent* ent = null;
-	char*dbpath = void;
-	DIR* dbdir = void;
-	char[PATH_MAX] dbverpath = void;
-	FILE* dbverfile = void;
-	int t = void;
-	size_t version_ = void;
-
-	if(db.status & AlpmDBStatus.Valid) {
-		return 0;
-	}
-	if(db.status & AlpmDBStatus.Invalid) {
-		return -1;
-	}
-
-	dbpath = cast(char*)db.calcPath();
-	if(dbpath == null) {
-		throw new Exception("Error to opem dbpath");
-		// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbpath.to!string);
-	}
-
-	dbdir = opendir(dbpath);
-	if(dbdir == null) {
-		if(errno == ENOENT) {
-			/* local database dir doesn't exist yet - create it */
-			if(local_db_create(db, dbpath) == 0) {
-				db.status |= AlpmDBStatus.Valid;
-				db.status &= ~AlpmDBStatus.Invalid;
-				db.status |= AlpmDBStatus.Exists;
-				db.status &= ~AlpmDBStatus.Missing;
-				return 0;
-			} else {
-				db.status &= ~AlpmDBStatus.Exists;
-				db.status |= AlpmDBStatus.Missing;
-				/* pm_errno is set by local_db_create */
-				return -1;
-			}
-		} else {
-			throw new Exception("Error to opem dbpath");
-			// RET_ERR(db.handle, ALPM_ERR_DB_OPEN, "error to open dbpath %s", dbdir.to!string);
-		}
-	}
-	db.status |= AlpmDBStatus.Exists;
-	db.status &= ~AlpmDBStatus.Missing;
-
-	snprintf(dbverpath.ptr, PATH_MAX, "%sALPM_DB_VERSION", dbpath);
-
-	if((dbverfile = fopen(dbverpath.ptr, "r")) == null) {
-		/* create dbverfile if local database is empty - otherwise version error */
-		while((ent = readdir(dbdir)) != null) {
-			  char*name = ent.d_name.ptr;
-			if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
-				continue;
-			} else {
-				goto version_error;
-			}
-		}
-
-		if(local_db_add_version(db, dbpath) != 0) {
-			goto version_error;
-		}
-		goto version_latest;
-	}
-
-	t = fscanf(dbverfile, "%zu", &version_);
-	fclose(dbverfile);
-
-	if(t != 1) {
-		goto version_error;
-	}
-
-	if(version_ != ALPM_LOCAL_DB_VERSION) {
-		goto version_error;
-	}
-
-version_latest:
-	closedir(dbdir);
-	db.status |= AlpmDBStatus.Valid;
-	db.status &= ~AlpmDBStatus.Invalid;
-	return 0;
-
-version_error:
-	closedir(dbdir);
-	db.status &= ~AlpmDBStatus.Valid;
-	db.status |= AlpmDBStatus.Invalid;
-	db.handle.pm_errno = ALPM_ERR_DB_VERSION;
-	return -1;
-}
-
-private int local_db_populate(AlpmDB db)
-{
-	size_t est_count = void;
-	size_t count = 0;
-	stat_t buf = void;
-	dirent* ent = null;
-	  char*dbpath = void;
-	DIR* dbdir = void;
-
-	if(db.status & AlpmDBStatus.Invalid) {
-		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, -1);
-	}
-	if(db.status & AlpmDBStatus.Missing) {
-		RET_ERR(db.handle, ALPM_ERR_DB_NOT_FOUND, -1);
-	}
-
-	dbpath = cast(char*)db.calcPath();
-	if(dbpath == null) {
-		/* pm_errno set in _alpm_db_path() */
-		return -1;
-	}
-
-	dbdir = opendir(dbpath);
-	if(dbdir == null) {
-		RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
-	}
-	if(fstat(dirfd(dbdir), &buf) != 0) {
-		RET_ERR(db.handle, ALPM_ERR_DB_OPEN, -1);
-	}
-	db.status |= AlpmDBStatus.Exists;
-	db.status &= ~AlpmDBStatus.Missing;
-	if(buf.st_nlink >= 2) {
-		est_count = buf.st_nlink;
-	} else {
-		/* Some filesystems don't subscribe to the two-implicit links school of
-		 * thought, e.g. BTRFS, HFS+. See
-		 * http://kerneltrap.org/mailarchive/linux-btrfs/2010/1/23/6723483/thread
-		 */
-		est_count = 0;
-		while(readdir(dbdir) != null) {
-			est_count++;
-		}
-		rewinddir(dbdir);
-	}
-	if(est_count >= 2) {
-		/* subtract the '.' and '..' pointers to get # of children */
-		est_count -= 2;
-	}
-
-	db.pkgcache = new AlpmPkgHash(cast(uint)est_count);
-	if(db.pkgcache is null){
-		closedir(dbdir);
-		RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
-	}
-
-	while((ent = readdir(dbdir)) != null) {
-		  char*name = ent.d_name.ptr;
-
-		AlpmPkg pkg = void;
-
-		if(strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
-			continue;
-		}
-		if(!is_dir(dbpath, ent)) {
-			continue;
-		}
-
-		pkg = new AlpmPkg();
-		if(pkg is null) {
-			closedir(dbdir);
-			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
-		}
-		/* split the db entry name */
-		if(alpmSplitName(name.to!string, pkg.name, pkg.version_, pkg.name_hash) != 0) {
-			_alpm_log(db.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
-					name);
-			destroy!false(pkg);
-			continue;
-		}
-
-		/* duplicated database entries are not allowed */
-		if(db.pkgcache.find(cast(char*)pkg.name)) {
-			_alpm_log(db.handle, ALPM_LOG_ERROR, ("duplicated database entry '%s'\n"), pkg.name);
-			destroy!false(pkg);
-			continue;
-		}
-
-		pkg.origin = ALPM_PKG_FROM_LOCALDB;
-		pkg.origin_data.db = db;
-		// pkg.ops = &local_pkg_ops;
-		pkg.handle = db.handle;
-
-		/* explicitly read with only 'BASE' data, accessors will handle the rest */
-		if(local_db_read(pkg,AlpmDBInfRq.Base) == -1) {
-			_alpm_log(db.handle, ALPM_LOG_ERROR, ("corrupted database entry '%s'\n"), name);
-			destroy!false(pkg);
-			continue;
-		}
-
-		/* treat local metadata errors as warning-only,
-		 * they are already installed and otherwise they can't be operated on */
-		pkg.checkMeta();
-
-		/* add to the collection */
-		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
-				pkg.name, db.treename);
-		if(db.pkgcache.add(pkg) is null) {
-			destroy!false(pkg);
-			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
-		}
-		count++;
-	}
-
-	closedir(dbdir);
-
-	db.pkgcache.trySort();
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "added %zu packages to package cache for db '%s'\n",
-			count, db.treename);
 
 	return 0;
 }
@@ -1182,11 +1188,11 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 	return 0;
 }
 
-private  const(db_operations) local_db_ops = {
-	validate: &local_db_validate,
-	populate: &local_db_populate,
-	// unregister: &_alpm_db_unregister,
-};
+// private  const(db_operations) local_db_ops = {
+// 	validate: &local_db_validate,
+// 	populate: &local_db_populate,
+// 	// unregister: &_alpm_db_unregister,
+// };
 
 AlpmDB _alpm_db_register_local(AlpmHandle handle)
 {
@@ -1194,16 +1200,16 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 
 	logger.tracef("registering local database\n");
 
-	db = new AlpmDB(cast(char*)"local", 1);
+	db = new AlpmDBLocal(cast(char*)"local");
 	if(db is null) {
 		handle.pm_errno = ALPM_ERR_DB_CREATE;
 		return null;
 	}
-	db.ops = &local_db_ops;
+	// db.ops = &local_db_ops;
 	db.handle = handle;
 	db.usage = AlpmDBUsage.All;
 
-	if(local_db_validate(db)) {
+	if(db.validate()) {
 		// throw new Exception("Cant validate");
 		/* pm_errno set in local_db_validate() */
 		// _alpm_db_free(db);

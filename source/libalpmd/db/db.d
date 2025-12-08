@@ -89,13 +89,13 @@ class AlpmDB {
 	AlpmStrings		cache_servers;
 	AlpmStrings		servers;
 	const (db_operations)* ops;
-	// abstract int validate() {
-	// 	return 0;
-	// }
+	abstract int validate() {
+		return 0;
+	}
 
-	// abstract int populate() {
-	// 	return 0;
-	// }
+	abstract int populate() {
+		return 0;
+	}
 
 	// abstract void unregister() {
 
@@ -109,18 +109,18 @@ class AlpmDB {
 	/* alpm_db_usage_t */
 	int usage;
 
-	this(  char*treename, int is_local)
+	this(  char*treename)
 	{
 		// AlpmDB db = new AlpmDB();
 		this.treename = treename.to!string;
-		if(is_local) {
-			this.status |= AlpmDBStatus.Local;
-		} else {
-			this.status &= ~AlpmDBStatus.Local;
-		}
-		this.usage = AlpmDBUsage.All;
+		// if(is_local) {
+		// 	this.status |= AlpmDBStatus.Local;
+		// } else {
+		// 	this.status &= ~AlpmDBStatus.Local;
+		// }
+		// this.usage = AlpmDBUsage.All;
 
-		// return db;
+		// // return db;
 	}
 
 	~this()

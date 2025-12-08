@@ -300,7 +300,7 @@ public:
 			db.status &= ~AlpmDBStatus.Missing;
 
 			/* if the download failed skip validation to preserve the download error */
-			if(sync_db_validate(db) != 0) {
+			if(db.validate() != 0) {
 				logger.trace("failed to validate db: ", db.treename);
 				/* pm_errno should be set */
 				// ret = -1;
