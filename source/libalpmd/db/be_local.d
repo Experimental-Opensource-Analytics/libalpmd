@@ -534,8 +534,8 @@ private int local_db_populate(AlpmDB db)
 		est_count -= 2;
 	}
 
-	db.pkgcache = _alpm_pkghash_create(cast(uint)est_count);
-	if(db.pkgcache == null){
+	db.pkgcache = new AlpmPkgHash(cast(uint)est_count);
+	if(db.pkgcache is null){
 		closedir(dbdir);
 		RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 	}
@@ -566,7 +566,7 @@ private int local_db_populate(AlpmDB db)
 		}
 
 		/* duplicated database entries are not allowed */
-		if(_alpm_pkghash_find(db.pkgcache, cast(char*)pkg.name)) {
+		if(db.pkgcache.find(cast(char*)pkg.name)) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("duplicated database entry '%s'\n"), pkg.name);
 			destroy!false(pkg);
 			continue;
@@ -591,7 +591,7 @@ private int local_db_populate(AlpmDB db)
 		/* add to the collection */
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
 				pkg.name, db.treename);
-		if(_alpm_pkghash_add(&db.pkgcache, pkg) == null) {
+		if(db.pkgcache.add(pkg) is null) {
 			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 		}

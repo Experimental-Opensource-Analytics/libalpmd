@@ -143,7 +143,7 @@ private alpm_list_t* check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb
 	_alpm_log(handle, ALPM_LOG_DEBUG,
 			"searching for replacements for %s in %s\n",
 			lpkg.name, sdb.treename);
-	for(k = _alpm_db_get_pkgcache(sdb); k; k = k.next) {
+	for(k = sdb.getPkgCacheList(); k; k = k.next) {
 		int found = 0;
 		AlpmPkg spkg = cast(AlpmPkg)k.data;
 		foreach(l; spkg.getReplaces()[]) {
@@ -211,7 +211,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	ASSERT(trans.state == AlpmTransState.Initialized);
 
 	logger.tracef("checking for package upgrades\n");
-	for(auto i = _alpm_db_get_pkgcache(handle.getDBLocal); i; i = i.next) {
+	for(auto i = handle.getDBLocal().getPkgCacheList(); i; i = i.next) {
 		AlpmPkg lpkg = cast(AlpmPkg)i.data;
 
 		if(alpm_pkg_find_n(trans.remove, lpkg.name)) {
@@ -418,7 +418,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* Compute the fake local database for resolvedeps (partial fix for the
 		 * phonon/qt issue) */
-		localpkgs = alpm_list_diff(_alpm_db_get_pkgcache(handle.getDBLocal),
+		localpkgs = alpm_list_diff(handle.getDBLocal().getPkgCacheList(),
 				trans.add, &_alpm_pkg_cmp);
 
 		/* Resolve packages in the transaction one at a time, in addition
@@ -646,7 +646,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
 		logger.tracef("checking dependencies\n");
-		deps = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
+		deps = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
 				trans.remove, trans.add, 1);
 		if(deps) {
 			(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_UNSATISFIED_DEPS;

@@ -84,7 +84,7 @@ class AlpmDB {
 	string treename;
 	/* do not access directly, use _alpm_db_path(db) for lazy access */
 	string _path;
-	alpm_pkghash_t* pkgcache;
+	AlpmPkgHash pkgcache;
 	alpm_list_t* grpcache;
 	alpm_list_t* cache_servers;
 	alpm_list_t* servers;
@@ -296,13 +296,6 @@ class AlpmDB {
 		return pkg;
 	}
 
-	alpm_list_t * getPkgCache()
-	{
-		//ASSERT(this != null);
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		return _alpm_db_get_pkgcache(this);
-	}
-
 	AlpmGroup getGroup(char*name)
 	{
 		//ASSERT(db != null);
@@ -319,7 +312,7 @@ class AlpmDB {
 	{
 		alpm_list_t* baddeps = null;
 
-		alpm_list_t* dblist = alpm_list_diff(this.getPkgCache(),
+		alpm_list_t* dblist = alpm_list_diff(this.getPkgCacheList(),
 				packages, &_alpm_pkg_cmp);
 
 		/* two checks to be done here for conflicts */
@@ -330,6 +323,47 @@ class AlpmDB {
 
 		alpm_list_free(dblist);
 		return baddeps;
+	}
+
+	void freePkgCache() {
+		if(this.pkgcache is null) {
+			return;
+		}
+
+		logger.tracef("freeing package cache for repository '%s'\n", this.treename);
+
+		alpm_list_free_inner(this.pkgcache.list,
+				cast(alpm_list_fn_free)&_alpm_pkg_free);
+		// _alpm_pkghash_free(this.pkgcache);
+		this.pkgcache = null;
+		this.status &= ~AlpmDBStatus.PkgCache;
+
+		free_groupcache(this);
+	}
+
+	AlpmPkgHash getPkgCacheHash() {
+		if(!(this.status & AlpmDBStatus.Valid)) {
+			RET_ERR(this.handle, ALPM_ERR_DB_INVALID, null);
+		}
+
+		if(!(this.status & AlpmDBStatus.PkgCache)) {
+			if(load_pkgcache(this)) {
+				/* handle->error set in local/sync-db-populate */
+				return null;
+			}
+		}
+
+		return this.pkgcache;
+	}
+
+	alpm_list_t* getPkgCacheList() {
+		// AlpmPkgHash hash = getPkgCacheHash();
+
+		if(this.pkgcache is null) {
+			return null;
+		}
+
+		return this.pkgcache.list;
 	}
 }
 
@@ -394,7 +428,8 @@ void _alpm_db_free(AlpmDB db)
 {
 	//ASSERT(db != null);
 	/* cleanup pkgcache */
-	_alpm_db_free_pkgcache(db);
+	// _alpm_db_free_pkgcache(db);
+	db.freePkgCache();
 	/* cleanup server list */
 	FREELIST(db.cache_servers);
 	FREELIST(db.servers);
@@ -447,7 +482,7 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
 	}
 
 	/* copy the pkgcache- we will free the list var after each needle */
-	alpm_list_t* list = alpm_list_copy(_alpm_db_get_pkgcache(db));
+	alpm_list_t* list = alpm_list_copy(db.getPkgCacheList());
 
 	for(i = needles; i; i = i.next) {
 		char* targ = void;
@@ -518,7 +553,8 @@ int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
  */
 private int load_pkgcache(AlpmDB db)
 {
-	_alpm_db_free_pkgcache(db);
+	// _alpm_db_free_pkgcache(db);
+	db.freePkgCache();
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "loading package cache for repository '%s'\n",
 			db.treename);
@@ -551,55 +587,6 @@ private void free_groupcache(AlpmDB db)
 	db.status &= ~AlpmDBStatus.GrpCache;
 }
 
-void _alpm_db_free_pkgcache(AlpmDB db)
-{
-	if(db is null || db.pkgcache == null) {
-		return;
-	}
-
-	_alpm_log(db.handle, ALPM_LOG_DEBUG,
-			"freeing package cache for repository '%s'\n", db.treename);
-
-	alpm_list_free_inner(db.pkgcache.list,
-			cast(alpm_list_fn_free)&_alpm_pkg_free);
-	_alpm_pkghash_free(db.pkgcache);
-	db.pkgcache = null;
-	db.status &= ~AlpmDBStatus.PkgCache;
-
-	free_groupcache(db);
-}
-
-alpm_pkghash_t* _alpm_db_get_pkgcache_hash(AlpmDB db)
-{
-	if(db is null) {
-		return null;
-	}
-
-	if(!(db.status & AlpmDBStatus.Valid)) {
-		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, null);
-	}
-
-	if(!(db.status & AlpmDBStatus.PkgCache)) {
-		if(load_pkgcache(db)) {
-			/* handle->error set in local/sync-db-populate */
-			return null;
-		}
-	}
-
-	return db.pkgcache;
-}
-
-alpm_list_t* _alpm_db_get_pkgcache(AlpmDB db)
-{
-	alpm_pkghash_t* hash = _alpm_db_get_pkgcache_hash(db);
-
-	if(hash == null) {
-		return null;
-	}
-
-	return hash.list;
-}
-
 /* "duplicate" pkg then add it to pkgcache */
 int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 {
@@ -624,7 +611,7 @@ int _alpm_db_add_pkgincache(AlpmDB db, AlpmPkg pkg)
 		? ALPM_PKG_FROM_LOCALDB
 		: ALPM_PKG_FROM_SYNCDB;
 	newpkg.origin_data.db = db;
-	if(_alpm_pkghash_add_sorted(&db.pkgcache, newpkg) == null) {
+	if(db.pkgcache.addSorted(newpkg) is null) {
 		destroy!false(newpkg);
 		RET_ERR(db.handle, ALPM_ERR_MEMORY, -1);
 	}
@@ -645,7 +632,7 @@ int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "removing entry '%s' from '%s' cache\n",
 						pkg.name, db.treename);
 
-	db.pkgcache = _alpm_pkghash_remove(db.pkgcache, pkg, &data);
+	db.pkgcache = db.pkgcache.remove(pkg, &data);
 	if(data is null) {
 		/* package not found */
 		_alpm_log(db.handle, ALPM_LOG_DEBUG, "cannot remove entry '%s' from '%s' cache: not found\n",
@@ -666,12 +653,12 @@ AlpmPkg _alpm_db_get_pkgfromcache(AlpmDB db,   char*target)
 		return null;
 	}
 
-	alpm_pkghash_t* pkgcache = _alpm_db_get_pkgcache_hash(db);
+	AlpmPkgHash pkgcache = db.getPkgCacheHash();
 	if(!pkgcache) {
 		return null;
 	}
 
-	return _alpm_pkghash_find(pkgcache, target);
+	return pkgcache.find(target);
 }
 
 /* Returns a new group cache from db.
@@ -687,7 +674,7 @@ int load_grpcache(AlpmDB db)
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "loading group cache for repository '%s'\n",
 			db.treename);
 
-	for(lp = _alpm_db_get_pkgcache(db); lp; lp = lp.next) {
+	for(lp = db.getPkgCacheList(); lp; lp = lp.next) {
 		AlpmPkg pkg = cast(AlpmPkg)lp.data;
 
 		foreach(grpname; pkg.getGroups()[]) {

@@ -192,7 +192,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 			&& likely_pkg.name == pkgname) {
 		pkg = likely_pkg;
 	} else {
-		pkg = _alpm_pkghash_find(db.pkgcache, cast(char*)pkgname);
+		pkg = db.pkgcache.find(cast(char*)pkgname);
 	}
 	if(pkg is null) {
 		pkg = new AlpmPkg();
@@ -217,7 +217,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		/* add to the collection */
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
 				pkg.name, db.treename);
-		if(_alpm_pkghash_add(&db.pkgcache, pkg) == null) {
+		if(db.pkgcache.add(pkg) is null) {
 			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
 		}
@@ -304,8 +304,8 @@ int sync_db_populate(AlpmDB db)
 		est_count /= 4;
 	}
 
-	db.pkgcache = _alpm_pkghash_create(cast(uint)est_count);
-	if(db.pkgcache == null) {
+	db.pkgcache = new AlpmPkgHash(cast(uint)est_count);
+	if(db.pkgcache is null) {
 		ret = -1;
 		GOTO_ERR(db.handle, ALPM_ERR_MEMORY," cleanup");
 	}
@@ -326,14 +326,14 @@ int sync_db_populate(AlpmDB db)
 	if(ret == -1) {
 		db.status &= ~AlpmDBStatus.Valid;
 		db.status |= AlpmDBStatus.Invalid;
-		_alpm_db_free_pkgcache(db);
+		db.freePkgCache();
 		GOTO_ERR(db.handle, ALPM_ERR_DB_INVALID, "cleanup");
 	}
 	/* reading the db file failed */
 	if(archive_ret != ARCHIVE_EOF) {
 		_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not read db '%s' (%s)\n"),
 				db.treename, archive_error_string(archive));
-		_alpm_db_free_pkgcache(db);
+		db.freePkgCache();
 		ret = -1;
 		GOTO_ERR(db.handle, ALPM_ERR_LIBARCHIVE, "cleanup");
 	}

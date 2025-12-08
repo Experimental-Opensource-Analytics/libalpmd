@@ -1,7 +1,8 @@
 module libalpmd.pkghash;
-@nogc  
    
-import core.stdc.config: c_long, c_ulong;
+import core.stdc.config: 
+	c_long, 
+	c_ulong;
 /*
  *  pkghash.c
  *
@@ -25,15 +26,11 @@ import core.stdc.errno;
 import core.stdc.stdlib;
 import core.stdc.string;
 
-
-
 import libalpmd.pkghash;
 import libalpmd.util;
 import libalpmd.pkg;
 import libalpmd.alpm_list;
 import std.conv;
-
-
 
 /* List of primes for possible sizes of hash tables.
  *
@@ -41,22 +38,6 @@ import std.conv;
  * more than an order of magnitude greater than the number of packages
  * in any Linux distribution, and well under UINT_MAX.
  */
-
-struct _alpm_pkghash_t {
-	/** data held by the hash table */
-	alpm_list_t** hash_table;
-	/** head node of the hash table data in normal list format */
-	alpm_list_t* list;
-	/** number of buckets in hash table */
-	uint buckets;
-	/** number of entries in hash table */
-	uint entries;
-	/** max number of entries before a resize is needed */
-	uint limit;
-}
-
-alias alpm_pkghash_t = _alpm_pkghash_t;
-
 private const (uint)[145] prime_list = [
 	11u, 13u, 17u, 19u, 23u, 29u, 31u, 37u, 41u, 43u, 47u,
 	53u, 59u, 61u, 67u, 71u, 73u, 79u, 83u, 89u, 97u, 103u,
@@ -85,291 +66,260 @@ private const (double) max_hash_load = 0.68;
 /* Initial load percentage given a certain size */
 private const (double) initial_hash_load = 0.58;
 
-/* Allocate a hash table with space for at least "size" elements */
-alpm_pkghash_t* _alpm_pkghash_create(uint size)
-{
-	alpm_pkghash_t* hash = null;
-	uint i = void, loopsize = void;
+class AlpmPkgHash {
+	/** data held by the hash table */
+	alpm_list_t** hash_table;
+	/** head node of the hash table data in normal list format */
+	alpm_list_t* list;
+	/** number of buckets in hash table */
+	uint buckets;
+	/** number of entries in hash table */
+	uint entries;
+	/** max number of entries before a resize is needed */
+	uint limit;
 
-	CALLOC(hash, 1, alpm_pkghash_t.sizeof);
-	size = cast(uint)(size / initial_hash_load + 1);
+	this(uint size) {
+		uint i = void, loopsize = void;
 
-	// loopsize = ARRAYSIZE(prime_list.ptr);
-	loopsize = 145; 
-	for(i = 0; i < loopsize; i++) {
-		if(prime_list[i] > size) {
-			hash.buckets = prime_list[i];
-			hash.limit = cast(uint)(hash.buckets * max_hash_load);
-			break;
+		size = cast(uint)(size / initial_hash_load + 1);
+
+		loopsize = 145; 
+		for(i = 0; i < loopsize; i++) {
+			if(prime_list[i] > size) {
+				this.buckets = prime_list[i];
+				this.limit = cast(uint)(this.buckets * max_hash_load);
+				break;
+			}
+		}
+
+		if(this.buckets < size) {
+			throw new Exception("PackageHash buckets count less then size.");
 		}
 	}
 
-	if(hash.buckets < size) {
-		errno = ERANGE;
-		free(hash);
-		return null;
-	}
-
-	CALLOC(hash.hash_table, hash.buckets, (alpm_list_t*).sizeof);
-
-	return hash;
-}
-
-private uint get_hash_position(c_ulong name_hash, alpm_pkghash_t* hash)
-{
-	uint position = void;
-
-	position = name_hash % hash.buckets;
-
-	/* collision resolution using open addressing with linear probing */
-	while(hash.hash_table[position] != null) {
-		position += stride;
-		while(position >= hash.buckets) {
-			position -= hash.buckets;
+	~this() {
+		uint i = void;
+		for(i = 0; i < this.buckets; i++) {
+			free(this.hash_table[i]);
 		}
+		free(this.hash_table);
 	}
 
-	return position;
-}
+	private AlpmPkgHash rehash() {
+		uint newsize = void, i = void;
 
-/* Expand the hash table size to the next increment and rebin the entries */
-private alpm_pkghash_t* rehash(alpm_pkghash_t* oldhash)
-{
-	alpm_pkghash_t* newhash = void;
-	uint newsize = void, i = void;
-
-	/* Hash tables will need resized in two cases:
-	 *  - adding packages to the local database
-	 *  - poor estimation of the number of packages in sync database
-	 *
-	 * For small hash tables sizes (<500) the increase in size is by a
-	 * minimum of a factor of 2 for optimal rehash efficiency.  For
-	 * larger database sizes, this increase is reduced to avoid excess
-	 * memory allocation as both scenarios requiring a rehash should not
-	 * require a table size increase that large. */
-	if(oldhash.buckets < 500) {
-		newsize = oldhash.buckets * 2;
-	} else if(oldhash.buckets < 2000) {
-		newsize = oldhash.buckets * 3 / 2;
-	} else if(oldhash.buckets < 5000) {
-		newsize = oldhash.buckets * 4 / 3;
-	} else {
-		newsize = oldhash.buckets + 1;
-	}
-
-	newhash = _alpm_pkghash_create(newsize);
-	if(newhash == null) {
-		return null;
-	}
-
-	newhash.list = oldhash.list;
-	oldhash.list = null;
-
-	for(i = 0; i < oldhash.buckets; i++) {
-		if(oldhash.hash_table[i] != null) {
-			AlpmPkg package_ = cast(AlpmPkg)oldhash.hash_table[i].data;
-			uint position = get_hash_position(package_.name_hash, newhash);
-
-			newhash.hash_table[position] = oldhash.hash_table[i];
-			oldhash.hash_table[i] = null;
+		/** data held by the hash table */
+		alpm_list_t** newHashTable;
+		/* Hash tables will need resized in two cases:
+		*  - adding packages to the local database
+		*  - poor estimation of the number of packages in sync database
+		*
+		* For small hash tables sizes (<500) the increase in size is by a
+		* minimum of a factor of 2 for optimal rehash efficiency.  For
+		* larger database sizes, this increase is reduced to avoid excess
+		* memory allocation as both scenarios requiring a rehash should not
+		* require a table size increase that large. */
+		if(this.buckets < 500) {
+			newsize = this.buckets * 2;
+		} else if(this.buckets < 2000) {
+			newsize = this.buckets * 3 / 2;
+		} else if(this.buckets < 5000) {
+			newsize = this.buckets * 4 / 3;
+		} else {
+			newsize = this.buckets + 1;
 		}
+
+		for(i = 0; i < this.buckets; i++) {
+			if(this.hash_table[i] != null) {
+				AlpmPkg package_ = cast(AlpmPkg)this.hash_table[i].data;
+				uint position = this.getHashPosition(package_.name_hash);
+
+				newHashTable[position] = this.hash_table[i];
+				this.hash_table[i] = null;
+			}
+		}
+
+		this.buckets = newsize;
+		hash_table = newHashTable;
+		return this;
 	}
 
-	newhash.entries = oldhash.entries;
+	AlpmPkgHash addPkg(AlpmPkg pkg, int sorted) {
+		alpm_list_t* ptr = void;
+		uint position = void;
 
-	_alpm_pkghash_free(oldhash);
-
-	return newhash;
-}
-
-private alpm_pkghash_t* pkghash_add_pkg(alpm_pkghash_t** hashref, AlpmPkg pkg, int sorted)
-{
-	alpm_list_t* ptr = void;
-	uint position = void;
-	alpm_pkghash_t* hash = void;
-
-	if(pkg is null || hashref == null || *hashref == null) {
-		return null;
-	}
-	hash = *hashref;
-
-	if(hash.entries >= hash.limit) {
-		if((hash = rehash(hash)) == null) {
-			/* resizing failed and there are no more open buckets */
+		if(pkg is null) { 
 			return null;
 		}
-		*hashref = hash;
-	}
 
-	position = get_hash_position(pkg.name_hash, hash);
-
-	MALLOC(ptr, alpm_list_t.sizeof);
-
-	ptr.data = cast(void*)pkg;
-	ptr.prev = ptr;
-	ptr.next = null;
-
-	hash.hash_table[position] = ptr;
-	if(!sorted) {
-		hash.list = alpm_list_join(hash.list, ptr);
-	} else {
-		hash.list = alpm_list_mmerge(hash.list, ptr, &_alpm_pkg_cmp);
-	}
-
-	hash.entries += 1;
-	return hash;
-}
-
-alpm_pkghash_t* _alpm_pkghash_add(alpm_pkghash_t** hash, AlpmPkg pkg)
-{
-	return pkghash_add_pkg(hash, pkg, 0);
-}
-
-alpm_pkghash_t* _alpm_pkghash_add_sorted(alpm_pkghash_t** hash, AlpmPkg pkg)
-{
-	return pkghash_add_pkg(hash, pkg, 1);
-}
-
-private uint move_one_entry(alpm_pkghash_t* hash, uint start, uint end)
-{
-	/* Iterate backwards from 'end' to 'start', seeing if any of the items
-	 * would hash to 'start'. If we find one, we move it there and break.  If
-	 * we get all the way back to position and find none that hash to it, we
-	 * also end iteration. Iterating backwards helps prevent needless shuffles;
-	 * we will never need to move more than one item per function call.  The
-	 * return value is our current iteration location; if this is equal to
-	 * 'start' we can stop this madness. */
-	while(end != start) {
-		alpm_list_t* i = hash.hash_table[end];
-		AlpmPkg info = cast(AlpmPkg)i.data;
-		uint new_position = get_hash_position(info.name_hash, hash);
-
-		if(new_position == start) {
-			hash.hash_table[start] = i;
-			hash.hash_table[end] = null;
-			break;
+		if(this.entries >= this.limit) {
+			if(rehash() is null) {
+				/* resizing failed and there are no more open buckets */
+				return null;
+			}
 		}
 
-		/* the odd math ensures we are always positive, e.g.
-		 * e.g. (0 - 1) % 47      == -1
-		 * e.g. (47 + 0 - 1) % 47 == 46 */
-		end = (hash.buckets + end - stride) % hash.buckets;
-	}
-	return end;
-}
+		position = this.getHashPosition(pkg.name_hash);
 
-/**
- * @brief Remove a package from a pkghash.
- *
- * @param hash     the hash to remove the package from
- * @param pkg      the package we are removing
- * @param data     output parameter containing the removed item
- *
- * @return the resultant hash
- */
-alpm_pkghash_t* _alpm_pkghash_remove(alpm_pkghash_t* hash, AlpmPkg pkg, AlpmPkg* data)
-{
-	alpm_list_t* i = void;
-	uint position = void;
+		MALLOC(ptr, alpm_list_t.sizeof);
 
-	if(data) {
-		*data = null;
+		ptr.data = cast(void*)pkg;
+		ptr.prev = ptr;
+		ptr.next = null;
+
+		this.hash_table[position] = ptr;
+		if(!sorted) {
+			this.list = alpm_list_join(this.list, ptr);
+		} else {
+			this.list = alpm_list_mmerge(this.list, ptr, &_alpm_pkg_cmp);
+		}
+
+		this.entries += 1;
+		return this;
 	}
 
-	if(pkg is null || hash == null) {
-		return hash;
+	AlpmPkgHash add(AlpmPkg pkg) {
+		return this.addPkg(pkg, 0);
 	}
 
-	position = pkg.name_hash % hash.buckets;
-	while((i = hash.hash_table[position]) != null) {
-		AlpmPkg info = cast(AlpmPkg)i.data;
+	AlpmPkgHash addSorted(AlpmPkg pkg) {
+		return this.addPkg(pkg, 1);
+	}
+	
+	uint getHashPosition(c_ulong name_hash) {
+		uint position = void;
 
-		if(info.name_hash == pkg.name_hash &&
-					info.name == pkg.name) {
-			uint stop = void, prev = void;
+		position = name_hash % this.buckets;
 
-			/* remove from list and hash */
-			hash.list = alpm_list_remove_item(hash.list, i);
-			if(data) {
-				*data = info;
+		/* collision resolution using open addressing with linear probing */
+		while(this.hash_table[position] != null) {
+			position += stride;
+			while(position >= this.buckets) {
+				position -= this.buckets;
 			}
-			hash.hash_table[position] = null;
-			free(i);
-			hash.entries -= 1;
+		}
 
-			/* Potentially move entries following removed entry to keep open
-			 * addressing collision resolution working. We start by finding the
-			 * next null bucket to know how far we have to look. */
-			stop = position + stride;
-			while(stop >= hash.buckets) {
-				stop -= hash.buckets;
+		return position;
+	}
+
+	private uint moveOneEntry(uint start, uint end)
+	{
+		/* Iterate backwards from 'end' to 'start', seeing if any of the items
+		* would hash to 'start'. If we find one, we move it there and break.  If
+		* we get all the way back to position and find none that hash to it, we
+		* also end iteration. Iterating backwards helps prevent needless shuffles;
+		* we will never need to move more than one item per function call.  The
+		* return value is our current iteration location; if this is equal to
+		* 'start' we can stop this madness. */
+		while(end != start) {
+			alpm_list_t* i = this.hash_table[end];
+			AlpmPkg info = cast(AlpmPkg)i.data;
+			uint new_position = this.getHashPosition(info.name_hash);
+
+			if(new_position == start) {
+				this.hash_table[start] = i;
+				this.hash_table[end] = null;
+				break;
 			}
-			while(hash.hash_table[stop] != null && stop != position) {
-				stop += stride;
-				while(stop >= hash.buckets) {
-					stop -= hash.buckets;
+
+			/* the odd math ensures we are always positive, e.g.
+			* e.g. (0 - 1) % 47      == -1
+			* e.g. (47 + 0 - 1) % 47 == 46 */
+			end = (this.buckets + end - stride) % this.buckets;
+		}
+		return end;
+	}
+
+	AlpmPkgHash remove(AlpmPkg pkg, AlpmPkg* data) {
+		alpm_list_t* i = void;
+		uint position = void;
+
+		if(data) {
+			*data = null;
+		}
+
+		if(pkg is null) {
+			return this;
+		}
+
+		position = pkg.name_hash % this.buckets;
+		while((i = this.hash_table[position]) != null) {
+			AlpmPkg info = cast(AlpmPkg)i.data;
+
+			if(info.name_hash == pkg.name_hash &&
+						info.name == pkg.name) {
+				uint stop = void, prev = void;
+
+				/* remove from list and this */
+				this.list = alpm_list_remove_item(this.list, i);
+				if(data) {
+					*data = info;
 				}
-			}
-			stop = (hash.buckets + stop - stride) % hash.buckets;
+				this.hash_table[position] = null;
+				free(i);
+				this.entries -= 1;
 
-			/* We now search backwards from stop to position. If we find an
-			 * item that now hashes to position, we will move it, and then try
-			 * to plug the new hole we just opened up, until we finally don't
-			 * move anything. */
-			while((prev = move_one_entry(hash, position, stop)) != position) {
-				position = prev;
+				/* Potentially move entries following removed entry to keep open
+				* addressing collision resolution working. We start by finding the
+				* next null bucket to know how far we have to look. */
+				stop = position + stride;
+				while(stop >= this.buckets) {
+					stop -= this.buckets;
+				}
+				while(this.hash_table[stop] != null && stop != position) {
+					stop += stride;
+					while(stop >= this.buckets) {
+						stop -= this.buckets;
+					}
+				}
+				stop = (this.buckets + stop - stride) % this.buckets;
+
+				/* We now search backwards from stop to position. If we find an
+				* item that now hashes to position, we will move it, and then try
+				* to plug the new hole we just opened up, until we finally don't
+				* move anything. */
+				while((prev = this.moveOneEntry(position, stop)) != position) {
+					position = prev;
+				}
+
+				return this;
 			}
 
-			return hash;
+			position += stride;
+			while(position >= this.buckets) {
+				position -= this.buckets;
+			}
 		}
 
-		position += stride;
-		while(position >= hash.buckets) {
-			position -= hash.buckets;
-		}
+		return this;
 	}
 
-	return hash;
-}
+	AlpmPkg find(char*name) {
+		alpm_list_t* lp = void;
+		c_ulong name_hash = void;
+		uint position = void;
 
-void _alpm_pkghash_free(alpm_pkghash_t* hash)
-{
-	if(hash != null) {
-		uint i = void;
-		for(i = 0; i < hash.buckets; i++) {
-			free(hash.hash_table[i]);
+		if(name == "") {
+			return null;
 		}
-		free(hash.hash_table);
-	}
-	free(hash);
-}
 
-AlpmPkg _alpm_pkghash_find(alpm_pkghash_t* hash,   char*name)
-{
-	alpm_list_t* lp = void;
-	c_ulong name_hash = void;
-	uint position = void;
+		name_hash = alpmSDBMHash(name.to!string);
 
-	if(name == null || hash == null) {
+		position = name_hash % this.buckets;
+
+		while((lp = this.hash_table[position]) != null) {
+			AlpmPkg info = cast(AlpmPkg)lp.data;
+
+			if(info.name_hash == name_hash && strcmp(cast(char*)info.name, name) == 0) {
+				return info;
+			}
+
+			position += stride;
+			while(position >= this.buckets) {
+				position -= this.buckets;
+			}
+		}
+
 		return null;
 	}
-
-	name_hash = alpmSDBMHash(name.to!string);
-
-	position = name_hash % hash.buckets;
-
-	while((lp = hash.hash_table[position]) != null) {
-		AlpmPkg info = cast(AlpmPkg)lp.data;
-
-		if(info.name_hash == name_hash && strcmp(cast(char*)info.name, name) == 0) {
-			return info;
-		}
-
-		position += stride;
-		while(position >= hash.buckets) {
-			position -= hash.buckets;
-		}
-	}
-
-	return null;
 }

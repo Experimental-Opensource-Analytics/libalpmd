@@ -290,7 +290,8 @@ public:
 			}
 
 			/* Cache needs to be rebuilt */
-			_alpm_db_free_pkgcache(db);
+			// _alpm_db_free_pkgcache(db);
+			db.freePkgCache();
 
 			/* clear all status flags regarding validity/existence */
 			db.status &= ~AlpmDBStatus.Valid;

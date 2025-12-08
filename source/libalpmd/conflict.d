@@ -333,7 +333,7 @@ private int dir_belongsto_pkgs(AlpmHandle handle,   char*dirpath, alpm_list_t* p
 private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 {
 	alpm_list_t* i = void, owners = null;
-	for(i = db.getPkgCache(); i; i = i.next) {
+	for(i = db.getPkgCacheList(); i; i = i.next) {
 		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			owners = alpm_list_add(owners, i.data);
 		}
@@ -344,7 +344,7 @@ private alpm_list_t* alpm_db_find_file_owners(AlpmDB db,   char*path)
 private AlpmPkg _alpm_find_file_owner(AlpmHandle handle,   char*path)
 {
 	alpm_list_t* i = void;
-	for(i = handle.getDBLocal.getPkgCache(); i; i = i.next) {
+	for(i = handle.getDBLocal().getPkgCacheList(); i; i = i.next) {
 		if(alpm_filelist_contains((cast(AlpmPkg)i.data).getFiles(), path.to!string)) {
 			return cast(AlpmPkg)i.data;
 		}
@@ -613,7 +613,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			// if(!resolved_conflict && _alpm_needbackup(relative_path, p1)) {
 			if(!resolved_conflict && p1.needBackup(relative_path.to!string)) {
 
-				alpm_list_t* local_pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
+				alpm_list_t* local_pkgs = handle.getDBLocal().getPkgCacheList();
 				int found = 0;
 				for(k = local_pkgs; k && !found; k = k.next) {
 					if(alpm_filelist_contains((cast(AlpmPkg)k.data).getFiles(), relative_path.to!string)) {

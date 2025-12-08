@@ -508,7 +508,7 @@ private alpm_list_t* _alpm_strlist_dedup(alpm_list_t* list)
 
 private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 {
-	alpm_list_t* i = void, pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
+	alpm_list_t* i = void, pkgs = handle.getDBLocal().getPkgCacheList();
 
 	foreach(depend; hook.depends[]) {
 		if(!alpm_find_satisfier(pkgs, cast(char*)depend.toStringz)) {

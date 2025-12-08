@@ -209,7 +209,7 @@ public:
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
 		//[ ] _alpm_db_get_pkgcache
-		for(i = _alpm_db_get_pkgcache(db); i; i = i.next) { 
+		for(i = db.getPkgCacheList(); i; i = i.next) { 
 			AlpmPkg cachepkg = cast(AlpmPkg)i.data;
 			AlpmDeps j;
 

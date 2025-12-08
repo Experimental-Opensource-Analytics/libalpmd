@@ -120,7 +120,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
-		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
+		lp = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
 				trans.remove, null, 1);
 	}
 	return 0;
@@ -157,7 +157,7 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
-		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(handle.getDBLocal),
+		lp = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
 				trans.remove, null, 1);
 	}
 }
@@ -172,7 +172,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 {
 	alpm_list_t* i = void;
 
-	for(i = _alpm_db_get_pkgcache(handle.getDBLocal); i; i = alpm_list_next(i)) {
+	for(i = handle.getDBLocal().getPkgCacheList(); i; i = alpm_list_next(i)) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		auto optdeps = pkg.getOptDepends();
 
@@ -224,7 +224,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 		EVENT(handle, event);
 
 		logger.tracef("looking for unsatisfied dependencies\n");
-		lp = alpm_checkdeps(handle, _alpm_db_get_pkgcache(db), trans.remove, null, 1);
+		lp = alpm_checkdeps(handle, db.getPkgCacheList(), trans.remove, null, 1);
 		if(lp != null) {
 
 			if(trans.flags & ALPM_TRANS_FLAG_CASCADE) {
@@ -494,7 +494,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 			/* one last check- does any other package own this file? */
 			alpm_list_t* local = void, local_pkgs = void;
 			int found = 0;
-			local_pkgs = _alpm_db_get_pkgcache(handle.getDBLocal);
+			local_pkgs = handle.getDBLocal().getPkgCacheList();
 			for(local = local_pkgs; local && !found; local = local.next) {
 				AlpmPkg local_pkg = cast(AlpmPkg)local.data;
 				AlpmFileList filelist;

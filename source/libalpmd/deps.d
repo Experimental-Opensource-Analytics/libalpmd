@@ -173,7 +173,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 	alpm_list_t* i = void, j = void;
 	alpm_list_t* vertices = null;
 	alpm_list_t* localpkgs = alpm_list_diff(
-			handle.getDBLocal.getPkgCache(), targets, &_alpm_pkg_cmp);
+			handle.getDBLocal().getPkgCacheList(), targets, &_alpm_pkg_cmp);
 
 	if(ignore) {
 		alpm_list_t* oldlocal = localpkgs;
@@ -640,7 +640,7 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
 		return -1;
 	}
 
-	keep = alpm_list_copy(_alpm_db_get_pkgcache(db));
+	keep = alpm_list_copy(db.getPkgCacheList());
 	for(i = *targs; i; i = i.next) {
 		keep = alpm_list_remove(keep, i.data, &_alpm_pkg_cmp, null);
 	}
@@ -729,7 +729,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 		if(!(db.usage & (AlpmDBUsage.Install | AlpmDBUsage.Upgrade))) {
 			continue;
 		}
-		for(auto j = _alpm_db_get_pkgcache(db); j; j = j.next) {
+		for(auto j = db.getPkgCacheList(); j; j = j.next) {
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.name_hash != dep.name_hash || cmp(pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
