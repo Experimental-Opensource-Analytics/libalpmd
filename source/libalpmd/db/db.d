@@ -296,15 +296,6 @@ class AlpmDB {
 		return pkg;
 	}
 
-	AlpmGroup getGroup(char*name)
-	{
-		//ASSERT(db != null);
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		//ASSERT(name != null && strlen(name) != 0);
-
-		return _alpm_db_get_groupfromcache(this, name);
-	}
-
 	/**
 	* @brief Returns a list of conflicts between a db and a list of packages.
 	*/
@@ -362,6 +353,35 @@ class AlpmDB {
 
 		return this.pkgcache.getList();
 	}
+
+	AlpmGroups getGroupsCache() {
+		if(!(this.status & AlpmDBStatus.Valid)) {
+			throw new Exception("Can't get groups cache: Database is invalid");
+		}
+
+		if(!(this.status & AlpmDBStatus.GrpCache)) {
+			load_grpcache(this);
+		}
+
+		return this.grpcache;
+	}
+
+	AlpmGroup getGroupFromCache(char*target) {
+		if(target == null || strlen(target) == 0) {
+			return null;
+		}
+
+		foreach(info; grpcache[]) {
+			if(strcmp(cast(char*)info.name, target) == 0) {
+				return info;
+			}
+		}
+
+		return null;
+	}
+
+	//For compatible
+	alias getGroup = getGroupFromCache;
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
@@ -374,14 +394,6 @@ void _alpm_db_unregister(AlpmDB db)
 
 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
 	_alpm_db_free(db);
-}
-
-AlpmGroups alpm_db_get_groupcache(AlpmDB db)
-{
-	//ASSERT(db != null);
-	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-
-	return _alpm_db_get_groupcache(db);
 }
 
 int  alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
@@ -697,39 +709,4 @@ int load_grpcache(AlpmDB db)
 
 	db.status |= AlpmDBStatus.GrpCache;
 	return 0;
-}
-
-AlpmGroups _alpm_db_get_groupcache(AlpmDB db)
-{
-	if(db is null) {
-		//No need to return empty list
-		return AlpmGroups();
-	}
-
-	if(!(db.status & AlpmDBStatus.Valid)) {
-		RET_ERR(db.handle, ALPM_ERR_DB_INVALID, null);
-	}
-
-	if(!(db.status & AlpmDBStatus.GrpCache)) {
-		load_grpcache(db);
-	}
-
-	return db.grpcache;
-}
-
-AlpmGroup _alpm_db_get_groupfromcache(AlpmDB db,   char*target)
-{
-	alpm_list_t* i = void;
-
-	if(db is null || target == null || strlen(target) == 0) {
-		return null;
-	}
-
-	foreach(info; _alpm_db_get_groupcache(db)[]) {
-		if(strcmp(cast(char*)info.name, target) == 0) {
-			return info;
-		}
-	}
-
-	return null;
 }
