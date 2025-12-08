@@ -149,19 +149,10 @@ class AlpmDB {
 		}
 	}
 
-	int  setCacheServer(alpm_list_t* cache_servers)
-	{
-		alpm_list_t* i = void;
-		//ASSERT(db != null);
-		// FREELIST(this.cache_servers);
+	void  setCacheServer(AlpmStrings cache_servers) {
 		this.cache_servers.clear();
-		for(i = cache_servers; i; i = i.next) {
-			char* url = cast(char*)i.data;
-			if(this.addCacheServer(url) != 0) {
-				return -1;
-			}
-		}
-		return 0;
+
+		this.cache_servers = cache_servers.dup;
 	}
 
 	int  addCacheServer( char*url)
