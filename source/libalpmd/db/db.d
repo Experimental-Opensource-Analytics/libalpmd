@@ -128,23 +128,13 @@ class AlpmDB {
 
 	AlpmStrings getChacheServers() => this.cache_servers;
 
-	int  addServer(char*url)
-	{
-		auto db = this;
+	void  addServer(string url) {
+		url = sanitizeUrl(url);
 
-		/* Sanity checks */
-		//ASSERT(db != null);
-		// (cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-		//ASSERT(url != null && strlen(url) != 0);
+		this.servers.insertBack(url);
 
-		string newurl = sanitizeUrl(url.to!string);
-		//ASSERT(newurl != null);
-
-		db.servers.insertBack(newurl);
-		// _alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s",
-				// db.treename, newurl);
-
-		return 0;
+		logger.tracef("adding new server URL to database '%s': %s",
+				treename, url);
 	}
 
 	int  setServers(alpm_list_t* servers)
@@ -155,7 +145,7 @@ class AlpmDB {
 		this.servers.clear();
 		for(i = servers; i; i = i.next) {
 			char* url = cast(char*)i.data;
-			if(this.addServer(url) != 0) {
+			if(this.addServer(url.to!string) != 0) {
 				return -1;
 			}
 		}
