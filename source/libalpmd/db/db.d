@@ -86,7 +86,7 @@ class AlpmDB {
 	string _path;
 	AlpmPkgHash 	pkgcache;
 	AlpmGroups	 	grpcache;
-	alpm_list_t* cache_servers;
+	AlpmStrings		cache_servers;
 	alpm_list_t* servers;
 	const (db_operations)* ops;
 	// abstract int validate() {
@@ -130,7 +130,8 @@ class AlpmDB {
 		// _alpm_db_free_pkgcache(db);
 		this.freePkgCache();
 		/* cleanup server list */
-		FREELIST(this.cache_servers);
+		// FREELIST(this.cache_servers);
+		this.cache_servers.clear;
 		FREELIST(this.servers);
 		FREE(this._path);
 		FREE(this.treename);
@@ -203,7 +204,7 @@ class AlpmDB {
 		return 0;
 	}
 
-	alpm_list_t* getChacheServers() => this.cache_servers;
+	AlpmStrings getChacheServers() => this.cache_servers;
 
 	int  addServer(char*url)
 	{
@@ -269,7 +270,8 @@ class AlpmDB {
 	{
 		alpm_list_t* i = void;
 		//ASSERT(db != null);
-		FREELIST(this.cache_servers);
+		// FREELIST(this.cache_servers);
+		this.cache_servers.clear();
 		for(i = cache_servers; i; i = i.next) {
 			char* url = cast(char*)i.data;
 			if(this.addCacheServer(url) != 0) {
@@ -289,7 +291,7 @@ class AlpmDB {
 		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		this.cache_servers = alpm_list_add(this.cache_servers, cast(char*)newurl.toStringz);
+		this.cache_servers.insertBack(newurl);
 		// _alpm_log(this.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
 				// this.treename, newurl);
 
@@ -311,7 +313,7 @@ class AlpmDB {
 		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		db.cache_servers = alpm_list_remove_str(db.cache_servers, cast(char*)newurl.toStringz(), &vdata);
+		db.cache_servers.linearRemoveElement(newurl);
 
 		if(vdata) {
 			_alpm_log(db.handle, ALPM_LOG_DEBUG, "removed cache server URL from database '%s': %s\n",

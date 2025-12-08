@@ -83,7 +83,7 @@ struct DLoadPayload {
 	 */
 	char* fileurl;
 	string filepath; /* download URL path */
-	alpm_list_t* cache_servers;
+	AlpmStrings cache_servers;
 	alpm_list_t* servers;
 	c_long respcode;
 	/* the mtime of the existing version of this file, if there is one */
