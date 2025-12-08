@@ -722,7 +722,7 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 			bool need_download = void;
 			int siglevel = spkg.getDB().getSigLevel();
 
-			if(!repo.servers) {
+			if(!repo.servers.empty()) {
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_SERVER_NONE;
 				_alpm_log(handle, ALPM_LOG_ERROR, "%s: %s\n",
 						alpm_strerror(handle.pm_errno), repo.treename);
@@ -757,6 +757,9 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 	return 0;
 }
 
+unittest {
+	
+}
 
 private int download_files(AlpmHandle handle)
 {

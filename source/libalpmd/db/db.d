@@ -87,7 +87,7 @@ class AlpmDB {
 	AlpmPkgHash 	pkgcache;
 	AlpmGroups	 	grpcache;
 	AlpmStrings		cache_servers;
-	alpm_list_t* servers;
+	AlpmStrings		servers;
 	const (db_operations)* ops;
 	// abstract int validate() {
 	// 	return 0;
@@ -131,8 +131,9 @@ class AlpmDB {
 		this.freePkgCache();
 		/* cleanup server list */
 		// FREELIST(this.cache_servers);
-		this.cache_servers.clear;
-		FREELIST(this.servers);
+		this.cache_servers.clear();
+		this.servers.clear();
+		// FREELIST(this.servers);
 		FREE(this._path);
 		FREE(this.treename);
 		// FREE(db);
@@ -218,7 +219,7 @@ class AlpmDB {
 		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		db.servers = alpm_list_add(db.servers, cast(char*)newurl.toStringz());
+		db.servers.insertBack(newurl);
 		// _alpm_log(db.handle, ALPM_LOG_DEBUG, "adding new server URL to database '%s': %s",
 				// db.treename, newurl);
 
@@ -229,7 +230,8 @@ class AlpmDB {
 	{
 		alpm_list_t* i = void;
 		//ASSERT(db != null);
-		FREELIST(this.servers);
+		// FREELIST(this.servers);
+		this.servers.clear();
 		for(i = servers; i; i = i.next) {
 			char* url = cast(char*)i.data;
 			if(this.addServer(url) != 0) {
@@ -254,7 +256,7 @@ class AlpmDB {
 		string newurl = sanitizeUrl(url.to!string);
 		//ASSERT(newurl != null);
 
-		this.servers = alpm_list_remove_str(this.servers, cast(char*)newurl.toStringz, &vdata);
+		this.servers.linearRemoveElement(newurl);
 
 		if(vdata) {
 			_alpm_log(this.handle, ALPM_LOG_DEBUG, "removed server URL from database '%s': %s\n",

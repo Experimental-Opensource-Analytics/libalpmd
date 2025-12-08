@@ -84,7 +84,7 @@ struct DLoadPayload {
 	char* fileurl;
 	string filepath; /* download URL path */
 	AlpmStrings cache_servers;
-	alpm_list_t* servers;
+	AlpmStrings servers;
 	c_long respcode;
 	/* the mtime of the existing version of this file, if there is one */
 	c_long mtime_existing_file;
@@ -1278,7 +1278,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 	// DLoadPayload* payload = cast(DLoadPayload*)payloads.data;
 
 	DLoadPayload* payload_ = cast(DLoadPayload*)payloads.data;
-	ret = payload_download_fetchcb(payload_, cast(char*)payload_.servers.data, localpath);
+	ret = payload_download_fetchcb(payload_, cast(char*)payload_.servers.front(), localpath);
 	
 
 	// debug { import std.stdio : writeln; try { writeln(ret); } catch (Exception) {} }
@@ -1299,7 +1299,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 // 		int updated = 0;
 		for(p = payloads; p; p = p.next) {
 			DLoadPayload* payload = cast(DLoadPayload*)p.data;
-			ret = payload_download_fetchcb(payload, cast(char*)payload.servers.data, localpath);
+			ret = payload_download_fetchcb(payload, cast(char*)payload.servers.front(), localpath);
 			
 			// writeln(alpm_list_count(payload.servers));
 			// // printf("\n",payload.filepath);
