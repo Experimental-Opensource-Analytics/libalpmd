@@ -566,6 +566,10 @@ class AlpmDB {
 
 		return 0;
 	}
+
+	override int opCmp(Object other) const {
+		return cmp(this.treename, (cast(AlpmDB)other).treename);
+	}
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
