@@ -436,27 +436,83 @@ class AlpmDB {
 	int  getUsage() {
 		return this.usage;
 	}
+
+	int search(alpm_list_t* needles, alpm_list_t** ret) {
+		alpm_list_t* i = void, j = void, k = void;
+
+		if(!(this.usage & AlpmDBUsage.Search)) {
+			return 0;
+		}
+
+		/* copy the pkgcache- we will free the list var after each needle */
+		alpm_list_t* list = alpm_list_copy(this.getPkgCacheList());
+
+		for(i = needles; i; i = i.next) {
+			char* targ = void;
+
+			if(i.data == null) {
+				continue;
+			}
+			*ret = null;
+			targ = cast(char*)i.data;
+			_alpm_log(this.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
+
+			for(j = cast( alpm_list_t*) list; j; j = j.next) {
+				AlpmPkg pkg = cast(AlpmPkg)j.data;
+				char* matched = null;
+				string name = pkg.name;
+				char*desc = cast(char*)pkg.getDesc();
+
+				/* check name as plain text */
+				if(name && strstr(cast(char*)name, targ)) {
+					matched = cast(char*)name;
+				}
+				/* check desc */
+				else if(desc && strstr(desc, targ)) {
+					matched = desc;
+				}
+				/* TODO: should we be doing this, and should we print something
+				* differently when we do match it since it isn't currently printed? */
+				if(!matched) {
+					/* check provides */
+					foreach(provide; pkg.getProvides()[]) {
+						// AlpmDepend provide = cast(AlpmDepend )k.data;
+						if(strstr(cast(char*)provide.name.toStringz, targ)) {
+							matched = cast(char*)provide.name.toStringz;
+							break;
+						}
+					}
+				}
+				if(!matched) {
+					/* check groups */
+					foreach(group; pkg.getGroups()[]) {
+						//   char*group =  cast(char*)k.data;
+						if(strstr(cast(char*)group, targ)) {
+							matched = cast(char*)group;
+							break;
+						}
+					}
+				}
+
+				if(matched != null) {
+					_alpm_log(this.handle, ALPM_LOG_DEBUG,
+							"search target '%s' matched '%s' on package '%s'\n",
+							targ, matched, name);
+					*ret = alpm_list_add(*ret, cast(void*)pkg);
+				}
+			}
+
+			/* Free the existing search list, and use the returned list for the
+			* next needle. This allows for AND-based package searching. */
+			alpm_list_free(list);
+			list = *ret;
+		}
+
+		return 0;
+	}
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
-// /* Helper function for alpm_db_unregister{_all} */
-// void _alpm_db_unregister(AlpmDB db)
-// {
-// 	if(db is null) {
-// 		return;
-// 	}
-
-// 	_alpm_log(db.handle, ALPM_LOG_DEBUG, "unregistering database '%s'\n", db.treename);
-// 	_alpm_db_free(db);
-// }
-
-// int  alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
-// {
-// 	//ASSERT(db != null && ret != null && *ret == null);
-// 	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-
-// 	return _alpm_db_search(db, needles, ret);
-// }
 
 AlpmDB _alpm_db_new(  char*treename, int is_local)
 {
@@ -519,81 +575,6 @@ int _alpm_db_cmp( void* d1,  void* d2)
 	  AlpmDB db1 = cast(AlpmDB)d1;
 	  AlpmDB db2 = cast(AlpmDB)d2;
 	return db1.treename == db2.treename;
-}
-
-int _alpm_db_search(AlpmDB db,  alpm_list_t* needles, alpm_list_t** ret)
-{
-	alpm_list_t* i = void, j = void, k = void;
-
-	if(!(db.usage & AlpmDBUsage.Search)) {
-		return 0;
-	}
-
-	/* copy the pkgcache- we will free the list var after each needle */
-	alpm_list_t* list = alpm_list_copy(db.getPkgCacheList());
-
-	for(i = needles; i; i = i.next) {
-		char* targ = void;
-
-		if(i.data == null) {
-			continue;
-		}
-		*ret = null;
-		targ = cast(char*)i.data;
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
-
-		for(j = cast( alpm_list_t*) list; j; j = j.next) {
-			AlpmPkg pkg = cast(AlpmPkg)j.data;
-			char* matched = null;
-			string name = pkg.name;
-			char*desc = cast(char*)pkg.getDesc();
-
-			/* check name as plain text */
-			if(name && strstr(cast(char*)name, targ)) {
-				matched = cast(char*)name;
-			}
-			/* check desc */
-			else if(desc && strstr(desc, targ)) {
-				matched = desc;
-			}
-			/* TODO: should we be doing this, and should we print something
-			 * differently when we do match it since it isn't currently printed? */
-			if(!matched) {
-				/* check provides */
-				foreach(provide; pkg.getProvides()[]) {
-					// AlpmDepend provide = cast(AlpmDepend )k.data;
-					if(strstr(cast(char*)provide.name.toStringz, targ)) {
-						matched = cast(char*)provide.name.toStringz;
-						break;
-					}
-				}
-			}
-			if(!matched) {
-				/* check groups */
-				foreach(group; pkg.getGroups()[]) {
-					//   char*group =  cast(char*)k.data;
-					if(strstr(cast(char*)group, targ)) {
-						matched = cast(char*)group;
-						break;
-					}
-				}
-			}
-
-			if(matched != null) {
-				_alpm_log(db.handle, ALPM_LOG_DEBUG,
-						"search target '%s' matched '%s' on package '%s'\n",
-						targ, matched, name);
-				*ret = alpm_list_add(*ret, cast(void*)pkg);
-			}
-		}
-
-		/* Free the existing search list, and use the returned list for the
-		 * next needle. This allows for AND-based package searching. */
-		alpm_list_free(list);
-		list = *ret;
-	}
-
-	return 0;
 }
 
 /* Returns a new package cache from db.
