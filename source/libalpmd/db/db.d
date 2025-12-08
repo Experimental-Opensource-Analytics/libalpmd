@@ -141,29 +141,12 @@ class AlpmDB {
 		this.servers = servers.dup();
 	}
 
-	int  removeServer(char*url)
-	{
-		char* vdata = null;
-		int ret = 1;
+	void  removeServer(scope string url) {
+		url = sanitizeUrl(url);
 
-		/* Sanity checks */
-		//ASSERT(db != null);
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		//ASSERT(url != null && strlen(url) != 0);
-
-		string newurl = sanitizeUrl(url.to!string);
-		//ASSERT(newurl != null);
-
-		this.servers.linearRemoveElement(newurl);
-
-		if(vdata) {
-			_alpm_log(this.handle, ALPM_LOG_DEBUG, "removed server URL from database '%s': %s\n",
-					this.treename, cast(char*)newurl.toStringz);
-			free(vdata);
-			ret = 0;
+		if(this.servers.linearRemoveElement(url)) {
+			logger.tracef("removed server URL from database '%s': %s\n", this.treename, url);
 		}
-
-		return ret;
 	}
 
 	int  setCacheServer(alpm_list_t* cache_servers)
