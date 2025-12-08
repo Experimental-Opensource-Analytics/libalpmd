@@ -54,9 +54,9 @@ import libalpmd.error;
 import std.string;
 import libalpmd.event;
 
-class AlpmDBSync : AlpmDB {
+// class AlpmDBSync : AlpmDB {
 	
-}
+// }
 
 int sync_db_validate(AlpmDB db)
 {
@@ -613,7 +613,7 @@ version (HAVE_LIBGPGME) {} else {
 	}
 }
 
-	db = _alpm_db_new(treename, 0);
+	db = new AlpmDB(treename, 0);
 	if(db is null) {
 		RET_ERR(handle, ALPM_ERR_DB_CREATE, null);
 	}

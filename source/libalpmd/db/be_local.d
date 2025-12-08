@@ -318,9 +318,9 @@ enum string LAZY_LOAD(string info) = `
 	}
  }
 
- class AlpmDBLocal : AlpmDB {
-	
- }
+//  class AlpmDBLocal : AlpmDB {
+
+//  }
 
 private int checkdbdir(AlpmDB db)
 {
@@ -1194,7 +1194,7 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 
 	logger.tracef("registering local database\n");
 
-	db = _alpm_db_new(cast(char*)"local", 1);
+	db = new AlpmDB(cast(char*)"local", 1);
 	if(db is null) {
 		handle.pm_errno = ALPM_ERR_DB_CREATE;
 		return null;

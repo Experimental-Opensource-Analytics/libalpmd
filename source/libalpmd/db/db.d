@@ -109,6 +109,20 @@ class AlpmDB {
 	/* alpm_db_usage_t */
 	int usage;
 
+	this(  char*treename, int is_local)
+	{
+		// AlpmDB db = new AlpmDB();
+		this.treename = treename.to!string;
+		if(is_local) {
+			this.status |= AlpmDBStatus.Local;
+		} else {
+			this.status &= ~AlpmDBStatus.Local;
+		}
+		this.usage = AlpmDBUsage.All;
+
+		// return db;
+	}
+
 	AlpmHandle getHandle() => this.handle;
 	string getName() => this.treename;
 
@@ -513,20 +527,6 @@ class AlpmDB {
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
-
-AlpmDB _alpm_db_new(  char*treename, int is_local)
-{
-	AlpmDB db = new AlpmDB();
-	db.treename = treename.to!string;
-	if(is_local) {
-		db.status |= AlpmDBStatus.Local;
-	} else {
-		db.status &= ~AlpmDBStatus.Local;
-	}
-	db.usage = AlpmDBUsage.All;
-
-	return db;
-}
 
 void _alpm_db_free(AlpmDB db)
 {
