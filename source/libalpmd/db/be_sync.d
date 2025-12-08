@@ -56,10 +56,9 @@ import libalpmd.event;
 
 class AlpmDBSync : AlpmDB {
 
-	this(char* treename) {
+	this(string treename) {
 		super(treename);
 		this.status &= ~AlpmDBStatus.Local;
-		this.usage = AlpmDBUsage.All;
 	}
 
 	override int validate()
@@ -636,7 +635,7 @@ version (HAVE_LIBGPGME) {} else {
 	}
 }
 
-	db = new AlpmDBSync(treename);
+	db = new AlpmDBSync(treename.to!string);
 	if(db is null) {
 		RET_ERR(handle, ALPM_ERR_DB_CREATE, null);
 	}

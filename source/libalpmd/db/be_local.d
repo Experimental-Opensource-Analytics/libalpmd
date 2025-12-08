@@ -320,11 +320,9 @@ enum string LAZY_LOAD(string info) = `
 
  class AlpmDBLocal : AlpmDB {
 
-	this(char* treename) {
+	this(string treename) {
 		super(treename);
-		// this.treename = treename.to!string;
 		this.status |= AlpmDBStatus.Local;
-		this.usage = AlpmDBUsage.All;
 	}
 
 	override int validate()
@@ -1210,7 +1208,7 @@ AlpmDB _alpm_db_register_local(AlpmHandle handle)
 
 	logger.tracef("registering local database\n");
 
-	db = new AlpmDBLocal(cast(char*)"local");
+	db = new AlpmDBLocal("local");
 	if(db is null) {
 		handle.pm_errno = ALPM_ERR_DB_CREATE;
 		return null;

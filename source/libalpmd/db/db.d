@@ -95,18 +95,9 @@ class AlpmDB {
 	abstract int populate();
 	abstract void unregister();
 
-	this(  char*treename)
-	{
-		// AlpmDB db = new AlpmDB();
+	this(string treename) {
 		this.treename = treename.to!string;
-		// if(is_local) {
-		// 	this.status |= AlpmDBStatus.Local;
-		// } else {
-		// 	this.status &= ~AlpmDBStatus.Local;
-		// }
-		// this.usage = AlpmDBUsage.All;
-
-		// // return db;
+		this.usage = AlpmDBUsage.All;
 	}
 
 	~this()
