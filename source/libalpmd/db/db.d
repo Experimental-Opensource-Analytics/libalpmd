@@ -74,34 +74,26 @@ enum AlpmDBStatus {
 
 /* Database */
 class AlpmDB {
-	AlpmHandle handle;
-	string treename;
+	AlpmHandle 		handle;
+	string 			treename;
 	/* do not access directly, use _alpm_db_path(db) for lazy access */
 	string _path;
 	AlpmPkgHash 	pkgcache;
 	AlpmGroups	 	grpcache;
 	AlpmStrings		cache_servers;
 	AlpmStrings		servers;
-	// const (db_operations)* ops;
-	abstract int validate() {
-		return 0;
-	}
-
-	abstract int populate() {
-		return 0;
-	}
-
-	abstract void unregister() {
-
-	}
 
 	/* bitfields for validity, local, loaded caches, etc. */
-	/* From _alpm_dbstatus_t */
-	int status;
 	/* alpm_siglevel_t */
 	int siglevel;
 	/* alpm_db_usage_t */
 	int usage;
+	/* From _alpm_dbstatus_t */
+	int status;
+	// const (db_operations)* ops;
+	abstract int validate();
+	abstract int populate();
+	abstract void unregister();
 
 	this(  char*treename)
 	{
