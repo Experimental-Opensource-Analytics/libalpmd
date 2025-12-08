@@ -84,8 +84,8 @@ class AlpmDB {
 	string treename;
 	/* do not access directly, use _alpm_db_path(db) for lazy access */
 	string _path;
-	AlpmPkgHash pkgcache;
-	alpm_list_t* grpcache;
+	AlpmPkgHash 	pkgcache;
+	AlpmGroups	 	grpcache;
 	alpm_list_t* cache_servers;
 	alpm_list_t* servers;
 	const (db_operations)* ops;
@@ -376,7 +376,7 @@ void _alpm_db_unregister(AlpmDB db)
 	_alpm_db_free(db);
 }
 
-alpm_list_t * alpm_db_get_groupcache(AlpmDB db)
+AlpmGroups alpm_db_get_groupcache(AlpmDB db)
 {
 	//ASSERT(db != null);
 	(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
@@ -567,8 +567,6 @@ private int load_pkgcache(AlpmDB db)
 
 private void free_groupcache(AlpmDB db)
 {
-	alpm_list_t* lg = void;
-
 	if(db is null || !(db.status & AlpmDBStatus.GrpCache)) {
 		return;
 	}
@@ -576,11 +574,7 @@ private void free_groupcache(AlpmDB db)
 	_alpm_log(db.handle, ALPM_LOG_DEBUG,
 			"freeing group cache for repository '%s'\n", db.treename);
 
-	for(lg = db.grpcache; lg; lg = lg.next) {
-		destroy(cast(AlpmGroup)lg.data);
-		lg.data = null;
-	}
-	FREELIST(db.grpcache);
+	db.grpcache.clear();
 	db.status &= ~AlpmDBStatus.GrpCache;
 }
 
@@ -676,16 +670,13 @@ int load_grpcache(AlpmDB db)
 
 		foreach(grpname; pkg.getGroups()[]) {
 			alpm_list_t* j = void;
-			AlpmGroup grp = null;
 			int found = 0;
 
 			/* first look through the group cache for a group with this name */
-			for(j = db.grpcache; j; j = j.next) {
-				grp = cast(AlpmGroup)j.data;
-
+			foreach(grp; db.grpcache[]) {
 				if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
 						&& !alpm_new_list_find_ptr(grp.packages, cast(void*)pkg)) {
-					grp.packages.insertFront(pkg);
+					grp.packages.insertBack(pkg);
 					found = 1;
 					break;
 				}
@@ -694,13 +685,13 @@ int load_grpcache(AlpmDB db)
 				continue;
 			}
 			/* we didn't find the group, so create a new one with this name */
-			grp = new AlpmGroup(grpname.to!string);
+			auto grp = new AlpmGroup(grpname.to!string);
 			if(!grp) {
 				free_groupcache(db);
 				return -1;
 			}
-			grp.packages.insertFront(pkg);
-			db.grpcache = alpm_list_add(db.grpcache, cast(void*)grp);
+			grp.packages.insertBack(pkg);
+			db.grpcache.insertBack(grp);
 		}
 	}
 
@@ -708,10 +699,11 @@ int load_grpcache(AlpmDB db)
 	return 0;
 }
 
-alpm_list_t* _alpm_db_get_groupcache(AlpmDB db)
+AlpmGroups _alpm_db_get_groupcache(AlpmDB db)
 {
 	if(db is null) {
-		return null;
+		//No need to return empty list
+		return AlpmGroups();
 	}
 
 	if(!(db.status & AlpmDBStatus.Valid)) {
@@ -733,9 +725,7 @@ AlpmGroup _alpm_db_get_groupfromcache(AlpmDB db,   char*target)
 		return null;
 	}
 
-	for(i = _alpm_db_get_groupcache(db); i; i = i.next) {
-		AlpmGroup info = cast(AlpmGroup)i.data;
-
+	foreach(info; _alpm_db_get_groupcache(db)[]) {
 		if(strcmp(cast(char*)info.name, target) == 0) {
 			return info;
 		}
