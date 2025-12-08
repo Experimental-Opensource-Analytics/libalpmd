@@ -164,31 +164,13 @@ class AlpmDB {
 				this.treename, url);
 	}
 
-	int  removeCacheServer( char*url)
-	{
-		alias db = this;
-		import libalpmd.util;
-		char* vdata = null;
-		int ret = 1;
+	void  removeCacheServer(string url) {
+		url = sanitizeUrl(url);
 
-		/* Sanity checks */
-		//ASSERT(db != null);
-		(cast(AlpmHandle)db.handle).pm_errno = ALPM_ERR_OK;
-		//ASSERT(url != null && strlen(url) != 0);
-
-		string newurl = sanitizeUrl(url.to!string);
-		//ASSERT(newurl != null);
-
-		db.cache_servers.linearRemoveElement(newurl);
-
-		if(vdata) {
-			_alpm_log(db.handle, ALPM_LOG_DEBUG, "removed cache server URL from database '%s': %s\n",
-					db.treename, newurl);
-			free(vdata);
-			ret = 0;
+		if(this.cache_servers.linearRemoveElement(url)) {
+			logger.tracef("Removed cache server URL from database '%s': %s\n",
+					this.treename, url);
 		}
-
-		return ret;
 	}
 
 	int getSigLevel() {
