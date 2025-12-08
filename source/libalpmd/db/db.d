@@ -360,7 +360,7 @@ class AlpmDB {
 		}
 
 		if(!(this.status & AlpmDBStatus.GrpCache)) {
-			load_grpcache(this);
+			this.loadGroupCache();
 		}
 
 		return this.grpcache;
@@ -382,6 +382,53 @@ class AlpmDB {
 
 	//For compatible
 	alias getGroup = getGroupFromCache;
+
+	/*
+	* Returns a new group cache from db.
+	*/
+	int loadGroupCache() {
+		alpm_list_t* lp = void;
+
+		// if(db is null) {
+		// 	return -1;
+		// }
+
+		logger.tracef("loading group cache for repository '%s'\n", this.treename);
+
+		for(lp = this.getPkgCacheList(); lp; lp = lp.next) {
+			AlpmPkg pkg = cast(AlpmPkg)lp.data;
+
+			foreach(grpname; pkg.getGroups()[]) {
+				alpm_list_t* j = void;
+				int found = 0;
+
+				/* first look through the group cache for a group with this name */
+				foreach(grp; this.grpcache[]) {
+					if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
+							&& !alpm_new_list_find_ptr(grp.packages, cast(void*)pkg)) {
+						grp.packages.insertBack(pkg);
+						found = 1;
+						break;
+					}
+				}
+				if(found) {
+					continue;
+				}
+				/* we didn't find the group, so create a new one with this name */
+				auto grp = new AlpmGroup(grpname.to!string);
+				if(!grp) {
+					free_groupcache(this);
+					return -1;
+				}
+				grp.packages.insertBack(pkg);
+				this.grpcache.insertBack(grp);
+			}
+		}
+
+		this.status |= AlpmDBStatus.GrpCache;
+		return 0;
+	}
+
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
@@ -662,51 +709,4 @@ AlpmPkg _alpm_db_get_pkgfromcache(AlpmDB db,   char*target)
 	}
 
 	return pkgcache.find(target);
-}
-
-/* Returns a new group cache from db.
- */
-int load_grpcache(AlpmDB db)
-{
-	alpm_list_t* lp = void;
-
-	if(db is null) {
-		return -1;
-	}
-
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "loading group cache for repository '%s'\n",
-			db.treename);
-
-	for(lp = db.getPkgCacheList(); lp; lp = lp.next) {
-		AlpmPkg pkg = cast(AlpmPkg)lp.data;
-
-		foreach(grpname; pkg.getGroups()[]) {
-			alpm_list_t* j = void;
-			int found = 0;
-
-			/* first look through the group cache for a group with this name */
-			foreach(grp; db.grpcache[]) {
-				if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
-						&& !alpm_new_list_find_ptr(grp.packages, cast(void*)pkg)) {
-					grp.packages.insertBack(pkg);
-					found = 1;
-					break;
-				}
-			}
-			if(found) {
-				continue;
-			}
-			/* we didn't find the group, so create a new one with this name */
-			auto grp = new AlpmGroup(grpname.to!string);
-			if(!grp) {
-				free_groupcache(db);
-				return -1;
-			}
-			grp.packages.insertBack(pkg);
-			db.grpcache.insertBack(grp);
-		}
-	}
-
-	db.status |= AlpmDBStatus.GrpCache;
-	return 0;
 }
