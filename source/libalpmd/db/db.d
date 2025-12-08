@@ -155,21 +155,13 @@ class AlpmDB {
 		this.cache_servers = cache_servers.dup;
 	}
 
-	int  addCacheServer( char*url)
-	{
-		/* Sanity checks */
-		//ASSERT(this != null);
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		//ASSERT(url != null && strlen(url) != 0);
+	void  addCacheServer(string url) {
+		url = sanitizeUrl(url);
 
-		string newurl = sanitizeUrl(url.to!string);
-		//ASSERT(newurl != null);
+		this.cache_servers.insertBack(url);
 
-		this.cache_servers.insertBack(newurl);
-		// _alpm_log(this.handle, ALPM_LOG_DEBUG, "adding new cache server URL to database '%s': %s\n",
-				// this.treename, newurl);
-
-		return 0;
+		logger.tracef("adding new cache server URL to database '%s': %s\n",
+				this.treename, url);
 	}
 
 	int  removeCacheServer( char*url)
