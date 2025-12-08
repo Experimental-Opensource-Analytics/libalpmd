@@ -137,21 +137,8 @@ class AlpmDB {
 				treename, url);
 	}
 
-	int  setServers(alpm_list_t* servers)
-	{
-		alpm_list_t* i = void;
-		//ASSERT(db != null);
-		// FREELIST(this.servers);
-		this.servers.clear();
-		for(i = servers; i; i = i.next) {
-			char* url = cast(char*)i.data;
-			if(this.addServer(url.to!string) != 0) {
-				return -1;
-			}
-		}
-		
-		
-		return 0;
+	void  setServers(AlpmStrings servers) {
+		this.servers = servers.dup();
 	}
 
 	int  removeServer(char*url)
