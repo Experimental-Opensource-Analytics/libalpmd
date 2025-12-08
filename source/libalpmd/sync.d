@@ -736,7 +736,7 @@ private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 			 * accompanion *.sig file as well.
 			 * If *.sig is not cached then force download the package + its signature file.
 			 */
-			if(!need_download && (siglevel & ALPM_SIG_PACKAGE)) {
+			if(!need_download && (siglevel & AlpmSigLevel.Package)) {
 				char* sig_filename = null;
 				int len = cast(int)spkg.filename.length + 5;
 
@@ -842,8 +842,8 @@ private int download_files(AlpmHandle handle)
 			payload.servers = pkg.origin_data.db.servers;
 			payload.handle = handle;
 			payload.allow_resume = 1;
-			payload.download_signature = (siglevel & ALPM_SIG_PACKAGE);
-			payload.signature_optional = (siglevel & ALPM_SIG_PACKAGE_OPTIONAL);
+			payload.download_signature = (siglevel & AlpmSigLevel.Package);
+			payload.signature_optional = (siglevel & AlpmSigLevel.PackageOptional);
 
 			payloads = alpm_list_add(payloads, payload);
 		}
@@ -913,7 +913,7 @@ private int check_keyring(AlpmHandle handle)
 		}
 
 		level = alpm_db_get_siglevel(pkg.getDB());
-		if((level & ALPM_SIG_PACKAGE)) {
+		if((level & AlpmSigLevel.Package)) {
 			ubyte* sig = null;
 			size_t sig_len = void;
 			int ret = alpm_pkg_get_sig(pkg, &sig, &sig_len);
@@ -1045,9 +1045,9 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 					break;
 				case ALPM_ERR_PKG_INVALID_SIG:
 					_alpm_process_siglist(handle, cast(char*)v.pkg.name, v.siglist,
-							v.siglevel & ALPM_SIG_PACKAGE_OPTIONAL,
-							v.siglevel & ALPM_SIG_PACKAGE_MARGINAL_OK,
-							v.siglevel & ALPM_SIG_PACKAGE_UNKNOWN_OK);
+							v.siglevel & AlpmSigLevel.PackageOptional,
+							v.siglevel & AlpmSigLevel.PackageMarginalOk,
+							v.siglevel & AlpmSigLevel.PackageUnknowOk);
 					// __attribute_((fallthrough)){}
 					goto case;
 				case ALPM_ERR_PKG_INVALID_CHECKSUM:

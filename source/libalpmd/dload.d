@@ -117,8 +117,8 @@ version (HAVE_LIBCURL) {
 		this.tempfile_name = temporary_syncpath ~ this.remote_name.to!string ~ ".part";
 		this.force = force;
 		this.unlink_on_fail = true;
-		this.download_signature = (sigLevel & ALPM_SIG_DATABASE);
-		this.signature_optional = (sigLevel & ALPM_SIG_DATABASE_OPTIONAL);
+		this.download_signature = (sigLevel & AlpmSigLevel.Database);
+		this.signature_optional = (sigLevel & AlpmSigLevel.DatabaseOptional);
 		/* set hard upper limit of 128 MiB */
 		this.max_size = 128 * 1024 * 1024;
 	}
@@ -1429,7 +1429,7 @@ private   char*url_basename(  char*url)
 
 int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetched)
 {
-	alpm_siglevel_t siglevel = cast(alpm_siglevel_t)alpm_option_get_remote_file_siglevel(handle);
+	AlpmSigLevel siglevel = cast(AlpmSigLevel)alpm_option_get_remote_file_siglevel(handle);
 	  char*cachedir = void;
 	char* temporary_cachedir = null;
 	alpm_list_t* payloads = null;
@@ -1452,7 +1452,7 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 			/* attempt to find the file in our pkgcache */
 			filepath = _alpm_filecache_find(handle, urlbase);
 
-			if(filepath && (siglevel & ALPM_SIG_PACKAGE)) {
+			if(filepath && (siglevel & AlpmSigLevel.Package)) {
 				char* sig_filename = _alpm_get_fullpath(cast(char*)"", urlbase, cast(char*)".sig");
 
 				/* if there's no .sig file then forget about the pkg file and go for download */
@@ -1503,8 +1503,8 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 			}
 
 			payload.handle = handle;
-			payload.download_signature = (siglevel & ALPM_SIG_PACKAGE);
-			payload.signature_optional = (siglevel & ALPM_SIG_PACKAGE_OPTIONAL);
+			payload.download_signature = (siglevel & AlpmSigLevel.Package);
+			payload.signature_optional = (siglevel & AlpmSigLevel.PackageOptional);
 			payloads = alpm_list_add(payloads, payload);
 		}
 	}

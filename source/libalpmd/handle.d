@@ -923,7 +923,7 @@ int  alpm_option_set_dbext(AlpmHandle handle, char* dbext)
 
 int  alpm_option_set_default_siglevel(AlpmHandle handle, int level)
 {
-	if(level == ALPM_SIG_USE_DEFAULT) {
+	if(level == AlpmSigLevel.UseDefault) {
 		RET_ERR(handle, ALPM_ERR_WRONG_ARGS, -1);
 	}
 version (HAVE_LIBGPGME) {
@@ -946,7 +946,7 @@ int  alpm_option_set_local_file_siglevel(AlpmHandle handle, int level)
 version (HAVE_LIBGPGME) {
 	handle.localfilesiglevel = level;
 } else {
-	if(level != 0 && level != ALPM_SIG_USE_DEFAULT) {
+	if(level != 0 && level != AlpmSigLevel.UseDefault) {
 		RET_ERR(handle, ALPM_ERR_MISSING_CAPABILITY_SIGNATURES, -1);
 	}
 }
@@ -955,7 +955,7 @@ version (HAVE_LIBGPGME) {
 
 int  alpm_option_get_local_file_siglevel(AlpmHandle handle)
 {
-	if(handle.localfilesiglevel & ALPM_SIG_USE_DEFAULT) {
+	if(handle.localfilesiglevel & AlpmSigLevel.UseDefault) {
 		return handle.siglevel;
 	} else {
 		return handle.localfilesiglevel;
@@ -967,7 +967,7 @@ int  alpm_option_set_remote_file_siglevel(AlpmHandle handle, int level)
 version (HAVE_LIBGPGME) {
 	handle.remotefilesiglevel = level;
 } else {
-	if(level != 0 && level != ALPM_SIG_USE_DEFAULT) {
+	if(level != 0 && level != AlpmSigLevel.UseDefault) {
 		RET_ERR(handle, ALPM_ERR_MISSING_CAPABILITY_SIGNATURES, -1);
 	}
 }
@@ -976,7 +976,7 @@ version (HAVE_LIBGPGME) {
 
 int  alpm_option_get_remote_file_siglevel(AlpmHandle handle)
 {
-	if(handle.remotefilesiglevel & ALPM_SIG_USE_DEFAULT) {
+	if(handle.remotefilesiglevel & AlpmSigLevel.UseDefault) {
 		return handle.siglevel;
 	} else {
 		return handle.remotefilesiglevel;

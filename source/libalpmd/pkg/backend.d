@@ -262,7 +262,7 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 
 	/* can we get away with skipping checksums? */
 	has_sig = 0;
-	if(level & ALPM_SIG_PACKAGE) {
+	if(level & AlpmSigLevel.Package) {
 		if(syncpkg && syncpkg.base64_sig) {
 			has_sig = 1;
 		} else {
@@ -299,16 +299,16 @@ int _alpm_pkg_validate_internal(AlpmHandle handle,   char*pkgfile, AlpmPkg syncp
 	}
 
 	/* even if we don't have a sig, run the check code if level tells us to */
-	if(level & ALPM_SIG_PACKAGE) {
+	if(level & AlpmSigLevel.Package) {
 		  char*sig = syncpkg ? cast(char*)syncpkg.base64_sig : null;
 		logger.tracef("sig data: %s\n", sig ? sig : "<from .sig>");
-		if(!has_sig && !(level & ALPM_SIG_PACKAGE_OPTIONAL)) {
+		if(!has_sig && !(level & AlpmSigLevel.PackageOptional)) {
 			handle.pm_errno = ALPM_ERR_PKG_MISSING_SIG;
 			return -1;
 		}
 		if(_alpm_check_pgp_helper(handle, pkgfile, sig,
-					level & ALPM_SIG_PACKAGE_OPTIONAL, level & ALPM_SIG_PACKAGE_MARGINAL_OK,
-					level & ALPM_SIG_PACKAGE_UNKNOWN_OK, sigdata)) {
+					level & AlpmSigLevel.PackageOptional, level & AlpmSigLevel.PackageMarginalOk,
+					level & AlpmSigLevel.PackageUnknowOk, sigdata)) {
 			handle.pm_errno = ALPM_ERR_PKG_INVALID_SIG;
 			return -1;
 		}
@@ -684,7 +684,7 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, Alpm
 
 	sigpath = _alpm_sigpath(handle, filename);
 	if(sigpath && !alpmAccess(handle, null, sigpath.to!string, R_OK)) {
-		if(level & ALPM_SIG_PACKAGE) {
+		if(level & AlpmSigLevel.Package) {
 			alpm_list_t* keys = null;
 			int fail = 0;
 			ubyte* sig = null;

@@ -41,6 +41,31 @@ import libalpmd.alpm_list;
 import libalpmd.db;
 import libalpmd.question;
 
+enum AlpmSigLevel {
+	/** Packages require a signature */
+	Package = (1 << 0),
+	/** Packages do not require a signature,
+	 * but check packages that do have signatures */
+	PackageOptional = (1 << 1),
+	/* Allow packages with signatures that are marginal trust */
+	PackageMarginalOk = (1 << 2),
+	/** Allow packages with signatures that are unknown trust */
+	PackageUnknowOk = (1 << 3),
+
+	/** Databases require a signature */
+	Database = (1 << 10),
+	/** Databases do not require a signature,
+	 * but check databases that do have signatures */
+	DatabaseOptional = (1 << 11),
+	/** Allow databases with signatures that are marginal trust */
+	DatabaseMarginalOk = (1 << 12),
+	/** Allow databases with signatures that are unknown trust */
+	DatabaseUnknowOk = (1 << 13),
+
+	/** The Default siglevel */
+	UseDefault = (1 << 30)
+}
+
 int  alpm_decode_signature(  char*base64_data, ubyte** data, size_t* data_len)
 {
 	size_t len = strlen(base64_data);

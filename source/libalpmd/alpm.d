@@ -265,40 +265,6 @@ alias ALPM_ERR_EXTERNAL_DOWNLOAD = alpm_errno_t.ALPM_ERR_EXTERNAL_DOWNLOAD;
 alias ALPM_ERR_GPGME = alpm_errno_t.ALPM_ERR_GPGME;
 alias ALPM_ERR_MISSING_CAPABILITY_SIGNATURES = alpm_errno_t.ALPM_ERR_MISSING_CAPABILITY_SIGNATURES;
 
-enum alpm_siglevel_t {
-	/** Packages require a signature */
-	ALPM_SIG_PACKAGE = (1 << 0),
-	/** Packages do not require a signature,
-	 * but check packages that do have signatures */
-	ALPM_SIG_PACKAGE_OPTIONAL = (1 << 1),
-	/* Allow packages with signatures that are marginal trust */
-	ALPM_SIG_PACKAGE_MARGINAL_OK = (1 << 2),
-	/** Allow packages with signatures that are unknown trust */
-	ALPM_SIG_PACKAGE_UNKNOWN_OK = (1 << 3),
-
-	/** Databases require a signature */
-	ALPM_SIG_DATABASE = (1 << 10),
-	/** Databases do not require a signature,
-	 * but check databases that do have signatures */
-	ALPM_SIG_DATABASE_OPTIONAL = (1 << 11),
-	/** Allow databases with signatures that are marginal trust */
-	ALPM_SIG_DATABASE_MARGINAL_OK = (1 << 12),
-	/** Allow databases with signatures that are unknown trust */
-	ALPM_SIG_DATABASE_UNKNOWN_OK = (1 << 13),
-
-	/** The Default siglevel */
-	ALPM_SIG_USE_DEFAULT = (1 << 30)
-}
-alias ALPM_SIG_PACKAGE = alpm_siglevel_t.ALPM_SIG_PACKAGE;
-alias ALPM_SIG_PACKAGE_OPTIONAL = alpm_siglevel_t.ALPM_SIG_PACKAGE_OPTIONAL;
-alias ALPM_SIG_PACKAGE_MARGINAL_OK = alpm_siglevel_t.ALPM_SIG_PACKAGE_MARGINAL_OK;
-alias ALPM_SIG_PACKAGE_UNKNOWN_OK = alpm_siglevel_t.ALPM_SIG_PACKAGE_UNKNOWN_OK;
-alias ALPM_SIG_DATABASE = alpm_siglevel_t.ALPM_SIG_DATABASE;
-alias ALPM_SIG_DATABASE_OPTIONAL = alpm_siglevel_t.ALPM_SIG_DATABASE_OPTIONAL;
-alias ALPM_SIG_DATABASE_MARGINAL_OK = alpm_siglevel_t.ALPM_SIG_DATABASE_MARGINAL_OK;
-alias ALPM_SIG_DATABASE_UNKNOWN_OK = alpm_siglevel_t.ALPM_SIG_DATABASE_UNKNOWN_OK;
-alias ALPM_SIG_USE_DEFAULT = alpm_siglevel_t.ALPM_SIG_USE_DEFAULT;
-
 
 /** PGP signature verification status return codes */
 enum alpm_sigstatus_t {
@@ -1615,39 +1581,39 @@ int alpm_option_set_dbext(AlpmHandle handle, const(char)* dbext);
 
 /** Get the default siglevel.
  * @param handle the context handle
- * @return a \link alpm_siglevel_t \endlink bitfield of the siglevel
+ * @return a \link AlpmSigLevel \endlink bitfield of the siglevel
  */
 int alpm_option_get_default_siglevel(AlpmHandle handle);
 
 /** Set the default siglevel.
  * @param handle the context handle
- * @param level a \link alpm_siglevel_t \endlink bitfield of the level to set
+ * @param level a \link AlpmSigLevel \endlink bitfield of the level to set
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
 int alpm_option_set_default_siglevel(AlpmHandle handle, int level);
 
 /** Get the configured local file siglevel.
  * @param handle the context handle
- * @return a \link alpm_siglevel_t \endlink bitfield of the siglevel
+ * @return a \link AlpmSigLevel \endlink bitfield of the siglevel
  */
 int alpm_option_get_local_file_siglevel(AlpmHandle handle);
 
 /** Set the local file siglevel.
  * @param handle the context handle
- * @param level a \link alpm_siglevel_t \endlink bitfield of the level to set
+ * @param level a \link AlpmSigLevel \endlink bitfield of the level to set
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
 int alpm_option_set_local_file_siglevel(AlpmHandle handle, int level);
 
 /** Get the configured remote file siglevel.
  * @param handle the context handle
- * @return a \link alpm_siglevel_t \endlink bitfield of the siglevel
+ * @return a \link AlpmSigLevel \endlink bitfield of the siglevel
  */
 // int alpm_option_get_remote_file_siglevel(AlpmHandle handle);
 
 /** Set the remote file siglevel.
  * @param handle the context handle
- * @param level a \link alpm_siglevel_t \endlink bitfield of the level to set
+ * @param level a \link AlpmSigLevel \endlink bitfield of the level to set
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
 int alpm_option_set_remote_file_siglevel(AlpmHandle handle, int level);

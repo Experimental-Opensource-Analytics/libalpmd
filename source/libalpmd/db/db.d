@@ -44,6 +44,7 @@ import libalpmd.pkghash;
 import libalpmd.deps;
 import libalpmd.util;
 import libalpmd.conflict;
+protected import libalpmd.signing;
 
 import std.string;
 import std.bigint;
@@ -84,7 +85,7 @@ class AlpmDB {
 	AlpmStrings		servers;
 
 	/* bitfields for validity, local, loaded caches, etc. */
-	/* alpm_siglevel_t */
+	/* AlpmSigLevel */
 	int siglevel;
 	/* alpm_db_usage_t */
 	int usage;
@@ -174,7 +175,7 @@ class AlpmDB {
 	}
 
 	int getSigLevel() {
-		if(this.siglevel & ALPM_SIG_USE_DEFAULT) {
+		if(this.siglevel & AlpmSigLevel.UseDefault) {
 			return this.handle.siglevel;
 		} else {
 			return this.siglevel;

@@ -37,15 +37,15 @@
 
         char* urlc;
         urlc = generateUrl("core");
-        AlpmDB db = handle.register_syncdb("core", ALPM_SIG_USE_DEFAULT);
+        AlpmDB db = handle.register_syncdb("core", AlpmSigLevel.UseDefault);
         db.addServer(urlc);
 
         urlc = generateUrl("extra");
-        db = handle.register_syncdb("extra", ALPM_SIG_USE_DEFAULT);
+        db = handle.register_syncdb("extra", AlpmSigLevel.UseDefault);
         db.addServer(urlc);
 
         urlc = generateUrl("multilib");
-        db = handle.register_syncdb("multilib", ALPM_SIG_USE_DEFAULT);
+        db = handle.register_syncdb("multilib", AlpmSigLevel.UseDefault);
         db.addServer(urlc);
 
         handle.updateDBs();

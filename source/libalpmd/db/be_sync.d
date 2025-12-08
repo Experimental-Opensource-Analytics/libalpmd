@@ -96,19 +96,19 @@ class AlpmDBSync : AlpmDB {
 		* was assigned to this db */
 		siglevel = db.getSigLevel();
 
-		if(siglevel & ALPM_SIG_DATABASE) {
+		if(siglevel & AlpmSigLevel.Database) {
 			int retry = void, ret = void;
 			do {
 				retry = 0;
 				alpm_siglist_t* siglist = void;
 				import libalpmd.signing;
 				ret = _alpm_check_pgp_helper(db.handle, dbpath, null,
-						siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
-						siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK, &siglist);
+						siglevel & AlpmSigLevel.DatabaseOptional, siglevel & AlpmSigLevel.DatabaseMarginalOk,
+						siglevel & AlpmSigLevel.DatabaseUnknowOk, &siglist);
 				if(ret) {
 					retry = _alpm_process_siglist(db.handle, cast(char*)db.treename, siglist,
-							siglevel & ALPM_SIG_DATABASE_OPTIONAL, siglevel & ALPM_SIG_DATABASE_MARGINAL_OK,
-							siglevel & ALPM_SIG_DATABASE_UNKNOWN_OK);
+							siglevel & AlpmSigLevel.DatabaseOptional, siglevel & AlpmSigLevel.DatabaseMarginalOk,
+							siglevel & AlpmSigLevel.DatabaseUnknowOk);
 				}
 				alpm_siglist_cleanup(siglist);
 				free(siglist);
@@ -633,7 +633,7 @@ AlpmDB _alpm_db_register_sync(AlpmHandle handle,   char*treename, int level)
 	// logger.tracef("registering sync database '%s'\n", treename);
 
 version (HAVE_LIBGPGME) {} else {
-	if(level != 0 && level != ALPM_SIG_USE_DEFAULT) {
+	if(level != 0 && level != AlpmSigLevel.UseDefault) {
 		RET_ERR(handle, ALPM_ERR_MISSING_CAPABILITY_SIGNATURES, null);
 	}
 }
