@@ -94,56 +94,35 @@ class AlpmDB {
 	abstract int validate();
 	abstract int populate();
 	abstract void unregister();
+	abstract string genPath();
 
 	this(string treename) {
 		this.treename = treename.to!string;
 		this.usage = AlpmDBUsage.All;
 	}
 
-	~this()
-	{
-		//ASSERT(db != null);
-		/* cleanup pkgcache */
-		// _alpm_db_free_pkgcache(db);
+	~this() {
 		this.freePkgCache();
-		/* cleanup server list */
-		// FREELIST(this.cache_servers);
 		this.cache_servers.clear();
 		this.servers.clear();
-		// FREELIST(this.servers);
-		FREE(this._path);
-		FREE(this.treename);
-		// FREE(db);
-
-		return;
 	}
 
 	AlpmHandle getHandle() => this.handle;
 	string getName() => this.treename;
 
-	string calcPath()
-	{
-		// if(db is null) {
-		// 	return null;
-		// }
-		if(this._path is null) {
-			string dbpath = void;
-			size_t pathsize = void;
-
-			dbpath = this.handle.dbpath;
+	string calcPath() {
+		if(this._path == "") {
+			string dbpath = handle.dbpath;
 			if(!dbpath) {
-				// _alpm_log(this.handle, ALPM_LOG_ERROR, ("database path is undefined\n"));
-				// RET_ERR(this.handle, ALPM_ERR_DB_OPEN, null);
+				throw new Exception("Database path is undefined");
 			}
 
-			if(this.status & AlpmDBStatus.Local) {
-				this._path = dbpath ~ this.treename;
-			} else {
-				this._path = dbpath ~ this.treename ~ this.handle.dbext;
-			}
-			// _alpm_log(db.handle, ALPM_LOG_DEBUG, "database path for tree %s set to %s\n",
-					// db.treename, db._path);
+			this.genPath();
+
+			logger.tracef("Database path for tree %s set to %s\n",
+					this.treename, this._path);
 		}
+		
 		return this._path;
 	}
 

@@ -547,6 +547,10 @@ enum string LAZY_LOAD(string info) = `
 			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
 		}
 	}
+
+	override string genPath() {
+		return _path = handle.dbpath ~ this.treename;
+	}
  }
 
 private int checkdbdir(AlpmDB db)

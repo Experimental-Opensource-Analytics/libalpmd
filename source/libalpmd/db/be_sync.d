@@ -61,8 +61,7 @@ class AlpmDBSync : AlpmDB {
 		this.status &= ~AlpmDBStatus.Local;
 	}
 
-	override int validate()
-	{
+	override int validate() {
 		int siglevel = void;
 		char*dbpath = void;
 
@@ -229,6 +228,10 @@ class AlpmDBSync : AlpmDB {
 		if(!found) {
 			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
 		}
+	}
+
+	override string genPath() {
+		return _path = handle.dbpath ~ this.treename ~ this.handle.dbext;
 	}
 }
 
