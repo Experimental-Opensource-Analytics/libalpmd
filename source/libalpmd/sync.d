@@ -550,12 +550,17 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				}
 				alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_conflict_free);
 				alpm_list_free(deps);
-				alpm_dep_free(cast(void*)dep1);
-				alpm_dep_free(cast(void*)dep2);
+				// alpm_dep_free(cast(void*)dep1);
+				// alpm_dep_free(cast(void*)dep2);
+				dep1 = null;
+				dep2 = null;
 				goto cleanup;
 			}
-			alpm_dep_free(cast(void*)dep1);
-			alpm_dep_free(cast(void*)dep2);
+			// alpm_dep_free(cast(void*)dep1);
+			// alpm_dep_free(cast(void*)dep2);
+			dep1 = null;
+			dep2 = null;
+
 
 			/* Prints warning */
 			_alpm_log(handle, ALPM_LOG_WARNING,

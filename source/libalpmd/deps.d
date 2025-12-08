@@ -79,37 +79,40 @@ class AlpmDepend {
 			this.mod
 		);
 	}
+
+	~this() {}
 }
 
 alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
-alpm_list_t* list_depdup(alpm_list_t* old)
-{
-	alpm_list_t* i = void, new_ = null;
-	for(i = old; i; i = i.next) {
-		new_ = alpm_list_add(new_, cast(void*)((cast(AlpmDepend )i.data).dup));
-	}
-	return new_;
-}
+// alpm_list_t* list_depdup(alpm_list_t* old)
+// {
+// 	alpm_list_t* i = void, new_ = null;
+// 	for(i = old; i; i = i.next) {
+// 		new_ = alpm_list_add(new_, cast(void*)((cast(AlpmDepend )i.data).dup));
+// 	}
+// 	return new_;
+// }
 
-auto alpmDepsDup(AlpmDeps deps) {
-    AlpmDeps copy;
+// auto alpmDepsDup(AlpmDeps deps) {
+//     AlpmDeps copy;
 
-    foreach(item; deps[]) {
-        copy.insertBack(item.dup);
-    }
+//     foreach(item; deps[]) {
+//         copy.insertBack(item.dup);
+//     }
 
-    return copy;
-}
+//     return copy;
+// }
 
 void  alpm_dep_free(void* _dep)
 {
-	auto dep = cast(AlpmDepend ) _dep;
-	//ASSERT(dep != null);
-	FREE(dep.name);
-	FREE(dep.version_);
-	FREE(dep.desc);
-	FREE(dep);
+	// auto dep = cast(AlpmDepend ) _dep;
+	// //ASSERT(dep != null);
+	// FREE(dep.name);
+	// FREE(dep.version_);
+	// FREE(dep.desc);
+	// FREE(dep);
+	destroy(_dep);
 }
 
 private alpm_depmissing_t* depmiss_new(  char*target, AlpmDepend dep,   char*causingpkg)
@@ -132,7 +135,8 @@ error:
 void  alpm_depmissing_free(alpm_depmissing_t* miss)
 {
 	//ASSERT(miss != null);
-	alpm_dep_free(cast(void*)miss.depend);
+	// alpm_dep_free(cast(void*)miss.depend);
+	miss.depend = null;
 	FREE(miss.target);
 	FREE(miss.causingpkg);
 	FREE(miss);
@@ -357,7 +361,8 @@ AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs,   char*depstring)
 		return null;
 	}
 	AlpmPkg pkg = find_dep_satisfier(pkgs, dep);
-	alpm_dep_free(cast(void*)dep);
+	// alpm_dep_free(cast(void*)dep);
+	dep = null;
 	return pkg;
 }
 
@@ -587,7 +592,8 @@ AlpmDepend alpm_dep_from_string(  char*depstring)
 	return depend;
 
 error:
-	alpm_dep_free(cast(void*)depend);
+	// alpm_dep_free(cast(void*)depend);
+	depend = null;
 	return null;
 }
 
@@ -799,6 +805,7 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBs dbs,   char*depstring
 	//ASSERT(dep !is null);
 	pkg = resolvedep(handle, dep, dbs, null, 1);
 	alpm_dep_free(cast(void*)dep);
+	dep = null;
 	return pkg;
 }
 

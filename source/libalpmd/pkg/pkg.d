@@ -318,15 +318,16 @@ public:
 		newPkg.reason = this.reason;
 		newPkg.validation = this.validation;
 		newPkg.licenses = alpmStringsDup(this.licenses);
-		newPkg.replaces   = alpmDepsDup(this.replaces);
+		// newPkg.replaces   = alpmDepsDup(this.replaces.dup)
+		newPkg.replaces = this.replaces.dup();
 		newPkg.groups     = alpmStringsDup(this.groups);
 		foreach(_i; this.backup[]) {
 			newPkg.backup.insertFront(_i.dup);
 		}
-		newPkg.depends    = alpmDepsDup(this.depends);
-		newPkg.optdepends = alpmDepsDup(this.optdepends);
-		newPkg.conflicts  = alpmDepsDup(this.conflicts);
-		newPkg.provides   = alpmDepsDup(this.provides);
+		newPkg.depends    = this.depends.dup();
+		newPkg.optdepends = this.optdepends.dup();
+		newPkg.conflicts  = this.conflicts.dup();
+		newPkg.provides   = this.provides.dup();
 
 		newPkg.files = this.files.dup;
 
