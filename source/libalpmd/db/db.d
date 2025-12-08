@@ -182,13 +182,6 @@ class AlpmDB {
 		}
 	}
 
-	int  getValid()
-	{
-		//ASSERT(db != null);
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		return this.validate();
-	}
-
 	AlpmPkg getPkg(char*name)
 	{
 		AlpmPkg pkg = void;
