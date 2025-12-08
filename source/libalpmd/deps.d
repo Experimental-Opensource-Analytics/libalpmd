@@ -44,6 +44,17 @@ import libalpmd.alpm;
 import libalpmd.question;
 import libalpmd.pkg;
 
+/** Missing dependency. */
+class AlpmDepMissing {
+	/** Name of the package that has the dependency */
+	char* target;
+	/** The dependency that was wanted */
+	AlpmDepend depend;
+	/** If the depmissing was caused by a conflict, the name of the package
+	 * that would be installed, causing the satisfying package to be removed */
+	char* causingpkg;
+}
+
 /** The basic dependency type.
  *
  * This type is used throughout libalpm, not just for dependencies
@@ -85,41 +96,15 @@ class AlpmDepend {
 
 alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
-// alpm_list_t* list_depdup(alpm_list_t* old)
-// {
-// 	alpm_list_t* i = void, new_ = null;
-// 	for(i = old; i; i = i.next) {
-// 		new_ = alpm_list_add(new_, cast(void*)((cast(AlpmDepend )i.data).dup));
-// 	}
-// 	return new_;
-// }
-
-// auto alpmDepsDup(AlpmDeps deps) {
-//     AlpmDeps copy;
-
-//     foreach(item; deps[]) {
-//         copy.insertBack(item.dup);
-//     }
-
-//     return copy;
-// }
-
-void  alpm_dep_free(void* _dep)
-{
-	// auto dep = cast(AlpmDepend ) _dep;
-	// //ASSERT(dep != null);
-	// FREE(dep.name);
-	// FREE(dep.version_);
-	// FREE(dep.desc);
-	// FREE(dep);
+void  alpm_dep_free(void* _dep) {
 	destroy(_dep);
 }
 
-private alpm_depmissing_t* depmiss_new(  char*target, AlpmDepend dep,   char*causingpkg)
+private AlpmDepMissing depmiss_new(  char*target, AlpmDepend dep,   char*causingpkg)
 {
-	alpm_depmissing_t* miss = void;
+	AlpmDepMissing miss = new AlpmDepMissing;
 
-	CALLOC(miss, 1, alpm_depmissing_t.sizeof);
+	// CALLOC(miss, 1, alpm_depmissing_t.sizeof);
 
 	STRNDUP(miss.target, target, strlen(target));
 	miss.depend = dep.dup();
@@ -132,7 +117,7 @@ error:
 	return null;
 }
 
-void  alpm_depmissing_free(alpm_depmissing_t* miss)
+void  alpm_depmissing_free(AlpmDepMissing miss)
 {
 	//ASSERT(miss != null);
 	// alpm_dep_free(cast(void*)miss.depend);
@@ -403,13 +388,13 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 					!find_dep_satisfier(dblist, depend) &&
 					!_alpm_depcmp_provides(depend, handle.assumeinstalled)) {
 				/* Unsatisfied dependency in the upgrade list */
-				alpm_depmissing_t* miss = void;
+				AlpmDepMissing miss = void;
 				char* missdepstring = alpm_dep_compute_string(depend);
 				logger.tracef("checkdeps: missing dependency '%s' for package '%s'\n",
 						missdepstring, tp.name);
 				free(missdepstring);
 				miss = depmiss_new(cast(char*)tp.name, depend, null);
-				baddeps = alpm_list_add(baddeps, miss);
+				baddeps = alpm_list_add(baddeps, cast(void*)miss);
 			}
 			depend.mod = orig_mod;
 		}
@@ -435,13 +420,13 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 						!find_dep_satisfier(upgrade, depend) &&
 						!find_dep_satisfier(dblist, depend) &&
 						!_alpm_depcmp_provides(depend, handle.assumeinstalled)) {
-					alpm_depmissing_t* miss = void;
+					AlpmDepMissing miss = void;
 					char* missdepstring = alpm_dep_compute_string(depend);
 					logger.tracef("checkdeps: transaction would break '%s' dependency of '%s'\n",
 							missdepstring, lp.name);
 					free(missdepstring);
 					miss = depmiss_new(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
-					baddeps = alpm_list_add(baddeps, miss);
+					baddeps = alpm_list_add(baddeps, cast(void*)miss);
 				}
 				depend.mod = orig_mod;
 			}
@@ -857,7 +842,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	targ = null;
 
 	for(j = deps; j; j = j.next) {
-		alpm_depmissing_t* miss = cast(alpm_depmissing_t*)j.data;
+		AlpmDepMissing miss = cast(AlpmDepMissing)j.data;
 		AlpmDepend missdep = miss.depend;
 		/* check if one of the packages in the [*packages] list already satisfies
 		 * this dependency */
@@ -887,7 +872,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 					missdepstring, pkg.name);
 			free(missdepstring);
 			if(data) {
-				*data = alpm_list_add(*data, miss);
+				*data = alpm_list_add(*data, cast(void*)miss);
 			}
 			ret = -1;
 		}

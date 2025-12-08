@@ -101,7 +101,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 	while(lp) {
 		alpm_list_t* i = void;
 		for(i = lp; i; i = i.next) {
-			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
+			AlpmDepMissing miss = cast(AlpmDepMissing)i.data;
 			AlpmPkg info = handle.getDBLocal().getPkgFromCache(miss.target);
 			if(info) {
 				AlpmPkg copy = void;
@@ -140,7 +140,7 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 	while(lp != null) {
 		alpm_list_t* i = void;
 		for(i = lp; i; i = i.next) {
-			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
+			AlpmDepMissing miss = cast(AlpmDepMissing)i.data;
 			void* vpkg = void;
 			AlpmPkg pkg = alpm_pkg_find_n(trans.remove, miss.causingpkg.to!string);
 			if(pkg is null) {
@@ -195,7 +195,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
  * @brief Transaction preparation for remove actions.
  *
  * This functions takes a pointer to a alpm_list_t which will be
- * filled with a list of alpm_depmissing_t* objects representing
+ * filled with a list of AlpmDepMissing objects representing
  * the packages blocking the transaction.
  *
  * @param handle the context handle

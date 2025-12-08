@@ -375,17 +375,6 @@ alias ALPM_DEP_MOD_LE = alpm_depmod_t.ALPM_DEP_MOD_LE;
 alias ALPM_DEP_MOD_GT = alpm_depmod_t.ALPM_DEP_MOD_GT;
 alias ALPM_DEP_MOD_LT = alpm_depmod_t.ALPM_DEP_MOD_LT;
 
-/** Missing dependency. */
-struct alpm_depmissing_t {
-	/** Name of the package that has the dependency */
-	char* target;
-	/** The dependency that was wanted */
-	AlpmDepend depend;
-	/** If the depmissing was caused by a conflict, the name of the package
-	 * that would be installed, causing the satisfying package to be removed */
-	char* causingpkg;
-}
-
 /** @addtogroup libalpm The libalpm Public API
  *
  *
@@ -550,24 +539,6 @@ int alpm_siglist_cleanup(alpm_siglist_t* siglist);
 
 /* End of libalpm_sig */
 
-
-
-
-
-
-
-
-/** Checks dependencies and returns missing ones in a list.
- * Dependencies can include versions with depmod operators.
- * @param handle the context handle
- * @param pkglist the list of local packages
- * @param remove an alpm_list_t* of packages to be removed
- * @param upgrade an alpm_list_t* of packages to be upgraded (remove-then-upgrade)
- * @param reversedeps handles the backward dependencies
- * @return an alpm_list_t* of alpm_depmissing_t pointers.
- */
-// alpm_list_t* alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
-
 /** Find a package satisfying a specified dependency.
  * First look for a literal, going through each db one by one. Then look for
  * providers. The first satisfyer that belongs to an installed package is
@@ -590,46 +561,6 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)
  * @return an alpm_list_t of alpm_conflict_t
  */
 alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
-
-/** Returns a newly allocated string representing the dependency information.
- * @param dep a dependency info structure
- * @return a formatted string, e.g. "glibc>=2.12"
- */
-// char* alpm_dep_compute_string(AlpmDepend dep);
-
-/** Return a newly allocated dependency information parsed from a string
- *\link alpm_dep_free should be used to free the dependency \endlink
- * @param depstring a formatted string, e.g. "glibc=2.12"
- * @return a dependency info structure
- */
-// AlpmDepend alpm_dep_from_string(const(char)* depstring);
-
-/** Free a dependency info structure
- * @param dep struct to free
- */
-// void alpm_dep_free(AlpmDepend dep);
-
-
-/** Free a depmissing and its members
- * @param miss the depmissing to free
- * */
-// void alpm_depmissing_free(alpm_depmissing_t* miss);
-
-/**
- * Free a conflict and its members.
- * @param conflict the conflict to free
- */
-// void alpm_conflict_free(AlpmConflict conflict);
-
-
-/* End of libalpm_depends */
-/** @} */
-
-
-/** \addtogroup libalpm_cb Callbacks
- * @brief Functions and structures for libalpm's callbacks
- * @{
- */
 
 /** An enum over different kinds of progress alerts. */
 enum alpm_progress_t {
@@ -827,36 +758,6 @@ int alpm_db_remove_cache_server(AlpmDB db, const(char)* url);
 /* End of server accessors */
 /** @} */
 
-/** Update package databases.
- *
- * An update of the package databases in the list \a dbs will be attempted.
- * Unless \a force is true, the update will only be performed if the remote
- * databases were modified since the last update.
- *
- * This operation requires a database lock, and will return an applicable error
- * if the lock could not be obtained.
- *
- * Example:
- * @code
- * alpm_list_t *dbs = alpm_get_syncdbs(config->handle);
- * ret = alpm_db_update(config->handle, dbs, force);
- * if(ret < 0) {
- *     pm_printf(ALPM_LOG_ERROR, ("failed to synchronize all databases (%s)\n"),
- *         alpm_strerror(alpm_errno(config->handle)));
- * }
- * @endcode
- *
- * @note After a successful update, the \link alpm_db_get_pkgcache()
- * package cache \endlink will be invalidated
- * @param handle the context handle
- * @param dbs list of package databases to update
- * @param force if true, then forces the update, otherwise update only in case
- * the databases aren't up to date
- * @return 0 on success, -1 on error (pm_errno is set accordingly),
- * 1 if all databases are up to to date
- */
-// int alpm_db_update(AlpmHandle handle, alpm_list_t* dbs, int force);
-
 /** Get the group cache of a package database.
  * @param db pointer to the package database to get the group from
  * @return the list of groups on success, NULL on error
@@ -885,12 +786,6 @@ enum AlpmDBUsage {
        /** Enable all usage levels */
        All = (1 << 4) - 1,
 }
-// alias ALPM_DB_USAGE_SYNC = alpm_db_usage_t.ALPM_DB_USAGE_SYNC;
-// alias ALPM_DB_USAGE_SEARCH = alpm_db_usage_t.ALPM_DB_USAGE_SEARCH;
-// alias ALPM_DB_USAGE_INSTALL = alpm_db_usage_t.ALPM_DB_USAGE_INSTALL;
-// alias ALPM_DB_USAGE_UPGRADE = alpm_db_usage_t.ALPM_DB_USAGE_UPGRADE;
-// alias ALPM_DB_USAGE_ALL = alpm_db_usage_t.ALPM_DB_USAGE_ALL;
-
 
 /** @name Usage accessors
  * @{
@@ -1092,13 +987,6 @@ alpm_list_t* alpm_option_get_cachedirs(AlpmHandle handle);
  * @return 0 on success, -1 on error (pm_errno is set accordingly)
  */
 int alpm_option_set_cachedirs(AlpmHandle handle, alpm_list_t* cachedirs);
-
-/** Append a cachedir to the configured cachedirs.
- * @param handle the context handle
- * @param cachedir the cachedir to add
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
-// int alpm_option_add_cachedir(AlpmHandle handle, const(char)* cachedir);
 
 /** Remove a cachedir from the configured cachedirs.
  * @param handle the context handle
@@ -1785,22 +1673,6 @@ int alpm_fetch_pkgurl(AlpmHandle handle, alpm_list_t* urls, alpm_list_t** fetche
  */
 int alpm_pkg_checkmd5sum(AlpmPkg pkg);
 
-/** Compare two version strings and determine which one is 'newer'.
- * Returns a value comparable to the way strcmp works. Returns 1
- * if a is newer than b, 0 if a and b are the same version, or -1
- * if b is newer than a.
- *
- * Different epoch values for version strings will override any further
- * comparison. If no epoch is provided, 0 is assumed.
- *
- * Keep in mind that the pkgrel is only compared if it is available
- * on both versions handed to this function. For example, comparing
- * 1.5-1 and 1.5 will yield 0; comparing 1.5-1 and 1.5-2 will yield
- * -1 as expected. This is mainly for supporting versioned dependencies
- * that do not include the pkgrel.
- */
-// int alpm_pkg_vercmp(const(char)* a, const(char)* b);
-
 /** Computes the list of packages requiring a given package.
  * The return value of this function is a newly allocated
  * list of package names (char*), it should be freed by the caller.
@@ -1850,14 +1722,6 @@ const(char)* alpm_pkg_get_base(AlpmPkg pkg);
  * @return a reference to an internal string
  */
 const(char)* alpm_pkg_get_name(AlpmPkg pkg);
-
-/** Returns the package version as a string.
- * This includes all available epoch, version, and pkgrel components. Use
- * alpm_pkg_vercmp() to compare version strings if necessary.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-// const(char)* alpm_pkg_get_version(AlpmPkg pkg);
 
 /** Returns the origin of the package.
  * @return an AlpmPkgFrom constant, -1 on error
@@ -1925,12 +1789,6 @@ alpm_list_t* alpm_pkg_get_checkdepends(AlpmPkg pkg);
  * @return a reference to an internal list of alpm_depend_t structures.
  */
 alpm_list_t* alpm_pkg_get_makedepends(AlpmPkg pkg);
-
-/** Returns the base64 encoded package signature.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-// const(char)* alpm_pkg_get_base64_sig(AlpmPkg pkg);
 
 /** Extracts package signature either from embedded package signature
  * or if it is absent then reads data from detached signature file.
@@ -2279,27 +2137,6 @@ int alpm_sandbox_setup_child(AlpmHandle handle, const(char)* sandboxuser, const(
 /* End of libalpm_api */
 /** @} */
 
- /* ALPM_H */
-
-/** Checks dependencies and returns missing ones in a list.
- * Dependencies can include versions with depmod operators.
- * @param handle the context handle
- * @param pkglist the list of local packages
- * @param remove an alpm_list_t* of packages to be removed
- * @param upgrade an alpm_list_t* of packages to be upgraded (remove-then-upgrade)
- * @param reversedeps handles the backward dependencies
- * @return an alpm_list_t* of alpm_depmissing_t pointers.
- */
-// alpm_list_t* alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_t* remove, alpm_list_t* upgrade, int reversedeps);
-
-/** Find a package satisfying a specified dependency.
- * The dependency can include versions with depmod operators.
- * @param pkgs an alpm_list_t* of alpm_pkg_t where the satisfyer will be searched
- * @param depstring package or provision name, versioned or not
- * @return a AlpmPkg satisfying depstring
- */
-// AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs, const(char)* depstring);
-
 /** Find a package satisfying a specified dependency.
  * First look for a literal, going through each db one by one. Then look for
  * providers. The first satisfyer that belongs to an installed package is
@@ -2322,73 +2159,6 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)
  * @return an alpm_list_t of alpm_conflict_t
  */
 alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
-
-/** Returns a newly allocated string representing the dependency information.
- * @param dep a dependency info structure
- * @return a formatted string, e.g. "glibc>=2.12"
- */
-// char* alpm_dep_compute_string(AlpmDepend dep);
-
-/** Return a newly allocated dependency information parsed from a string
- *\link alpm_dep_free should be used to free the dependency \endlink
- * @param depstring a formatted string, e.g. "glibc=2.12"
- * @return a dependency info structure
- */
-// AlpmDepend alpm_dep_from_string(const(char)* depstring);
-
-/** Free a dependency info structure
- * @param dep struct to free
- */
-// void alpm_dep_free(AlpmDepend dep);
-
-/** Free a depmissing and its members
- * @param miss the depmissing to free
- * */
-// void alpm_depmissing_free(alpm_depmissing_t* miss);
-
-/**
- * Free a conflict and its members.
- * @param conflict the conflict to free
- */
-// void alpm_conflict_free(AlpmConflict conflict);
-
-
-
-/** Progress callback
- *
- * Alert the front end about the progress of certain events.
- * Allows the implementation of loading bars for events that
- * make take a while to complete.
- * @param ctx user-provided context
- * @param progress the kind of event that is progressing
- * @param pkg for package operations, the name of the package being operated on
- * @param percent the percent completion of the action
- * @param howmany the total amount of items in the action
- * @param current the current amount of items completed
- */
-/** Progress callback */
-
-
-
-/** Type of download progress callbacks.
- * @param ctx user-provided context
- * @param filename the name of the file being downloaded
- * @param event the event type
- * @param data the event data of type alpm_download_event_*_t
- */
-
-
-/** A callback for downloading files
- * @param ctx user-provided context
- * @param url the URL of the file to be downloaded
- * @param localpath the directory to which the file should be downloaded
- * @param force whether to force an update, even if the file is the same
- * @return 0 on success, 1 if the file exists and is identical, -1 on
- * error.
- */
-
-/* End of libalpm_cb */
-/** @} */
 
 AlpmHandle alpm_initialize(char* root, char* dbpath, alpm_errno_t* err)
 {
