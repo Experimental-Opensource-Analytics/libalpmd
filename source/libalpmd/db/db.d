@@ -182,17 +182,13 @@ class AlpmDB {
 		}
 	}
 
-	AlpmPkg getPkg(char*name)
-	{
-		AlpmPkg pkg = void;
-		//ASSERT(this != null);
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-		//ASSERT(name != null && strlen(name) != 0);
+	AlpmPkg getPkg(string name) {
+		auto pkg = this.getPkgFromCache(cast(char*)name.toStringz);
 
-		pkg = this.getPkgFromCache(name);
 		if(!pkg) {
-			RET_ERR(this.handle, ALPM_ERR_PKG_NOT_FOUND, null);
+			throw new Exception("Package %s not found");
 		}
+
 		return pkg;
 	}
 

@@ -664,7 +664,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	for(auto i = trans.add; i; i = i.next) {
 		/* update download size field */
 		AlpmPkg spkg = cast(AlpmPkg)i.data;
-		AlpmPkg lpkg = handle.getDBLocal.getPkg(cast(char*)spkg.name);
+		AlpmPkg lpkg = handle.getDBLocal.getPkg(spkg.name);
 		if(compute_download_size(spkg) < 0) {
 			ret = -1;
 			goto cleanup;
