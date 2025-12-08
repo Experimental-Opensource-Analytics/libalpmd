@@ -102,7 +102,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 		alpm_list_t* i = void;
 		for(i = lp; i; i = i.next) {
 			alpm_depmissing_t* miss = cast(alpm_depmissing_t*)i.data;
-			AlpmPkg info = _alpm_db_get_pkgfromcache(handle.getDBLocal, miss.target);
+			AlpmPkg info = handle.getDBLocal().getPkgFromCache(miss.target);
 			if(info) {
 				AlpmPkg copy = void;
 				if(!alpm_pkg_find_n(trans.remove, info.name)) {
@@ -741,7 +741,7 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
 				pkgname, pkgver);
 	}
 	/* remove the package from the cache */
-	if(_alpm_db_remove_pkgfromcache(handle.getDBLocal, oldpkg) == -1) {
+	if(handle.getDBLocal().removePkgFromCache(oldpkg) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not remove entry '%s' from cache\n"),
 				pkgname);
 	}

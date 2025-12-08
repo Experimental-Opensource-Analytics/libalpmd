@@ -446,7 +446,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		/* CHECK 2: check every target against the filesystem */
 		logger.tracef("searching for filesystem conflicts: %s\n",
 				p1.name);
-		dbpkg = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)p1.name);
+		dbpkg = handle.getDBLocal().getPkgFromCache(cast(char*)p1.name);
 
 		/* Do two different checks here. If the package is currently installed,
 		 * then only check files that are new in the new package. If the package
@@ -547,7 +547,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 					 * so they can be compared directly */
 					continue;
 				}
-				localp2 = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)p2.name);
+				localp2 = handle.getDBLocal().getPkgFromCache(cast(char*)p2.name);
 
 				/* localp2->files will be removed (target conflicts are handled by CHECK 1) */
 				if(localp2 && alpm_filelist_contains(localp2.getFiles(), relative_path.to!string)) {

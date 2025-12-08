@@ -78,7 +78,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, alpm_list_t* dbs_sync)
 
 	for(i = dbs_sync; !spkg && i; i = i.next) {
 		AlpmDB db = cast(AlpmDB)i.data;
-		spkg = _alpm_db_get_pkgfromcache(db, cast(char*)pkg.name);
+		spkg = db.getPkgFromCache(cast(char*)pkg.name);
 	}
 
 	if(spkg is null) {
@@ -240,7 +240,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 				/* jump to next local package */
 				break;
 			} else {
-				AlpmPkg spkg = _alpm_db_get_pkgfromcache(sdb, cast(char*)lpkg.name);
+				AlpmPkg spkg = sdb.getPkgFromCache(cast(char*)lpkg.name);
 				if(spkg) {
 					if(check_literal(handle, lpkg, spkg, enable_downgrade)) {
 						trans.add = alpm_list_add(trans.add, cast(void*)spkg);
@@ -275,7 +275,7 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 				continue;
 			}
 			if(trans !is null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
-				AlpmPkg local = _alpm_db_get_pkgfromcache(db.handle.getDBLocal, cast(char*)pkg.name);
+				AlpmPkg local = db.handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name);
 				if(local && pkg.compareVersions(local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
 					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
@@ -604,7 +604,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			if(question.getAnswer()) {
 				/* append to the removes list */
 				AlpmPkg sync = alpm_pkg_find_n(trans.add, name1);
-				AlpmPkg local = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)name2);
+				AlpmPkg local = handle.getDBLocal().getPkgFromCache(cast(char*)name2);
 				logger.tracef("electing '%s' for removal\n", name2);
 				sync.removes.insertFront(local);
 			} else { /* abort */

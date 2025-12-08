@@ -62,7 +62,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 		RET_ERR(handle, ALPM_ERR_TRANS_DUP_TARGET, -1);
 	}
 
-	if((local = _alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)pkgname)) !is null) {
+	if((local = handle.getDBLocal().getPkgFromCache(cast(char*)pkgname)) !is null) {
 		string localpkgname = local.name;
 		string localpkgver = local.version_;
 		int cmp = pkg.compareVersions(local);
@@ -405,7 +405,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	//ASSERT(trans != null);
 
 	/* see if this is an upgrade. if so, remove the old package first */
-	if(_alpm_db_get_pkgfromcache(db, cast(char*)newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
+	if(db.getPkgFromCache(cast(char*)newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
 		int cmp = newpkg.compareVersions(oldpkg);
 		if(cmp < 0) {
 			log_msg = cast(char*)"downgrading";
@@ -581,7 +581,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		return -1;
 	}
 
-	if(_alpm_db_add_pkgincache(db, newpkg) == -1) {
+	if(db.addPkgInCache(newpkg) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not add entry '%s' in cache\n"),
 				newpkg.name);
 	}

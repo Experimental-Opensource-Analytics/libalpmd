@@ -704,7 +704,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 			continue;
 		}
 
-		pkg = _alpm_db_get_pkgfromcache(db, cast(char*)dep.name);
+		pkg = db.getPkgFromCache(cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
 				&& !alpm_pkg_find_n(excluding, pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
@@ -751,7 +751,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 						pkg.name, dep.name);
 
 				/* provide is already installed so return early instead of prompting later */
-				if(_alpm_db_get_pkgfromcache(handle.getDBLocal, cast(char*)pkg.name)) {
+				if(handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name)) {
 					alpm_list_free(providers);
 					return pkg;
 				}

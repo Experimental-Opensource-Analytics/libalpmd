@@ -345,7 +345,7 @@ class AlpmDB {
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 		//ASSERT(name != null && strlen(name) != 0);
 
-		pkg = _alpm_db_get_pkgfromcache(this, name);
+		pkg = this.getPkgFromCache(name);
 		if(!pkg) {
 			RET_ERR(this.handle, ALPM_ERR_PKG_NOT_FOUND, null);
 		}
@@ -637,6 +637,42 @@ class AlpmDB {
 
 		return 0;
 	}
+
+	int removePkgFromCache(AlpmPkg pkg)
+	{
+		AlpmPkg data = null;
+
+		if(pkg is null || !(this.status & AlpmDBStatus.PkgCache)) {
+			return -1;
+		}
+
+		_alpm_log(this.handle, ALPM_LOG_DEBUG, "removing entry '%s' from '%s' cache\n",
+							pkg.name, this.treename);
+
+		this.pkgcache = this.pkgcache.remove(pkg, &data);
+		if(data is null) {
+			/* package not found */
+			_alpm_log(this.handle, ALPM_LOG_DEBUG, "cannot remove entry '%s' from '%s' cache: not found\n",
+								pkg.name, this.treename);
+			return -1;
+		}
+
+		destroy!false(data);
+
+		this.freeGroupCache();
+
+		return 0;
+	}
+
+	AlpmPkg getPkgFromCache(char*target)
+	{
+		AlpmPkgHash pkgcache = this.getPkgCacheHash();
+		if(!pkgcache) {
+			return null;
+		}
+
+		return pkgcache.find(target);
+	}
 }
 
 alias AlpmDBs = AlpmList!AlpmDB;
@@ -646,44 +682,4 @@ int _alpm_db_cmp( void* d1,  void* d2)
 	  AlpmDB db1 = cast(AlpmDB)d1;
 	  AlpmDB db2 = cast(AlpmDB)d2;
 	return db1.treename == db2.treename;
-}
-
-int _alpm_db_remove_pkgfromcache(AlpmDB db, AlpmPkg pkg)
-{
-	AlpmPkg data = null;
-
-	if(db is null || pkg is null || !(db.status & AlpmDBStatus.PkgCache)) {
-		return -1;
-	}
-
-	_alpm_log(db.handle, ALPM_LOG_DEBUG, "removing entry '%s' from '%s' cache\n",
-						pkg.name, db.treename);
-
-	db.pkgcache = db.pkgcache.remove(pkg, &data);
-	if(data is null) {
-		/* package not found */
-		_alpm_log(db.handle, ALPM_LOG_DEBUG, "cannot remove entry '%s' from '%s' cache: not found\n",
-							pkg.name, db.treename);
-		return -1;
-	}
-
-	destroy!false(data);
-
-	db.freeGroupCache();
-
-	return 0;
-}
-
-AlpmPkg _alpm_db_get_pkgfromcache(AlpmDB db,   char*target)
-{
-	if(db is null) {
-		return null;
-	}
-
-	AlpmPkgHash pkgcache = db.getPkgCacheHash();
-	if(!pkgcache) {
-		return null;
-	}
-
-	return pkgcache.find(target);
 }
