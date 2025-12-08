@@ -121,22 +121,10 @@ void  alpm_depmissing_free(AlpmDepMissing miss)
 {
 	//ASSERT(miss != null);
 	// alpm_dep_free(cast(void*)miss.depend);
-	miss.depend = null;
-	FREE(miss.target);
-	FREE(miss.causingpkg);
-	FREE(miss);
-}
-
-/** Check if pkg2 satisfies a dependency of pkg1 */
-private int _alpm_pkg_depends_on(AlpmPkg pkg1, AlpmPkg pkg2)
-{
-	// alpm_list_t* i = void;
-	foreach(dep; pkg1.getDepends()[]) {
-		if(_alpm_depcmp(pkg2, dep)) {
-			return 1;
-		}
-	}
-	return 0;
+	// miss.depend = null;
+	// FREE(miss.target);
+	// FREE(miss.causingpkg);
+	// FREE(miss);
 }
 
 private AlpmPkg find_dep_satisfier(alpm_list_t* pkgs, AlpmDepend dep)
@@ -185,7 +173,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 		for(j = vertices; j; j = j.next) {
 			alpm_graph_t* vertex_j = cast(alpm_graph_t*)j.data;
 			AlpmPkg p_j = cast(AlpmPkg)vertex_j.data;
-			if(_alpm_pkg_depends_on(p_i, p_j)) {
+			if(p_i.dependsOn(p_j)) {
 				vertex_i.children =
 					alpm_list_add(vertex_i.children, vertex_j);
 			}
@@ -196,7 +184,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 		j = localpkgs;
 		while(j) {
 			alpm_list_t* next = j.next;
-			if(_alpm_pkg_depends_on(p_i, cast(AlpmPkg)j.data)) {
+			if(p_i.dependsOn(cast(AlpmPkg)j.data)) {
 				alpm_graph_t* vertex_j = _alpm_graph_new();
 				vertex_j.data = cast(void*)j.data;
 				vertices = alpm_list_add(vertices, vertex_j);
@@ -598,7 +586,7 @@ private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, AlpmPkg 
 		AlpmPkg deppkg = cast(AlpmPkg)i.data;
 		next = i.next;
 		if((explicit || deppkg.getReason() == ALPM_PKG_REASON_DEPEND)
-				&& _alpm_pkg_depends_on(pkg, deppkg)) {
+				&& pkg.dependsOn(deppkg)) {
 			*to = alpm_list_add(*to, cast(void*)deppkg);
 			*from = alpm_list_remove_item(*from, i);
 			free(i);

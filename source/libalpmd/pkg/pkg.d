@@ -481,6 +481,18 @@ public:
 
 		return null;
 	}
+
+	/** Check if pkg2 satisfies a dependency of pkg1 */
+	int dependsOn(AlpmPkg pkg2) {
+		// alpm_list_t* i = void;
+		foreach(dep; this.getDepends()[]) {
+			if(_alpm_depcmp(pkg2, dep)) {
+				return 1;
+			}
+		}
+		return 0;
+	}
+
 }
 
 //Left until full refactoring AlpmList
