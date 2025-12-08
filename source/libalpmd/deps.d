@@ -53,6 +53,23 @@ class AlpmDepMissing {
 	/** If the depmissing was caused by a conflict, the name of the package
 	 * that would be installed, causing the satisfying package to be removed */
 	char* causingpkg;
+
+	this(  char*target, AlpmDepend dep,   char*causingpkg)
+	{
+		// AlpmDepMissing miss = new AlpmDepMissing;
+
+		// CALLOC(miss, 1, alpm_depmissing_t.sizeof);
+
+		STRNDUP(this.target, target, strlen(target));
+		this.depend = dep.dup();
+		STRNDUP(this.causingpkg, causingpkg, strlen(causingpkg));
+
+	// 	return miss;
+
+	// error:
+	// 	alpm_depmissing_free(miss);
+	// 	return null;
+	}
 }
 
 /** The basic dependency type.
@@ -98,23 +115,6 @@ alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
 void  alpm_dep_free(void* _dep) {
 	destroy(_dep);
-}
-
-private AlpmDepMissing depmiss_new(  char*target, AlpmDepend dep,   char*causingpkg)
-{
-	AlpmDepMissing miss = new AlpmDepMissing;
-
-	// CALLOC(miss, 1, alpm_depmissing_t.sizeof);
-
-	STRNDUP(miss.target, target, strlen(target));
-	miss.depend = dep.dup();
-	STRNDUP(miss.causingpkg, causingpkg, strlen(causingpkg));
-
-	return miss;
-
-error:
-	alpm_depmissing_free(miss);
-	return null;
 }
 
 void  alpm_depmissing_free(AlpmDepMissing miss)
@@ -393,7 +393,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 				logger.tracef("checkdeps: missing dependency '%s' for package '%s'\n",
 						missdepstring, tp.name);
 				free(missdepstring);
-				miss = depmiss_new(cast(char*)tp.name, depend, null);
+				miss = new AlpmDepMissing(cast(char*)tp.name, depend, null);
 				baddeps = alpm_list_add(baddeps, cast(void*)miss);
 			}
 			depend.mod = orig_mod;
@@ -425,7 +425,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 					logger.tracef("checkdeps: transaction would break '%s' dependency of '%s'\n",
 							missdepstring, lp.name);
 					free(missdepstring);
-					miss = depmiss_new(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
+					miss = new AlpmDepMissing(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
 					baddeps = alpm_list_add(baddeps, cast(void*)miss);
 				}
 				depend.mod = orig_mod;
