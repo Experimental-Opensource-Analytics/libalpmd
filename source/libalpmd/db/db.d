@@ -272,7 +272,6 @@ class AlpmDB {
 			AlpmPkg pkg = cast(AlpmPkg)lp.data;
 
 			foreach(grpname; pkg.getGroups()[]) {
-				alpm_list_t* j = void;
 				int found = 0;
 
 				/* first look through the group cache for a group with this name */

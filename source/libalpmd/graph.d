@@ -25,6 +25,7 @@ import libalpmd.graph;
 import libalpmd.util;
 import libalpmd.log;
 import libalpmd.alpm_list;
+import libalpmd.pkg;
 
 import core.stdc.stdlib;
 
@@ -38,29 +39,30 @@ alias ALPM_GRAPH_STATE_PROCESSING = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_PR
 alias ALPM_GRAPH_STATE_PROCESSED = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_PROCESSED;
 
 
-struct alpm_graph_t {
+class AlpmGraph(T) {
 	void* data;
-	_alpm_graph_t* parent; /* where did we come from? */
-	alpm_list_t* children;
-	alpm_list_t* iterator; /* used for DFS without recursion */
+	AlpmGraph!T 	parent; /* where did we come from? */
+	alpm_list_t* 	children;
+	alpm_list_t* 	iterator; /* used for DFS without recursion */
 	off_t weight; /* weight of the node */
 	_alpm_graph_vertex_state state;
 }
 
-alias _alpm_graph_t = alpm_graph_t;
+// alias _alpm_graph_t = alpm_graph_t;
+alias AlpmGraphPkg = AlpmGraph!AlpmPkg;
 
-alpm_graph_t* _alpm_graph_new()
-{
-	alpm_graph_t* graph = null;
+// alpm_graph_t* _alpm_graph_new()
+// {
+// 	alpm_graph_t* graph = null;
 
-	CALLOC(graph, 1, alpm_graph_t.sizeof);
-	return graph;
-}
+// 	CALLOC(graph, 1, alpm_graph_t.sizeof);
+// 	return graph;
+// }
 
-void _alpm_graph_free(void* data)
-{
-	//ASSERT(data != null);
-	alpm_graph_t* graph = cast(alpm_graph_t*)data;
-	alpm_list_free(graph.children);
-	free(graph);
-}
+// void _alpm_graph_free(void* data)
+// {
+// 	//ASSERT(data != null);
+// 	alpm_graph_t* graph = cast(alpm_graph_t*)data;
+// 	alpm_list_free(graph.children);
+// 	free(graph);
+// }

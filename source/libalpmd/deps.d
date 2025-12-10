@@ -160,22 +160,22 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 
 	/* We create the vertices */
 	for(i = targets; i; i = i.next) {
-		alpm_graph_t* vertex = _alpm_graph_new();
+		AlpmGraphPkg vertex = new AlpmGraphPkg();
 		vertex.data = cast(void*)i.data;
-		vertices = alpm_list_add(vertices, vertex);
+		vertices = alpm_list_add(vertices, cast(void*)vertex);
 	}
 
 	/* We compute the edges */
 	for(i = vertices; i; i = i.next) {
-		alpm_graph_t* vertex_i = cast(alpm_graph_t*)i.data;
+		AlpmGraphPkg vertex_i = cast(AlpmGraphPkg)i.data;
 		AlpmPkg p_i = cast(AlpmPkg)vertex_i.data;
 		/* TODO this should be somehow combined with alpm_checkdeps */
 		for(j = vertices; j; j = j.next) {
-			alpm_graph_t* vertex_j = cast(alpm_graph_t*)j.data;
+			AlpmGraphPkg vertex_j = cast(AlpmGraphPkg)j.data;
 			AlpmPkg p_j = cast(AlpmPkg)vertex_j.data;
 			if(p_i.dependsOn(p_j)) {
 				vertex_i.children =
-					alpm_list_add(vertex_i.children, vertex_j);
+					alpm_list_add(vertex_i.children, cast(void*)vertex_j);
 			}
 		}
 
@@ -185,10 +185,10 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 		while(j) {
 			alpm_list_t* next = j.next;
 			if(p_i.dependsOn(cast(AlpmPkg)j.data)) {
-				alpm_graph_t* vertex_j = _alpm_graph_new();
+				AlpmGraphPkg vertex_j = new AlpmGraphPkg();
 				vertex_j.data = cast(void*)j.data;
-				vertices = alpm_list_add(vertices, vertex_j);
-				vertex_i.children = alpm_list_add(vertex_i.children, vertex_j);
+				vertices = alpm_list_add(vertices, cast(void*)vertex_j);
+				vertex_i.children = alpm_list_add(vertex_i.children, cast(void*)vertex_j);
 				localpkgs = alpm_list_remove_item(localpkgs, j);
 				free(j);
 			}
@@ -201,7 +201,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 	return vertices;
 }
 
-private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, alpm_graph_t* ancestor, alpm_graph_t* vertex, int reverse)
+private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, AlpmGraphPkg ancestor, AlpmGraphPkg vertex, int reverse)
 {
 	/* vertex depends on and is required by ancestor */
 	if(!alpm_list_find_ptr(targets, vertex.data)) {
@@ -257,7 +257,7 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 	alpm_list_t* newtargs = null;
 	alpm_list_t* vertices = null;
 	alpm_list_t* i = void;
-	alpm_graph_t* vertex = void;
+	AlpmGraphPkg vertex = void;
 
 	if(targets == null) {
 		return null;
@@ -268,13 +268,13 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 	vertices = dep_graph_init(handle, targets, ignore);
 
 	i = vertices;
-	vertex = cast(alpm_graph_t*)vertices.data;
+	vertex = cast(AlpmGraphPkg)vertices.data;
 	while(i) {
 		/* mark that we touched the vertex */
 		vertex.state = ALPM_GRAPH_STATE_PROCESSING;
 		int switched_to_child = 0;
 		while(vertex.iterator && !switched_to_child) {
-			alpm_graph_t* nextchild = cast(alpm_graph_t*)vertex.iterator.data;
+			AlpmGraphPkg nextchild = cast(AlpmGraphPkg)vertex.iterator.data;
 			vertex.iterator = vertex.iterator.next;
 			if(nextchild.state == ALPM_GRAPH_STATE_UNPROCESSED) {
 				switched_to_child = 1;
@@ -294,7 +294,7 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 			if(!vertex) {
 				/* top level vertex reached, move to the next unprocessed vertex */
 				for(i = i.next; i; i = i.next) {
-					vertex = cast(alpm_graph_t*)i.data;
+					vertex = cast(AlpmGraphPkg)i.data;
 					if(vertex.state == ALPM_GRAPH_STATE_UNPROCESSED) {
 						break;
 					}
@@ -313,7 +313,7 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 		newtargs = tmptargs;
 	}
 
-	alpm_list_free_inner(vertices, &_alpm_graph_free);
+	// alpm_list_free_inner(vertices, &_alpm_graph_free);
 	alpm_list_free(vertices);
 
 	return newtargs;
