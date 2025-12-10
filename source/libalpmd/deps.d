@@ -284,8 +284,8 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 			}
 		}
 		if(!switched_to_child) {
-			if(alpm_list_find_ptr(targets, vertex.data)) {
-				newtargs = alpm_list_add(newtargs, vertex.data);
+			if(alpm_list_find_ptr(targets, cast(void*)vertex.data)) {
+				newtargs = alpm_list_add(newtargs, cast(void*)vertex.data);
 			}
 			/* mark that we've left this vertex */
 			vertex.state = ALPM_GRAPH_STATE_PROCESSED;

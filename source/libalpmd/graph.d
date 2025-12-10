@@ -40,7 +40,7 @@ alias ALPM_GRAPH_STATE_PROCESSED = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_PRO
 
 
 class AlpmGraph(T) {
-	void* data;
+	T data;
 	AlpmGraph!T 	parent; /* where did we come from? */
 	AlpmGraphs	 	children;
 	off_t weight; /* weight of the node */
