@@ -35,6 +35,7 @@ import libalpmd.filelist;
 import libalpmd.libarchive_compat;
 import libalpmd.pkg;;
 import std.base64;
+import std.algorithm;
 // import core.sys.darwin.mach.loader;
 
 alias AlpmPkgs = DList!AlpmPkg;
@@ -203,7 +204,7 @@ public:
 		assert(0);
 	}
 
-	void findRequiredBy(AlpmDB db, alpm_list_t** reqs, int optional)
+	void findRequiredBy(AlpmDB db, ref AlpmStrings reqs, int optional)
 	{
 		alpm_list_t* i = void;
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
@@ -222,48 +223,44 @@ public:
 			foreach(dep; j[]) {
 				if(_alpm_depcmp(this, dep)) {//[ ] _alpm_depcmp
 					string cachepkgname = cachepkg.name;
-					if(alpm_list_find_str(*reqs, cast(char*)cachepkgname) == null) { //[ ] alpm_list_find_str
-						*reqs = alpm_list_add(*reqs, cast(char*)cachepkgname.dup); //[ ] alpm_list_add
-					}
+					if(!reqs[].canFind(cachepkgname)) 
+						reqs.insertBack(cachepkgname);
 				}
 			}
 		}
 	}
 
-	alpm_list_t* computeRequiredBy(int optional)
-	{
-		alpm_list_t* reqs = null;
+	AlpmStrings computeRequiredBy(int optional) {
+		AlpmStrings reqs;
 		AlpmDB db = void;
 
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
 		if(this.origin == ALPM_PKG_FROM_FILE) {
 			/* The sane option; search locally for things that require this. */
-			this.findRequiredBy(this.handle.getDBLocal, &reqs, optional);
+			this.findRequiredBy(this.handle.getDBLocal, reqs, optional);
 		} else {
 			/* We have a DB package. if it is a local package, then we should
 			* only search the local DB; else search all known sync databases. */
 			db = this.origin_data.db;
 			if(db.status & AlpmDBStatus.Local) {
-				this.findRequiredBy(db, &reqs, optional);
+				this.findRequiredBy(db, reqs, optional);
 			} else {
 				foreach(i; this.handle.getDBsSync[]) {
 					db = cast(AlpmDB)i;
-					this.findRequiredBy(db, &reqs, optional);
+					this.findRequiredBy(db, reqs, optional);
 				}
-				reqs = alpm_list_msort(reqs, alpm_list_count(reqs), &_alpm_str_cmp); //[ ] alpm_list_msort
+				reqs = AlpmStrings(lazySort(reqs));
 			}
 		}
 		return reqs;
 	}
 
-	alpm_list_t * computeRequiredBy()
-	{
+	AlpmStrings computeRequiredBy() {
 		return computeRequiredBy(0);
 	}
 
-	alpm_list_t * computeOptionalFor()
-	{
+	AlpmStrings computeOptionalFor() {
 		return computeRequiredBy(1);
 	}
 
