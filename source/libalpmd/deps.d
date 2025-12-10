@@ -174,8 +174,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 			AlpmGraphPkg vertex_j = cast(AlpmGraphPkg)j.data;
 			AlpmPkg p_j = cast(AlpmPkg)vertex_j.data;
 			if(p_i.dependsOn(p_j)) {
-				vertex_i.children =
-					alpm_list_add(vertex_i.children, cast(void*)vertex_j);
+				vertex_i.children.insertBack(vertex_j);
 			}
 		}
 
@@ -188,14 +187,12 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 				AlpmGraphPkg vertex_j = new AlpmGraphPkg();
 				vertex_j.data = cast(void*)j.data;
 				vertices = alpm_list_add(vertices, cast(void*)vertex_j);
-				vertex_i.children = alpm_list_add(vertex_i.children, cast(void*)vertex_j);
+				vertex_i.children.insertBack(vertex_j);
 				localpkgs = alpm_list_remove_item(localpkgs, j);
 				free(j);
 			}
 			j = next;
 		}
-
-		vertex_i.iterator = vertex_i.children;
 	}
 	alpm_list_free(localpkgs);
 	return vertices;
@@ -273,12 +270,14 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 		/* mark that we touched the vertex */
 		vertex.state = ALPM_GRAPH_STATE_PROCESSING;
 		int switched_to_child = 0;
-		while(vertex.iterator && !switched_to_child) {
-			AlpmGraphPkg nextchild = cast(AlpmGraphPkg)vertex.iterator.data;
-			vertex.iterator = vertex.iterator.next;
+		auto iterator = vertex.children[];
+		while(!iterator.empty() && !switched_to_child) {
+			AlpmGraphPkg nextchild = cast(AlpmGraphPkg)iterator.front();
+			// vertex.iterator = vertex.iterator.next;
+			iterator.popFront();
 			if(nextchild.state == ALPM_GRAPH_STATE_UNPROCESSED) {
 				switched_to_child = 1;
-				nextchild.parent = vertex;
+				nextchild.parent = vertex.children.front();;
 				vertex = nextchild;
 			} else if(nextchild.state == ALPM_GRAPH_STATE_PROCESSING) {
 				_alpm_warn_dep_cycle(handle, targets, vertex, nextchild, reverse);

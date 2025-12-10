@@ -42,14 +42,14 @@ alias ALPM_GRAPH_STATE_PROCESSED = _alpm_graph_vertex_state.ALPM_GRAPH_STATE_PRO
 class AlpmGraph(T) {
 	void* data;
 	AlpmGraph!T 	parent; /* where did we come from? */
-	alpm_list_t* 	children;
-	alpm_list_t* 	iterator; /* used for DFS without recursion */
+	AlpmGraphs	 	children;
 	off_t weight; /* weight of the node */
 	_alpm_graph_vertex_state state;
 }
 
 // alias _alpm_graph_t = alpm_graph_t;
 alias AlpmGraphPkg = AlpmGraph!AlpmPkg;
+alias AlpmGraphs = AlpmList!AlpmGraphPkg;
 
 // alpm_graph_t* _alpm_graph_new()
 // {
