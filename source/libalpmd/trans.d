@@ -123,7 +123,7 @@ class AlpmTrans {
 // 	return 0;
 // }
 
-private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
+private alpm_list_t* check_arch(AlpmHandle handle, AlpmPkgs pkgs)
 {
 	alpm_list_t* i = void;
 	alpm_list_t* invalid = null;
@@ -132,8 +132,9 @@ private alpm_list_t* check_arch(AlpmHandle handle, alpm_list_t* pkgs)
 		logger.tracef("skipping architecture checks\n");
 		return null;
 	}
-	for(i = pkgs; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
+	// for(i = pkgs; i; i = i.next) {
+	foreach(pkg; pkgs[]) {
+		// AlpmPkg pkg = cast(AlpmPkg)i.data;
 		alpm_list_t* j = void;
 		int found = 0;
 		  char*pkgarch = cast(char*)pkg.getArch();
@@ -180,7 +181,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 		return 0;
 	}
 
-	alpm_list_t* invalid = check_arch(handle, trans.add);
+	alpm_list_t* invalid = check_arch(handle, oldToNewList!AlpmPkg(trans.add));
 	if(invalid) {
 		if(data) {
 			*data = invalid;

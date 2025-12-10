@@ -161,7 +161,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 	/* We create the vertices */
 	for(i = targets; i; i = i.next) {
 		AlpmGraphPkg vertex = new AlpmGraphPkg();
-		vertex.data = cast(void*)i.data;
+		vertex.data = cast(AlpmPkg)i.data;
 		vertices = alpm_list_add(vertices, cast(void*)vertex);
 	}
 
@@ -185,7 +185,7 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 			alpm_list_t* next = j.next;
 			if(p_i.dependsOn(cast(AlpmPkg)j.data)) {
 				AlpmGraphPkg vertex_j = new AlpmGraphPkg();
-				vertex_j.data = cast(void*)j.data;
+				vertex_j.data = cast(AlpmPkg)j.data;
 				vertices = alpm_list_add(vertices, cast(void*)vertex_j);
 				vertex_i.children.insertBack(vertex_j);
 				localpkgs = alpm_list_remove_item(localpkgs, j);
@@ -201,14 +201,14 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, AlpmGraphPkg ancestor, AlpmGraphPkg vertex, int reverse)
 {
 	/* vertex depends on and is required by ancestor */
-	if(!alpm_list_find_ptr(targets, vertex.data)) {
+	if(!alpm_list_find_ptr(targets, cast(void*)vertex.data)) {
 		/* child is not part of the transaction, not a problem */
 		return;
 	}
 
 	/* find the nearest ancestor that's part of the transaction */
 	while(ancestor) {
-		if(alpm_list_find_ptr(targets, ancestor.data)) {
+		if(alpm_list_find_ptr(targets, cast(void*)ancestor.data)) {
 			break;
 		}
 		ancestor = ancestor.parent;
