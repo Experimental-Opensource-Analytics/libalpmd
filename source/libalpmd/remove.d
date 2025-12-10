@@ -40,6 +40,7 @@ import core.sys.posix.sys.types;
 import std.regex;
 import std.conv;
 import std.path;
+import std.range;
 
 import libalpmd.alpm_list;
 import libalpmd.alpm;
@@ -82,7 +83,7 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 	if((copy = pkg.dup) !is null) {
 		return -1;
 	}
-	trans.remove = alpm_list_add(trans.remove, cast(void*)copy);
+	trans.remove.insertBack(copy);
 	return 0;
 }
 
@@ -111,7 +112,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 					if((copy = info.dup) !is null) {
 						return -1;
 					}
-					trans.remove = alpm_list_add(trans.remove, cast(void*)copy);
+					trans.remove.insertBack(copy);
 				}
 			} else {
 				_alpm_log(handle, ALPM_LOG_ERROR,
@@ -121,7 +122,7 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
 		lp = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
-				trans.remove, null, 1);
+				trans.remove.newToOld(), null, 1);
 	}
 	return 0;
 }
@@ -146,19 +147,16 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 			if(pkg is null) {
 				continue;
 			}
-			trans.remove = alpm_list_remove(trans.remove, cast(void*)pkg, &_alpm_pkg_cmp,
-					&vpkg);
-			pkg = cast(AlpmPkg) vpkg;
-			if(pkg) {
+			if(trans.remove.linearRemoveElement(pkg)) {
 				_alpm_log(handle, ALPM_LOG_WARNING, ("removing %s from target list\n"),
-						pkg.name);
+						pkg.name); 
 				destroy!false(pkg);
 			}
 		}
 		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
 		alpm_list_free(lp);
 		lp = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
-				trans.remove, null, 1);
+				trans.remove.newToOld(), null, 1);
 	}
 }
 
@@ -212,8 +210,9 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	if((trans.flags & ALPM_TRANS_FLAG_RECURSE)
 			&& !(trans.flags & ALPM_TRANS_FLAG_CASCADE)) {
+		auto range = trans.remove.newToOld();
 		logger.tracef("finding removable dependencies\n");
-		if(_alpm_recursedeps(db, &trans.remove,
+		if(_alpm_recursedeps(db, &range,
 				trans.flags & ALPM_TRANS_FLAG_RECURSEALL)) {
 			return -1;
 		}
@@ -224,7 +223,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 		EVENT(handle, event);
 
 		logger.tracef("looking for unsatisfied dependencies\n");
-		lp = alpm_checkdeps(handle, db.getPkgCacheList(), trans.remove, null, 1);
+		lp = alpm_checkdeps(handle, db.getPkgCacheList(), trans.remove.newToOld(), null, 1);
 		if(lp != null) {
 
 			if(trans.flags & ALPM_TRANS_FLAG_CASCADE) {
@@ -251,8 +250,9 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 	/* -Rcs == -Rc then -Rs */
 	if((trans.flags & ALPM_TRANS_FLAG_CASCADE)
 			&& (trans.flags & ALPM_TRANS_FLAG_RECURSE)) {
+		auto range = trans.remove.newToOld();
 		logger.tracef("finding removable dependencies\n");
-		if(_alpm_recursedeps(db, &trans.remove,
+		if(_alpm_recursedeps(db, &range,
 					trans.flags & ALPM_TRANS_FLAG_RECURSEALL)) {
 			return -1;
 		}
@@ -260,7 +260,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	/* Note packages being removed that are optdepends for installed packages */
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
-		remove_notify_needed_optdepends(handle, trans.remove);
+		remove_notify_needed_optdepends(handle, trans.remove.newToOld());
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
@@ -584,7 +584,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
 {
 	return alpmFnmatchPatterns(handle.noupgrade, path.to!string) == 0
-		|| alpm_list_find_str(handle.trans.skip_remove, path)
+		|| alpm_list_find_str(handle.trans.skip_remove.newToOld(), path)
 		//|| (newpkg && _alpm_needbackup(path, newpkg)
 		|| (newpkg && newpkg.needBackup(path.to!string)
 
@@ -765,11 +765,10 @@ int _alpm_remove_packages(AlpmHandle handle, int run_ldconfig)
 	AlpmTrans trans = handle.trans;
 	int ret = 0;
 
-	pkg_count = alpm_list_count(trans.remove);
+	pkg_count = trans.remove[].walkLength();
 	targ_count = 1;
 
-	for(targ = trans.remove; targ; targ = targ.next) {
-		AlpmPkg pkg = cast(AlpmPkg)targ.data;
+	foreach(pkg; trans.remove) {
 
 		if(trans.state == AlpmTransState.Interrupted) {
 			return ret;

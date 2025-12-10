@@ -39,6 +39,7 @@ import std.algorithm;
 /* libalpm */
 import libalpmd.sync;
 import libalpmd.alpm_list;
+import libalpmd.alpm_list.alpm_list_new;
 import libalpmd.log;
 import libalpmd.pkg;
 import libalpmd.db;
@@ -236,14 +237,14 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 			/* Check sdb */
 			replacers = check_replacers(handle, lpkg, sdb);
 			if(replacers) {
-				trans.add = alpm_list_join(trans.add, replacers);
+				trans.add.insertBack((replacers.oldToNewList!AlpmPkg)[]);
 				/* jump to next local package */
 				break;
 			} else {
 				AlpmPkg spkg = sdb.getPkgFromCache(cast(char*)lpkg.name);
 				if(spkg) {
 					if(check_literal(handle, lpkg, spkg, enable_downgrade)) {
-						trans.add = alpm_list_add(trans.add, cast(void*)spkg);
+						trans.add.insertBack(spkg);
 					}
 					/* jump to next local package */
 					break;
@@ -376,8 +377,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		*data = null;
 	}
 
-	for(auto i = trans.add; i; i = i.next) {
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
+	foreach(spkg; trans.add[]) {
 		if (spkg.origin == ALPM_PKG_FROM_SYNCDB){
 			from_sync = 1;
 			break;
@@ -385,8 +385,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	/* ensure all sync database are valid if we will be using them */
-	foreach(i;handle.getDBsSync[]) {
-		  AlpmDB db = cast(AlpmDB)i;
+	foreach(db; handle.getDBsSync()[]) {
 		if(db.status & AlpmDBStatus.Invalid) {
 			RET_ERR(handle, ALPM_ERR_DB_INVALID, -1);
 		}
@@ -408,32 +407,29 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		logger.tracef("resolving target's dependencies\n");
 
 		/* build remove list for resolvedeps */
-		for(auto i = trans.add; i; i = i.next) {
-			AlpmPkg spkg = cast(AlpmPkg)i.data;
+		foreach(spkg; trans.add[]) {
 			auto range = spkg.removes[];
 			for(auto pkg = range.front; !range.empty; range.popFront) {
-				remove = alpm_list_add(remove, cast(void*)pkg);
+				remove.insertBack(pkg);
 			}
 		}
 
 		/* Compute the fake local database for resolvedeps (partial fix for the
 		 * phonon/qt issue) */
 		localpkgs = alpm_list_diff(handle.getDBLocal().getPkgCacheList(),
-				trans.add, &_alpm_pkg_cmp);
+				trans.add.newToOld(), &_alpm_pkg_cmp);
 
 		/* Resolve packages in the transaction one at a time, in addition
 		   building up a list of packages which could not be resolved. */
-		for(auto i = trans.add; i; i = i.next) {
-			AlpmPkg pkg = cast(AlpmPkg)i.data;
-			if(_alpm_resolvedeps(handle, localpkgs, pkg, trans.add,
-						&resolved, remove, data) == -1) {
+		foreach(pkg; trans.add[]) {
+			if(_alpm_resolvedeps(handle, localpkgs, pkg, trans.add.newToOld(),
+						&resolved, remove.newToOld(), data) == -1) {
 				unresolvable.insertBack(pkg);
 			}
 			/* Else, [resolved] now additionally contains [pkg] and all of its
 			   dependencies not already on the list */
 		}
 		alpm_list_free(localpkgs);
-		alpm_list_free(remove);
 
 		/* If there were unresolvable top-level packages, prompt the user to
 		   see if they'd like to ignore them rather than failing the sync */
@@ -495,8 +491,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 		 * holds to package objects. */
 		trans.unresolvable = unresolvable;
 
-		alpm_list_free(trans.add);
-		trans.add = resolved;
+		trans.add = oldToNewList!AlpmPkg(resolved);
 
 		event = new AlpmEventResolveDeps(AlpmEventDefStatus.Done);
 		EVENT(handle, event);
@@ -511,7 +506,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* 1. check for conflicts in the target list */
 		logger.tracef("check targets vs targets\n");
-		deps = _alpm_innerconflicts(handle, trans.add);
+		deps = _alpm_innerconflicts(handle, trans.add.newToOld());
 
 		for(auto i = deps; i; i = i.next) {
 			AlpmConflict conflict = cast(AlpmConflict)i.data;
@@ -566,7 +561,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("removing '%s-%s' from target list because it conflicts with '%s-%s'\n"),
 					rsync.name, rsync.version_, sync.name, sync.version_);
-			trans.add = alpm_list_remove(trans.add, cast(void*)rsync, &_alpm_pkg_cmp, null);
+			trans.add.linearRemoveElement(rsync);
 			/* rsync is not a transaction target anymore */
 			trans.unresolvable.insertBack(rsync);
 		}
@@ -577,7 +572,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* 2. we check for target vs db conflicts (and resolve)*/
 		logger.tracef("check targets vs db and db vs targets\n");
-		deps = handle.getDBLocal.outerConflicts(trans.add);
+		deps = handle.getDBLocal.outerConflicts(trans.add.newToOld);
 
 		for(auto i = deps; i; i = i.next) {
 			AlpmConflict conflict = cast(AlpmConflict)i.data;
@@ -591,8 +586,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			if(alpm_pkg_find_n(trans.remove, name2)) {
 				found = 1;
 			}
-			for(j = trans.add; j && !found; j = j.next) {
-				AlpmPkg spkg = cast(AlpmPkg)j.data;
+			foreach(spkg; trans.add[]) {
 				if(alpm_pkg_find_n(spkg.removes, name2)) {
 				// if(spkg.removes[].canFind)
 					found = 1;
@@ -634,8 +628,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	}
 
 	/* Build trans->remove list */
-	for(auto i = trans.add; i; i = i.next) {
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
+	foreach(spkg; trans.add[]) {
 		foreach(rpkg; spkg.removes[]) {
 			// AlpmPkg rpkg = cast(AlpmPkg)j.data;
 			if(!alpm_pkg_find_n(trans.remove, rpkg.name)) {
@@ -644,7 +637,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 				if((copy = rpkg.dup) !is null) {
 					return -1;
 				}
-				trans.remove = alpm_list_add(trans.remove, cast(void*)copy);
+				trans.remove.insertBack(copy);
 			}
 		}
 	}
@@ -652,7 +645,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
 		logger.tracef("checking dependencies\n");
 		deps = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
-				trans.remove, trans.add, 1);
+				trans.remove.newToOld(), trans.add.newToOld(), 1);
 		if(deps) {
 			(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
 			ret = -1;
@@ -666,9 +659,8 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 			goto cleanup;
 		}
 	}
-	for(auto i = trans.add; i; i = i.next) {
+	foreach(spkg; trans.add) {
 		/* update download size field */
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		AlpmPkg lpkg = handle.getDBLocal.getPkg(spkg.name);
 		if(compute_download_size(spkg) < 0) {
 			ret = -1;
@@ -719,9 +711,7 @@ private int prompt_to_delete(AlpmHandle handle,   char*filepath, alpm_errno_t re
 
 private int find_dl_candidates(AlpmHandle handle, alpm_list_t** files)
 {
-	for(alpm_list_t* i = handle.trans.add; i; i = i.next) {
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
-
+	foreach(spkg; handle.trans.add) {
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
 			AlpmDB repo = spkg.origin_data.db;
 			bool need_download = void;
@@ -874,8 +864,7 @@ finish:
 		alpm_list_free(files);
 	}
 
-	for(i = handle.trans.add; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
+	foreach(pkg; handle.trans.add) {
 		pkg.infolevel &= ~AlpmDBInfRq.DSize;
 		pkg.download_size = 0;
 	}
@@ -999,7 +988,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 	event = new AlpmEventIntegrity(AlpmEventDefStatus.Start);
 	EVENT(handle, event);
 
-	for(i = handle.trans.add; i; i = i.next, current++) {
+	foreach(pkg; handle.trans.add) {
 		validity v = { cast(AlpmPkg)i.data, null, null, 0, 0, cast(alpm_errno_t)0 };
 		int percent = cast(int)((cast(double)current_bytes / total_bytes) * 100);
 
@@ -1033,6 +1022,8 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 			free(v.path);
 			v.pkg.validation = v.validation;
 		}
+
+		current++;
 	}
 
 	PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", 100,
@@ -1184,9 +1175,8 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 
 	EVENT(handle, event);
 
-	for(i = handle.trans.add; i; i = i.next, current++) {
+	foreach(spkg; handle.trans.add) {
 		int error = 0;
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
 		char* filepath = void;
 		int percent = cast(int)((cast(double)current_bytes / total_bytes) * 100);
 
@@ -1238,6 +1228,8 @@ private int load_packages(AlpmHandle handle, alpm_list_t** data, size_t total, s
 		 * sync-specific fields */
 		// _alpm_pkg_free_trans(spkg);
 		spkg.freeTrans();
+
+		current++;
 	}
 
 	PROGRESS(handle, ALPM_PROGRESS_LOAD_START, "", 100,
@@ -1280,8 +1272,7 @@ version (HAVE_LIBGPGME) {
 
 	/* get the total size of all packages so we can adjust the progress bar more
 	 * realistically if there are small and huge packages involved */
-	for(i = trans.add; i; i = i.next) {
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
+	foreach(spkg; trans.add) {
 		if(spkg.origin != ALPM_PKG_FROM_FILE) {
 			total_bytes += spkg.size;
 		}
@@ -1317,7 +1308,7 @@ int _alpm_sync_check(AlpmHandle handle, alpm_list_t** data)
 
 		logger.tracef("looking for file conflicts\n");
 		alpm_list_t* conflict = _alpm_db_find_fileconflicts(handle,
-				trans.add, trans.remove);
+				newToOld(trans.add), newToOld(trans.remove));
 		if(conflict) {
 			if(data) {
 				*data = conflict;
@@ -1356,7 +1347,7 @@ int _alpm_sync_commit(AlpmHandle handle)
 	AlpmTrans trans = handle.trans;
 
 	/* remove conflicting and to-be-replaced packages */
-	if(trans.remove) {
+	if(!trans.remove.empty()) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				"removing conflicting and to-be-replaced packages\n");
 		/* we want the frontend to be aware of commit details */

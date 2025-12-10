@@ -14,6 +14,8 @@ import core.sys.posix.unistd;
 import core.stdc.stdint; /* int64_t */
 import derelict.libarchive;
 import std.string;
+import std.range;
+
 import libalpmd.add;
 import libalpmd.alpm;
 import libalpmd.alpm_list;
@@ -88,7 +90,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	pkg.reason = ALPM_PKG_REASON_EXPLICIT;
 	logger.tracef("adding package %s-%s to the transaction add list\n",
 						pkgname, pkgver);
-	trans.add = alpm_list_add(trans.add, cast(void*)pkg);
+	trans.add.insertBack(pkg);
 
 	return 0;
 }
@@ -639,16 +641,15 @@ int _alpm_upgrade_packages(AlpmHandle handle)
 	alpm_list_t* targ = void;
 	AlpmTrans trans = handle.trans;
 
-	if(trans.add == null) {
+	if(trans.add.empty) {
 		return 0;
 	}
 
-	pkg_count = alpm_list_count(trans.add);
+	pkg_count = trans.add[].walkLength();
 	pkg_current = 1;
 
 	/* loop through our package list adding/upgrading one at a time */
-	for(targ = trans.add; targ; targ = targ.next) {
-		AlpmPkg newpkg = cast(AlpmPkg)targ.data;
+	foreach(newpkg; handle.trans.add[]) {
 
 		if(handle.trans.state == AlpmTransState.Interrupted) {
 			return ret;

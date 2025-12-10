@@ -259,8 +259,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 	int ret = 0;
 
 	/* check if file will be installed */
-	for(i = handle.trans.add; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
+	foreach(pkg; handle.trans.add[]) {
 		AlpmFileList filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
@@ -275,8 +274,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 	}
 
 	/* check if file will be removed due to package upgrade */
-	for(i = handle.trans.add; i; i = i.next) {
-		AlpmPkg spkg = cast(AlpmPkg)i.data;
+	foreach(spkg; handle.trans.add[]) {
 		AlpmPkg pkg = spkg.oldpkg;
 		if(pkg) {
 			AlpmFileList filelist = pkg.files;
@@ -291,8 +289,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 	}
 
 	/* check if file will be removed due to package removal */
-	for(i = handle.trans.remove; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
+	foreach(pkg; handle.trans.remove[]) {
 		AlpmFileList filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
@@ -370,8 +367,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 
 	if(t.op & AlpmHookOp.Install || t.op & AlpmHookOp.Upgrade) {
 		alpm_list_t* i = void;
-		for(i = handle.trans.add; i; i = i.next) {
-			AlpmPkg pkg = cast(AlpmPkg)i.data;
+		foreach(pkg; handle.trans.add[]) {
 			if(alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
 				if(pkg.oldpkg) {
 					if(t.op & AlpmHookOp.Upgrade) {
@@ -396,10 +392,9 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 
 	if(t.op & AlpmHookOp.Remove) {
 		alpm_list_t* i = void;
-		for(i = handle.trans.remove; i; i = i.next) {
-			AlpmPkg pkg = cast(AlpmPkg)i.data;
+		foreach(pkg; handle.trans.remove[]) {
 			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
-				if(!alpm_list_find(handle.trans.add, cast(void*)pkg, &_alpm_pkg_cmp)) {
+				if(!handle.trans.add[].canFind(pkg)) {
 					if(hook.needs_targets) {
 						remove.insertBack(pkg.name);
 					} else {

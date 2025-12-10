@@ -36,10 +36,10 @@ auto oldToNewList(T)(alpm_list_t* list) {
 	return newList;
 }
 
-auto newToOld(List)(List list) {
+auto newToOld(List)(List list_) {
 	alpm_list_t* list;
 
-	foreach (key; list) {
+	foreach (key; list_) {
 		list = alpm_list_add(list, cast(void*)key);
 	}
 

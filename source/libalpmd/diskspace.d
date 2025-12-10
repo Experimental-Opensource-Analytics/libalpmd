@@ -65,6 +65,7 @@ import core.sys.posix.sys.types;
 
 import std.algorithm;
 import std.conv;
+import std.range;
 
 /* libalpm */
 import libalpmd.diskspace;
@@ -520,7 +521,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 	alpm_list_t* targ = void;
 	AlpmTrans trans = handle.trans;
 
-	numtargs = alpm_list_count(trans.add);
+	numtargs = trans.add[].walkLength();
 	mount_points = mount_point_list(handle);
 	if(mount_points == null) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine filesystem mount points\n"));
@@ -534,27 +535,25 @@ int _alpm_check_diskspace(AlpmHandle handle)
 		goto finish;
 	}
 
-	replaces = alpm_list_count(trans.remove);
+	replaces = trans.remove[].walkLength();
 	if(replaces) {
 		numtargs += replaces;
-		for(targ = trans.remove; targ; targ = targ.next, current++) {
-			AlpmPkg local_pkg = void;
+		foreach(local_pkg; handle.trans.remove[]) {
 			int percent = cast(int)((current * 100) / numtargs);
 			PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
 					numtargs, current);
 
-			local_pkg = cast(AlpmPkg)targ.data;
+			// local_pkg = cast(AlpmPkg)targ.data;
 			calculate_removed_size(handle, mount_points, local_pkg);
 		}
 	}
 
-	for(targ = trans.add; targ; targ = targ.next, current++) {
-		AlpmPkg pkg = void, local_pkg = void;
+	foreach(pkg; handle.trans.add[]) {
+		AlpmPkg local_pkg = void;
 		int percent = cast(int)((current * 100) / numtargs);
 		PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
 				numtargs, current);
 
-		pkg = cast(AlpmPkg)targ.data;
 		/* is this package already installed? */
 		local_pkg = handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name);
 		if(local_pkg) {
@@ -568,6 +567,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 				data.max_blocks_needed = data.blocks_needed;
 			}
 		}
+		current++;
 	}
 
 	PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", 100,

@@ -90,9 +90,9 @@ class AlpmTrans {
 	int flags;
 	AlpmTransState state;
 	AlpmPkgs unresolvable;  /* list of (AlpmPkg) */
-	alpm_list_t* add;           /* list of (AlpmPkg) */
-	alpm_list_t* remove;        /* list of (AlpmPkg) */
-	alpm_list_t* skip_remove;   /* list of (char *) */
+	AlpmPkgs add;           /* list of (AlpmPkg) */
+	AlpmPkgs remove;        /* list of (AlpmPkg) */
+	AlpmStrings skip_remove;   /* list of (char *) */
 
 	this(int flags) {
 		this.flags = flags;
@@ -177,11 +177,11 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 	ASSERT(trans.state == AlpmTransState.Initialized);
 
 	/* If there's nothing to do, return without complaining */
-	if(trans.add == null && trans.remove == null) {
+	if(trans.add.empty() && trans.remove.empty()) {
 		return 0;
 	}
 
-	alpm_list_t* invalid = check_arch(handle, oldToNewList!AlpmPkg(trans.add));
+	alpm_list_t* invalid = check_arch(handle, trans.add);
 	if(invalid) {
 		if(data) {
 			*data = invalid;
@@ -189,7 +189,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 		RET_ERR(handle, ALPM_ERR_PKG_INVALID_ARCH, -1);
 	}
 
-	if(trans.add == null) {
+	if(trans.add.empty()) {
 		if(_alpm_remove_prepare(handle, data) == -1) {
 			/* pm_errno is set by _alpm_remove_prepare() */
 			return -1;
@@ -204,14 +204,14 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
 		logger.tracef("sorting by dependencies\n");
-		if(trans.add) {
-			alpm_list_t* add_orig = trans.add;
-			trans.add = _alpm_sortbydeps(handle, add_orig, trans.remove, 0);
+		if(!trans.add.empty()) {
+			alpm_list_t* add_orig = newToOld(trans.add);
+			trans.add = oldToNewList!AlpmPkg(_alpm_sortbydeps(handle, add_orig, newToOld(trans.remove), 0));
 			alpm_list_free(add_orig);
 		}
-		if(trans.remove) {
-			alpm_list_t* rem_orig = trans.remove;
-			trans.remove = _alpm_sortbydeps(handle, rem_orig, null, 1);
+		if(!trans.remove.empty()) {
+			alpm_list_t* rem_orig = newToOld(trans.remove);
+			trans.remove = oldToNewList!AlpmPkg(_alpm_sortbydeps(handle, rem_orig, newToOld(trans.remove), 0));
 			alpm_list_free(rem_orig);
 		}
 	}
@@ -236,11 +236,11 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	//ASSERT(!(trans.flags & ALPM_TRANS_FLAG_NOLOCK));
 
 	/* If there's nothing to do, return without complaining */
-	if(trans.add == null && trans.remove == null) {
+	if(trans.add.empty() && trans.remove.empty()) {
 		return 0;
 	}
 
-	if(trans.add) {
+	if(!trans.add.empty()) {
 		if(_alpm_sync_load(handle, data) != 0) {
 			/* pm_errno is set by _alpm_sync_load() */
 			return -1;
@@ -265,7 +265,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 	event = new AlpmEventTransaction(AlpmEventDefStatus.Start);
 	EVENT(handle, event);
 
-	if(trans.add == null) {
+	if(trans.add.empty()) {
 		if(_alpm_remove_packages(handle, 1) == -1) {
 			/* pm_errno is set by _alpm_remove_packages() */
 			alpm_errno_t save = handle.pm_errno;
@@ -342,17 +342,13 @@ void _alpm_trans_free(AlpmTrans trans)
 		return;
 	}
 
-	// alpm_list_free_inner(trans.unresolvable,
-			// cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
-	// alpm_list_free(trans.unresolvable);
-	alpm_list_free_inner(trans.add, cast(alpm_list_fn_free)&_alpm_pkg_free_trans);
-	alpm_list_free(trans.add);
-	alpm_list_free_inner(trans.remove, cast(alpm_list_fn_free)&_alpm_pkg_free);
-	alpm_list_free(trans.remove);
+	trans.unresolvable.clear();
+	trans.add.clear();
+	trans.remove.clear();
 
-	FREELIST(trans.skip_remove);
+	// FREELIST(trans.skip_remove);
 
-	FREE(trans);
+	// FREE(trans);
 }
 
 /* A cheap grep for text files, returns 1 if a substring
@@ -480,12 +476,12 @@ int  alpm_trans_get_flags(AlpmHandle handle)
 	return handle.trans.flags;
 }
 
-alpm_list_t * alpm_trans_get_add(AlpmHandle handle)
+AlpmPkgs alpm_trans_get_add(AlpmHandle handle)
 {
 	return handle.trans.add;
 }
 
-alpm_list_t * alpm_trans_get_remove(AlpmHandle handle)
+AlpmPkgs alpm_trans_get_remove(AlpmHandle handle)
 {
 	return handle.trans.remove;
 }
