@@ -9,6 +9,8 @@ import std.regex;
 /* libalpm */
 // import libalpmd.db;
 import libalpmd.alpm_list;
+import libalpmd.alpm_list.alpm_list_new;
+
 import std.conv;
 import libalpmd.log;
 import libalpmd.util;
@@ -172,20 +174,19 @@ class AlpmDB {
 	/**
 	* @brief Returns a list of conflicts between a db and a list of packages.
 	*/
-	alpm_list_t* outerConflicts(alpm_list_t* packages)
+	AlpmConflicts outerConflicts(AlpmPkgs packages)
 	{
-		alpm_list_t* baddeps = null;
+		AlpmConflicts baddeps;
 
-		alpm_list_t* dblist = alpm_list_diff(this.getPkgCacheList(),
-				packages, &_alpm_pkg_cmp);
+		AlpmPkgs dblist = alpm_list_diff(this.getPkgCacheList(),
+				packages.newToOld(), &_alpm_pkg_cmp).oldToNewList!AlpmPkg();
 
 		/* two checks to be done here for conflicts */
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "check targets vs db\n");
-		check_conflict(this.handle, packages, dblist, &baddeps, 1);
+		check_conflict(this.handle, packages, dblist, baddeps, 1);
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "check db vs targets\n");
-		check_conflict(this.handle, dblist, packages, &baddeps, -1);
+		check_conflict(this.handle, dblist, packages, baddeps, -1);
 
-		alpm_list_free(dblist);
 		return baddeps;
 	}
 

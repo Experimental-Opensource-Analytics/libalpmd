@@ -99,15 +99,15 @@ void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
  *
  * @return 0 on success, -1 on error
  */
-private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
+private int add_conflict(AlpmHandle handle, ref AlpmConflicts baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
 {
 	AlpmConflict conflict = new AlpmConflict(pkg1, pkg2, reason);
 	if(!conflict) {
 		return -1;
 	}
-	if(!conflict_isin(conflict, *baddeps)) {
+	if(!conflict_isin(conflict, baddeps)) {
 		char* conflict_str = alpm_dep_compute_string(reason);
-		*baddeps = alpm_list_add(*baddeps, cast(void*)conflict);
+		baddeps.insertBack(conflict);
 		logger.tracef("package %s conflicts with %s (by %s)\n",
 				pkg1.name, pkg2.name, conflict_str);
 		free(conflict_str);
@@ -131,23 +131,18 @@ private int add_conflict(AlpmHandle handle, alpm_list_t** baddeps, AlpmPkg pkg1,
  * @param baddeps list to store conflicts
  * @param order if >= 0 the conflict order is preserved, if < 0 it's reversed
  */
-void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* list2, alpm_list_t** baddeps, int order)
+void check_conflict(AlpmHandle handle, AlpmPkgs list1, AlpmPkgs  list2, ref AlpmConflicts baddeps, int order)
 {
 	alpm_list_t* i = void;
 
-	if(!baddeps) {
+	if(baddeps.empty()) {
 		return;
 	}
-	for(i = list1; i; i = i.next) {
-		AlpmPkg pkg1 = cast(AlpmPkg)i.data;
-		// alpm_list_t* j = void;
-
+	foreach(pkg1; list1[]) {
 		foreach(conflict1; pkg1.getConflicts()[]) {
-			// AlpmDepend conflict = cast(AlpmDepend )j.data;
 			alpm_list_t* k = void;
 
-			for(k = list2; k; k = k.next) {
-				AlpmPkg pkg2 = cast(AlpmPkg)k.data;
+			foreach(pkg2; list2[]) {
 
 				if(pkg1.name_hash == pkg2.name_hash
 						&& pkg1.name == pkg2.name) {
@@ -175,17 +170,17 @@ void check_conflict(AlpmHandle handle, alpm_list_t* list1, alpm_list_t* list2, a
  *
  * @return list of conflicts
  */
-alpm_list_t* _alpm_innerconflicts(AlpmHandle handle, alpm_list_t* packages)
+AlpmConflicts _alpm_innerconflicts(AlpmHandle handle, AlpmPkgs packages)
 {
-	alpm_list_t* baddeps = null;
+	AlpmConflicts baddeps;
 
 	logger.tracef("check targets vs targets\n");
-	check_conflict(handle, packages, packages, &baddeps, 0);
+	check_conflict(handle, packages, packages, baddeps, 0);
 
 	return baddeps;
 }
 
-alpm_list_t * alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist)
+AlpmConflicts alpm_checkconflicts(AlpmHandle handle, AlpmPkgs pkglist)
 {
 	return _alpm_innerconflicts(handle, pkglist);
 }

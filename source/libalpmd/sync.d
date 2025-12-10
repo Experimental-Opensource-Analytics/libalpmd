@@ -506,7 +506,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* 1. check for conflicts in the target list */
 		logger.tracef("check targets vs targets\n");
-		deps = _alpm_innerconflicts(handle, trans.add.newToOld());
+		deps = _alpm_innerconflicts(handle, trans.add).newToOld();
 
 		for(auto i = deps; i; i = i.next) {
 			AlpmConflict conflict = cast(AlpmConflict)i.data;
@@ -572,7 +572,7 @@ int _alpm_sync_prepare(AlpmHandle handle, alpm_list_t** data)
 
 		/* 2. we check for target vs db conflicts (and resolve)*/
 		logger.tracef("check targets vs db and db vs targets\n");
-		deps = handle.getDBLocal.outerConflicts(trans.add.newToOld);
+		deps = handle.getDBLocal.outerConflicts(trans.add).newToOld();
 
 		for(auto i = deps; i; i = i.next) {
 			AlpmConflict conflict = cast(AlpmConflict)i.data;

@@ -19,11 +19,10 @@ import libalpmd.pkg;
  *
  * @return 1 if needle is in haystack, 0 otherwise
  */
-int conflict_isin(AlpmConflict needle, alpm_list_t* haystack)
+int conflict_isin(AlpmConflict needle, AlpmConflicts haystack)
 {
 	alpm_list_t* i = void;
-	for(i = haystack; i; i = i.next) {
-		AlpmConflict conflict = cast(AlpmConflict)i.data;
+	foreach(conflict; haystack) {
 		if(needle.package1.name_hash == conflict.package1.name_hash
 				&& needle.package2.name_hash == conflict.package2.name_hash
 				&& needle.package1.name == conflict.package1.name
