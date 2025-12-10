@@ -5,7 +5,7 @@ import core.stdc.stdlib;
 import std.container : DList;
 import std.range;
 import std.algorithm;
-
+import libalpmd.alpm_list.alpm_list_old : alpm_list_t, alpm_list_add;
 import libalpmd.alpm_list.searching;
 
 ///Alias for standart DList;
@@ -25,6 +25,26 @@ auto alpmStringsDup(AlpmStrings strings) {
 
 alias AlpmList(Item) = DList!Item;
 
+auto oldToNewList(T)(alpm_list_t* list) {
+	auto old = list;
+	AlpmList!T newList;
+	while(old) {
+		newList.insertBack(cast(T)list.data);
+		old = old.next;
+	}
+
+	return newList;
+}
+
+auto newToOld(List)(List list) {
+	alpm_list_t* list;
+
+	foreach (key; list) {
+		list = alpm_list_add(list, cast(void*)key);
+	}
+
+	return list;
+}
 
 ///Lazy sorting function dor AlpmList
 struct LazySortedRange(T) {
