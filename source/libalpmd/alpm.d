@@ -64,24 +64,6 @@ alias AlpmTime = long;
  * @{
  */
 
-/** @addtogroup libalpm_groups Groups
- * @brief Functions for package groups
- * @{
- */
-
-// /** Find group members across a list of databases.
-//  * If a member exists in several databases, only the first database is used.
-//  * IgnorePkg is also handled.
-//  * @param dbs the list of AlpmDB
-//  * @param name the name of the group
-//  * @return the list of AlpmPkg (caller is responsible for alpm_list_free)
-//  */
-// alpm_list_t* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name);
-
-/* End of libalpm_groups */
-/** @} */
-
-
 /** @addtogroup libalpm_errors Error Codes
  * Error codes returned by libalpm.
  * @{
@@ -451,16 +433,6 @@ import libalpmd.pkg;
  * @{
  */
 
-
-/** Find group members across a list of databases.
- * If a member exists in several databases, only the first database is used.
- * IgnorePkg is also handled.
- * @param dbs the list of AlpmDB
- * @param name the name of the group
- * @return the list of AlpmPkg (caller is responsible for alpm_list_free)
- */
-alpm_list_t* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name);
-
 /* End of libalpm_groups */
 /** @} */
 
@@ -525,42 +497,7 @@ int alpm_db_check_pgp_signature(AlpmDB db, alpm_siglist_t* siglist);
  */
 int alpm_siglist_cleanup(alpm_siglist_t* siglist);
 
-/**
- * Extract the Issuer Key ID from a signature
- * @param handle the context handle
- * @param identifier the identifier of the key.
- * This may be the name of the package or the path to the package.
- * @param sig PGP signature
- * @param len length of signature
- * @param keys a pointer to storage for key IDs
- * @return 0 on success, -1 on error
- */
-// int alpm_extract_keyid(AlpmHandle handle, const(char)* identifier, const(ubyte)* sig, const(size_t) len, alpm_list_t** keys);
-
 /* End of libalpm_sig */
-
-/** Find a package satisfying a specified dependency.
- * First look for a literal, going through each db one by one. Then look for
- * providers. The first satisfyer that belongs to an installed package is
- * returned. If no providers belong to an installed package then an
- * alpm_question_select_provider_t is created to select the provider.
- * The dependency can include versions with depmod operators.
- *
- * @param handle the context handle
- * @param dbs an alpm_list_t* of alpm_db_t where the satisfyer will be searched
- * @param depstring package or provision name, versioned or not
- * @return a AlpmPkg satisfying depstring
- */
-AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, alpm_list_t* dbs, const(char)* depstring);
-
-/** Check the package conflicts in a database
- *
- * @param handle the context handle
- * @param pkglist the list of packages to check
- *
- * @return an alpm_list_t of alpm_conflict_t
- */
-alpm_list_t* alpm_checkconflicts(AlpmHandle handle, alpm_list_t* pkglist);
 
 /** An enum over different kinds of progress alerts. */
 enum alpm_progress_t {
@@ -639,15 +576,6 @@ alias alpm_cb_fetch = int function(void* ctx, const(char)* url, const(char)* loc
  */
 AlpmDB alpm_get_localdb(AlpmHandle handle);
 
-/** Get the list of sync databases.
- * Returns a list of alpm_db_t structures, one for each registered
- * sync database.
- *
- * @param handle the context handle
- * @return a reference to an internal list of alpm_db_t structures
- */
-alpm_list_t* alpm_get_syncdbs(AlpmHandle handle);
-
 /** Register a sync database of packages.
  * Databases can not be registered when there is an active transaction.
  *
@@ -687,59 +615,6 @@ AlpmHandle alpm_db_get_handle(AlpmDB db);
  */
 const(char)* alpm_db_get_name( AlpmDB db);
 
-/** Check the validity of a database.
- * This is most useful for sync databases and verifying signature status.
- * If invalid, the handle error code will be set accordingly.
- * @param db pointer to the package database
- * @return 0 if valid, -1 if invalid (pm_errno is set accordingly)
- */
-int alpm_db_get_valid(AlpmDB db);
-
-/** @name Server accessors
- * @{
- */
-
-/** Get the list of servers assigned to this db.
- * @param db pointer to the database to get the servers from
- * @return a char* list of servers
- */
-alpm_list_t* alpm_db_get_servers( AlpmDB db);
-
-/** Sets the list of servers for the database to use.
- * @param db the database to set the servers. The list will be duped and
- * the original will still need to be freed by the caller.
- * @param servers a char* list of servers.
- */
-int alpm_db_set_servers(AlpmDB db, alpm_list_t* servers);
-
-/** Add a download server to a database.
- * @param db database pointer
- * @param url url of the server
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
-int alpm_db_add_server(AlpmDB db, const(char)* url);
-
-/** Remove a download server from a database.
- * @param db database pointer
- * @param url url of the server
- * @return 0 on success, 1 on server not present,
- * -1 on error (pm_errno is set accordingly)
- */
-int alpm_db_remove_server(AlpmDB db, const(char)* url);
-
-/** Get the list of cache servers assigned to this db.
- * @param db pointer to the database to get the servers from
- * @return a char* list of servers
- */
-// alpm_list_t* alpm_db_get_cache_servers( AlpmDB db);
-
-/** Sets the list of cache servers for the database to use.
- * @param db the database to set the servers. The list will be duped and
- * the original will still need to be freed by the caller.
- * @param servers a char* list of servers.
- */
-int alpm_db_set_cache_servers(AlpmDB db, alpm_list_t* servers);
-
 /** Add a download cache server to a database.
  * @param db database pointer
  * @param url url of the server
@@ -757,35 +632,6 @@ int alpm_db_remove_cache_server(AlpmDB db, const(char)* url);
 
 /* End of server accessors */
 /** @} */
-
-/** Get the group cache of a package database.
- * @param db pointer to the package database to get the group from
- * @return the list of groups on success, NULL on error
- */
-alpm_list_t* alpm_db_get_groupcache(AlpmDB db);
-
-/** Searches a database with regular expressions.
- * @param db pointer to the package database to search in
- * @param needles a list of regular expressions to search for
- * @param ret pointer to list for storing packages matching all
- * regular expressions - must point to an empty (NULL) alpm_list_t *.
- * @return 0 on success, -1 on error (pm_errno is set accordingly)
- */
-int alpm_db_search(AlpmDB db, alpm_list_t* needles, alpm_list_t** ret);
-
-/** The usage level of a database. */
-enum AlpmDBUsage {
-       /** Enable refreshes for this database */
-       Sync = 1,
-       /** Enable search for this database */
-       Search = (1 << 1),
-       /** Enable installing packages from this database */
-       Install = (1 << 2),
-       /** Enable sysupgrades with this database */
-       Upgrade = (1 << 3),
-       /** Enable all usage levels */
-       All = (1 << 4) - 1,
-}
 
 /** @name Usage accessors
  * @{
