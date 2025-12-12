@@ -123,7 +123,7 @@ alias MOUNT_FSINFO_LOADED = mount_fsinfo.MOUNT_FSINFO_LOADED;
 alias MOUNT_FSINFO_FAIL = mount_fsinfo.MOUNT_FSINFO_FAIL;
 
 
-struct alpm_mountpoint_t {
+class AlpmMountPoint {
 	/* mount point information */
 	string mount_dir;
 	size_t mount_dir_len;
@@ -138,8 +138,8 @@ struct alpm_mountpoint_t {
 
 private int mount_point_cmp(void* p1,void* p2)
 {
-	alpm_mountpoint_t* mp1 = cast(alpm_mountpoint_t*)p1;
-	alpm_mountpoint_t* mp2 = cast(alpm_mountpoint_t*)p2;
+	AlpmMountPoint mp1 = cast(AlpmMountPoint)p1;
+	AlpmMountPoint mp2 = cast(AlpmMountPoint)p2;
 	/* the negation will sort all mountpoints before their parent */
 	return -cmp(mp1.mount_dir, mp2.mount_dir);
 }
@@ -149,13 +149,13 @@ private void mount_point_list_free(alpm_list_t* mount_points)
 	alpm_list_t* i = void;
 
 	for(i = mount_points; i; i = i.next) {
-		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)i.data;
+		AlpmMountPoint data = cast(AlpmMountPoint)i.data;
 		FREE(data.mount_dir);
 	}
 	FREELIST(mount_points);
 }
 
-private int mount_point_load_fsinfo(AlpmHandle handle, alpm_mountpoint_t* mountpoint)
+private int mount_point_load_fsinfo(AlpmHandle handle, AlpmMountPoint mountpoint)
 {
 version (HAVE_GETMNTENT) {
 	/* grab the filesystem usage */
@@ -181,7 +181,7 @@ version (HAVE_GETMNTENT) {
 private alpm_list_t* mount_point_list(AlpmHandle handle)
 {
 	alpm_list_t* mount_points = null, ptr = void;
-	alpm_mountpoint_t* mp = void;
+	AlpmMountPoint mp = void;
 
 static if (HasVersion!"HAVE_GETMNTENT" && HasVersion!"HAVE_MNTENT_H") {
 	/* Linux */
@@ -279,18 +279,18 @@ static if (HasVersion!"HAVE_GETMNTINFO_STATVFS" && HasVersion!"HAVE_STRUCT_STATV
 	mount_points = alpm_list_msort(mount_points, alpm_list_count(mount_points),
 			&mount_point_cmp);
 	for(ptr = mount_points; ptr != null; ptr = ptr.next) {
-		mp = cast(alpm_mountpoint_t*)ptr.data;
+		mp = cast(AlpmMountPoint)ptr.data;
 		logger.tracef("discovered mountpoint: %s\n", mp.mount_dir);
 	}
 	return mount_points;
 }
 
-private alpm_mountpoint_t* match_mount_point( alpm_list_t* mount_points,   char*real_path)
+private AlpmMountPoint match_mount_point( alpm_list_t* mount_points,   char*real_path)
 {
 	 alpm_list_t* mp = void;
 
 	for(mp = mount_points; mp != null; mp = mp.next) {
-		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)mp.data;
+		AlpmMountPoint data = cast(AlpmMountPoint)mp.data;
 
 		/* first, check if the prefix matches */
 		if(cmp(data.mount_dir, real_path.to!string) == 0) {
@@ -324,7 +324,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 
 	for(i = 0; i < filelist.length; i++) {
 		AlpmFile* file = &filelist[i];
-		alpm_mountpoint_t* mp = void;
+		AlpmMountPoint mp = void;
 		stat_t st = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t remove_size = void;
@@ -347,7 +347,7 @@ private int calculate_removed_size(AlpmHandle handle,  alpm_list_t* mount_points
 		}
 
 		mp = match_mount_point(mount_points, path.ptr);
-		if(mp == null) {
+		if(mp is null) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("could not determine mount point for file %s\n"), filename);
 			continue;
@@ -385,7 +385,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 
 	for(i = 0; i < filelist.length; i++) {
 		AlpmFile* file = &filelist[i];
-		alpm_mountpoint_t* mp = void;
+		AlpmMountPoint mp = void;
 		char[PATH_MAX] path = void;
 		blkcnt_t install_size = void;
 		string filename = file.name;
@@ -405,7 +405,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 		snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename.ptr);
 
 		mp = match_mount_point(mount_points, path.ptr);
-		if(mp == null) {
+		if(mp is null) {
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("could not determine mount point for file %s\n"), filename.ptr);
 			continue;
@@ -432,7 +432,7 @@ private int calculate_installed_size(AlpmHandle handle,  alpm_list_t* mount_poin
 	return 0;
 }
 
-private int check_mountpoint(AlpmHandle handle, alpm_mountpoint_t* mp)
+private int check_mountpoint(AlpmHandle handle, AlpmMountPoint mp)
 {
 	/* cushion is roughly min(5% capacity, 20MiB) */
 	fsblkcnt_t fivepc = (mp.fsp.f_blocks / 20) + 1;
@@ -456,7 +456,7 @@ private int check_mountpoint(AlpmHandle handle, alpm_mountpoint_t* mp)
 int _alpm_check_downloadspace(AlpmHandle handle,   char*cachedir, size_t num_files,  off_t* file_sizes)
 {
 	alpm_list_t* mount_points = void;
-	alpm_mountpoint_t* cachedir_mp = void;
+	AlpmMountPoint cachedir_mp = void;
 	char[PATH_MAX] resolved_cachedir = void;
 	size_t j = void;
 	int error = 0;
@@ -475,7 +475,7 @@ int _alpm_check_downloadspace(AlpmHandle handle,   char*cachedir, size_t num_fil
 	}
 
 	cachedir_mp = match_mount_point(mount_points, cachedir);
-	if(cachedir_mp == null) {
+	if(cachedir_mp is null) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine cachedir mount point %s\n"),
 				cachedir);
 		error = 1;
@@ -515,7 +515,7 @@ finish:
 int _alpm_check_diskspace(AlpmHandle handle)
 {
 	alpm_list_t* mount_points = void, i = void;
-	alpm_mountpoint_t* root_mp = void;
+	AlpmMountPoint root_mp = void;
 	size_t replaces = 0, current = 0, numtargs = void;
 	int error = 0;
 	alpm_list_t* targ = void;
@@ -528,7 +528,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 		return -1;
 	}
 	root_mp = match_mount_point(mount_points, cast(char*)handle.root.ptr);
-	if(root_mp == null) {
+	if(root_mp is null) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine root mount point %s\n"),
 				handle.root);
 		error = 1;
@@ -562,7 +562,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 		calculate_installed_size(handle, mount_points, pkg);
 
 		for(i = mount_points; i; i = i.next) {
-			alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)i.data;
+			AlpmMountPoint data = cast(AlpmMountPoint)i.data;
 			if(data.blocks_needed > data.max_blocks_needed) {
 				data.max_blocks_needed = data.blocks_needed;
 			}
@@ -574,7 +574,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 			numtargs, current);
 
 	for(i = mount_points; i; i = i.next) {
-		alpm_mountpoint_t* data = cast(alpm_mountpoint_t*)i.data;
+		AlpmMountPoint data = cast(AlpmMountPoint)i.data;
 		if(data.used && data.read_only) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("Partition %s is mounted read only\n"),
 					data.mount_dir);
