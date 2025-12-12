@@ -1,6 +1,6 @@
-module libalpmd.filelist;
+module libalpmd.file.filelist;
 @nogc  
-   
+
 /*
  *  filelist.c
  *
@@ -26,30 +26,20 @@ import core.sys.posix.sys.stat;
 import core.sys.posix.stdlib;
 
 /* libalpm */
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.util;
 import libalpmd.alpm_list;
 import libalpmd.alpm;
 import std.conv;
 
-/** File in a package */
-struct AlpmFile {
-		/** Name of the file */
-		string name;
-		/** Size of the file */
-		off_t size;
-		/** The file's permissions */
-		mode_t mode;
 
-	   	AlpmFile dup(){
-			auto dest = AlpmFile();
-			dest.name = this.name.idup;
-			dest.size = this.size;
-			dest.mode = this.mode;
+// class AlpmFileList {
+// 	AlpmFile[]	 files;
 
-			return dest;
-		}
-}
+// 	size_t[2] opSlice(size_t start, size_t end) {
+// 		return [start, end];
+// 	}
+// }
 
 alias AlpmFileList = AlpmFile[];
 

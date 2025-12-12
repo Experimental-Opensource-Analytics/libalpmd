@@ -35,7 +35,7 @@ import libalpmd.util_common;
 import libalpmd.pkg;
 import libalpmd.consts;
 import libalpmd.db;
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.deps;
 
 

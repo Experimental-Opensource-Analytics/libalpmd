@@ -30,7 +30,7 @@ import core.stdc.errno;
 import std.algorithm;
 import libalpmd.util;
 
-import libalpmd.filelist;
+import libalpmd.file;
 // import libalpmd.be_package;
 import libalpmd.libarchive_compat;
 import libalpmd.pkg;;

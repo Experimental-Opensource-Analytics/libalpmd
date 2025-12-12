@@ -60,6 +60,8 @@ import libalpmd.deps;
 import libalpmd.error;
 import libalpmd.question;
 import libalpmd.event;
+import libalpmd.file;
+
 
 import std.conv;
 

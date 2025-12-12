@@ -49,7 +49,7 @@ import libalpmd.alpm;
 import libalpmd.handle;
 import libalpmd.pkg;
 import libalpmd.deps;
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.libarchive_compat;
 import std.conv;
 import std.string;

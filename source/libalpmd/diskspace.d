@@ -76,7 +76,7 @@ import libalpmd.trans;
 import libalpmd.handle;
 import libalpmd.pkg;
 import core.sys.posix.sys.statvfs;
-import libalpmd.filelist;import core.sys.posix.unistd;
+import libalpmd.file;import core.sys.posix.unistd;
 import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.errno;

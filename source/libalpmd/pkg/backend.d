@@ -50,7 +50,7 @@ import libalpmd.log;
 import libalpmd.handle;
 import libalpmd.pkg;
 import libalpmd.deps;
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.util;
 import derelict.libarchive;
 import libalpmd.db;

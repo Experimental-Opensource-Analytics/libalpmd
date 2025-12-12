@@ -52,7 +52,7 @@ import libalpmd.alpm_list;
 import libalpmd.handle;
 import libalpmd.log;
 import libalpmd.util;
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.question;
 
 /** The time type used by libalpm. Represents a unix time stamp

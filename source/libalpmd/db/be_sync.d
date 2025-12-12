@@ -46,7 +46,7 @@ import libalpmd.pkg;
 import libalpmd.handle;
 import libalpmd.deps;
 import libalpmd.dload;
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.db;
 import core.stdc.stdlib;
 import libalpmd.pkghash;

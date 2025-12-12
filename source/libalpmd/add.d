@@ -29,7 +29,7 @@ import libalpmd.pkg;
 import libalpmd.db;
 import libalpmd.remove;
 import libalpmd.handle;
-import libalpmd.filelist;
+import libalpmd.file;
 import libalpmd.event;
 
 
