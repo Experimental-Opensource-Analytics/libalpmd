@@ -38,6 +38,7 @@ import core.sys.posix.unistd;
 /* libalpm */
 import std.conv;
 import std.file;
+import std.range;
 
 import libalpmd.alpm_list;
 import libalpmd.util;
@@ -57,6 +58,8 @@ import libalpmd.dload;
 import libalpmd.env;
 import libalpmd.question;
 import libalpmd.event;
+import libalpmd.add;
+
 
 import std.algorithm;
 
@@ -420,6 +423,45 @@ public:
 
 	void setEventCallback(AlpmEventCallback cb) {
 		this.eventcb = cb;
+	}
+
+	int upgradePackages() {
+		size_t pkg_count = void, pkg_current = void;
+		int skip_ldconfig = 0, ret = 0;
+		// alpm_list_t* targ = void;
+		// AlpmTrans trans = handle.trans;
+
+		if(trans.add.empty) {
+			return 0;
+		}
+
+		pkg_count = this.trans.add[].walkLength();
+		pkg_current = 1;
+
+		/* loop through our package list adding/upgrading one at a time */
+		foreach(newpkg; this.trans.add[]) {
+			if(this.trans.state == AlpmTransState.Interrupted) {
+				return ret;
+			}
+
+			if(commit_single_pkg(this, newpkg, pkg_current, pkg_count)) {
+				/* something screwed up on the commit, abort the trans */
+				trans.state = AlpmTransState.Interrupted;
+				this.pm_errno = ALPM_ERR_TRANS_ABORT;
+				/* running ldconfig at this point could possibly screw system */
+				skip_ldconfig = 1;
+				ret = -1;
+			}
+
+			pkg_current++;
+		}
+
+		if(!skip_ldconfig) {
+			/* run ldconfig if it exists */
+			_alpm_ldconfig(this);
+		}
+
+		return ret;
 	}
 }
 

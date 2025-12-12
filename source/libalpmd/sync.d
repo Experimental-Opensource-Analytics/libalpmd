@@ -1360,7 +1360,7 @@ int _alpm_sync_commit(AlpmHandle handle)
 
 	/* install targets */
 	logger.tracef("installing packages\n");
-	if(_alpm_upgrade_packages(handle) == -1) {
+	if(handle.upgradePackages() == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, "could not commit transaction\n");
 		return -1;
 	}

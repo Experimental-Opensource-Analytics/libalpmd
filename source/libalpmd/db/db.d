@@ -178,8 +178,7 @@ class AlpmDB {
 	{
 		AlpmConflicts baddeps;
 
-		AlpmPkgs dblist = alpm_list_diff(this.getPkgCacheList(),
-				packages.newToOld(), &_alpm_pkg_cmp).oldToNewList!AlpmPkg();
+		AlpmPkgs dblist = diff(this.getPkgCacheList().oldToNewList!AlpmPkg, packages);
 
 		/* two checks to be done here for conflicts */
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "check targets vs db\n");

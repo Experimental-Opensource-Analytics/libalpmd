@@ -5,6 +5,9 @@ import core.stdc.stdlib;
 import std.container : DList;
 import std.range;
 import std.algorithm;
+import std.functional: binaryFun;
+import std.algorithm: sort, setDifference;
+
 import libalpmd.alpm_list.alpm_list_old : alpm_list_t, alpm_list_add;
 import libalpmd.alpm_list.searching;
 
@@ -34,6 +37,19 @@ auto oldToNewList(T)(alpm_list_t* list) {
 	}
 
 	return newList;
+}
+
+auto diff(alias fn = "a < b", List)(List lhs, List rhs) {
+    auto left = lhs[].array.sort!fn.array;
+    auto right = rhs[].array.sort!fn.array;
+    
+    auto diff = left.setDifference!fn(right).array;
+    
+    List result;
+    foreach(item; diff) {
+        result.insertBack(item);
+    }
+    return result;
 }
 
 auto newToOld(List)(List list_) {
