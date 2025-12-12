@@ -174,7 +174,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
 		auto optdeps = pkg.getOptDepends();
 
-		if(!optdeps.empty && !alpm_pkg_find_n(lp, pkg.name)) {
+		if(!optdeps.empty && !alpm_pkg_find_n(lp.oldToNewList!AlpmPkg, pkg.name)) {
 			alpm_list_t* j = void;
 			foreach(optdep; optdeps[]) {
 				// AlpmDepend optdep = cast(AlpmDepend)j.data;

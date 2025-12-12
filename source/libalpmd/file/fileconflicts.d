@@ -9,12 +9,13 @@ import core.stdc.limits;
 import core.sys.posix.sys.stat;
 import core.sys.posix.dirent;
 
+import std.conv;
+import std.string;
 /* libalpm */
 import libalpmd.file;
 import libalpmd.util;
 import libalpmd.alpm_list;
 import libalpmd.alpm;
-import std.conv;
 import libalpmd.handle;
 import libalpmd.db;
 import libalpmd.pkg;
@@ -225,7 +226,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 	for(current = 0, i = upgrade; i; i = i.next, current++) {
 		AlpmPkg p1 = cast(AlpmPkg)i.data;
 		alpm_list_t* j = void;
-		alpm_list_t* newfiles = null;
+		AlpmStrings newfiles;
 		AlpmPkg dbpkg = void;
 
 		int percent = cast(int)((current * 100) / numtargs);
@@ -236,7 +237,7 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 		logger.tracef("searching for file conflicts: %s\n",
 				p1.name);
 		for(j = i.next; j; j = j.next) {
-			alpm_list_t* common_files = void;
+			AlpmStrings common_files = void;
 			AlpmPkg p2 = cast(AlpmPkg)j.data;
 
 			AlpmFileList p1_files = p1.getFiles();
@@ -244,11 +245,11 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 
 			common_files = _alpm_filelist_intersection(p1_files, p2_files);
 
-			if(common_files) {
+			if(!common_files.empty()) {
 				alpm_list_t* k = void;
 				char[PATH_MAX] path = void;
-				for(k = common_files; k; k = k.next) {
-					char* filename = cast(char*)k.data;
+				foreach(filename_; common_files[]) {
+					char* filename = cast(char*)filename_.toStringz;
 					snprintf(path.ptr, PATH_MAX, "%s%s", handle.root.ptr, filename);
 
 					/* can skip file-file conflicts when forced *
@@ -269,11 +270,12 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 						alpm_list_free_inner(conflicts,
 								cast(alpm_list_fn_free) &alpm_conflict_free);
 						alpm_list_free(conflicts);
-						alpm_list_free(common_files);
+						common_files.clear();
 						return null;
 					}
 				}
-				alpm_list_free(common_files);
+				// alpm_list_free(common_files);
+				common_files.clear();
 			}
 		}
 
@@ -296,12 +298,12 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 			AlpmFileList fl = p1.getFiles();
 			size_t filenum = void;
 			for(filenum = 0; filenum < fl.length; filenum++) {
-				newfiles = alpm_list_add(newfiles, cast(char*)fl[filenum].name);
+				newfiles.insertBack(fl[filenum].name);
 			}
 		}
 
-		for(j = newfiles; j; j = j.next) {
-			  char*filestr = cast(char*)j.data;
+		foreach(filestr_; newfiles[]) {
+			  char*filestr = cast(char*)filestr_.toStringz;
 			  char*relative_path = void;
 			alpm_list_t* k = void;
 			/* have we acted on this conflict? */
@@ -475,12 +477,12 @@ alpm_list_t* _alpm_db_find_fileconflicts(AlpmHandle handle, alpm_list_t* upgrade
 					alpm_list_free_inner(conflicts,
 							cast(alpm_list_fn_free) &alpm_conflict_free);
 					alpm_list_free(conflicts);
-					alpm_list_free(newfiles);
+					newfiles.clear();
 					return null;
 				}
 			}
 		}
-		alpm_list_free(newfiles);
+		newfiles.clear();
 	}
 	PROGRESS(handle, ALPM_PROGRESS_CONFLICTS_START, "", 100,
 			numtargs, current);

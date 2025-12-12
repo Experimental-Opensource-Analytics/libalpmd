@@ -131,17 +131,12 @@ private int add_conflict(AlpmHandle handle, ref AlpmConflicts baddeps, AlpmPkg p
  * @param baddeps list to store conflicts
  * @param order if >= 0 the conflict order is preserved, if < 0 it's reversed
  */
-void check_conflict(AlpmHandle handle, AlpmPkgs list1, AlpmPkgs  list2, ref AlpmConflicts baddeps, int order)
-{
-	// alpm_list_t* i = void;
-
+void check_conflict(AlpmHandle handle, AlpmPkgs list1, AlpmPkgs  list2, ref AlpmConflicts baddeps, int order) {
 	if(baddeps.empty()) {
 		return;
 	}
 	foreach(pkg1; list1[]) {
 		foreach(conflict1; pkg1.getConflicts()[]) {
-			// alpm_list_t* k = void;
-
 			foreach(pkg2; list2[]) {
 
 				if(pkg1.name_hash == pkg2.name_hash

@@ -33,6 +33,7 @@ import std.algorithm;
 import std.string;
 
 import libalpmd.alpm_list;
+import libalpmd.alpm_list.alpm_list_new : oldToNewList;
 import libalpmd.util;
 import libalpmd.log;
 import libalpmd.graph;
@@ -347,7 +348,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 
 	for(i = pkglist; i; i = i.next) {
 		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		if(alpm_pkg_find_n(rem, pkg.name) || alpm_pkg_find_n(upgrade, pkg.name)) {
+		if(alpm_pkg_find_n(rem.oldToNewList!AlpmPkg, pkg.name) || alpm_pkg_find_n(upgrade.oldToNewList!AlpmPkg, pkg.name)) {
 			modified = alpm_list_add(modified, cast(void*)pkg);
 		} else {
 			dblist = alpm_list_add(dblist, cast(void*)pkg);
@@ -684,7 +685,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 
 		pkg = db.getPkgFromCache(cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
-				&& !alpm_pkg_find_n(excluding, pkg.name)) {
+				&& !alpm_pkg_find_n(excluding.oldToNewList!AlpmPkg, pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				if(prompt) {
@@ -711,7 +712,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 			AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.name_hash != dep.name_hash || cmp(pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
-					&& !alpm_pkg_find_n(excluding, pkg.name)) {
+					&& !alpm_pkg_find_n(excluding.oldToNewList!AlpmPkg, pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
 					auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 					if(prompt) {
@@ -742,7 +743,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 
 	count = cast(int)alpm_list_count(providers);
 	if(count >= 1) {
-		auto question = new AlpmQuestionSelectProvider(providers, dep);
+		auto question = new AlpmQuestionSelectProvider(providers.oldToNewList!AlpmPkg, dep);
 		if(count > 1) {
 			/* if there is more than one provider, we ask the user */
 			QUESTION(handle, question);
@@ -811,7 +812,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 	alpm_list_t* deps = null;
 	alpm_list_t* packages_copy = void;
 
-	if(alpm_pkg_find_n(*packages, pkg.name) !is null) {
+	if(alpm_pkg_find_n((*packages).oldToNewList!AlpmPkg, pkg.name) !is null) {
 		return 0;
 	}
 

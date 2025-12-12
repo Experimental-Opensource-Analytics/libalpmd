@@ -81,11 +81,11 @@ class AlpmQuestionRemovePkg : AlpmQuestion {
 /** Provider selection */
 class AlpmQuestionSelectProvider : AlpmQuestion {
 	/** List of AlpmPkg as possible providers */
-	alpm_list_t* providers;
+	AlpmPkgs providers;
 	/** What providers provide for */
 	AlpmDepend depend;
 
-	this(alpm_list_t* providers, AlpmDepend depend) {
+	this(AlpmPkgs providers, AlpmDepend depend) {
 		this.providers = providers;
 		this.depend = depend;
 	}

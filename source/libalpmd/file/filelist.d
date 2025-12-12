@@ -25,6 +25,7 @@ import core.stdc.string;
 import core.sys.posix.sys.stat;
 import core.sys.posix.stdlib;
 
+import std.algorithm;
 /* libalpm */
 import libalpmd.file;
 import libalpmd.util;
@@ -42,24 +43,24 @@ import std.conv;
 // }
 
 alias AlpmFileList = AlpmFile[];
-
+alias AlpmFileDList = AlpmList!AlpmFile;
 /* Returns the difference of the provided two lists of files.
  * Pre-condition: both lists are sorted!
  * When done, free the list but NOT the contained data.
  */
-alpm_list_t* _alpm_filelist_difference(AlpmFileList filesA, AlpmFileList filesB)
+AlpmStrings _alpm_filelist_difference(AlpmFileList filesA, AlpmFileList filesB)
 {
-	alpm_list_t* ret = null;
+	AlpmStrings ret;
 	size_t ctrA = 0, ctrB = 0;
 
 	while(ctrA < filesA.length && ctrB < filesB.length) {
 		string strA = filesA[ctrA].name;
 		string strB = filesB[ctrB].name;
 
-		int cmp = strA == strB;
+		int cmp = cmp(strA, strB);
 		if(cmp < 0) {
 			/* item only in filesA, qualifies as a difference */
-			ret = alpm_list_add(ret, cast(void*)strA);
+			ret.insertBack(strA);
 			ctrA++;
 		} else if(cmp > 0) {
 			ctrB++;
@@ -71,7 +72,7 @@ alpm_list_t* _alpm_filelist_difference(AlpmFileList filesA, AlpmFileList filesB)
 
 	/* ensure we have completely emptied pA */
 	while(ctrA < filesA.length) {
-		ret = alpm_list_add(ret, cast(char*)filesA[ctrA].name);
+		ret.insertBack(filesA[ctrA].name);
 		ctrA++;
 	}
 
@@ -99,9 +100,9 @@ private int _alpm_filelist_pathcmp(  char*p1,   char*p2)
  * Pre-condition: both lists are sorted!
  * When done, free the list but NOT the contained data.
  */
-alpm_list_t* _alpm_filelist_intersection(AlpmFileList filesA, AlpmFileList filesB)
+AlpmStrings _alpm_filelist_intersection(AlpmFileList filesA, AlpmFileList filesB)
 {
-	alpm_list_t* ret = null;
+	AlpmStrings ret;
 	size_t ctrA = 0, ctrB = 0;
 	AlpmFile* arrA = filesA.ptr, arrB = filesB.ptr;
 
@@ -115,7 +116,7 @@ alpm_list_t* _alpm_filelist_intersection(AlpmFileList filesA, AlpmFileList files
 		} else {
 			/* when not directories, item in both qualifies as an intersect */
 			if(strA[$ - 1] != '/' || strB[$ - 1] != '/') {
-				ret = alpm_list_add(ret, cast(char*)arrA[ctrA].name);
+				ret.insertBack(arrA[ctrA].name);
 			}
 			ctrA++;
 			ctrB++;

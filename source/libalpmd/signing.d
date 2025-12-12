@@ -1,5 +1,5 @@
 module libalpmd.signing;
-@nogc  
+// @nogc  
    
 /*
  *  signing.c
@@ -29,6 +29,7 @@ import core.stdc.locale; /* setlocale() */
 import gpgme;
 }
 
+import std.conv;
 /* libalpm */
 import libalpmd.signing;
 import libalpmd.pkg;
@@ -40,6 +41,10 @@ import libalpmd.handle;
 import libalpmd.alpm_list;
 import libalpmd.db;
 import libalpmd.question;
+
+unittest {
+
+}
 
 enum AlpmSigLevel {
 	/** Packages require a signature */
@@ -118,10 +123,10 @@ private   char*string_validity(gpgme_validity_t validity)
 	return "???";
 }
 
-private void sigsum_test_bit(gpgme_sigsum_t sigsum, alpm_list_t** summary, gpgme_sigsum_t bit,   char*value)
+private void sigsum_test_bit(gpgme_sigsum_t sigsum, ref AlpmStrings summary, gpgme_sigsum_t bit,   char*value)
 {
 	if(sigsum & bit) {
-		*summary = alpm_list_add(*summary, cast(void*)value);
+		summery.insertBack(value);
 	}
 }
 
@@ -131,9 +136,9 @@ private void sigsum_test_bit(gpgme_sigsum_t sigsum, alpm_list_t** summary, gpgme
  * @param sigsum a GPGME signature summary bitmask
  * @return the list of signature summary strings
  */
-private alpm_list_t* list_sigsum(gpgme_sigsum_t sigsum)
+private AlpmStrings list_sigsum(gpgme_sigsum_t sigsum)
 {
-	alpm_list_t* summary = null;
+	AlpmStrings summary;
 	/* The docs say this can be a bitmask...not sure I believe it, but we'll code
 	 * for it anyway and show all possible flags in the returned string. */
 
@@ -161,7 +166,7 @@ private alpm_list_t* list_sigsum(gpgme_sigsum_t sigsum)
 	sigsum_test_bit(sigsum, &summary, GPGME_SIGSUM_SYS_ERROR, "sys error");
 	/* Fallback case */
 	if(!sigsum) {
-		summary = alpm_list_add(summary, cast(void*)"(empty)");
+		summary.insertBack("(empty)");
 	}
 	return summary;
 }
@@ -645,7 +650,7 @@ int _alpm_gpgme_checksig(AlpmHandle handle,   char*path,   char*base64_sig, alpm
 
 	for(gpgsig = verify_result.signatures, sigcount = 0; gpgsig;
 			gpgsig = gpgsig.next, sigcount++) {
-		alpm_list_t* summary_list = void, summary = void;
+		AlpmStrings summary_list = void, summary = void;
 		alpm_sigstatus_t status = void;
 		alpm_sigvalidity_t validity = void;
 		gpgme_key_t key = void;
@@ -1042,7 +1047,7 @@ private size_t length_check(size_t length, size_t position, size_t a, AlpmHandle
 	}
 }
 
-private int parse_subpacket(AlpmHandle handle,   char*identifier,  ubyte* sig,  size_t len,  size_t pos,  size_t plen, alpm_list_t** keys)
+private int parse_subpacket(AlpmHandle handle,   char*identifier,  ubyte* sig,  size_t len,  size_t pos,  size_t plen, ref AlpmStrings keys)
 {
 		size_t slen = void;
 		size_t spos = pos;
@@ -1074,7 +1079,7 @@ private int parse_subpacket(AlpmHandle handle,   char*identifier,  ubyte* sig,  
 				for (i = 0; i < 8; i++) {
 					snprintf(&key[i * 2], 3, "%02X", sig[spos + i + 1]);
 				}
-				*keys = alpm_list_add(*keys, strdup(key.ptr));
+				keys.insertBack(strdup(key.ptr).to!string);
 				break;
 			}
 			if(length_check(len, spos, slen, handle, identifier) != 0) {
@@ -1085,7 +1090,7 @@ private int parse_subpacket(AlpmHandle handle,   char*identifier,  ubyte* sig,  
 		return 0;
 }
 
-int  alpm_extract_keyid(AlpmHandle handle,   char*identifier,  ubyte* sig,  size_t len, alpm_list_t** keys)
+int  alpm_extract_keyid(AlpmHandle handle,   char*identifier,  ubyte* sig,  size_t len, ref AlpmStrings keys)
 {
 	size_t pos = void, blen = void, hlen = void, ulen = void;
 	pos = 0;

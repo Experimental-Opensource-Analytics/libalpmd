@@ -204,14 +204,12 @@ public:
 		assert(0);
 	}
 
-	void findRequiredBy(AlpmDB db, ref AlpmStrings reqs, int optional)
-	{
-		alpm_list_t* i = void;
+	void findRequiredBy(AlpmDB db, ref AlpmStrings reqs, int optional) {
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
 		//[ ] _alpm_db_get_pkgcache
-		for(i = db.getPkgCacheList(); i; i = i.next) { 
-			AlpmPkg cachepkg = cast(AlpmPkg)i.data;
+		foreach(cachepkg; (db.getPkgCacheList().oldToNewList!AlpmPkg())[]) { 
+			// AlpmPkg cachepkg = cast(AlpmPkg)i.data;
 			AlpmDeps j;
 
 			if(optional == 0) {
@@ -481,7 +479,6 @@ public:
 
 	/** Check if pkg2 satisfies a dependency of pkg1 */
 	int dependsOn(AlpmPkg pkg2) {
-		// alpm_list_t* i = void;
 		foreach(dep; this.getDepends()[]) {
 			if(_alpm_depcmp(pkg2, dep)) {
 				return 1;
@@ -531,67 +528,6 @@ AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
 		/* finally: we had hash match, verify string match */
 		if(info.name == needle) {
 			return info;
-		}
-	}
-	return null;
-}
-
-AlpmPkg alpm_pkg_find_n(alpm_list_t* haystack, string needle)
-{
-	import core.stdc.string;
-	alpm_list_t* lp = void;
-	c_ulong needle_hash = void;
-
-	if(needle == null || haystack == null) {
-		return null;
-	}
-
-	needle_hash = alpmSDBMHash(needle.to!string);
-
-	for(lp = haystack; lp; lp = lp.next) {
-		AlpmPkg info = cast(AlpmPkg)lp.data;
-
-		if(info) {
-			if(info.name_hash != needle_hash) {
-				continue;
-			}
-
-			/* finally: we had hash match, verify string match */
-			if(info.name == needle) {
-				return info;
-			}
-		}
-	}
-	return null;
-}
-
-/* Test for existence of a package in a alpm_list_t*
- * of AlpmPkg
- */
-AlpmPkg alpm_pkg_find(alpm_list_t* haystack,   char*needle)
-{
-	import core.stdc.string;
-	alpm_list_t* lp = void;
-	c_ulong needle_hash = void;
-
-	if(needle == null || haystack == null) {
-		return null;
-	}
-
-	needle_hash = alpmSDBMHash(needle.to!string);
-
-	for(lp = haystack; lp; lp = lp.next) {
-		AlpmPkg info = cast(AlpmPkg)lp.data;
-
-		if(info) {
-			if(info.name_hash != needle_hash) {
-				continue;
-			}
-
-			/* finally: we had hash match, verify string match */
-			if(strcmp(cast(char*)info.name, needle) == 0) {
-				return info;
-			}
 		}
 	}
 	return null;

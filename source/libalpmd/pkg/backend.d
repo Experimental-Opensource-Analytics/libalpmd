@@ -32,6 +32,7 @@ import core.sys.posix.fcntl;
 import core.stdc.limits;
 import core.stdc.stdio;;
 import std.conv;
+import std.string;
 import libalpmd.alpm_list;
 
 
@@ -685,7 +686,7 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, Alpm
 	sigpath = _alpm_sigpath(handle, filename);
 	if(sigpath && !alpmAccess(handle, null, sigpath.to!string, R_OK)) {
 		if(level & AlpmSigLevel.Package) {
-			alpm_list_t* keys = null;
+			AlpmStrings keys;
 			int fail = 0;
 			ubyte* sig = null;
 			int len = read_sigfile(sigpath, &sig);
@@ -697,19 +698,17 @@ int  alpm_pkg_load(AlpmHandle handle,   char*filename, int full, int level, Alpm
 				return -1;
 			}
 
-			if(alpm_extract_keyid(handle, filename, sig, len, &keys) == 0) {
-				alpm_list_t* k = void;
-				for(k = keys; k; k = k.next) {
-					char* key = cast(char*)k.data;
-					if(_alpm_key_in_keychain(handle, key) == 0) {
+			if(alpm_extract_keyid(handle, filename, sig, len, keys) == 0) {
+				foreach(key; keys[]) {
+					if(_alpm_key_in_keychain(handle, cast(char*)key.toStringz) == 0) {
 						pkg_temp = _alpm_pkg_load_internal(handle, filename, full);
-						if(_alpm_key_import(handle, null, key) == -1) {
+						if(_alpm_key_import(handle, null, cast(char*)key.toStringz) == -1) {
 							fail = 1;
 						}
 						destroy!false(pkg_temp);
 					}
 				}
-				FREELIST(keys);
+				// FREELIST(keys);
 			}
 
 			free(sig);

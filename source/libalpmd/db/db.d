@@ -323,28 +323,30 @@ class AlpmDB {
 		return this.usage;
 	}
 
-	int search(alpm_list_t* needles, alpm_list_t** ret) {
-		alpm_list_t* i = void, j = void, k = void;
+	AlpmPkgs search(AlpmStrings needles) {
+		// alpm_list_t* i = void, j = void, k = void;
+
+		AlpmPkgs ret;
 
 		if(!(this.usage & AlpmDBUsage.Search)) {
-			return 0;
+			return AlpmPkgs();
 		}
 
 		/* copy the pkgcache- we will free the list var after each needle */
-		alpm_list_t* list = alpm_list_copy(this.getPkgCacheList());
+		AlpmPkgs list = alpm_list_copy(this.getPkgCacheList()).oldToNewList!AlpmPkg;
 
-		for(i = needles; i; i = i.next) {
+		foreach(targ_; needles[]) {
 			char* targ = void;
 
-			if(i.data == null) {
-				continue;
-			}
-			*ret = null;
-			targ = cast(char*)i.data;
+			// if(i.data == null) {
+			// 	continue;
+			// }
+			ret = AlpmPkgs();
+			targ = cast(char*)targ_.toStringz();
 			_alpm_log(this.handle, ALPM_LOG_DEBUG, "searching for target '%s'\n", targ);
 
-			for(j = cast( alpm_list_t*) list; j; j = j.next) {
-				AlpmPkg pkg = cast(AlpmPkg)j.data;
+			foreach(pkg; list[]) {
+				// AlpmPkg pkg = cast(AlpmPkg)j.data;
 				char* matched = null;
 				string name = pkg.name;
 				char*desc = cast(char*)pkg.getDesc();
@@ -384,17 +386,17 @@ class AlpmDB {
 					_alpm_log(this.handle, ALPM_LOG_DEBUG,
 							"search target '%s' matched '%s' on package '%s'\n",
 							targ, matched, name);
-					*ret = alpm_list_add(*ret, cast(void*)pkg);
+					ret.insertBack(pkg);
 				}
 			}
 
 			/* Free the existing search list, and use the returned list for the
 			* next needle. This allows for AND-based package searching. */
-			alpm_list_free(list);
-			list = *ret;
+			// alpm_list_free(list);
+			list = ret;
 		}
 
-		return 0;
+		return ret;
 	}
 
 	override int opCmp(Object other) const {

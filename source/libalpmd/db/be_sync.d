@@ -585,22 +585,22 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				pkg.files = files[0..files_count].dup;
 				_alpm_filelist_sort(pkg.files);
 			} else if(strcmp(line, "%DATA%") == 0) {
-				alpm_list_t* i = void, lines = null;
-				mixin(READ_AND_STORE_ALL!(`lines`));
-				for(i = lines; i; i = i.next) {
-					AlpmPkgXData pd = AlpmPkgXData.parseFrom(i.data.to!string);
+				AlpmStrings lines;
+				mixin(READ_AND_STORE_ALL_L!(`lines`));
+				foreach(line_; lines[]) {
+					AlpmPkgXData pd = AlpmPkgXData.parseFrom(line_.to!string);
 					if(!alpm_new_list_append(&pkg.xdata, pd)) {			
 						// _alpm_pkg_xdata_free(pd);
-						FREELIST(lines);
+						// FREELIST(lines);
 						goto error;
 					}
 				}
-				FREELIST(lines);
+				// FREELIST(lines);
 			} else {
 				_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in sync database\n"), pkg.name, line);
-				alpm_list_t* lines = null;
-				mixin(READ_AND_STORE_ALL!(`lines`));
-				FREELIST(lines);
+				AlpmStrings lines;
+				mixin(READ_AND_STORE_ALL_L!(`lines`));
+				// FREELIST(lines);
 			}
 		}
 		if(ret != ARCHIVE_EOF) {
