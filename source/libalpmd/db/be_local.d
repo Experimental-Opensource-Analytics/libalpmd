@@ -779,25 +779,25 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				mixin(READ_NEXT!());
 				info.reason = _read_pkgreason(db.handle, cast(char*)info.name, line.ptr);
 			} else if(strcmp(line.ptr, "%VALIDATION%") == 0) {
-				alpm_list_t* i = void, v = null;
-				mixin(READ_AND_STORE_ALL!(`v`));
-				for(i = v; i; i = alpm_list_next(i))
+				AlpmStrings v;
+				mixin(READ_AND_STORE_ALL_L!(`v`));
+				foreach(str; v[])
 				{
-					if(strcmp(cast(  char*)i.data, "none") == 0) {
+					if(strcmp(cast(  char*)str.toStringz, "none") == 0) {
 						info.validation |= AlpmPkgValidation.None;
-					} else if(strcmp(cast(  char*)i.data, "md5") == 0) {
+					} else if(strcmp(cast(  char*)str.toStringz, "md5") == 0) {
 						info.validation |= AlpmPkgValidation.MD5;
-					} else if(strcmp(cast(  char*)i.data, "sha256") == 0) {
+					} else if(strcmp(cast(  char*)str.toStringz, "sha256") == 0) {
 						info.validation |= AlpmPkgValidation.SHA256;
-					} else if(strcmp(cast(  char*)i.data, "pgp") == 0) {
+					} else if(strcmp(cast(  char*)str.toStringz, "pgp") == 0) {
 						info.validation |= AlpmPkgValidation.Signature;
 					} else {
 						_alpm_log(db.handle, ALPM_LOG_WARNING,
 								("unknown validation type for package %s: %s\n"),
-								info.name, cast(char*)i.data);
+								info.name, cast(char*)str.toStringz);
 					}
 				}
-				FREELIST(v);
+				v.clear();
 			} else if(strcmp(line.ptr, "%SIZE%") == 0) {
 				mixin(READ_NEXT!());
 				info.isize = alpmStrToOfft(line.to!string);
@@ -816,21 +816,22 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			} else if(strcmp(line.ptr, "%PROVIDES%") == 0) {
 				mixin(READ_AND_SPLITDEP_N!(`info.provides`));
 			} else if(strcmp(line.ptr, "%XDATA%") == 0) {
-				alpm_list_t* i = void, lines = null;
-				mixin(READ_AND_STORE_ALL!(`lines`));
-				for(i = lines; i; i = i.next) {
-					AlpmPkgXData pd = AlpmPkgXData.parseFrom(i.data.to!string);
+				AlpmStrings lines;
+				mixin(READ_AND_STORE_ALL_L!(`lines`));
+				foreach(str; lines[]) {
+					AlpmPkgXData pd = AlpmPkgXData.parseFrom(str);
 					if(!alpm_new_list_append(&info.xdata, pd)) {
-						FREELIST(lines);
+						lines.clear();
 						goto error;
 					}
 				}
-				FREELIST(lines);
+				lines.clear();
 			} else {
 				_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in local database\n"), info.name, line.ptr);
-				alpm_list_t* lines = null;
-				mixin(READ_AND_STORE_ALL!(`lines`));
-				FREELIST(lines);
+				AlpmStrings lines;
+				mixin(READ_AND_STORE_ALL_L!(`lines`));
+				// FREELIST(lines);
+				lines.clear();
 			}
 		}
 		fclose(fp);
@@ -933,16 +934,15 @@ int _alpm_local_db_prepare(AlpmDB db, AlpmPkg info)
 	return retval;
 }
 
-private void write_deps(FILE* fp,   char*header, alpm_list_t* deplist)
+private void write_deps(FILE* fp,   char*header, AlpmDeps deplist)
 {
-	alpm_list_t* lp = void;
-	if(!deplist) {
+	if(deplist.empty()) {
 		return;
 	}
 	fputs(header, fp);
 	fputc('\n', fp);
-	for(lp = deplist; lp; lp = lp.next) {
-		char* depstring = alpm_dep_compute_string(cast(AlpmDepend )lp.data);
+	foreach(lp; deplist[]) {
+		char* depstring = alpm_dep_compute_string(cast(AlpmDepend )lp);
 		fputs(depstring, fp);
 		fputc('\n', fp);
 		free(depstring);
@@ -952,7 +952,6 @@ private void write_deps(FILE* fp,   char*header, alpm_list_t* deplist)
 
 private void write_deps_n(FILE* fp,   char*header, AlpmDeps deplist)
 {
-	// alpm_list_t* lp = void;
 	if(!deplist.empty) {
 		return;
 	}
@@ -971,7 +970,6 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 {
 	FILE* fp = null;
 	mode_t oldmask = void;
-	alpm_list_t* lp = void;
 	int retval = 0;
 
 	if(db is null || info is null || !(db.status & AlpmDBStatus.Local)) {
@@ -1038,7 +1036,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		if(!info.groups.empty) {
 			fputs("%GROUPS%\n", fp);
 			foreach(_lp; info.groups) {
-				fputs(cast(  char*)lp, fp);
+				fputs(cast(  char*)_lp, fp);
 				fputc('\n', fp);
 			}
 			fputc('\n', fp);
