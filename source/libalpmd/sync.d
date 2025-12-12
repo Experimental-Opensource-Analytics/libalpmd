@@ -258,12 +258,13 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	return 0;
 }
 
-alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
-{
-	alpm_list_t* i = void, pkgs = null, ignorelist = null;
+AlpmPkgs findPkgInGroupAcrossDB(AlpmDBs dbs, char*name) {
+	// alpm_list_t* i = void, pkgs = null, ignorelist = null;
+	AlpmPkgs pkgs = AlpmPkgs();
+	AlpmPkgs ignorelist = AlpmPkgs();
 
-	for(i = dbs; i; i = i.next) {
-		AlpmDB db = cast(AlpmDB)i.data;
+	foreach(db; dbs[]) {
+		// AlpmDB db = cast(AlpmDB)i.data;
 		AlpmGroup grp = db.getGroup(name);
 
 		if(!grp) {
@@ -283,24 +284,24 @@ alpm_list_t * alpm_find_group_pkgs(alpm_list_t* dbs,   char*name)
 					/* with the NEEDED flag, packages up to date are not reinstalled */
 					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
 							local.name, local.version_);
-					ignorelist = alpm_list_add(ignorelist, cast(void*)pkg);
+					ignorelist.insertBack(pkg);
 					continue;
 				}
 			}
 			if(alpm_pkg_should_ignore(db.handle, pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
-				ignorelist = alpm_list_add(ignorelist, cast(void*)pkg);
+				ignorelist.insertBack(pkg);
 				QUESTION(db.handle, question);
 				if(!question.getAnswer()) {
 					continue;
 				}
 			}
 			if(!alpm_pkg_find_n(pkgs, pkg.name)) {
-				pkgs = alpm_list_add(pkgs, cast(void*)pkg);
+				pkgs.insertBack(pkg);
 			}
 		}
 	}
-	alpm_list_free(ignorelist);
+	ignorelist.clear();
 	return pkgs;
 }
 

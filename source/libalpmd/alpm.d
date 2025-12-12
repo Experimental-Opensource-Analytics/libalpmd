@@ -69,14 +69,14 @@ alias AlpmTime = long;
  * @{
  */
 
-/** Find group members across a list of databases.
- * If a member exists in several databases, only the first database is used.
- * IgnorePkg is also handled.
- * @param dbs the list of AlpmDB
- * @param name the name of the group
- * @return the list of AlpmPkg (caller is responsible for alpm_list_free)
- */
-alpm_list_t* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name);
+// /** Find group members across a list of databases.
+//  * If a member exists in several databases, only the first database is used.
+//  * IgnorePkg is also handled.
+//  * @param dbs the list of AlpmDB
+//  * @param name the name of the group
+//  * @return the list of AlpmPkg (caller is responsible for alpm_list_free)
+//  */
+// alpm_list_t* alpm_find_group_pkgs(alpm_list_t* dbs, const(char)* name);
 
 /* End of libalpm_groups */
 /** @} */
