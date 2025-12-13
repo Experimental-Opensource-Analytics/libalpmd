@@ -32,9 +32,6 @@ import libalpmd.handle;
 import libalpmd.file;
 import libalpmd.event;
 
-
-// import libalpmd.be_local;
-
 int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
 	string pkgname = pkg.name;
@@ -175,7 +172,6 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 {
 	char*entryname = cast(char*)archive_entry_pathname(entry);
 	mode_t entrymode = archive_entry_mode(entry);
-	// AlpmBackup backup = _alpm_needbackup(entryname, newpkg);
 	AlpmBackup backup = newpkg.needBackup(entryname.to!string);
 	char[PATH_MAX] filename = void; /* the actual file we're extracting */
 	int needbackup = 0, notouch = 0;
@@ -623,7 +619,6 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		free(scriptlet);
 	}
 
-	// event.setStatus(AlpmEventDefStatus.Done);
 	event = new AlpmEventPackageOperation(
 		AlpmEventDefStatus.Done,
 		event.operation,
