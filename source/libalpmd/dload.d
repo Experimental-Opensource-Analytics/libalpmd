@@ -204,42 +204,52 @@ enum HOSTNAME_SIZE = 256;
  * server blacklisting */
  const(int) server_error_limit = 3;
 
-struct server_error_count {
-	char[HOSTNAME_SIZE] server = 0;
+class ServerErrorsCount {
+	string server;
 	int errors;
 }
 
-private server_error_count* find_server_errors(AlpmHandle handle,   char*server)
+alias AlpmServerErrors = AlpmList!ServerErrorsCount;
+
+private ServerErrorsCount find_server_errors(AlpmHandle handle,   char*server)
 {
-	alpm_list_t* i = void;
-	server_error_count* h = void;
-	char[HOSTNAME_SIZE] hostname = void;
+	// AlpmServerErrors i = void;
+	ServerErrorsCount h = void;
+	string hostname = void;
 	/* key off the hostname because a host may serve multiple repos under
 	 * different url's and errors are likely to be host-wide */
 	if(curl_gethost(server.ptr, hostname.ptr, hostname.sizeof) != 0) {
 		return null;
 	}
-	for(i = handle.server_errors; i; i = i.next) {
-		h = i.data;
-		if(strcmp(hostname.ptr, h.server) == 0) {
+	foreach(h; handle.server_errors) {
+		// h = i.data;
+		if(cmp(hostname, h.server) == 0) {
 			return h;
 		}
 	}
-	if((h = cast(server_error_count*) calloc(server_error_count.sizeof, 1))
-			&& alpm_list_append(&handle.server_errors, h)) {
-		strcpy(h.server, hostname.ptr);
+	if(handle.server_errors.insertBack(h) > 0) {
+		h.server = hostname.dup();
 		h.errors = 0;
-		return h;
-	} else {
-		free(h);
+	}
+	else {
 		return null;
 	}
+
+	// if((h = cast(ServerErrorsCount) calloc(server_error_count.sizeof, 1))
+	// 		&& alpm_list_append(&handle.server_errors, h)) {
+	// 	strcpy(h.server, hostname.ptr);
+	// 	h.errors = 0;
+	// 	return h;
+	// } else {
+	// 	free(h);
+	// 	return null;
+	// }
 }
 
 /* skip for hard errors or too many soft errors */
 private int should_skip_server(AlpmHandle handle,   char*server)
 {
-	server_error_count* h = void;
+	ServerErrorsCount h = void;
 	if(server_error_limit && (h = find_server_errors(handle, server.ptr)) ) {
 		return h.errors < 0 || h.errors >= server_error_limit;
 	}
@@ -249,7 +259,7 @@ private int should_skip_server(AlpmHandle handle,   char*server)
 /* only skip for hard errors */
 private int should_skip_cache_server(AlpmHandle handle,   char*server)
 {
-	server_error_count* h = void;
+	ServerErrorsCount h = void;
 	if(server_error_limit && (h = find_server_errors(handle, server.ptr)) ) {
 		return h.errors < 0;
 	}
@@ -259,7 +269,7 @@ private int should_skip_cache_server(AlpmHandle handle,   char*server)
 /* block normal servers after too many errors */
 private void server_soft_error(AlpmHandle handle,   char*server)
 {
-	server_error_count* h = void;
+	ServerErrorsCount h = void;
 	if(server_error_limit
 			&& (h = find_server_errors(handle, server.ptr))
 			&& !should_skip_server(handle, server.ptr) ) {
@@ -276,7 +286,7 @@ private void server_soft_error(AlpmHandle handle,   char*server)
 /* immediate block for both servers and cache servers */
 private void server_hard_error(AlpmHandle handle,   char*server)
 {
-	server_error_count* h = void;
+	ServerErrorsCount h = void;
 	if(server_error_limit && (h = find_server_errors(handle, server.ptr))) {
 		if(h.errors != -1) {
 			/* always set even if already skipped for soft errors

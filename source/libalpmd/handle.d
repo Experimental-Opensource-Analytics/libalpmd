@@ -106,7 +106,7 @@ public:
 	version (HAVE_LIBCURL) {
 		/* libcurl handle */
 		CURLM* curlm;
-		alpm_list_t* server_errors;
+		AlpmServerErrors server_errors;
 	}
 
 	uint parallel_downloads; /* number of download streams */
