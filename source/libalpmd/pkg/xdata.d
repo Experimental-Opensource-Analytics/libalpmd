@@ -1,5 +1,9 @@
 module libalpmd.pkg.xdata;
 
+static import libalpmd.alpm_list; 
+static import libalpmd.alpm_list.alpm_list_new; 
+
+
 import std.array;
 
 struct AlpmPkgXData {

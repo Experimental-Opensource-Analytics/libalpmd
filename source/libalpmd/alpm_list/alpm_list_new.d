@@ -7,6 +7,7 @@ import std.range;
 import std.algorithm;
 import std.functional: binaryFun;
 import std.algorithm: sort, setDifference;
+import std.conv;
 
 import libalpmd.alpm_list.alpm_list_old : alpm_list_t, alpm_list_add;
 import libalpmd.alpm_list.searching;
@@ -32,14 +33,20 @@ auto oldToNewList(T)(alpm_list_t* list) {
 	auto old = list;
 	AlpmList!T newList;
 	while(old) {
-		newList.insertBack(cast(T)list.data);
+		static if(is(T == string)) { 
+			newList.insertBack((cast(char*)list.data).to!string);
+		}
+		else {
+			newList.insertBack(cast(T)list.data);
+		}
+
 		old = old.next;
 	}
 
 	return newList;
 }
 
-auto diff(alias fn = "a < b", List)(List lhs, List rhs) {
+auto alpmListDiff(alias fn = "a < b", List)(List lhs, List rhs) {
     auto left = lhs[].array.sort!fn.array;
     auto right = rhs[].array.sort!fn.array;
     
@@ -640,7 +647,7 @@ void * alpm_new_list_find(List)(List haystack, void* needle, alpm_list_fn_cmp fn
 // 	}
 // }
 
-int alpmListCmpUnsorted(T)(T left, T right, int function(void*,  void*)fn) {
+int alpmListCmpUnsorted(T)(T left, T right) {
 	auto _l = left[];
 	auto _r = right[];
 	int* matched = void;
@@ -678,10 +685,19 @@ int alpmListCmpUnsorted(T)(T left, T right, int function(void*,  void*)fn) {
 			if(matched[n]) {
 				continue;
 			}
-			if(fn(cast(void*)l, cast(void*)r) == 0) {
-				found = 1;
-				matched[n] = 1;
-				break;
+			static if(is(T : string)) {
+				if(cmp(l, r) == 0) {
+					found = 1;
+					matched[n] = 1;
+					break;
+				}
+			}
+			else {
+				if(l == r) {
+					found = 1;
+					matched[n] = 1;
+					break;
+				}
 			}
 			n++;
 		}

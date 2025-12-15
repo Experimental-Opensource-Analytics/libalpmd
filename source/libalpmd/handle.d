@@ -112,7 +112,7 @@ public:
 	uint parallel_downloads; /* number of download streams */
 
 	version (HAVE_LIBGPGME) {
-		alpm_list_t* known_keys;  /* keys verified to be in our keychain */
+		AlpmStrings known_keys;  /* keys verified to be in our keychain */
 	}
 
 	/* callback functions */
@@ -134,17 +134,17 @@ public:
 	string lockfile;          /* Name of the lock file */
 	string gpgdir;            /* Directory where GnuPG files are stored */
 	string sandboxuser;       /* User to switch to for sensitive operations */
-	alpm_list_t* 	overwrite_files; /* Paths that may be overwritten */
+	AlpmStrings 	overwrite_files; /* Paths that may be overwritten */
 
 	/* package lists */
-	alpm_list_t* noupgrade;   /* List of packages NOT to be upgraded */
-	alpm_list_t* noextract;   /* List of files NOT to extract */
-	alpm_list_t* ignorepkg;   /* List of packages to ignore */
-	alpm_list_t* ignoregroup; /* List of groups to ignore */
+	AlpmStrings noupgrade;   /* List of packages NOT to be upgraded */
+	AlpmStrings noextract;   /* List of files NOT to extract */
+	AlpmStrings ignorepkg;   /* List of packages to ignore */
+	AlpmStrings ignoregroup; /* List of groups to ignore */
 	AlpmDeps assumeinstalled;   /* List of virtual packages used to satisfy dependencies */
 
 	/* options */
-	alpm_list_t* architectures; /* Architectures of packages we should allow */
+	AlpmStrings architectures; /* Architectures of packages we should allow */
 	int usesyslog;           /* Use syslog instead of logfile? */ /* TODO move to frontend */
 	int checkspace;          /* Check disk space before installing */
 	string dbext;             /* Sync DB extension */
@@ -249,7 +249,7 @@ public:
 		int ret = -1;
 		/* make sure we have a sane umask */
 		Environment.saveMask();
-		scope alpm_list_t* payloads = null;
+		AlpmPayloads payloads;
 
 		this.sandboxuser = Environment.getUserName();
 
@@ -268,9 +268,9 @@ public:
 			}
 
 			DLoadPayload* payload = new DLoadPayload(this, db, temporary_syncpath, dbforce);			
-			payloads = alpm_list_add(payloads, payload);
+			payloads.insertBack(*payload);
 		}
-		if(payloads == null) {
+		if(payloads.empty) {
 			// ret = 0;
 			goto cleanup;
 		}
@@ -428,7 +428,6 @@ public:
 	int upgradePackages() {
 		size_t pkg_count = void, pkg_current = void;
 		int skip_ldconfig = 0, ret = 0;
-		// alpm_list_t* targ = void;
 		// AlpmTrans trans = handle.trans;
 
 		if(trans.add.empty) {
@@ -515,14 +514,16 @@ version (HAVE_LIBCURL) {
 	handle.hookdirs.clear();
 	FREE(handle.logfile);
 	FREE(handle.lockfile);
-	FREELIST(handle.architectures);
+	// FREELIST(handle.architectures);
+	handle.architectures.clear();
 	FREE(handle.gpgdir);
 	FREE(handle.sandboxuser);
-	FREELIST(handle.noupgrade);
-	FREELIST(handle.noextract);
-	FREELIST(handle.ignorepkg);
-	FREELIST(handle.ignoregroup);
-	FREELIST(handle.overwrite_files);
+	// FREELIST(handle.noupgrade);
+	handle.noupgrade.clear();
+	// FREELIST(handle.noextract);
+	// FREELIST(handle.ignorepkg);
+	// FREELIST(handle.ignoregroup);
+	// FREELIST(handle.overwrite_files);
 
 	// alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)&alpm_dep_free);
 	// alpm_list_free(handle.assumeinstalled);
@@ -570,27 +571,27 @@ int  alpm_option_get_usesyslog(AlpmHandle handle)
 	return handle.usesyslog;
 }
 
-alpm_list_t * alpm_option_get_noupgrades(AlpmHandle handle)
+AlpmStrings alpm_option_get_noupgrades(AlpmHandle handle)
 {
 	return handle.noupgrade;
 }
 
-alpm_list_t * alpm_option_get_noextracts(AlpmHandle handle)
+AlpmStrings alpm_option_get_noextracts(AlpmHandle handle)
 {
 	return handle.noextract;
 }
 
-alpm_list_t * alpm_option_get_ignorepkgs(AlpmHandle handle)
+AlpmStrings alpm_option_get_ignorepkgs(AlpmHandle handle)
 {
 	return handle.ignorepkg;
 }
 
-alpm_list_t * alpm_option_get_ignoregroups(AlpmHandle handle)
+AlpmStrings alpm_option_get_ignoregroups(AlpmHandle handle)
 {
 	return handle.ignoregroup;
 }
 
-alpm_list_t * alpm_option_get_overwrite_files(AlpmHandle handle)
+AlpmStrings alpm_option_get_overwrite_files(AlpmHandle handle)
 {
 	return handle.overwrite_files;
 }
@@ -600,7 +601,7 @@ auto alpm_option_get_assumeinstalled(AlpmHandle handle)
 	return handle.assumeinstalled;
 }
 
-alpm_list_t * alpm_option_get_architectures(AlpmHandle handle)
+AlpmStrings alpm_option_get_architectures(AlpmHandle handle)
 {
 	return handle.architectures;
 }
@@ -735,46 +736,53 @@ int  alpm_option_set_usesyslog(AlpmHandle handle, int usesyslog)
 	return 0;
 }
 
-int _alpm_option_strlist_add(AlpmHandle handle, alpm_list_t** list,   char*str)
+int _alpm_option_strlist_add(AlpmHandle handle, ref AlpmStrings list,   char*str)
 {
 	char* dup = void;
 	STRDUP(dup, str);
-	*list = alpm_list_add(*list, dup);
+	list.insertBack(dup.to!string);
 	return 0;
 }
 
-int _alpm_option_strlist_set(AlpmHandle handle, alpm_list_t** list, alpm_list_t* newlist)
+int _alpm_option_strlist_set(AlpmHandle handle, ref AlpmStrings list, AlpmStrings newlist)
 {
-	FREELIST(*list);
-	*list = alpm_list_strdup(newlist);
+	// FREELIST(*list);
+	list = newlist.dup();
 	return 0;
 }
 
-int _alpm_option_strlist_rem(AlpmHandle handle, alpm_list_t** list, char* str)
+int _alpm_option_strlist_rem(AlpmHandle handle, ref AlpmStrings list, char* str)
 {
-	char* vdata = null;
+	// char* vdata = null;
 
-	*list = alpm_list_remove_str(*list, str, &vdata);
-	if(vdata != null) {
-		FREE(vdata);
+	// *list = alpm_list_remove_str(*list, str, &vdata);
+	if(list.linearRemoveElement(str.to!string)) {
+		// FREE(vdata);
 		return 1;
 	}
+
+	// list = 
 	return 0;
 }
 
 int  alpm_option_add_noupgrade(AlpmHandle handle, char* pkg)
 {
-	return _alpm_option_strlist_add(handle, &(handle.noupgrade), pkg);
+	// return _alpm_option_strlist_add(handle, &(handle.noupgrade), pkg);
+	return cast(int)handle.noupgrade.insertBack(pkg.to!string);
 }
 
-int  alpm_option_set_noupgrades(AlpmHandle handle, alpm_list_t* noupgrade)
+int  alpm_option_set_noupgrades(AlpmHandle handle, AlpmStrings noupgrade)
 {
-	return _alpm_option_strlist_set(handle, &(handle.noupgrade), noupgrade);
+	// return _alpm_option_strlist_set(handle, &(handle.noupgrade), noupgrade);
+	handle.noupgrade = noupgrade;
+	return 0;
 }
 
 int  alpm_option_remove_noupgrade(AlpmHandle handle, char* pkg)
 {
-	return _alpm_option_strlist_rem(handle, &(handle.noupgrade), pkg);
+	// return _alpm_option_strlist_rem(handle, &(handle.noupgrade), pkg);
+	handle.noupgrade.clear();
+	return 0;
 }
 
 int  alpm_option_match_noupgrade(AlpmHandle handle, char* path)
@@ -784,17 +792,17 @@ int  alpm_option_match_noupgrade(AlpmHandle handle, char* path)
 
 int  alpm_option_add_noextract(AlpmHandle handle, char* path)
 {
-	return _alpm_option_strlist_add(handle, &(handle.noextract), path);
+	return _alpm_option_strlist_add(handle, handle.noextract, path);
 }
 
-int  alpm_option_set_noextracts(AlpmHandle handle, alpm_list_t* noextract)
+int  alpm_option_set_noextracts(AlpmHandle handle, AlpmStrings noextract)
 {
-	return _alpm_option_strlist_set(handle, &(handle.noextract), noextract);
+	return _alpm_option_strlist_set(handle, handle.noextract, noextract);
 }
 
 int  alpm_option_remove_noextract(AlpmHandle handle, char* path)
 {
-	return _alpm_option_strlist_rem(handle, &(handle.noextract), path);
+	return _alpm_option_strlist_rem(handle, handle.noextract, path);
 }
 
 int  alpm_option_match_noextract(AlpmHandle handle, char* path)
@@ -804,47 +812,47 @@ int  alpm_option_match_noextract(AlpmHandle handle, char* path)
 
 int  alpm_option_add_ignorepkg(AlpmHandle handle, char* pkg)
 {
-	return _alpm_option_strlist_add(handle, &(handle.ignorepkg), pkg);
+	return _alpm_option_strlist_add(handle, handle.ignorepkg, pkg);
 }
 
-int  alpm_option_set_ignorepkgs(AlpmHandle handle, alpm_list_t* ignorepkgs)
+int  alpm_option_set_ignorepkgs(AlpmHandle handle, AlpmStrings ignorepkgs)
 {
-	return _alpm_option_strlist_set(handle, &(handle.ignorepkg), ignorepkgs);
+	return _alpm_option_strlist_set(handle, handle.ignorepkg, ignorepkgs);
 }
 
 int  alpm_option_remove_ignorepkg(AlpmHandle handle, char* pkg)
 {
-	return _alpm_option_strlist_rem(handle, &(handle.ignorepkg), pkg);
+	return _alpm_option_strlist_rem(handle, handle.ignorepkg, pkg);
 }
 
 int  alpm_option_add_ignoregroup(AlpmHandle handle, char* grp)
 {
-	return _alpm_option_strlist_add(handle, &(handle.ignoregroup), grp);
+	return _alpm_option_strlist_add(handle, handle.ignoregroup, grp);
 }
 
-int  alpm_option_set_ignoregroups(AlpmHandle handle, alpm_list_t* ignoregrps)
+int  alpm_option_set_ignoregroups(AlpmHandle handle, AlpmStrings ignoregrps)
 {
-	return _alpm_option_strlist_set(handle, &(handle.ignoregroup), ignoregrps);
+	return _alpm_option_strlist_set(handle, handle.ignoregroup, ignoregrps);
 }
 
 int  alpm_option_remove_ignoregroup(AlpmHandle handle, char* grp)
 {
-	return _alpm_option_strlist_rem(handle, &(handle.ignoregroup), grp);
+	return _alpm_option_strlist_rem(handle, handle.ignoregroup, grp);
 }
 
 int  alpm_option_add_overwrite_file(AlpmHandle handle, char* glob)
 {
-	return _alpm_option_strlist_add(handle, &(handle.overwrite_files), glob);
+	return _alpm_option_strlist_add(handle, handle.overwrite_files, glob);
 }
 
-int  alpm_option_set_overwrite_files(AlpmHandle handle, alpm_list_t* globs)
+int  alpm_option_set_overwrite_files(AlpmHandle handle, AlpmStrings globs)
 {
-	return _alpm_option_strlist_set(handle, &(handle.overwrite_files), globs);
+	return _alpm_option_strlist_set(handle, handle.overwrite_files, globs);
 }
 
 int  alpm_option_remove_overwrite_file(AlpmHandle handle, char* glob)
 {
-	return _alpm_option_strlist_rem(handle, &(handle.overwrite_files), glob);
+	return _alpm_option_strlist_rem(handle, handle.overwrite_files, glob);
 }
 
 int  alpm_option_add_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
@@ -859,18 +867,18 @@ int  alpm_option_add_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 	return 0;
 }
 
-int  alpm_option_set_assumeinstalled(AlpmHandle handle, alpm_list_t* deps)
+int  alpm_option_set_assumeinstalled(AlpmHandle handle, AlpmDeps deps)
 {
 	if(!handle.assumeinstalled.empty) {
 		// alpm_list_free_inner(handle.assumeinstalled, cast(alpm_list_fn_free)&alpm_dep_free);
 		// alpm_list_free(handle.assumeinstalled);
 		// handle.assumeinstalled = null;
 	}
-	while(deps) {
-		if(alpm_option_add_assumeinstalled(handle, cast(AlpmDepend )deps.data) != 0) {
+	foreach(dep; deps[]) {
+		if(alpm_option_add_assumeinstalled(handle, dep) != 0) {
 			return -1;
 		}
-		deps = deps.next;
+		// deps = deps.next;
 	}
 	return 0;
 }
@@ -915,26 +923,29 @@ int  alpm_option_remove_assumeinstalled(AlpmHandle handle, AlpmDepend dep)
 	return 0;
 }
 
-int  alpm_option_add_architecture(AlpmHandle handle, char* arch)
+int  alpm_option_add_architecture(AlpmHandle handle, string arch)
 {
-	handle.architectures = alpm_list_add(handle.architectures, strdup(arch));
+	handle.architectures.insertBack(arch);
 	return 0;
 }
 
-int  alpm_option_set_architectures(AlpmHandle handle, alpm_list_t* arches)
+int  alpm_option_set_architectures(AlpmHandle handle, AlpmStrings arches)
 {
-	if(handle.architectures) FREELIST(handle.architectures);
-	handle.architectures = alpm_list_strdup(arches);
+	// if(handle.architectures) FREELIST(handle.architectures);
+	handle.architectures.clear();
+	// handle.architectures = alpm_list_strdup(arches);
+	handle.architectures = arches.dup();
 	return 0;
 }
 
 int  alpm_option_remove_architecture(AlpmHandle handle, char* arch)
 {
-	char* vdata = null;
+	// char* vdata = null;
 
-	handle.architectures = alpm_list_remove_str(handle.architectures, arch, &vdata);
-	if(vdata != null) {
-		FREE(vdata);
+	// handle.architectures = alpm_list_remove_str(handle.architectures, arch, &vdata);
+	
+	if(handle.architectures.linearRemoveElement(arch.to!string)) {
+		// FREE(vdata);
 		return 1;
 	}
 	return 0;

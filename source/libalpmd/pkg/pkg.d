@@ -208,7 +208,7 @@ public:
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
 		//[ ] _alpm_db_get_pkgcache
-		foreach(cachepkg; (db.getPkgCacheList().oldToNewList!AlpmPkg())[]) { 
+		foreach(cachepkg; (db.getPkgCacheList())[]) { 
 			// AlpmPkg cachepkg = cast(AlpmPkg)i.data;
 			AlpmDeps j;
 
@@ -445,19 +445,28 @@ public:
 	int  shouldIgnore(AlpmHandle handle)
 	{
 		/* first see if the package is ignored */
-		if(alpm_list_find(handle.ignorepkg, cast(char*)this.name, &fnmatchWrapper)) {
+		if(findAmong(handle.ignorepkg, this.name)) {
 			return 1;
 		}
 
 		/* next see if the package is in a group that is ignored */
 		foreach(group; groups[]) {
 			char* grp = cast(char*)group;
-			if(alpm_list_find(handle.ignoregroup, grp, &fnmatchWrapper)) {
+			if(findAmong(handle.ignoregroup, grp.to!string)) {
 				return 1;
 			}
 		}
 
 		return 0;
+	}
+
+	bool findAmong(AlpmStrings strings, string str) {
+		foreach(str_; strings[]) {
+			if(alpmFnmatchPatterns(strings, name))
+				return true;
+		}
+
+		return false;
 	}
 
 	/* Look for a filename in a alpm_pkg_t.backup list. If we find it,

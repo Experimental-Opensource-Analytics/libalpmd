@@ -51,7 +51,6 @@ import core.stdc.stdint; /* intmax_t */
 // import core.sys.posix.dirent;
 import core.sys.posix.dirent;
 import core.sys.posix.sys.stat;
-import ae.sys.file;
 
 import std.algorithm;
 import std.string;
@@ -59,6 +58,7 @@ import std.conv;
 import std.string;
 import std.algorithm;
 import std.array;
+import std.range;
 import inilike;
 import libalpmd.event;
 
@@ -170,7 +170,23 @@ struct AlpmHook {
 
 		return ret;
 	}
+
+	int opCmp(AlpmHook h2) const
+	{
+		size_t suflen = strlen(ALPM_HOOK_SUFFIX), l1 = void, l2 = void;
+		int ret = void;
+		l1 = this.name.length - suflen;
+		l2 = h2.name.length - suflen;
+		/* exclude the suffixes from comparison */
+		ret = cmp(this.name, h2.name);
+		if(ret == 0 && l1 != l2) {
+			return l1 < l2 ? -1 : 1;
+		}
+		return ret;
+	}
 }
+
+alias AlpmHooks = AlpmList!AlpmHook;
 
 struct _alpm_hook_cb_ctx {
 	AlpmHandle handle;
@@ -250,7 +266,6 @@ private int _alpm_hook_parse_cb(char*file, void* data)
 
 private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, AlpmTrigger* t)
 {
-	alpm_list_t* i = void, j = void;
 	AlpmStrings install;
 	AlpmStrings upgrade;
 	AlpmStrings remove_;
@@ -302,32 +317,37 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 
 	// i = install = alpm_list_msort(install, isize, cast(alpm_list_fn_cmp)&strcmp);
 	install = AlpmStrings(install.lazySort());
+	auto installRange = install[];
 	// j = remove_ = alpm_list_msort(remove_, rsize, cast(alpm_list_fn_cmp)&strcmp);
 	remove_ = AlpmStrings(remove_.lazySort());
-	while(i) {
-		while(j && strcmp(cast(char*)i.data, cast(char*)j.data) > 0) {
-			j = j.next;
+	auto removeRange = remove_[];
+	string jStr, iStr;
+	for(iStr = installRange.front(); !installRange.empty();) {
+
+		for(jStr = removeRange.front; !removeRange.empty; removeRange.popFront()) {
+			if(cmp(iStr, jStr) > 0)
+				break;
 		}
-		if(j == null) {
-			break;
-		}
-		if(strcmp(cast(char*)i.data, cast(char*)j.data) == 0) {
-			char* path = cast(char*)i.data;
+		// if(j == null) {
+		// 	break;
+		// }
+		if(cmp(iStr, jStr) == 0) {
+			char* path = cast(char*)iStr.toStringz;
 			upgrade.insertBack(path.to!string);
-			while(i && strcmp(cast(char*)i.data, path) == 0) {
-				alpm_list_t* next = i.next;
-				install.linearRemoveElement(i.data.to!string);
-				free(i);
-				i = next;
+			while(!installRange.empty() && cmp(iStr, path.to!string) == 0) {
+				install.linearRemoveElement(iStr);
+				// free(i);
+				// i = next
+				installRange.popFront();
 			}
-			while(j && strcmp(cast(char*)j.data, cast(char*)path) == 0) {
-				alpm_list_t* next = j.next;
-				remove_.linearRemoveElement(j.data.to!string);
-				free(j);
-				j = next;
+			while(!removeRange.empty() && cmp(jStr, path.to!string) == 0) {
+				
+				remove_.linearRemoveElement(jStr);
+				// free(j);
+				removeRange.popFront();
 			}
 		} else {
-			i = i.next;
+			installRange.popFront();
 		}
 	}
 
@@ -366,7 +386,6 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 	AlpmStrings remove;
 
 	if(t.op & AlpmHookOp.Install || t.op & AlpmHookOp.Upgrade) {
-		alpm_list_t* i = void;
 		foreach(pkg; handle.trans.add[]) {
 			if(alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
 				if(pkg.oldpkg) {
@@ -391,7 +410,6 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 	}
 
 	if(t.op & AlpmHookOp.Remove) {
-		alpm_list_t* i = void;
 		foreach(pkg; handle.trans.remove[]) {
 			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
 				if(!handle.trans.add[].canFind(pkg)) {
@@ -423,7 +441,6 @@ private int _alpm_hook_trigger_match(AlpmHandle handle, AlpmHook* hook, AlpmTrig
 
 private int _alpm_hook_triggered(AlpmHandle handle, AlpmHook* hook)
 {
-	alpm_list_t* i = void;
 	int ret = 0;
 	foreach(trigger; hook.triggers[]) {
 		if(_alpm_hook_trigger_match(handle, hook, &trigger)) {
@@ -437,73 +454,61 @@ private int _alpm_hook_triggered(AlpmHandle handle, AlpmHook* hook)
 	return ret;
 }
 
-private int _alpm_hook_cmp(AlpmHook* h1, AlpmHook* h2)
+private AlpmHooks find_hook(AlpmHooks haystack,  void* needle)
 {
-	size_t suflen = strlen(ALPM_HOOK_SUFFIX), l1 = void, l2 = void;
-	int ret = void;
-	l1 = h1.name.length - suflen;
-	l2 = h2.name.length - suflen;
-	/* exclude the suffixes from comparison */
-	ret = cmp(h1.name, h2.name);
-	if(ret == 0 && l1 != l2) {
-		return l1 < l2 ? -1 : 1;
-	}
-	return ret;
-}
+	// while(haystack) {
+	// 	AlpmHook* h = cast(AlpmHook*)haystack.data;
+	// 	if(h && cmp(h.name, needle.to!string) == 0) {
+	// 		return haystack;
+	// 	}
+	// 	haystack = haystack.next;
+	// }
+	// return null;
 
-private alpm_list_t* find_hook(alpm_list_t* haystack,  void* needle)
-{
-	while(haystack) {
-		AlpmHook* h = cast(AlpmHook*)haystack.data;
-		if(h && cmp(h.name, needle.to!string) == 0) {
+	foreach(hook; haystack) {
+		if(hook.name == needle.to!string)
 			return haystack;
-		}
-		haystack = haystack.next;
 	}
-	return null;
+
+	return AlpmHooks();
 }
 
-private ssize_t _alpm_hook_feed_targets(char* buf, ssize_t needed, alpm_list_t** pos)
+private long hookFeedTargets(ref char[] buffer, ref AlpmStrings pos)
 {
-	size_t remaining = needed, written = 0;{}
-	size_t len = void;
-
-	while(*pos && (len = strlen( cast(char*)(*pos).data)) + 1 <= remaining) {
-		memcpy(buf, (*pos).data, len);
-		buf[len++] = '\n';
-		*pos = (*pos).next;
-		buf += len;
-		remaining -= len;
-		written += len;
-	}
-
-	if(*pos && remaining) {
-		memcpy(buf, (*pos).data, remaining);
-		(*pos).data = cast(char*) (*pos).data + remaining;
-		written += remaining;
-	}
-
-	return written;
+    long written = 0;
+    size_t remaining = buffer.length;
+    
+    while (!pos.empty && remaining > 0) {
+        char* str = cast(char*)pos.front();
+        size_t len = strlen(str);
+        
+        if (len + 1 <= remaining) {
+            memcpy(&buffer[written], str, len);
+            buffer[written + len] = '\n';
+            
+            written += len + 1;
+            remaining -= len + 1;
+            pos.removeFront();
+        } else if (remaining > 0) {
+            memcpy(&buffer[written], str, remaining);
+            pos.front() = str.to!string ~ remaining.to!string;
+            written += remaining;
+            remaining = 0;
+        }
+    }
+    
+    return written;
 }
 
-private alpm_list_t* _alpm_strlist_dedup(alpm_list_t* list)
+private AlpmStrings _alpm_strlist_dedup(AlpmStrings list)
 {
-	alpm_list_t* i = list;
-	while(i) {
-		alpm_list_t* next = i.next;
-		while(next && strcmp( cast(char*)i.data,  cast(char*)next.data) == 0) {
-			list = alpm_list_remove_item(list, next);
-			free(next);
-			next = i.next;
-		}
-		i = next;
-	}
-	return list;
+	return AlpmStrings(list[].uniq().array);
+
 }
 
 private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 {
-	alpm_list_t* i = void, pkgs = handle.getDBLocal().getPkgCacheList();
+	auto pkgs = handle.getDBLocal().getPkgCacheList();
 
 	foreach(depend; hook.depends[]) {
 		if(!alpm_find_satisfier(pkgs, cast(char*)depend.toStringz)) {
@@ -519,7 +524,7 @@ private int _alpm_hook_run_hook(AlpmHandle handle, AlpmHook* hook)
 		/* hooks with multiple triggers could have duplicate matches */
 		ctx = hook.matches = AlpmStrings(hook.matches[].uniq!((a, b) => cmp(a, b) == 0));
 		return _alpm_run_chroot(handle, cast(char*)hook.cmd[0].toStringz, cast(char**)hook.cmd.map!(s => s.toStringz).array.ptr,
-				cast(_alpm_cb_io) &_alpm_hook_feed_targets, &ctx);
+				cast(_alpm_cb_io) &hookFeedTargets, &ctx);
 	} else {
 		return _alpm_run_chroot(handle, cast(char*)hook.cmd[0].toStringz, cast(char**)hook.cmd.map!(s => s.toStringz).array.ptr, null, null);
 	}
@@ -529,11 +534,12 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 {
 	AlpmEventHook event = new AlpmEventHook(AlpmEventDefStatus.Start, when);
 	AlpmEventHookRun hook_event = new AlpmEventHookRun();
-	alpm_list_t* i = void, hooks = null, hooks_triggered = null;
+	AlpmHooks hooks_triggered;
+	AlpmHooks hooks;
 	size_t suflen = strlen(ALPM_HOOK_SUFFIX), triggered = 0;
 	int ret = 0;
 
-	foreach_reverse(string hookdir; handle.getHookDirs[].reverse) {
+	foreach_reverse(string hookdir; handle.getHookDirs[]) {
 	// for(i = alpm_list_last(handle.hookdirs); i; i = alpm_list_previous(i)) {
 		char[PATH_MAX] path = void;
 		size_t dirlen = void;
@@ -582,7 +588,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 				continue;
 			}
 
-			if(find_hook(hooks, entry.d_name.ptr)) {
+			if(!find_hook(hooks, entry.d_name.ptr).empty()) {
 				logger.tracef("skipping overridden hook %s\n", path.ptr);
 				continue;
 			}
@@ -612,11 +618,11 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 
 			ctx.hook.name = entry.d_name.dup;
 			// STRDUP(ctx.hook.name, entry.d_name.ptr);
-			hooks = alpm_list_add(hooks, ctx.hook);
+			hooks.insertBack(*ctx.hook);
 		}
 		if(errno != 0) {
-			_alpm_log(handle, ALPM_LOG_ERROR, ("could not read directory: %s: %s\n"),
-					cast(char*) i.data, strerror(errno));
+			// _alpm_log(handle, ALPM_LOG_ERROR, ("could not read directory: %s: %s\n"),
+					// cast(char*) i.data, strerror(errno));
 			ret = -1;
 		}
 
@@ -627,26 +633,27 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 		goto cleanup;
 	}
 
-	hooks = alpm_list_msort(hooks, alpm_list_count(hooks),
-			cast(alpm_list_fn_cmp)&_alpm_hook_cmp);
+	// hooks = alpm_list_msort(hooks, alpm_list_count(hooks),
+			// cast(alpm_list_fn_cmp)&_alpm_hook_cmp);
+	hooks = AlpmHooks(hooks[].array.sort);
 
-	for(i = hooks; i; i = i.next) {
-		AlpmHook* hook = cast(AlpmHook*)i.data;
-		if(hook && hook.when == when && _alpm_hook_triggered(handle, hook)) {
-			hooks_triggered = alpm_list_add(hooks_triggered, hook);
+	foreach(hook; hooks[]) {
+		// AlpmHook* hook = cast(AlpmHook*)i.data;
+		if(hook.when == when && _alpm_hook_triggered(handle, &hook)) {
+			hooks_triggered.insertBack(hook);
 			triggered++;
 		}
 	}
 
-	if(hooks_triggered != null) {
+	if(!hooks_triggered.empty) {
 		event.setStatus(AlpmEventDefStatus.Start);
 		EVENT(handle, event);
 
 		hook_event.position = 1;
 		hook_event.total = triggered;
 
-		for(i = hooks_triggered; i; i = i.next, hook_event.position++) {
-			AlpmHook* hook = cast(AlpmHook*)i.data;
+		foreach(hook; hooks_triggered[]) {
+			// AlpmHook* hook = cast(AlpmHook*)i.data;
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "running '%s'...\n", hook.name);
 
 			hook_event.status = AlpmEventDefStatus.Start;
@@ -654,7 +661,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 			hook_event.desc = hook.desc;
 			EVENT(handle, hook_event);
 
-			if(_alpm_hook_run_hook(handle, hook) != 0 && hook.abort_on_fail) {
+			if(_alpm_hook_run_hook(handle, &hook) != 0 && hook.abort_on_fail) {
 				ret = -1;
 			}
 
@@ -664,9 +671,11 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 			if(ret != 0 && when == AlpmHookWhen.PreTransaction) {
 				break;
 			}
+
+			hook_event.position++;
 		}
 
-		alpm_list_free(hooks_triggered);
+		// alpm_list_free(hooks_triggered);
 
 		event.setStatus = AlpmEventDefStatus.Done;
 		EVENT(handle, event);
@@ -674,7 +683,7 @@ int _alpm_hook_run(AlpmHandle handle, AlpmHookWhen when)
 
 cleanup:
 	// alpm_list_free_inner(hooks, cast(alpm_list_fn_free) &_alpm_hook_free);
-	alpm_list_free(hooks);
+	// alpm_list_free(hooks);
 
 	return ret;
 }

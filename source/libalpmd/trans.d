@@ -73,6 +73,8 @@ import libalpmd.alpm;
 import libalpmd.deps;
 import libalpmd.hook;
 import libalpmd.event;
+import libalpmd.file.fileconflicts;
+import libalpmd.conflict;
 
 enum AlpmTransState {
 	Idle = 0,
@@ -123,48 +125,50 @@ class AlpmTrans {
 // 	return 0;
 // }
 
-private alpm_list_t* check_arch(AlpmHandle handle, AlpmPkgs pkgs)
+private AlpmStrings check_arch(AlpmHandle handle, AlpmPkgs pkgs)
 {
-	alpm_list_t* i = void;
-	alpm_list_t* invalid = null;
+	AlpmStrings invalid;
 
-	if(!handle.architectures) {
+	if(handle.architectures.empty) {
 		logger.tracef("skipping architecture checks\n");
-		return null;
+		return AlpmStrings();
 	}
-	// for(i = pkgs; i; i = i.next) {
 	foreach(pkg; pkgs[]) {
-		// AlpmPkg pkg = cast(AlpmPkg)i.data;
-		alpm_list_t* j = void;
 		int found = 0;
-		  char*pkgarch = cast(char*)pkg.getArch();
+		string pkgarch = pkg.getArch();
 
 		/* always allow non-architecture packages and those marked "any" */
-		if(!pkgarch || strcmp(pkgarch, "any") == 0) {
+		if(!pkgarch || pkgarch == "any") {
 			continue;
 		}
 
-		for(j = handle.architectures; j; j = j.next) {
-			if(strcmp(pkgarch, cast(char*)j.data) == 0) {
+		foreach(arch; handle.architectures[]) {
+			if(pkgarch == arch) {
 				found = 1;
 				break;
 			}
 		}
 
 		if(!found) {
-			char* _string = void;
+			string string_;
 			string pkgname = pkg.name;
-			char*pkgver = cast(char*)pkg.version_;
-			size_t len = pkgname.length + strlen(pkgver) + strlen(pkgarch) + 3;
-			MALLOC(_string, len);
-			snprintf(_string, len, "%s-%s-%s", cast(char*)pkgname, pkgver, pkgarch);
-			invalid = alpm_list_add(invalid, _string);
+			string pkgver = pkg.version_;
+
+			string_ = pkgname ~ "-" ~ pkgver ~ "-" ~ pkgarch;
+			invalid.insertBack(string_);
 		}
 	}
 	return invalid;
 }
 
-int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
+union RefTransData {
+	AlpmDepMissings 	missings;
+	AlpmConflicts		conflicts;
+	AlpmStrings			strings; 
+	AlpmFileConflicts	fileConflicts;
+}
+
+int  alpm_trans_prepare(AlpmHandle handle, ref RefTransData data)
 {
 	AlpmTrans trans = void;
 
@@ -181,11 +185,11 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 		return 0;
 	}
 
-	alpm_list_t* invalid = check_arch(handle, trans.add);
-	if(invalid) {
-		if(data) {
-			*data = invalid;
-		}
+	AlpmStrings invalid = check_arch(handle, trans.add);
+	if(!invalid.empty()) {
+		// if(data) {
+			data.strings = invalid;
+		// }
 		RET_ERR(handle, ALPM_ERR_PKG_INVALID_ARCH, -1);
 	}
 
@@ -205,14 +209,16 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
 		logger.tracef("sorting by dependencies\n");
 		if(!trans.add.empty()) {
-			alpm_list_t* add_orig = newToOld(trans.add);
-			trans.add = oldToNewList!AlpmPkg(_alpm_sortbydeps(handle, add_orig, newToOld(trans.remove), 0));
-			alpm_list_free(add_orig);
+			auto add_orig = trans.add.dup();
+			trans.add = _alpm_sortbydeps(handle, add_orig, trans.remove, 0);
+			// alpm_list_free(add_orig);
 		}
 		if(!trans.remove.empty()) {
-			alpm_list_t* rem_orig = newToOld(trans.remove);
-			trans.remove = oldToNewList!AlpmPkg(_alpm_sortbydeps(handle, rem_orig, newToOld(trans.remove), 0));
-			alpm_list_free(rem_orig);
+			// auto rem_orig = newToOld(trans.remove);
+			auto rem_orig = trans.remove.dup();
+
+			trans.remove = _alpm_sortbydeps(handle, rem_orig, trans.remove, 0);
+			// alpm_list_free(rem_orig);
 		}
 	}
 
@@ -221,7 +227,7 @@ int  alpm_trans_prepare(AlpmHandle handle, alpm_list_t** data)
 	return 0;
 }
 
-int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
+int  alpm_trans_commit(AlpmHandle handle, ref RefTransData data)
 {
 	AlpmTrans trans = void;
 	AlpmEvent event;
@@ -248,6 +254,7 @@ int  alpm_trans_commit(AlpmHandle handle, alpm_list_t** data)
 		if(trans.flags & ALPM_TRANS_FLAG_DOWNLOADONLY) {
 			return 0;
 		}
+		// auto x = (*data).oldToNewList!AlpmFileConflict;
 		if(_alpm_sync_check(handle, data) != 0) {
 			/* pm_errno is set by _alpm_sync_check() */
 			return -1;

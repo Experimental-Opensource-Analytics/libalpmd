@@ -192,7 +192,7 @@ class AlpmDB {
 	{
 		AlpmConflicts baddeps;
 
-		AlpmPkgs dblist = diff(this.getPkgCacheList().oldToNewList!AlpmPkg, packages);
+		AlpmPkgs dblist = alpmListDiff(this.getPkgCacheList(), packages);
 
 		/* two checks to be done here for conflicts */
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "check targets vs db\n");
@@ -231,11 +231,12 @@ class AlpmDB {
 		return this.pkgcache;
 	}
 
-	alpm_list_t* getPkgCacheList() {
+	AlpmPkgs getPkgCacheList() {
 		// AlpmPkgHash hash = getPkgCacheHash();
 
 		if(this.pkgcache is null) {
-			return null;
+			// return null;
+			return AlpmPkgs();
 		}
 
 		return this.pkgcache.getList();
@@ -274,16 +275,14 @@ class AlpmDB {
 	* Returns a new group cache from db.
 	*/
 	int loadGroupCache() {
-		alpm_list_t* lp = void;
-
 		// if(db is null) {
 		// 	return -1;
 		// }
 
 		logger.tracef("loading group cache for repository '%s'\n", this.treename);
 
-		for(lp = this.getPkgCacheList(); lp; lp = lp.next) {
-			AlpmPkg pkg = cast(AlpmPkg)lp.data;
+		foreach(pkg; (this.getPkgCacheList())[]) {
+			// AlpmPkg pkg = cast(AlpmPkg)lp.data;
 
 			foreach(grpname; pkg.getGroups()[]) {
 				int found = 0;
@@ -324,7 +323,6 @@ class AlpmDB {
 	}
 
 	AlpmPkgs search(AlpmStrings needles) {
-		// alpm_list_t* i = void, j = void, k = void;
 
 		AlpmPkgs ret;
 
@@ -333,7 +331,9 @@ class AlpmDB {
 		}
 
 		/* copy the pkgcache- we will free the list var after each needle */
-		AlpmPkgs list = alpm_list_copy(this.getPkgCacheList()).oldToNewList!AlpmPkg;
+		// AlpmPkgs list = alpm_list_copy(this.getPkgCacheList()).oldToNewList!AlpmPkg;
+		AlpmPkgs list = this.getPkgCacheList().dup;
+
 
 		foreach(targ_; needles[]) {
 			char* targ = void;

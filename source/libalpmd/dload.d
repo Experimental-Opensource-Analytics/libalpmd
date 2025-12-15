@@ -29,7 +29,6 @@ import core.stdc.errno;
 import core.stdc.string;
 import core.sys.posix.libgen;
 
-import std.conv;
 import core.sys.posix.stdlib;
 import core.sys.posix.unistd;
 import core.sys.posix.sys.socket; /* setsockopt, SO_KEEPALIVE */
@@ -43,7 +42,9 @@ import core.sys.posix.stdio;
 import core.sys.posix.pwd;
 import etc.c.curl;
 
+import std.conv;
 import std.string;
+import std.range;
 
 version (HAVE_NETINET_IN_H) {
 import core.sys.posix.netinet.in_; /* IPPROTO_TCP */
@@ -123,6 +124,8 @@ version (HAVE_LIBCURL) {
 		this.max_size = 128 * 1024 * 1024;
 	}
 }
+
+alias AlpmPayloads = AlpmList!DLoadPayload;
 
 
 private   char*get_filename(  char*url)
@@ -909,35 +912,39 @@ private int compare_dload_payload_sizes( void* left_ptr,  void* right_ptr)
  * Returns 0 if a payload was actually downloaded
  * Returns 1 if no files were downloaded and all errors were non-fatal
  */
-private int curl_download_internal(AlpmHandle handle, alpm_list_t* payloads)
+private int curl_download_internal(AlpmHandle handle, AlpmPayloads payloads)
 {
 	int active_downloads_num = 0;
 	int err = 0;
 	int max_streams = handle.parallel_downloads;
 	int updated = 0; /* was a file actually updated */
 	CURLM* curlm = handle.curlm;
-	size_t payloads_size = alpm_list_count(payloads);
-	alpm_list_t* p = void;
+	// size_t payloads_size = alpm_list_count(payloads);
+	size_t payloads_size = payloads[].walkLength();
+
 
 	/* Sort payloads by package size */
-	payloads = alpm_list_copy(payloads);
-	payloads = alpm_list_msort(payloads, payloads_size, &compare_dload_payload_sizes);
-	p = payloads;
+	// auto payloadsRange = payloads[];
+	// payloads = alpm_list_msort(payloads, payloads_size, &compare_dload_payload_sizes);
+	payloads = AlpmPayloads(payloads[].array.sort());
+	auto payloadRange = payload[];
+	auto payload = payloadRange.front();
 
 	while(active_downloads_num > 0 || p) {
 		CURLMcode mc = void;
 
-		for(; active_downloads_num < max_streams && p; active_downloads_num++) {
-			DLoadPayload* payload = p.data;
+		for(; active_downloads_num < max_streams && !payloadRange.empty(); active_downloads_num++) {
+			// DLoadPayload* payload = p.data;
 
 			if(curl_add_payload(handle, curlm, payload) == 0) {
-				p = p.next;
+				payloadRange.popFront();
+				payload = payloadRange.front;
 			} else {
 				/* The payload failed to start. Do not start any new downloads.
 				 * Wait until all active downloads complete.
 				 */
 				_alpm_log(handle, ALPM_LOG_ERROR, ("failed to setup a download payload for %s\n"), payload.remote_name);
-				p = null;
+				// p = null;
 				err = -1;
 			}
 		}
@@ -977,7 +984,7 @@ private int curl_download_internal(AlpmHandle handle, alpm_list_t* payloads)
 	}
 	int ret = err ? -1 : updated ? 0 : 1;
 	logger.tracef("curl_download_internal return code is %d\n", ret);
-	alpm_list_free(payloads);
+	// alpm_list_free(payloads);
 	return ret;
 }
 
@@ -986,7 +993,7 @@ private int curl_download_internal(AlpmHandle handle, alpm_list_t* payloads)
  * Returns 0 if a payload was actually downloaded
  * Returns 1 if no files were downloaded and all errors were non-fatal
  */
-private int curl_download_internal_sandboxed(AlpmHandle handle, alpm_list_t* payloads,   char*localpath, int* childsig)
+private int curl_download_internal_sandboxed(AlpmHandle handle, AlpmPayloads payloads,   char*localpath, int* childsig)
 {
 	int pid = void, err = 0, ret = -1; int[2] callbacks_fd = void;
 	sigset_t oldblock = void;
@@ -1173,15 +1180,14 @@ private int move_file(  char*filepath,   char*directory)
 	return 0;
 }
 
-private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
+private int finalize_download_locations(AlpmPayloads payloads,   char*localpath)
 {
 	//ASSERT(payloads != null);
 	//ASSERT(localpath != null);
-	alpm_list_t* p = void;
 	stat_t st = void;
 	int returnvalue = 0;
-	for(p = payloads; p; p = p.next) {
-		DLoadPayload* payload = cast(DLoadPayload*)p.data;
+	foreach(payload; payloads[]) {
+		// DLoadPayload* payload = cast(DLoadPayload*)p.data;
 		  char*filename = null;
 
 		if(payload.destfile_name && stat(cast(char*)payload.destfile_name.toStringz, &st) == 0) {
@@ -1223,9 +1229,9 @@ private int finalize_download_locations(alpm_list_t* payloads,   char*localpath)
 	return returnvalue;
 }
 
-private void prepare_resumable_downloads(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,   char*user){
+private void prepare_resumable_downloads(AlpmHandle handle, AlpmPayloads payloads,   char*localpath,   char*user){
 	// if(handle is null)	return;
-	if(payloads is null)	return;
+	// if(payloads is null)	return;
 	if(localpath is null)	return;
 
 	passwd* pw;
@@ -1233,7 +1239,6 @@ private void prepare_resumable_downloads(AlpmHandle handle, alpm_list_t* payload
 	if(handle.useSandbox) {
 		if((pw = getpwnam(cast(char*)handle.sandboxuser.toStringz)) !is null) return;
 	}
-	// alpm_list_t* p = void;
 	// for(p = payloads; p; p = p.next) {
 	// 	DLoadPayload* payload = cast(DLoadPayload* )p.data;
 	// 	if(payload.destfile_name) {
@@ -1272,7 +1277,7 @@ private void prepare_resumable_downloads(AlpmHandle handle, alpm_list_t* payload
  * Returns 0 if a payload was actually downloaded
  * Returns 1 if no files were downloaded and all errors were non-fatal
  */
-int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,   char*temporary_localpath)
+int _alpm_download(AlpmHandle handle, AlpmPayloads payloads,   char*localpath,   char*temporary_localpath)
 {
 	import std.stdio;
 	handle.fetchcb = &download_with_xfercommand;
@@ -1287,7 +1292,7 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 
 	// DLoadPayload* payload = cast(DLoadPayload*)payloads.data;
 
-	DLoadPayload* payload_ = cast(DLoadPayload*)payloads.data;
+	DLoadPayload* payload_ = &(payloads[].front());
 	ret = payload_download_fetchcb(payload_, cast(char*)payload_.servers.front(), localpath);
 	
 
@@ -1305,11 +1310,10 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 // }
 // 	} else {
 // 		debug { import std.stdio : writeln; try { writeln("USING STD FETCHCB"); } catch (Exception) {} }
-		alpm_list_t* p = void;
 // 		int updated = 0;
-		for(p = payloads; p; p = p.next) {
-			DLoadPayload* payload = cast(DLoadPayload*)p.data;
-			ret = payload_download_fetchcb(payload, cast(char*)payload.servers.front(), localpath);
+		foreach(ref payload; payloads[]) {
+			// DLoadPayload* payload = cast(DLoadPayload*)p.data;
+			ret = payload_download_fetchcb(&payload, cast(char*)payload.servers.front(), localpath);
 			
 			// writeln(alpm_list_count(payload.servers));
 			// // printf("\n",payload.filepath);
@@ -1319,7 +1323,6 @@ int _alpm_download(AlpmHandle handle, alpm_list_t* payloads,   char*localpath,  
 			// printf("\n", fileurl);
 
 			// writeln(cast(char*)payload.servers.data);
-			// alpm_list_t* s = void;
 			// ret = -1;
 
 
@@ -1437,13 +1440,12 @@ private   char*url_basename(  char*url)
 	return filebase;
 }
 
-int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetched)
+int  alpm_fetch_pkgurl(AlpmHandle handle,  AlpmStrings urls, ref AlpmStrings fetched)
 {
 	AlpmSigLevel siglevel = cast(AlpmSigLevel)alpm_option_get_remote_file_siglevel(handle);
 	  char*cachedir = void;
 	char* temporary_cachedir = null;
-	alpm_list_t* payloads = null;
-	 alpm_list_t* i = void;
+	AlpmPayloads payloads;
 	AlpmEventPkgRetriev event = void;
 
 	//ASSERT(*fetched == null);
@@ -1453,8 +1455,8 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 	temporary_cachedir = _alpm_temporary_download_dir_setup(cachedir, cast(char*)handle.sandboxuser);
 	//ASSERT(temporary_cachedir != null);
 
-	for(i = urls; i; i = i.next) {
-		char* url = cast(char*)i.data;
+	foreach(url_; urls[]) {
+		char* url = cast(char*)url_.toStringz();
 		char* filepath = null;
 		  char*urlbase = url_basename(url);
 
@@ -1477,7 +1479,7 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 
 		if(filepath) {
 			/* the file is locally cached so add it to the output right away */
-			alpm_list_append(fetched, filepath);
+			fetched.insertBack(filepath.to!string);
 		} else {
 			DLoadPayload* payload = null;
 			char* c = void;
@@ -1515,13 +1517,13 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 			payload.handle = handle;
 			payload.download_signature = (siglevel & AlpmSigLevel.Package);
 			payload.signature_optional = (siglevel & AlpmSigLevel.PackageOptional);
-			payloads = alpm_list_add(payloads, payload);
+			payloads.insertBack(*payload);
 		}
 	}
 
-	if(payloads) {
+	if(!payloads.empty) {
 		event = new AlpmEventPkgRetriev(AlpmEventPkgRetrievStatus.Start);
-		event.num = alpm_list_count(payloads);
+		event.num = payloads[].walkLength();
 		event.total_size = 0;
 		EVENT(handle, event);
 		if(_alpm_download(handle, payloads, cachedir, temporary_cachedir) == -1) {
@@ -1534,8 +1536,8 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 			EVENT(handle, event);
 		}
 
-		for(i = cast( alpm_list_t*) payloads; i; i = i.next) {
-			DLoadPayload* payload = cast(DLoadPayload*)i.data;
+		foreach(payload; payloads[]) {
+			// DLoadPayload* payload = cast(DLoadPayload*)i.data;
 			char* filepath = void;
 
 			if(payload.destfile_name) {
@@ -1546,25 +1548,25 @@ int  alpm_fetch_pkgurl(AlpmHandle handle,  alpm_list_t* urls, alpm_list_t** fetc
 				filepath = _alpm_filecache_find(handle, filename);
 			}
 			if(filepath) {
-				alpm_list_append(fetched, filepath);
+				fetched.insertBack(filepath.to!string);
 			} else {
 				_alpm_log(handle, ALPM_LOG_WARNING, ("download completed successfully but no file in the cache\n"));
 				GOTO_ERR(handle, ALPM_ERR_RETRIEVE, "err");
 			}
 		}
 
-		alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
-		FREELIST(payloads);
+		// alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
+		// FREELIST(payloads);
 	}
 
 	FREE(temporary_cachedir);
 	return 0;
 
 err:
-	alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
+	// alpm_list_free_inner(payloads, cast(alpm_list_fn_free)&_alpm_dload_payload_reset);
 	FREE(temporary_cachedir);
-	FREELIST(payloads);
-	FREELIST(*fetched);
+	// FREELIST(payloads);
+	// FREELIST(*fetched);
 
 	return -1;
 }

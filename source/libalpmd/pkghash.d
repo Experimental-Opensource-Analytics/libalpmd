@@ -26,11 +26,14 @@ import core.stdc.errno;
 import core.stdc.stdlib;
 import core.stdc.string;
 
+import std.conv;
+import std.algorithm;
+import std.range;
+
 import libalpmd.pkghash;
 import libalpmd.util;
 import libalpmd.pkg;
 import libalpmd.alpm_list;
-import std.conv;
 
 /* List of primes for possible sizes of hash tables.
  *
@@ -69,9 +72,9 @@ private const (double) initial_hash_load = 0.58;
 class AlpmPkgHash {
 private:
 	/** data held by the hash table */
-	alpm_list_t** hash_table;
+	AlpmPkgs[] hash_table;
 	/** head node of the hash table data in normal list format */
-	alpm_list_t* list;
+	AlpmPkgs list;
 	/** number of buckets in hash table */
 	uint buckets;
 	/** number of entries in hash table */
@@ -103,16 +106,16 @@ public:
 	~this() {
 		uint i = void;
 		for(i = 0; i < this.buckets; i++) {
-			free(this.hash_table[i]);
+			// free(this.hash_table[i]);
 		}
-		free(this.hash_table);
+		// free(this.hash_table);
 	}
 
 	private AlpmPkgHash rehash() {
 		uint newsize = void, i = void;
 
 		/** data held by the hash table */
-		alpm_list_t** newHashTable;
+		AlpmPkgs[] newHashTable;
 		/* Hash tables will need resized in two cases:
 		*  - adding packages to the local database
 		*  - poor estimation of the number of packages in sync database
@@ -133,12 +136,12 @@ public:
 		}
 
 		for(i = 0; i < this.buckets; i++) {
-			if(this.hash_table[i] != null) {
-				AlpmPkg package_ = cast(AlpmPkg)this.hash_table[i].data;
+			if(!this.hash_table[i].empty()) {
+				AlpmPkg package_ = this.hash_table[i].front();
 				uint position = this.getHashPosition(package_.name_hash);
 
 				newHashTable[position] = this.hash_table[i];
-				this.hash_table[i] = null;
+				// this.hash_table[i] = null;
 			}
 		}
 
@@ -148,7 +151,7 @@ public:
 	}
 
 	AlpmPkgHash addPkg(AlpmPkg pkg, int sorted) {
-		alpm_list_t* ptr = void;
+		AlpmPkgs ptr;
 		uint position = void;
 
 		if(pkg is null) { 
@@ -164,17 +167,18 @@ public:
 
 		position = this.getHashPosition(pkg.name_hash);
 
-		MALLOC(ptr, alpm_list_t.sizeof);
 
-		ptr.data = cast(void*)pkg;
-		ptr.prev = ptr;
-		ptr.next = null;
+		// ptr.data = cast(void*)pkg;
+		// ptr.prev = ptr;
+		// ptr.next = null;
 
 		this.hash_table[position] = ptr;
 		if(!sorted) {
-			this.list = alpm_list_join(this.list, ptr);
+			// this.list = alpm_list_join(this.list, ptr);
+			this.list.insertBack(ptr[]);
 		} else {
-			this.list = alpm_list_mmerge(this.list, ptr, &_alpm_pkg_cmp);
+			// this.list = alpm_list_mmerge(this.list, ptr, &_alpm_pkg_cmp);
+			this.list = AlpmPkgs(merge(list[], ptr[]));
 		}
 
 		this.entries += 1;
@@ -195,7 +199,7 @@ public:
 		position = name_hash % this.buckets;
 
 		/* collision resolution using open addressing with linear probing */
-		while(this.hash_table[position] != null) {
+		while(!this.hash_table[position].empty()) {
 			position += stride;
 			while(position >= this.buckets) {
 				position -= this.buckets;
@@ -215,13 +219,13 @@ public:
 		* return value is our current iteration location; if this is equal to
 		* 'start' we can stop this madness. */
 		while(end != start) {
-			alpm_list_t* i = this.hash_table[end];
-			AlpmPkg info = cast(AlpmPkg)i.data;
+			AlpmPkgs i = this.hash_table[end];
+			AlpmPkg info = cast(AlpmPkg)i.front();
 			uint new_position = this.getHashPosition(info.name_hash);
 
 			if(new_position == start) {
 				this.hash_table[start] = i;
-				this.hash_table[end] = null;
+				this.hash_table[end].clear();
 				break;
 			}
 
@@ -234,7 +238,7 @@ public:
 	}
 
 	AlpmPkgHash remove(AlpmPkg pkg, AlpmPkg* data) {
-		alpm_list_t* i = void;
+		AlpmPkgs i;
 		uint position = void;
 
 		if(data) {
@@ -246,20 +250,21 @@ public:
 		}
 
 		position = pkg.name_hash % this.buckets;
-		while((i = this.hash_table[position]) != null) {
-			AlpmPkg info = cast(AlpmPkg)i.data;
+		while(!(i = this.hash_table[position]).empty()) {
+			AlpmPkg info = cast(AlpmPkg)i.front();
 
 			if(info.name_hash == pkg.name_hash &&
 						info.name == pkg.name) {
 				uint stop = void, prev = void;
 
 				/* remove from list and this */
-				this.list = alpm_list_remove_item(this.list, i);
+				// this.list = alpm_list_remove_item(this.list, i);
+				this.list.linearRemoveElement(i.front());
 				if(data) {
 					*data = info;
 				}
-				this.hash_table[position] = null;
-				free(i);
+				this.hash_table[position].clear();
+				// free(i);
 				this.entries -= 1;
 
 				/* Potentially move entries following removed entry to keep open
@@ -269,7 +274,7 @@ public:
 				while(stop >= this.buckets) {
 					stop -= this.buckets;
 				}
-				while(this.hash_table[stop] != null && stop != position) {
+				while(!this.hash_table[stop].empty() && stop != position) {
 					stop += stride;
 					while(stop >= this.buckets) {
 						stop -= this.buckets;
@@ -298,7 +303,7 @@ public:
 	}
 
 	AlpmPkg find(char*name) {
-		alpm_list_t* lp = void;
+		AlpmPkgs lp;
 		c_ulong name_hash = void;
 		uint position = void;
 
@@ -310,8 +315,8 @@ public:
 
 		position = name_hash % this.buckets;
 
-		while((lp = this.hash_table[position]) != null) {
-			AlpmPkg info = cast(AlpmPkg)lp.data;
+		while(!(lp = this.hash_table[position]).empty()) {
+			AlpmPkg info = cast(AlpmPkg)lp.front;
 
 			if(info.name_hash == name_hash && strcmp(cast(char*)info.name, name) == 0) {
 				return info;
@@ -331,10 +336,11 @@ public:
 	}
 
 	void trySort() {
-		auto count = alpm_list_count(this.list);
+		// auto count = alpm_list_count(this.list);
+		auto count = this.list[].walkLength();
+
 		if(count > 0) {
-			this.list = alpm_list_msort(this.list,
-					count, &_alpm_pkg_cmp);
+			this.list = AlpmPkgs(list[].array.sort());
 		}
 	}
 }

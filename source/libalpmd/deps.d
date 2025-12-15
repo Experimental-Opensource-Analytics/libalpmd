@@ -31,6 +31,7 @@ import core.stdc.config;
 import std.conv;
 import std.algorithm;
 import std.string;
+import std.range;
 
 import libalpmd.alpm_list;
 import libalpmd.alpm_list.alpm_list_new : oldToNewList;
@@ -72,6 +73,8 @@ class AlpmDepMissing {
 	// 	return null;
 	}
 }
+
+alias AlpmDepMissings = AlpmList!AlpmDepMissing;
 
 /** The basic dependency type.
  *
@@ -128,12 +131,9 @@ void  alpm_depmissing_free(AlpmDepMissing miss)
 	// FREE(miss);
 }
 
-private AlpmPkg find_dep_satisfier(alpm_list_t* pkgs, AlpmDepend dep)
+private AlpmPkg find_dep_satisfier(AlpmPkgs pkgs, AlpmDepend dep)
 {
-	alpm_list_t* i = void;
-
-	for(i = pkgs; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
+	foreach(pkg; pkgs[]) {
 		if(_alpm_depcmp(pkg, dep)) {
 			return pkg;
 		}
@@ -146,33 +146,34 @@ private AlpmPkg find_dep_satisfier(alpm_list_t* pkgs, AlpmDepend dep)
  * Returns a list of vertices (one vertex = one package)
  * (used by alpm_sortbydeps)
  */
-private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alpm_list_t* ignore)
+private AlpmGraphs dep_graph_init(AlpmHandle handle, AlpmPkgs targets, AlpmPkgs ignore)
 {
-	alpm_list_t* i = void, j = void;
-	alpm_list_t* vertices = null;
-	alpm_list_t* localpkgs = alpm_list_diff(
-			handle.getDBLocal().getPkgCacheList(), targets, &_alpm_pkg_cmp);
+	AlpmGraphs vertices;
+	AlpmPkgs localpkgs = alpmListDiff(
+			handle.getDBLocal().getPkgCacheList(), targets);
 
-	if(ignore) {
-		alpm_list_t* oldlocal = localpkgs;
-		localpkgs = alpm_list_diff(oldlocal, ignore, &_alpm_pkg_cmp);
-		alpm_list_free(oldlocal);
+	if(!ignore.empty()) {
+		AlpmPkgs oldlocal = localpkgs;
+		localpkgs = alpmListDiff(oldlocal, ignore);
+		// alpm_list_free(oldlocal);
 	}
 
 	/* We create the vertices */
-	for(i = targets; i; i = i.next) {
+	foreach(pkg; targets[]) {
 		AlpmGraphPkg vertex = new AlpmGraphPkg();
-		vertex.data = cast(AlpmPkg)i.data;
-		vertices = alpm_list_add(vertices, cast(void*)vertex);
+		vertex.data = pkg;
+		vertices.insertBack(vertex);
 	}
 
 	/* We compute the edges */
-	for(i = vertices; i; i = i.next) {
-		AlpmGraphPkg vertex_i = cast(AlpmGraphPkg)i.data;
+	auto verRange = vertices[];
+
+	foreach(vertex_i; verRange) {
+		// AlpmGraphPkg vertex_i = cast(AlpmGraphPkg)i.data;
 		AlpmPkg p_i = cast(AlpmPkg)vertex_i.data;
 		/* TODO this should be somehow combined with alpm_checkdeps */
-		for(j = vertices; j; j = j.next) {
-			AlpmGraphPkg vertex_j = cast(AlpmGraphPkg)j.data;
+		foreach(vertex_j; verRange) {
+			// AlpmGraphPkg vertex_j = cast(AlpmGraphPkg)j.data;
 			AlpmPkg p_j = cast(AlpmPkg)vertex_j.data;
 			if(p_i.dependsOn(p_j)) {
 				vertex_i.children.insertBack(vertex_j);
@@ -181,35 +182,40 @@ private alpm_list_t* dep_graph_init(AlpmHandle handle, alpm_list_t* targets, alp
 
 		/* lazily add local packages to the dep graph so they don't
 		 * get resolved unnecessarily */
-		j = localpkgs;
-		while(j) {
-			alpm_list_t* next = j.next;
-			if(p_i.dependsOn(cast(AlpmPkg)j.data)) {
+		auto j = localpkgs[];
+		foreach(pkg; j) {
+			// auto subrange = j.popFront();
+			// auto next.front();
+			// auto next = j.;
+			if(p_i.dependsOn(pkg)) {
 				AlpmGraphPkg vertex_j = new AlpmGraphPkg();
-				vertex_j.data = cast(AlpmPkg)j.data;
-				vertices = alpm_list_add(vertices, cast(void*)vertex_j);
+				vertex_j.data = pkg;
+				vertices.insertBack(vertex_j);
 				vertex_i.children.insertBack(vertex_j);
-				localpkgs = alpm_list_remove_item(localpkgs, j);
-				free(j);
+				localpkgs.linearRemoveElement(pkg);
+				// free(j);
 			}
-			j = next;
+			// j = next;
 		}
 	}
-	alpm_list_free(localpkgs);
+	// alpm_list_free(localpkgs);
+
 	return vertices;
 }
 
-private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, AlpmGraphPkg ancestor, AlpmGraphPkg vertex, int reverse)
+private void _alpm_warn_dep_cycle(AlpmHandle handle, AlpmPkgs targets, AlpmGraphPkg ancestor, AlpmGraphPkg vertex, int reverse)
 {
 	/* vertex depends on and is required by ancestor */
-	if(!alpm_list_find_ptr(targets, cast(void*)vertex.data)) {
+	// if(!alpm_list_find_ptr(targets, cast(void*)vertex.data)) {
+	if(!targets[].canFind(vertex.data)) {
 		/* child is not part of the transaction, not a problem */
 		return;
 	}
 
 	/* find the nearest ancestor that's part of the transaction */
 	while(ancestor) {
-		if(alpm_list_find_ptr(targets, cast(void*)ancestor.data)) {
+		// if(alpm_list_find_ptr(targets, cast(void*)ancestor.data)) {
+		if(!targets[].canFind(ancestor.data)) {
 			break;
 		}
 		ancestor = ancestor.parent;
@@ -250,24 +256,23 @@ private void _alpm_warn_dep_cycle(AlpmHandle handle, alpm_list_t* targets, AlpmG
  * This function returns the new alpm_list_t* target list.
  *
  */
-alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list_t* ignore, int reverse)
+AlpmPkgs _alpm_sortbydeps(AlpmHandle handle, AlpmPkgs targets, AlpmPkgs ignore, int reverse)
 {
-	alpm_list_t* newtargs = null;
-	alpm_list_t* vertices = null;
-	alpm_list_t* i = void;
+	AlpmPkgs newtargs;
+	AlpmGraphs vertices;
 	AlpmGraphPkg vertex = void;
 
-	if(targets == null) {
-		return null;
-	}
+	// if(targets == null) {
+	// 	return null;
+	// }
 
 	logger.tracef("started sorting dependencies\n");
 
 	vertices = dep_graph_init(handle, targets, ignore);
 
-	i = vertices;
-	vertex = cast(AlpmGraphPkg)vertices.data;
-	while(i) {
+	auto i = vertices[];
+	// vertex = cast(AlpmGraphPkg)vertices.data;
+	while(!i.empty()) {
 		/* mark that we touched the vertex */
 		vertex.state = ALPM_GRAPH_STATE_PROCESSING;
 		int switched_to_child = 0;
@@ -285,20 +290,23 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 			}
 		}
 		if(!switched_to_child) {
-			if(alpm_list_find_ptr(targets, cast(void*)vertex.data)) {
-				newtargs = alpm_list_add(newtargs, cast(void*)vertex.data);
+			if(targets[].canFind(vertex.data)) {
+				newtargs.insertBack(vertex.data);
 			}
 			/* mark that we've left this vertex */
 			vertex.state = ALPM_GRAPH_STATE_PROCESSED;
 			vertex = vertex.parent;
 			if(!vertex) {
+				vertex = i.front();
+				while(!vertex.state == ALPM_GRAPH_STATE_UNPROCESSED)
+					i.popFront();
 				/* top level vertex reached, move to the next unprocessed vertex */
-				for(i = i.next; i; i = i.next) {
-					vertex = cast(AlpmGraphPkg)i.data;
-					if(vertex.state == ALPM_GRAPH_STATE_UNPROCESSED) {
-						break;
-					}
-				}
+				// for(i = i.next; i; i = i.next) {
+				// 	vertex = cast(AlpmGraphPkg)i.data;
+				// 	if(vertex.state == ALPM_GRAPH_STATE_UNPROCESSED) {
+				// 		break;
+				// 	}
+				// }
 			}
 		}
 	}
@@ -307,14 +315,12 @@ alpm_list_t* _alpm_sortbydeps(AlpmHandle handle, alpm_list_t* targets, alpm_list
 
 	if(reverse) {
 		/* reverse the order */
-		alpm_list_t* tmptargs = alpm_list_reverse(newtargs);
 		/* free the old one */
-		alpm_list_free(newtargs);
-		newtargs = tmptargs;
+		// alpm_list_free(newtargs);
+		newtargs = AlpmPkgs(newtargs[].reverse());
 	}
 
-	// alpm_list_free_inner(vertices, &_alpm_graph_free);
-	alpm_list_free(vertices);
+	// alpm_list_free(vertices);
 
 	return newtargs;
 }
@@ -327,7 +333,7 @@ private int no_dep_version(AlpmHandle handle)
 	return (handle.trans.flags & ALPM_TRANS_FLAG_NODEPVERSION);
 }
 
-AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs,   char*depstring)
+AlpmPkg alpm_find_satisfier(AlpmPkgs pkgs,   char*depstring)
 {
 	AlpmDepend dep = alpm_dep_from_string(depstring);
 	if(!dep) {
@@ -339,32 +345,29 @@ AlpmPkg alpm_find_satisfier(alpm_list_t* pkgs,   char*depstring)
 	return pkg;
 }
 
-alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_t* rem, alpm_list_t* upgrade, int reversedeps)
+AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem, AlpmPkgs upgrade, int reversedeps)
 {
-	alpm_list_t* i = void, j = void;
-	alpm_list_t* dblist = null, modified = null;
-	alpm_list_t* baddeps = null;
+	AlpmPkgs dblist;
+	AlpmPkgs modified;
+	AlpmDepMissings baddeps;
 	int nodepversion = void;
 
-	for(i = pkglist; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
-		if(alpm_pkg_find_n(rem.oldToNewList!AlpmPkg, pkg.name) || alpm_pkg_find_n(upgrade.oldToNewList!AlpmPkg, pkg.name)) {
-			modified = alpm_list_add(modified, cast(void*)pkg);
+	foreach(pkg; pkglist[]) {
+		if(alpm_pkg_find_n(rem, pkg.name) || alpm_pkg_find_n(upgrade, pkg.name)) {
+			modified.insertBack(pkg);
 		} else {
-			dblist = alpm_list_add(dblist, cast(void*)pkg);
+			dblist.insertBack(pkg);
 		}
 	}
 
 	nodepversion = no_dep_version(handle);
 
 	/* look for unsatisfied dependencies of the upgrade list */
-	for(i = upgrade; i; i = i.next) {
-		AlpmPkg tp = cast(AlpmPkg)i.data;
+	foreach(tp; upgrade[]) {
 		logger.tracef("checkdeps: package %s-%s\n",
 				tp.name, tp.version_);
 
 		foreach(depend; tp.getDepends()[]) {
-			// AlpmDepend depend = cast(AlpmDepend )j.data;
 			alpm_depmod_t orig_mod = depend.mod;
 			if(nodepversion) {
 				depend.mod = ALPM_DEP_MOD_ANY;
@@ -382,7 +385,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 						missdepstring, tp.name);
 				free(missdepstring);
 				miss = new AlpmDepMissing(cast(char*)tp.name, depend, null);
-				baddeps = alpm_list_add(baddeps, cast(void*)miss);
+				baddeps.insertBack(miss);
 			}
 			depend.mod = orig_mod;
 		}
@@ -391,8 +394,7 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 	if(reversedeps) {
 		/* reversedeps handles the backwards dependencies, ie,
 		 * the packages listed in the requiredby field. */
-		for(i = dblist; i; i = i.next) {
-			AlpmPkg lp = cast(AlpmPkg)i.data;
+		foreach(lp; dblist[]) {
 			foreach(depend; lp.getDepends()[]) {
 				// AlpmDepend depend = cast(AlpmDepend )j.data;
 				alpm_depmod_t orig_mod = depend.mod;
@@ -414,15 +416,15 @@ alpm_list_t * alpm_checkdeps(AlpmHandle handle, alpm_list_t* pkglist, alpm_list_
 							missdepstring, lp.name);
 					free(missdepstring);
 					miss = new AlpmDepMissing(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
-					baddeps = alpm_list_add(baddeps, cast(void*)miss);
+					baddeps.insertBack(miss);
 				}
 				depend.mod = orig_mod;
 			}
 		}
 	}
 
-	alpm_list_free(modified);
-	alpm_list_free(dblist);
+	modified.clear();
+	dblist.clear();
 
 	return baddeps;
 }
@@ -465,13 +467,11 @@ int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
 int _alpm_depcmp_provides(AlpmDepend dep, AlpmDeps provisions)
 {
 	int satisfy = 0;
-	// alpm_list_t* i = void;
 	AlpmDepend provision;
 	auto provisionsRange = provisions[];
 
 	/* check provisions, name and version if available */
 	for(provision = provisionsRange.front; !provisionsRange.empty && !satisfy; provisionsRange.popFront) {
-		// AlpmDepend provision = cast(AlpmDepend )i.data;
 
 		if(dep.mod == ALPM_DEP_MOD_ANY) {
 			/* any version will satisfy the requirement */
@@ -504,12 +504,10 @@ AlpmDepend alpm_dep_from_string(  char*depstring)
 		return null;
 	}
 
-	// CALLOC(depend, 1, alpm_depend_t.sizeof);
 	depend = new AlpmDepend;
 
 	/* Note the extra space in ": " to avoid matching the epoch */
 	if((desc = strstr(depstring, ": ")) != null) {
-		// STRNDUP(depend.desc, desc + 2, strlen(desc + 2));
 		depend.desc = desc[2..strlen(desc) + 2].idup;
 		deplen = desc - depstring;
 	} else {
@@ -554,18 +552,15 @@ AlpmDepend alpm_dep_from_string(  char*depstring)
 	/* copy the right parts to the right places */
 	import std.conv;
 	
-	// STRNDUP(depend.name, depstring, ptr - depstring);
 	depend.name = depstring[0..ptr - depstring].idup;
 	depend.name_hash = alpmSDBMHash((depend.name).to!string);
 	if(version_) {
-		// STRNDUP(depend.version_, version_, desc - version_);
 		depend.version_ = version_[0..desc - version_].idup;
 	}
 
 	return depend;
 
 error:
-	// alpm_dep_free(cast(void*)depend);
 	depend = null;
 	return null;
 }
@@ -576,28 +571,27 @@ error:
  * @param pkg package whose dependencies are moved
  * @param explicit if 0, explicitly installed packages are not moved
  */
-private void _alpm_select_depends(alpm_list_t** from, alpm_list_t** to, AlpmPkg pkg, int explicit)
+private void _alpm_select_depends(ref AlpmPkgs from, ref AlpmPkgs to, AlpmPkg pkg, int explicit)
 {
-	alpm_list_t* i = void, next = void;
 	if(pkg.getDepends().empty) {
 		return;
 	}
-	for(i = *from; i; i = next) {
-		AlpmPkg deppkg = cast(AlpmPkg)i.data;
-		next = i.next;
+	foreach(deppkg; from[]) {
+		// AlpmPkg deppkg = cast(AlpmPkg)i.data;
+		// next = i.next;
 		if((explicit || deppkg.getReason() == ALPM_PKG_REASON_DEPEND)
 				&& pkg.dependsOn(deppkg)) {
-			*to = alpm_list_add(*to, cast(void*)deppkg);
-			*from = alpm_list_remove_item(*from, i);
-			free(i);
+			to.insertBack(deppkg);
+			from.linearRemoveElement(deppkg);
+			// free(i);
 		}
 	}
 }
 
-void free_deplist(alpm_list_t* deps)
+void free_deplist(AlpmDeps deps)
 {
-	alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_dep_free);
-	alpm_list_free(deps);
+	// alpm_list_free_inner(deps, cast(alpm_list_fn_free)&alpm_dep_free);
+	// alpm_list_free(deps);
 }
 
 /**
@@ -611,47 +605,57 @@ void free_deplist(alpm_list_t* deps)
  * @param include_explicit if 0, explicitly installed packages are not included
  * @return 0 on success, -1 on errors
  */
-int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
+int _alpm_recursedeps(AlpmDB db, ref AlpmPkgs targs, int include_explicit)
 {
-	alpm_list_t* i = void, keep = void, rem = null;
+	AlpmPkgs rem;
+	AlpmPkgs keep;
 
-	if(db is null || targs is null) {
-		return -1;
-	}
+	// if(db is null || targs is null) {
+	// 	return -1;
+	// }
 
-	keep = alpm_list_copy(db.getPkgCacheList());
-	for(i = *targs; i; i = i.next) {
-		keep = alpm_list_remove(keep, i.data, &_alpm_pkg_cmp, null);
+	// keep = alpm_list_copy(db.getPkgCacheList());
+	keep = db.getPkgCacheList().dup;
+	foreach(pkg; targs[]) {
+	// for(i = *targs; i; i = i.next) {
+		keep.linearRemoveElement(pkg);
 	}
 
 	/* recursively select all dependencies for removal */
-	for(i = *targs; i; i = i.next) {
-		_alpm_select_depends(&keep, &rem, cast(AlpmPkg)i.data, include_explicit);
+	foreach(pkg; targs[]) {
+		_alpm_select_depends(keep, rem, pkg, include_explicit);
 	}
-	for(i = rem; i; i = i.next) {
-		_alpm_select_depends(&keep, &rem, cast(AlpmPkg)i.data, include_explicit);
+	// for(i = rem; i; i = i.next) {
+	foreach(pkg; rem[]) {
+		_alpm_select_depends(keep, rem, pkg, include_explicit);
 	}
 
 	/* recursively select any still needed packages to keep */
-	for(i = keep; i && rem; i = i.next) {
-		_alpm_select_depends(&rem, &keep, cast(AlpmPkg)i.data, 1);
+	// for(i = keep; i && rem; i = i.next) {
+	foreach(pkg; keep[]) {
+		_alpm_select_depends(rem, keep, pkg, 1);
+		if(rem.empty())
+			break;
 	}
-	alpm_list_free(keep);
+	// alpm_list_free(keep);
 
 	/* copy selected packages into the target list */
-	for(i = rem; i; i = i.next) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data, copy = null;
+	// for(i = rem; i; i = i.next) {
+	foreach(pkg; rem[]) {
+
+		// AlpmPkg pkg = cast(AlpmPkg)i.data, copy = null;
+		AlpmPkg copy;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"adding '%s' to the targets\n", pkg.name);
 		if((copy = pkg.dup) !is null) {
 			/* we return memory on "non-fatal" error in _alpm_pkg_dup */
 			destroy!false(copy);
-			alpm_list_free(rem);
+			// alpm_list_free(rem);
 			return -1;
 		}
-		*targs = alpm_list_add(*targs, cast(void*)copy);
+		targs.insertBack(copy);
 	}
-	alpm_list_free(rem);
+	// alpm_list_free(rem);
 
 	return 0;
 }
@@ -668,11 +672,11 @@ int _alpm_recursedeps(AlpmDB db, alpm_list_t** targs, int include_explicit)
  *        packages.
  * @return the resolved package
  **/
-private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_list_t* excluding, int prompt)
+private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmPkgs excluding, int prompt)
 {
 	int ignored = 0;
 
-	alpm_list_t* providers = null;
+	AlpmPkgs providers;
 	int count = void;
 
 	foreach(i; dbs[]) {
@@ -685,7 +689,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 
 		pkg = db.getPkgFromCache(cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
-				&& !alpm_pkg_find_n(excluding.oldToNewList!AlpmPkg, pkg.name)) {
+				&& !alpm_pkg_find_n(excluding, pkg.name)) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				if(prompt) {
@@ -708,11 +712,11 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 		if(!(db.usage & (AlpmDBUsage.Install | AlpmDBUsage.Upgrade))) {
 			continue;
 		}
-		for(auto j = db.getPkgCacheList(); j; j = j.next) {
-			AlpmPkg pkg = cast(AlpmPkg)j.data;
+		foreach(pkg; (db.getPkgCacheList())[]) {
+			// AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.name_hash != dep.name_hash || cmp(pkg.name, dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
-					&& !alpm_pkg_find_n(excluding.oldToNewList!AlpmPkg, pkg.name)) {
+					&& !alpm_pkg_find_n(excluding, pkg.name)) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
 					auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 					if(prompt) {
@@ -731,32 +735,30 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, alpm_
 
 				/* provide is already installed so return early instead of prompting later */
 				if(handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name)) {
-					alpm_list_free(providers);
 					return pkg;
 				}
 
-				providers = alpm_list_add(providers, cast(void*)pkg);
+				providers.insertBack(pkg);
 				/* keep looking for other providers in the all dbs */
 			}
 		}
 	}
 
-	count = cast(int)alpm_list_count(providers);
+	count = cast(int)providers[].walkLength();
 	if(count >= 1) {
-		auto question = new AlpmQuestionSelectProvider(providers.oldToNewList!AlpmPkg, dep);
+		auto question = new AlpmQuestionSelectProvider(providers, dep);
 		if(count > 1) {
 			/* if there is more than one provider, we ask the user */
 			QUESTION(handle, question);
 		}
 		auto answer = question.getAnswer();
 		if(answer >= 0 && answer < count) {
-			alpm_list_t* nth = alpm_list_nth(providers, answer);
-			AlpmPkg pkg = cast(AlpmPkg)nth.data;
-			alpm_list_free(providers);
+			// (providers, answer);
+			providers.removeFront(answer);
+			auto pkg = providers.front();
 			return pkg;
 		}
-		alpm_list_free(providers);
-		providers = null;
+		providers.clear();
 	}
 
 	if(ignored) { /* resolvedeps will override these */
@@ -776,7 +778,7 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBs dbs,   char*depstring
 
 	dep = alpm_dep_from_string(depstring);
 	//ASSERT(dep !is null);
-	pkg = resolvedep(handle, dep, dbs, null, 1);
+	pkg = resolvedep(handle, dep, dbs, AlpmPkgs(), 1);
 	alpm_dep_free(cast(void*)dep);
 	dep = null;
 	return pkg;
@@ -803,38 +805,34 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBs dbs,   char*depstring
  *         unresolvable dependency, in which case the [*packages] list will be
  *         unmodified by this function
  */
-int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, alpm_list_t* preferred, alpm_list_t** packages, alpm_list_t* rem, alpm_list_t** data)
+int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPkgs preferred, ref AlpmPkgs packages, AlpmPkgs rem, ref AlpmDepMissings data)
 {
 	int ret = 0;
-	alpm_list_t* j = void;
-	alpm_list_t* targ = void;
+	AlpmPkgs targ;
 	AlpmDBs dbs = void;
-	alpm_list_t* deps = null;
-	alpm_list_t* packages_copy = void;
+	AlpmDepMissings deps;
 
-	if(alpm_pkg_find_n((*packages).oldToNewList!AlpmPkg, pkg.name) !is null) {
+	if(alpm_pkg_find_n(packages, pkg.name) !is null) {
 		return 0;
 	}
 
 	/* Create a copy of the packages list, so that it can be restored
 	   on error */
-	packages_copy = alpm_list_copy(*packages);
+	auto packages_copy = packages.dup();
 	/* [pkg] has not already been resolved into the packages list, so put it
 	   on that list */
-	*packages = alpm_list_add(*packages, cast(void*)pkg);
+	packages.insertBack(pkg);
 
 	logger.tracef("started resolving dependencies\n");
-	targ = alpm_list_add(null, cast(void*)pkg);
+	targ.insertBack(pkg);
 	deps = alpm_checkdeps(handle, localpkgs, rem, targ, 0);
-	alpm_list_free(targ);
-	targ = null;
+	targ.clear();
 
-	for(j = deps; j; j = j.next) {
-		AlpmDepMissing miss = cast(AlpmDepMissing)j.data;
+	foreach(miss; deps[]) {
 		AlpmDepend missdep = miss.depend;
 		/* check if one of the packages in the [*packages] list already satisfies
 		 * this dependency */
-		if(find_dep_satisfier(*packages, missdep)) {
+		if(find_dep_satisfier(packages, missdep)) {
 			alpm_depmissing_free(miss);
 			continue;
 		}
@@ -843,7 +841,7 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 		AlpmPkg spkg = find_dep_satisfier(preferred, missdep);
 		if(!spkg) {
 			/* find a satisfier package in the given repositories */
-			spkg = resolvedep(handle, missdep, handle.getDBsSync, *packages, 0);
+			spkg = resolvedep(handle, missdep, handle.getDBsSync, packages, 0);
 		}
 		if(spkg && _alpm_resolvedeps(handle, localpkgs, spkg, preferred, packages, rem, data) == 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
@@ -859,21 +857,20 @@ int _alpm_resolvedeps(AlpmHandle handle, alpm_list_t* localpkgs, AlpmPkg pkg, al
 					("cannot resolve \"%s\", a dependency of \"%s\"\n"),
 					missdepstring, pkg.name);
 			free(missdepstring);
-			if(data) {
-				*data = alpm_list_add(*data, cast(void*)miss);
-			}
+			// if(data) {
+				data.insertBack(miss);
+			// }
 			ret = -1;
 		}
-		alpm_list_free(targ);
-		targ = null;
+		targ.clear();
 	}
-	alpm_list_free(deps);
+	deps.clear();
 
 	if(ret != 0) {
-		alpm_list_free(*packages);
-		*packages = packages_copy;
+		packages.clear();
+		packages = packages_copy;
 	} else {
-		alpm_list_free(packages_copy);
+		packages_copy.clear();
 	}
 	logger.tracef("finished resolving dependencies\n");
 	return ret;

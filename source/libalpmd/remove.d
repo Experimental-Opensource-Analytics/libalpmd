@@ -95,14 +95,13 @@ int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
  *
  * @return 0 on success, -1 on error
  */
-private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
+private int remove_prepare_cascade(AlpmHandle handle, ref AlpmDepMissings lp)
 {
 	AlpmTrans trans = handle.trans;
 
-	while(lp) {
-		alpm_list_t* i = void;
-		for(i = lp; i; i = i.next) {
-			AlpmDepMissing miss = cast(AlpmDepMissing)i.data;
+	while(!lp.empty) {
+		foreach(miss; lp[]) {
+			// AlpmDepMissing miss = cast(AlpmDepMissing)i.data;
 			AlpmPkg info = handle.getDBLocal().getPkgFromCache(miss.target);
 			if(info) {
 				AlpmPkg copy = void;
@@ -119,10 +118,10 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
 						("could not find %s in database -- skipping\n"), miss.target);
 			}
 		}
-		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
-		alpm_list_free(lp);
+		// alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
+		// alpm_list_free(lp);
 		lp = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
-				trans.remove.newToOld(), null, 1);
+				trans.remove, AlpmPkgs(), 1);
 	}
 	return 0;
 }
@@ -133,16 +132,13 @@ private int remove_prepare_cascade(AlpmHandle handle, alpm_list_t* lp)
  * @param handle the context handle
  * @param lp list of missing dependencies caused by the removal transaction
  */
-private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
+private void remove_prepare_keep_needed(AlpmHandle handle, ref AlpmDepMissings lp)
 {
 	AlpmTrans trans = handle.trans;
 
 	/* Remove needed packages (which break dependencies) from target list */
-	while(lp != null) {
-		alpm_list_t* i = void;
-		for(i = lp; i; i = i.next) {
-			AlpmDepMissing miss = cast(AlpmDepMissing)i.data;
-			void* vpkg = void;
+	while(!lp.empty()) {
+		foreach(miss; lp[]) {
 			AlpmPkg pkg = alpm_pkg_find_n(trans.remove, miss.causingpkg.to!string);
 			if(pkg is null) {
 				continue;
@@ -153,10 +149,10 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
 				destroy!false(pkg);
 			}
 		}
-		alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
-		alpm_list_free(lp);
+		// alpm_list_free_inner(lp, cast(alpm_list_fn_free)&alpm_depmissing_free);
+		// alpm_list_free(lp);
 		lp = alpm_checkdeps(handle, handle.getDBLocal().getPkgCacheList(),
-				trans.remove.newToOld(), null, 1);
+				trans.remove, AlpmPkgs(), 1);
 	}
 }
 
@@ -166,16 +162,14 @@ private void remove_prepare_keep_needed(AlpmHandle handle, alpm_list_t* lp)
  * @param handle the context handle
  * @param lp list of packages to be removed
  */
-private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
+private void remove_notify_needed_optdepends(AlpmHandle handle, AlpmPkgs lp)
 {
-	alpm_list_t* i = void;
 
-	for(i = handle.getDBLocal().getPkgCacheList(); i; i = alpm_list_next(i)) {
-		AlpmPkg pkg = cast(AlpmPkg)i.data;
+	foreach(pkg; (handle.getDBLocal().getPkgCacheList())[]) {
+		// AlpmPkg pkg = cast(AlpmPkg)i.data;
 		auto optdeps = pkg.getOptDepends();
 
-		if(!optdeps.empty && !alpm_pkg_find_n(lp.oldToNewList!AlpmPkg, pkg.name)) {
-			alpm_list_t* j = void;
+		if(!optdeps.empty && !alpm_pkg_find_n(lp, pkg.name)) {
 			foreach(optdep; optdeps[]) {
 				// AlpmDepend optdep = cast(AlpmDepend)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
@@ -201,18 +195,18 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, alpm_list_t* lp)
  *
  * @return 0 on success, -1 on error
  */
-int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
+int _alpm_remove_prepare(AlpmHandle handle, ref RefTransData data)
 {
-	alpm_list_t* lp = void;
+	AlpmDepMissings lp;
 	AlpmTrans trans = handle.trans;
 	AlpmDB db = handle.getDBLocal;
 	AlpmEventCheckDeps event;
 
 	if((trans.flags & ALPM_TRANS_FLAG_RECURSE)
 			&& !(trans.flags & ALPM_TRANS_FLAG_CASCADE)) {
-		auto range = trans.remove.newToOld();
+		auto range = trans.remove;
 		logger.tracef("finding removable dependencies\n");
-		if(_alpm_recursedeps(db, &range,
+		if(_alpm_recursedeps(db, range,
 				trans.flags & ALPM_TRANS_FLAG_RECURSEALL)) {
 			return -1;
 		}
@@ -223,8 +217,8 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 		EVENT(handle, event);
 
 		logger.tracef("looking for unsatisfied dependencies\n");
-		lp = alpm_checkdeps(handle, db.getPkgCacheList(), trans.remove.newToOld(), null, 1);
-		if(lp != null) {
+		lp = alpm_checkdeps(handle, db.getPkgCacheList(), trans.remove, AlpmPkgs(), 1);
+		if(!lp.empty()) {
 
 			if(trans.flags & ALPM_TRANS_FLAG_CASCADE) {
 				if(remove_prepare_cascade(handle, lp)) {
@@ -235,13 +229,13 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 				 * from target list */
 				remove_prepare_keep_needed(handle, lp);
 			} else {
-				if(data) {
-					*data = lp;
-				} else {
-					alpm_list_free_inner(lp,
-							cast(alpm_list_fn_free)&alpm_depmissing_free);
-					alpm_list_free(lp);
-				}
+				// if(!data.empty()) {
+					data.missings = lp;
+				// } else {
+					// alpm_list_free_inner(lp,
+							// cast(alpm_list_fn_free)&alpm_depmissing_free);
+					// alpm_list_free(lp);
+				// }
 				RET_ERR(handle, ALPM_ERR_UNSATISFIED_DEPS, -1);
 			}
 		}
@@ -250,9 +244,9 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 	/* -Rcs == -Rc then -Rs */
 	if((trans.flags & ALPM_TRANS_FLAG_CASCADE)
 			&& (trans.flags & ALPM_TRANS_FLAG_RECURSE)) {
-		auto range = trans.remove.newToOld();
+		auto range = trans.remove;
 		logger.tracef("finding removable dependencies\n");
-		if(_alpm_recursedeps(db, &range,
+		if(_alpm_recursedeps(db, range,
 					trans.flags & ALPM_TRANS_FLAG_RECURSEALL)) {
 			return -1;
 		}
@@ -260,7 +254,7 @@ int _alpm_remove_prepare(AlpmHandle handle, alpm_list_t** data)
 
 	/* Note packages being removed that are optdepends for installed packages */
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
-		remove_notify_needed_optdepends(handle, trans.remove.newToOld());
+		remove_notify_needed_optdepends(handle, trans.remove);
 	}
 
 	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
@@ -492,11 +486,11 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 					"keeping directory %s (mountpoint)\n", file.ptr);
 		} else {
 			/* one last check- does any other package own this file? */
-			alpm_list_t* local = void, local_pkgs = void;
+			AlpmPkgs local_pkgs;
 			int found = 0;
 			local_pkgs = handle.getDBLocal().getPkgCacheList();
-			for(local = local_pkgs; local && !found; local = local.next) {
-				AlpmPkg local_pkg = cast(AlpmPkg)local.data;
+			foreach(local_pkg; local_pkgs[]) {
+				// AlpmPkg local_pkg = cast(AlpmPkg)local.data;
 				AlpmFileList filelist;
 
 				/* we duplicated the package when we put it in the removal list, so we
@@ -510,7 +504,10 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"keeping directory %s (owned by %s)\n", file.ptr, local_pkg.name);
 					found = 1;
+					
 				}
+				if(found)
+					break;
 			}
 			if(!found) {
 				if(rmdir(file.ptr)) {
@@ -760,7 +757,6 @@ int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpk
  */
 int _alpm_remove_packages(AlpmHandle handle, int run_ldconfig)
 {
-	alpm_list_t* targ = void;
 	size_t pkg_count = void, targ_count = void;
 	AlpmTrans trans = handle.trans;
 	int ret = 0;

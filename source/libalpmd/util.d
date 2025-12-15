@@ -19,6 +19,7 @@ import std.string;
 import std.ascii;
 import std.typecons;
 import std.format;
+import std.algorithm;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");
@@ -83,7 +84,6 @@ enum FNM_NOMATCH = 1;      // Match failed
 enum FNM_LEADING_DIR = 8;  // Ignore '/...' after a match
 enum FNM_CASEFOLD = 16;    // Compare without regard to case
 
-// Объявление функции chroot, если она отсутствует в стандартной библиотеке
 extern (C){
 	int chroot(const(char)* path);
 	int fnmatch(const(char)* pattern, const(char)* name, int flags);
@@ -168,7 +168,7 @@ void STRDUP(char** str,   char* _str) {
 	*str = cast(char*)strdup(_str);
 }
 
-enum ASSERT(alias fn = "")(bool exp, ...){
+void ASSERT(alias fn = "")(bool exp, ...){
 	static if (fn is "") {
 		assert(exp);
 	}
@@ -401,14 +401,14 @@ error:
  */
 int _alpm_unpack_single(AlpmHandle handle,   char*archive,   char*prefix,   char*filename)
 {
-	alpm_list_t* list = null;
+	AlpmStrings list;
 	int ret = 0;
 	if(filename == null) {
 		return 1;
 	}
-	list = alpm_list_add(list, cast(void*)filename);
+	list.insertBack(filename.to!string);
 	ret = _alpm_unpack(handle, archive, prefix, list, 1);
-	alpm_list_free(list);
+	list.clear();
 	return ret;
 }
 
@@ -420,7 +420,7 @@ int _alpm_unpack_single(AlpmHandle handle,   char*archive,   char*prefix,   char
  * @param breakfirst break after the first entry found
  * @return 0 on success, 1 on failure
  */
-int _alpm_unpack(AlpmHandle handle,   char*path,   char*prefix, alpm_list_t* list, int breakfirst)
+int _alpm_unpack(AlpmHandle handle,   char*path,   char*prefix, ref AlpmStrings list, int breakfirst)
 {
 	int ret = 0;
 	mode_t oldmask = void;
@@ -462,16 +462,16 @@ int _alpm_unpack(AlpmHandle handle,   char*path,   char*prefix, alpm_list_t* lis
 		}
 
 		/* If specific files were requested, skip entries that don't match. */
-		if(list) {
+		if(!list.empty()) {
 			char* entry_prefix = null;
 			STRDUP(entry_prefix, entryname);
 			char* p = strstr(entry_prefix,"/");
 			if(p) {
 				*(p + 1) = '\0';
 			}
-			char* found = alpm_list_find_str(list, entry_prefix);
+			auto found = list[].find(entry_prefix.to!string);
 			free(entry_prefix);
-			if(!found) {
+			if(!found.empty()) {
 				if(archive_read_data_skip(archive) != ARCHIVE_OK) {
 					ret = 1;
 					goto cleanup;
@@ -933,7 +933,6 @@ char* _alpm_filecache_find(AlpmHandle handle,   char*filename)
 {
 	char[PATH_MAX] path = void;
 	char* retpath = void;
-	alpm_list_t* i = void;
 	stat_t buf = void;
 
 	/* Loop through the cache dirs until we find a matching file */
@@ -979,7 +978,6 @@ int _alpm_filecache_exists(AlpmHandle handle,   char*filename)
   char*_alpm_filecache_setup(AlpmHandle handle)
 {
 	stat_t buf = void;
-	alpm_list_t* i = void;
 	char* cachedir = void;
 	  char*tmpdir = void;
 
@@ -1490,7 +1488,6 @@ version (AT_SYMLINK_NOFOLLOW) { //!Fix AT_SYMLINK_NOFOLLOW version trigger
 * positive if the last match was inverted
 */
 int alpmFnmatchPatternsNew(List)(List patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
-	// alpm_list_t* i = void;
 	char* pattern = void;
 	short inverted = void;
 
@@ -1519,17 +1516,14 @@ int alpmFnmatchPatternsNew(List)(List patterns, string _string)  {//!Waint for A
 * @return 0 if string matches pattern, negative if they don't match and
 * positive if the last match was inverted
 */
-int alpmFnmatchPatterns(alpm_list_t* patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
-	alpm_list_t* i = void;
-	char* pattern = void;
+int alpmFnmatchPatterns(AlpmStrings patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
 	short inverted = void;
 
-	for(i = alpm_list_last(patterns); i; i = alpm_list_previous(i)) {
-		pattern = cast(char*)i.data;
+	foreach_reverse(pattern; patterns[]) {
 
 		inverted = pattern[0] == '!';
 		if(inverted || pattern[0] == '\\') {
-			pattern++;
+			continue;
 		}
 
 		if(alpmFnMatch(pattern.to!string, _string.to!string) == 0) {
