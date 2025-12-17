@@ -8,7 +8,7 @@
 		"derelict-libarchive": "~>1.0.1",
 		"hlogger": "~>0.0.1",
 		"inilike": "~>1.2.3",
-		"openssl": "~>3.4.0"
+		"openssl": "~>3.4.0",
 	},
 	"description": "Port of libalpm to D language",
 	"dflags": [
@@ -18,5 +18,6 @@
 	],
 	"license": "MIT",
 	"name": "libalpmd",
-	"targetName": "libalpmd"
+	"targetName": "libalpmd", 
+	"-ddoxTool": "scod"
 }

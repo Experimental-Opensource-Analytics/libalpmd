@@ -42,7 +42,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	/* Sanity checks */
 	//ASSERT(pkg != null);
-	//ASSERT(pkg.origin != ALPM_PKG_FROM_LOCALDB);
+	//ASSERT(pkg.origin != AlpmPkgFrom.LocalDB);
 	//ASSERT(handle == pkg.handle);
 	trans = handle.trans;
 	//ASSERT(trans != null);
@@ -433,7 +433,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 
 	EVENT(handle, event);
 
-	pkgfile = cast(char*)newpkg.origin_data.file;
+	pkgfile = cast(char*)newpkg.getOriginFile();
 
 	logger.tracef("%s package %s-%s\n",
 			log_msg, newpkg.name, newpkg.version_);

@@ -1,3 +1,4 @@
+///Alpm package class module
 module libalpmd.pkg.pkg;
 
 import core.stdc.config: c_long, c_ulong;
@@ -40,6 +41,17 @@ import std.algorithm;
 
 alias AlpmPkgs = DList!AlpmPkg;
 
+///Enum type for determine from package getted from
+enum AlpmPkgFrom {
+	/// Loaded from a file
+	File = 1,
+	/// From the local database
+	LocalDB,
+	/// From a sync database
+	SyncDB
+}
+
+///Alpm package class
 class AlpmPkg {
 	c_ulong name_hash;
 	string filename;
@@ -78,12 +90,13 @@ class AlpmPkg {
 
 	AlpmFileList files;
 
-	/* origin == PKG_FROM_FILE, use pkg->origin_data.file
-	 * origin == PKG_FROM_*DB, use pkg->origin_data.db */
-	union _Origin_data {
+	/* origin == PKG_FROM_FILE, use pkg->getOriginFile()
+	 * origin == PKG_FROM_*DB, use pkg->getOriginDB() */
+	union OriginData {
 		AlpmDB db;
-		string file;
-	}_Origin_data origin_data;
+		string filename;
+	}
+	private OriginData originData;
 
 	AlpmPkgFrom origin;
 	AlpmPkgReason reason;
@@ -131,8 +144,50 @@ public:
 	AlpmPkgs getRemoves() => this.removes;
 	AlpmPkg getOldPkg() => this.oldpkg;
 
+	/** 
+	* Getting AlpmPkgFrom origin type
+	*
+	* Returns: origin type
+	*/
 	AlpmPkgFrom getOrigin() => this.origin;
-	AlpmDB getDB() => this.origin_data.db;
+	
+	/** 
+	* Getting AlmmDB origin database
+	*
+	* Returns: origin database
+	*/
+	AlpmDB getOriginDB() => this.originData.db;
+
+	/** 
+	* Getting origin file name
+	*
+	* Returns: origin file name
+	*/
+	string getOriginFile() => this.originData.filename;
+
+	/**
+	* Setting origin database and it's type
+	* 
+	* Params:  
+	* 	db = origin database 
+	* 	origin = origin type
+	*/
+	void setOriginDB(AlpmDB db, AlpmPkgFrom origin = this.origin) {
+		this.origin = origin;
+		this.originData.db = db;
+	}
+
+	/**
+	* Setting origin file name
+	*
+	* Params:  
+	* 	file = origin file name
+	*/
+	void setOriginFile(string file) {
+		this.origin = AlpmPkgFrom.File;
+		this.originData.filename = filename;
+	}
+
 	AlpmPkgReason getReason() => this.reason;
 	int getValidation() => this.validation;
 	AlpmFileList getFiles() => this.files;
@@ -234,13 +289,13 @@ public:
 
 		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
-		if(this.origin == ALPM_PKG_FROM_FILE) {
+		if(this.origin == AlpmPkgFrom.File) {
 			/* The sane option; search locally for things that require this. */
 			this.findRequiredBy(this.handle.getDBLocal, reqs, optional);
 		} else {
 			/* We have a DB package. if it is a local package, then we should
 			* only search the local DB; else search all known sync databases. */
-			db = this.origin_data.db;
+			db = this.originData.db;
 			if(db.status & AlpmDBStatus.Local) {
 				this.findRequiredBy(db, reqs, optional);
 			} else {
@@ -263,13 +318,13 @@ public:
 	}
 
 	/* This function should be used when removing a target from upgrade/sync target list
-	* Case 1: If pkg is a loaded package file (ALPM_PKG_FROM_FILE), it will be freed.
+	* Case 1: If pkg is a loaded package file (AlpmPkgFrom.File), it will be freed.
 	* Case 2: If pkg is a pkgcache entry (ALPM_PKG_FROM_CACHE), it won't be freed,
 	*         only the transaction specific fields of pkg will be freed.
 	*/
 	void freeTrans()
 	{
-		if(this.origin == ALPM_PKG_FROM_FILE) {
+		if(this.origin == AlpmPkgFrom.File) {
 			destroy!false(this);
 			return;
 		}
@@ -328,10 +383,10 @@ public:
 
 		newPkg.infolevel = this.infolevel;
 		newPkg.origin = this.origin;
-		if(newPkg.origin == ALPM_PKG_FROM_FILE) {
-			newPkg.origin_data.file = this.origin_data.file.idup;
+		if(newPkg.origin == AlpmPkgFrom.File) {
+			newPkg.originData.filename = this.originData.filename;
 		} else {
-			newPkg.origin_data.db = this.origin_data.db;
+			newPkg.originData.db = this.originData.db;
 		}
 		
 		newPkg.handle = this.handle;
@@ -429,11 +484,6 @@ public:
 		// free_deplist(this.provides);
 		// alpm_list_free(this.removes);
 		destroy!false(this.oldpkg);
-
-		if(this.origin == ALPM_PKG_FROM_FILE) {
-			FREE(this.origin_data.file);
-		}
-		// FREE(this);
 	}
 
 	/* Is spkg an upgrade for localpkg? */
@@ -505,7 +555,7 @@ void _alpm_pkg_free(AlpmPkg pkg)
 }
 
 /* This function should be used when removing a target from upgrade/sync target list
- * Case 1: If pkg is a loaded package file (ALPM_PKG_FROM_FILE), it will be freed.
+ * Case 1: If pkg is a loaded package file (AlpmPkgFrom.File), it will be freed.
  * Case 2: If pkg is a pkgcache entry (ALPM_PKG_FROM_CACHE), it won't be freed,
  *         only the transaction specific fields of pkg will be freed.
  */

@@ -453,13 +453,16 @@ class AlpmDB {
 
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "adding entry '%s' in '%s' cache\n",
 							newpkg.name, this.treename);
-		if(newpkg.origin == ALPM_PKG_FROM_FILE) {
-			free(cast(void*)newpkg.origin_data.file);
+		if(newpkg.origin == AlpmPkgFrom.File) {
+			free(cast(void*)newpkg.getOriginFile());
 		}
-		newpkg.origin = (this.status & AlpmDBStatus.Local)
-			? ALPM_PKG_FROM_LOCALDB
-			: ALPM_PKG_FROM_SYNCDB;
-		newpkg.origin_data.db = this;
+
+		// auto origin = (this.status & AlpmDBStatus.Local)
+		auto origin = (this.status & AlpmDBStatus.Local)
+			? AlpmPkgFrom.LocalDB
+			: AlpmPkgFrom.SyncDB;
+		newpkg.setOriginDB(this, origin);
+		
 		if(this.pkgcache.addSorted(newpkg) is null) {
 			destroy!false(newpkg);
 			RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);

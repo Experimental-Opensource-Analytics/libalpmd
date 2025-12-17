@@ -186,7 +186,7 @@ enum string LAZY_LOAD(string info) = `
 
 	override void* changelogOpen() {
 		// AlpmDB db = pkg.getDB();
-		char* clfile = _alpm_local_db_pkgpath(origin_data.db, this, cast(char*)"changelog");
+		char* clfile = _alpm_local_db_pkgpath(getOriginDB(), this, cast(char*)"changelog");
 		FILE* f = fopen(clfile, "r");
 		free(clfile);
 		return cast(void*)f;
@@ -225,7 +225,7 @@ enum string LAZY_LOAD(string info) = `
 		archive* mtree = void;
 
 		// AlpmDB db = pkg.getDB();
-		char* mtfile = _alpm_local_db_pkgpath(origin_data.db, this, cast(char*)"mtree");
+		char* mtfile = _alpm_local_db_pkgpath(getOriginDB(), this, cast(char*)"mtree");
 
 		if(access(mtfile, F_OK) != 0) {
 			/* there is no mtree file for this package */
@@ -298,7 +298,7 @@ enum string LAZY_LOAD(string info) = `
 		int retval = void;
 
 		handle.pm_errno = ALPM_ERR_OK;
-		if(this.origin != ALPM_PKG_FROM_SYNCDB) {
+		if(this.origin != AlpmPkgFrom.SyncDB) {
 			handle.pm_errno = ALPM_ERR_WRONG_ARGS;
 			return -1;
 		}
@@ -503,8 +503,7 @@ enum string LAZY_LOAD(string info) = `
 				continue;
 			}
 
-			pkg.origin = ALPM_PKG_FROM_LOCALDB;
-			pkg.origin_data.db = this;
+			pkg.setOriginDB(this, AlpmPkgFrom.LocalDB);
 			// pkg.ops = &local_pkg_ops;
 			pkg.handle = this.handle;
 
@@ -704,7 +703,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 {
 	FILE* fp = null;
 	char[1024] line = 0;
-	AlpmDB db = info.origin_data.db;
+	AlpmDB db = info.getOriginDB();
 
 	/* bitmask logic here:
 	 * infolevel: 00001111
@@ -1179,8 +1178,8 @@ int _alpm_local_db_remove(AlpmDB db, AlpmPkg info)
 int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 {
 	ASSERT(pkg !is null);
-	ASSERT(pkg.origin == ALPM_PKG_FROM_LOCALDB);
-	ASSERT(pkg.origin_data.db == pkg.handle.getDBLocal);
+	ASSERT(pkg.origin == AlpmPkgFrom.LocalDB);
+	ASSERT(pkg.getOriginDB() == pkg.handle.getDBLocal);
 
 	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);
@@ -1238,7 +1237,7 @@ AlpmPkgChangelog openChangelog(AlpmPkg pkg) {
 	stat_t buf = void;
 	int fd = void;
 
-	fd = _alpm_open_archive(pkg.handle, cast(char*)pkg.origin_data.file, &buf,
+	fd = _alpm_open_archive(pkg.handle, cast(char*)pkg.getOriginFile(), &buf,
 			&_archive, ALPM_ERR_PKG_OPEN);
 	if(fd < 0) {
 		return null;

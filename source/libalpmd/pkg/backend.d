@@ -609,8 +609,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	}
 
 	/* internal fields for package struct */
-	newpkg.origin = ALPM_PKG_FROM_FILE;
-	newpkg.origin_data.file = pkgfile.to!string;
+	newpkg.setOriginFile(pkgfile.to!string);
 	// newpkg.ops = get_file_pkg_ops();
 	newpkg.handle = handle;
 	newpkg.infolevel =AlpmDBInfRq.Base | AlpmDBInfRq.Desc | AlpmDBInfRq.Scriptlet;

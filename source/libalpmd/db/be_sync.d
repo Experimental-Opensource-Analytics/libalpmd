@@ -315,8 +315,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		pkg.version_ = pkgver.to!string;
 		pkg.name_hash = pkgname_hash;
 
-		pkg.origin = ALPM_PKG_FROM_SYNCDB;
-		pkg.origin_data.db = db;
+		pkg.setOriginDB(db, AlpmPkgFrom.SyncDB);
 		// pkg.ops = get_sync_pkg_ops();
 		pkg.handle = db.handle;
 

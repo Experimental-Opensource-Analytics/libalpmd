@@ -136,7 +136,7 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 				return 1;
 			}
 		} else {
-			AlpmDB sdb = spkg.getDB();
+			AlpmDB sdb = spkg.getOriginDB();
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: local (%s) is newer than %s (%s)\n",
 					lpkg.name, lpkg.version_, sdb.treename, spkg.version_);
 		}
@@ -182,7 +182,7 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 			tpkg = alpm_pkg_find_n(handle.trans.add, spkg.name);
 			if(tpkg) {
 				/* sanity check, multiple repos can contain spkg->name */
-				if(tpkg.origin_data.db != sdb) {
+				if(tpkg.getOriginDB() != sdb) {
 					_alpm_log(handle, ALPM_LOG_WARNING, "cannot replace %s by %s\n",
 							lpkg.name, spkg.name);
 					continue;
@@ -318,7 +318,7 @@ private int compute_download_size(AlpmPkg newpkg)
 	int ret = 0;
 	size_t fnamepartlen = 0;
 
-	if(newpkg.origin != ALPM_PKG_FROM_SYNCDB) {
+	if(newpkg.origin != AlpmPkgFrom.SyncDB) {
 		newpkg.infolevel |= AlpmDBInfRq.DSize;
 		newpkg.download_size = 0;
 		return 0;
@@ -381,7 +381,7 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 	// }
 
 	foreach(spkg; trans.add[]) {
-		if (spkg.origin == ALPM_PKG_FROM_SYNCDB){
+		if (spkg.origin == AlpmPkgFrom.SyncDB){
 			from_sync = 1;
 			break;
 		}
@@ -718,10 +718,10 @@ private int prompt_to_delete(AlpmHandle handle,   char*filepath, alpm_errno_t re
 private int find_dl_candidates(AlpmHandle handle, ref AlpmPkgs files)
 {
 	foreach(spkg; handle.trans.add) {
-		if(spkg.origin != ALPM_PKG_FROM_FILE) {
-			AlpmDB repo = spkg.origin_data.db;
+		if(spkg.origin != AlpmPkgFrom.File) {
+			AlpmDB repo = spkg.getOriginDB();
 			bool need_download = void;
-			int siglevel = spkg.getDB().getSigLevel();
+			int siglevel = spkg.getOriginDB().getSigLevel();
 
 			if(!repo.servers.empty()) {
 				(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_SERVER_NONE;
@@ -825,7 +825,7 @@ private int download_files(AlpmHandle handle)
 		// for(i = files; i; i = i.next) {
 		foreach(pkg; files[]) {
 			// AlpmPkg pkg = cast(AlpmPkg)i.data;
-			int siglevel = pkg.getDB().getSigLevel();
+			int siglevel = pkg.getOriginDB().getSigLevel();
 			DLoadPayload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
@@ -842,8 +842,8 @@ private int download_files(AlpmHandle handle)
 				GOTO_ERR(handle, ALPM_ERR_MEMORY, "finish");
 			}
 			payload.max_size = pkg.size;
-			payload.cache_servers = pkg.origin_data.db.cache_servers;
-			payload.servers = pkg.origin_data.db.servers;
+			payload.cache_servers = pkg.getOriginDB().cache_servers;
+			payload.servers = pkg.getOriginDB().servers;
 			payload.handle = handle;
 			payload.allow_resume = 1;
 			payload.download_signature = (siglevel & AlpmSigLevel.Package);
@@ -912,7 +912,7 @@ private int check_keyring(AlpmHandle handle)
 		PROGRESS(handle, ALPM_PROGRESS_KEYRING_START, "", percent,
 				numtargs, current);
 
-		if(pkg.origin == ALPM_PKG_FROM_FILE) {
+		if(pkg.origin == AlpmPkgFrom.File) {
 			continue; /* pkg_load() has been already called, this package is valid */
 		}
 
@@ -1003,7 +1003,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 
 		PROGRESS(handle, ALPM_PROGRESS_INTEGRITY_START, "", percent,
 				total, current);
-		if(v.pkg.origin == ALPM_PKG_FROM_FILE) {
+		if(v.pkg.origin == AlpmPkgFrom.File) {
 			continue; /* pkg_load() has been already called, this package is valid */
 		}
 
@@ -1016,7 +1016,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
 		}
 
-		v.siglevel = v.pkg.getDB().getSigLevel();
+		v.siglevel = v.pkg.getOriginDB().getSigLevel();
 
 		if(_alpm_pkg_validate_internal(handle, v.path, v.pkg,
 					v.siglevel, &v.siglist, &v.validation) == -1) {
@@ -1193,7 +1193,7 @@ private int load_packages(AlpmHandle handle, ref AlpmStrings data, size_t total,
 
 		PROGRESS(handle, ALPM_PROGRESS_LOAD_START, "", percent,
 				total, current);
-		if(spkg.origin == ALPM_PKG_FROM_FILE) {
+		if(spkg.origin == AlpmPkgFrom.File) {
 			continue; /* pkg_load() has been already called, this package is valid */
 		}
 
@@ -1283,7 +1283,7 @@ version (HAVE_LIBGPGME) {
 	/* get the total size of all packages so we can adjust the progress bar more
 	 * realistically if there are small and huge packages involved */
 	foreach(spkg; trans.add) {
-		if(spkg.origin != ALPM_PKG_FROM_FILE) {
+		if(spkg.origin != AlpmPkgFrom.File) {
 			total_bytes += spkg.size;
 		}
 		total++;

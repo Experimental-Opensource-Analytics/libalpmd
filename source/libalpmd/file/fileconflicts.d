@@ -76,7 +76,7 @@ private AlpmFileConflicts add_fileconflict(AlpmHandle handle, ref AlpmFileConfli
 	if(!pkg2) {
 		conflict.type = AlpmFileConflictType.Filesystem;
 		conflict.ctarget = "";
-	} else if(pkg2.origin == ALPM_PKG_FROM_LOCALDB) {
+	} else if(pkg2.origin == AlpmPkgFrom.LocalDB) {
 		conflict.type = AlpmFileConflictType.Filesystem;
 		conflict.ctarget = pkg2.name;
 	} else {

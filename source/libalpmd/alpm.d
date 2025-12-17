@@ -1447,22 +1447,6 @@ alias ALPM_PKG_REASON_EXPLICIT = AlpmPkgReason.ALPM_PKG_REASON_EXPLICIT;
 alias ALPM_PKG_REASON_DEPEND = AlpmPkgReason.ALPM_PKG_REASON_DEPEND;
 alias ALPM_PKG_REASON_UNKNOWN = AlpmPkgReason.ALPM_PKG_REASON_UNKNOWN;
 
-
-/** Location a package object was loaded from. */
-enum AlpmPkgFrom {
-	/** Loaded from a file via \link alpm_pkg_load \endlink */
-	ALPM_PKG_FROM_FILE = 1,
-	/** From the local database */
-	ALPM_PKG_FROM_LOCALDB,
-	/** From a sync database */
-	ALPM_PKG_FROM_SYNCDB
-}
-alias ALPM_PKG_FROM_FILE = AlpmPkgFrom.ALPM_PKG_FROM_FILE;
-alias ALPM_PKG_FROM_LOCALDB = AlpmPkgFrom.ALPM_PKG_FROM_LOCALDB;
-alias ALPM_PKG_FROM_SYNCDB = AlpmPkgFrom.ALPM_PKG_FROM_SYNCDB;
-
-
-
 /** Method used to validate a package. */
 enum AlpmPkgValidation {
 	/** The package's validation type is unknown */

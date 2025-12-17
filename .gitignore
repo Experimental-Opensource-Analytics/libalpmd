@@ -29,3 +29,5 @@ compilation_errors_report.txt
 new_compilation_errors.txt
 .vscode/tasks.json
 .vscode/launch.json
+skeleton.html
+generated-docs
