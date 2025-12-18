@@ -181,6 +181,10 @@ void ASSERT(alias fn = "")(bool exp, ...){
 	}
 }
 
+bool isEmpty(string str) {
+	return str is null || str.empty;
+}
+
 version (BUFSIZ) {
 enum ALPM_BUFFER_SIZE = BUFSIZ;
 } else {

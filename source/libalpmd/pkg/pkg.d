@@ -307,50 +307,30 @@ public:
 		return cmp(this.name, (cast(AlpmPkg)rhs).name);
 	}
 
-	int  getSig(ref ubyte[] sig, size_t* sig_len) {
-		if(this.base64_sig) {
-			try{
-				Base64.decode(base64_sig);
-			}
-			catch(Exception e) {
-				this.handle.pm_errno = ALPM_ERR_SIG_INVALID;
-				return -1;
-			}
-			*sig_len = sig.length;
+	ubyte[] getSig() {
+		if(!this.base64_sig.isEmpty()) {
+			return Base64.decode(base64_sig);
 		} else {
-			string pkgpath, sigpath;
-			alpm_errno_t err = void;
-			int ret = -1;
-
 			try{
-				pkgpath = _alpm_filecache_find(this.handle, cast(char*)this.filename).to!string;
-				if(!pkgpath) {
-					this.handle.pm_errno = ALPM_ERR_PKG_NOT_FOUND;
+				string pkgpath = _alpm_filecache_find(this.handle, cast(char*)this.filename).to!string;
+				if(pkgpath.isEmpty) {
 					throw new Exception("ALPM Error: package not found");
-					return ret;
 				}
-				sigpath = _alpm_sigpath(this.handle, cast(char*)pkgpath).to!string;
-				if(!sigpath || alpmAccess(this.handle, null, sigpath, R_OK)) {
-					this.handle.pm_errno = ALPM_ERR_SIG_MISSING;
+
+				string sigpath = _alpm_sigpath(this.handle, cast(char*)pkgpath).to!string;
+				if(sigpath.isEmpty || alpmAccess(this.handle, null, sigpath, R_OK)) {
 					throw new Exception("ALPM Error: signing not found");
 				}
-				sig = alpmReadFile(sigpath);
-				if(err == ALPM_ERR_OK) {
-					_alpm_log(this.handle, ALPM_LOG_DEBUG, "found detached signature %s with size %ld\n",
-						sigpath, sig.length);
-				} else {
-					throw new Exception("ALPM Error: cannot read signature file.");
-				}
-				ret = 0;
+
+				ubyte[] sig = alpmReadFile(sigpath);
+				
+				logger.tracef("found detached signature %s with size %ld\n", sigpath, sig.length);
+				return sig;
 			}
 			catch(Exception e) {
-				FREE(pkgpath);
-				FREE(sigpath);
-				return ret;
+				return [];
 			}
-
 		}
-		assert(0);
 	}
 
 	void findRequiredBy(AlpmDB db, ref AlpmStrings reqs, int optional) {
