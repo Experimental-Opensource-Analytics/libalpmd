@@ -15,6 +15,7 @@ import core.stdc.stdint; /* int64_t */
 import derelict.libarchive;
 import std.string;
 import std.range;
+import std.algorithm;
 
 import libalpmd.add;
 import libalpmd.alpm;
@@ -52,7 +53,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	logger.tracef("adding package '%s'\n", pkgname);
 
-	if((dup = alpm_pkg_find_n(trans.add, pkgname)) !is null ) {
+	if((dup = alpmFindPkgByHash(trans.add, pkgname)) !is null){
 		if(dup == pkg) {
 			logger.tracef("skipping duplicate target: %s\n", pkgname);
 			return 0;

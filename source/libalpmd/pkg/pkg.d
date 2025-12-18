@@ -481,46 +481,7 @@ public:
 
 }
 
-//Left until full refactoring AlpmList
-void _alpm_pkg_free(AlpmPkg pkg)
-{
-	destroy!false(pkg);
-}
 
-/* This function should be used when removing a target from upgrade/sync target list
- * Case 1: If pkg is a loaded package file (AlpmPkgFrom.File), it will be freed.
- * Case 2: If pkg is a pkgcache entry (ALPM_PKG_FROM_CACHE), it won't be freed,
- *         only the transaction specific fields of pkg will be freed.
- */
-void _alpm_pkg_free_trans(AlpmPkg pkg)
-{
-	pkg.freeTrans();
-}
-
-/* Helper function for comparing packages
- */
-int _alpm_pkg_cmp( void* p1,  void* p2)
-{
-	return (cast(AlpmPkg)p1).opCmp(cast(Object)p2);
-}
-
-AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
-{
-	if(needle || haystack.empty) {
-		return null;
-	}
-
-	c_ulong needle_hash = alpmSDBMHash(needle.to!string);
-
-	foreach(info; haystack[]) {
-		if(info.name_hash != needle_hash) {
-			continue;
-		}
-
-		/* finally: we had hash match, verify string match */
-		if(info.name == needle) {
-			return info;
-		}
-	}
-	return null;
+AlpmPkg alpmFindPkgByHash(AlpmPkgs haystack, string needle) {
+	return haystack[].find!((a) => (a.getNameHash == needle.alpmSDBMHash())).front();
 }

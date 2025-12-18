@@ -353,7 +353,7 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 	int nodepversion = void;
 
 	foreach(pkg; pkglist[]) {
-		if(alpm_pkg_find_n(rem, pkg.getName()) || alpm_pkg_find_n(upgrade, pkg.getName())) {
+		if(alpmFindPkgByHash(rem, pkg.getName()) || alpmFindPkgByHash(upgrade, pkg.getName())) {
 			modified.insertBack(pkg);
 		} else {
 			dblist.insertBack(pkg);
@@ -695,7 +695,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 
 		pkg = db.getPkgFromCache(cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
-				&& !alpm_pkg_find_n(excluding, pkg.getName())) {
+				&& !alpmFindPkgByHash(excluding, pkg.getName())) {
 			if(handle.shouldPkgIgnore(pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				if(prompt) {
@@ -722,7 +722,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 			// AlpmPkg pkg = cast(AlpmPkg)j.data;
 			if((pkg.getNameHash() != dep.name_hash || cmp(pkg.getName(), dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
-					&& !alpm_pkg_find_n(excluding, pkg.getName())) {
+					&& !alpmFindPkgByHash(excluding, pkg.getName())) {
 				if(handle.shouldPkgIgnore(pkg)) {
 					auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 					if(prompt) {
@@ -818,7 +818,7 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 	AlpmDBs dbs = void;
 	AlpmDepMissings deps;
 
-	if(alpm_pkg_find_n(packages, pkg.getName()) !is null) {
+	if(alpmFindPkgByHash(packages, pkg.getName()) !is null) {
 		return 0;
 	}
 
