@@ -319,10 +319,10 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		// pkg.ops = get_sync_pkg_ops();
 		pkg.setHandle(db.handle);
 
-		if(pkg.checkMeta() != 0) {
-			destroy!false(pkg);
-			RET_ERR(db.handle, ALPM_ERR_PKG_INVALID, null);
-		}
+		try 
+			pkg.checkMeta();
+		catch(Exception e) 
+			return null;
 
 		/* add to the collection */
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",

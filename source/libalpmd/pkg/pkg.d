@@ -412,57 +412,34 @@ public:
 	}
 
 	/* check that package metadata meets our requirements */
-	int checkMeta()
-	{
+	void checkMeta() {
 		string c;
-		int error_found = 0;
-
-	enum string EPKGMETA(string error) = `do { 
-		error_found = -1; 
-		_alpm_log(this.handle, ALPM_LOG_ERROR, ` ~ error ~ `, this.name, this.version_); 
-	} while(0);`;
-
-		/* sanity check */
-		if(this.handle is null) {
-			return -1;
-		}
 
 		/* immediate bail if package doesn't have name or version */
-		if(this.name == null || this.name[0] == '\0'
-				|| this.version_ == null || this.version_[0] == '\0') {
-			_alpm_log(this.handle, ALPM_LOG_ERROR,
-					("invalid package metadata (name or version missing)"));
-			return -1;
+		if(this.name.isEmpty() || this.version_ == null) {
+			throw new Exception("invalid package metadata (name or version missing)");
 		}
-
 		if(this.name[0] == '-' || this.name[0] == '.') {
-			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-						~ "(package name cannot start with '.' or '-')\n")`));
+			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package name cannot start with '.' or '-')");
 		}
 		if(alpmFnMatch(this.name, "[![:alnum:]+_.@-]") == 0) {
-			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-						~ "(package name contains invalid characters)\n")`));
+			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package name contains invalid characters)");
 		}
 
 		/* multiple '-' in pkgver can cause local db entries for different packages
 		* to overlap (e.g. foo-1=2-3 and foo=1-2-3 both give foo-1-2-3) */
 		// if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
 		if((c = this.getVersion().find('-')) != [] && c[1..$-1].find('-')) {
-			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-						~ "(package version contains invalid characters)\n")`));
+			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package version contains invalid characters)");
 		}
 		if(this.getVersion().find('-') != []) {
-			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-						~ "(package version contains invalid characters)\n")`));
+			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package version contains invalid characters)");
 		}
 
 		/* local db entry is <pkgname>-<pkgver> */
 		if(this.name.length + this.version_.length + 1 > NAME_MAX) {
-			mixin(EPKGMETA!(`("invalid metadata for package %s-%s "
-						~ "(package name and version too long)\n")`));
-		}
-
-		return error_found;
+			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package name and version too long)");
+		};
 	}
 
 	~this() {
