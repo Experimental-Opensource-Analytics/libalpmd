@@ -55,7 +55,7 @@ enum AlpmPkgFrom {
 ///Alpm package class
 class AlpmPkg {
 	c_ulong name_hash;
-	string filename;
+	protected string filename;
 	string base;
 	string name;
 	string version_;
@@ -113,24 +113,21 @@ class AlpmPkg {
 public:
 	this() {}
 
-	/** 
-	* Getting ALPM handle
-	*
-	* Returns: handle object
-	*/
+	///
 	auto getHandle() => this.handle;
 
-	/**
-	* Setting handle
-	* 
-	* Params:  
-	* 	handle = origin database 
-	*/
+	///
 	void setHandle(AlpmHandle handle) {
 		this.handle = handle;
 	}
 
-	string getFilename() => this.filename;
+	///
+	string 	getFilename() => this.filename;
+
+	///
+	void 	setFilename(string filename) {
+		this.filename = filename;
+	}
 	string getName() => this.name; 
 	string getBase() => this.base;
 	string getVersion() => this.version_;

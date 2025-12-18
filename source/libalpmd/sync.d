@@ -325,7 +325,7 @@ private int compute_download_size(AlpmPkg newpkg)
 	}
 
 	//ASSERT(newpkg.filename != null);
-	fname = cast(char*)newpkg.filename;
+	fname = cast(char*)newpkg.getFilename();
 	fpath = _alpm_filecache_find(handle, fname);
 
 	/* downloaded file exists, so there's nothing to grab */
@@ -468,11 +468,11 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 		/* Ensure two packages don't have the same filename */
 		foreach(pkg1; resRange) {
 			foreach(pkg2; resRange) {
-				if(pkg1.filename == pkg2.filename) {
+				if(pkg1.getFilename() == pkg2.getFilename()) {
 					ret = -1;
 					(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_TRANS_DUP_FILENAME;
 					_alpm_log(handle, ALPM_LOG_ERROR, "packages %s and %s have the same filename: %s\n",
-						pkg1.name, pkg2.name, pkg1.filename);
+						pkg1.name, pkg2.name, pkg1.getFilename());
 				}
 			}
 		}
@@ -732,17 +732,17 @@ private int find_dl_candidates(AlpmHandle handle, ref AlpmPkgs files)
 
 			//ASSERT(spkg.filename != null);
 
-			need_download = spkg.download_size != 0 || !_alpm_filecache_exists(handle, cast(char*)spkg.filename);
+			need_download = spkg.download_size != 0 || !_alpm_filecache_exists(handle, cast(char*)spkg.getFilename());
 			/* even if the package file in the cache we need to check for
 			 * accompanion *.sig file as well.
 			 * If *.sig is not cached then force download the package + its signature file.
 			 */
 			if(!need_download && (siglevel & AlpmSigLevel.Package)) {
 				char* sig_filename = null;
-				int len = cast(int)spkg.filename.length + 5;
+				int len = cast(int)spkg.getFilename().length + 5;
 
 				MALLOC(sig_filename, len);
-				snprintf(sig_filename, len, "%s.sig", cast(char*)spkg.filename);
+				snprintf(sig_filename, len, "%s.sig", cast(char*)spkg.getFilename());
 
 				need_download = !_alpm_filecache_exists(handle, sig_filename);
 
@@ -829,9 +829,9 @@ private int download_files(AlpmHandle handle)
 			DLoadPayload* payload = null;
 
 			CALLOC(payload, 1, typeof(*payload).sizeof);
-			STRDUP(payload.remote_name, cast(char*)pkg.filename);
-			// STRDUP(payload.filepath, cast(char*)pkg.filename);
-			payload.filepath = pkg.filename.dup;
+			STRDUP(payload.remote_name, cast(char*)pkg.getFilename());
+			// STRDUP(payload.filepath, cast(char*)pkg.getFilename());
+			payload.filepath = pkg.getFilename().dup;
 			// payload.destfile_name = temporary_syncpath ~ payload.remote_name ~ "";
 			// payload.tempfile_name = temporary_syncpath ~ payload.remote_name ~ ".part";
 			payload.destfile_name = temporary_cachedir.to!string ~ payload.remote_name.to!string ~ "";
@@ -1008,7 +1008,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 		}
 
 		current_bytes += v.pkg.size;
-		v.path = _alpm_filecache_find(handle, cast(char*)v.pkg.filename);
+		v.path = _alpm_filecache_find(handle, cast(char*)v.pkg.getFilename());
 
 		if(!v.path) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
@@ -1198,7 +1198,7 @@ private int load_packages(AlpmHandle handle, ref AlpmStrings data, size_t total,
 		}
 
 		current_bytes += spkg.size;
-		filepath = _alpm_filecache_find(handle, cast(char*)spkg.filename);
+		filepath = _alpm_filecache_find(handle, cast(char*)spkg.getFilename());
 
 		if(!filepath) {
 			// FREELIST(delete_list);
@@ -1221,7 +1221,7 @@ private int load_packages(AlpmHandle handle, ref AlpmStrings data, size_t total,
 		}
 		if(error != 0) {
 			errors++;
-			data.insertBack(spkg.filename);
+			data.insertBack(spkg.getFilename());
 			delete_list.insertBack(filepath.to!string);
 			destroy!false(pkgfile);
 			continue;

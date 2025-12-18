@@ -42,9 +42,7 @@ import libalpmd.alpm_list;
 import libalpmd.db;
 import libalpmd.question;
 
-unittest {
-
-}
+import std.string;
 
 enum AlpmSigLevel {
 	/** Packages require a signature */
@@ -1000,7 +998,7 @@ int  alpm_pkg_check_pgp_signature(AlpmPkg pkg, alpm_siglist_t* siglist)
 	AlpmHandle handle = pkg.getHandle();
 	handle.pm_errno = ALPM_ERR_OK;
 
-	return _alpm_gpgme_checksig(pkg.getHandle(), cast(char*)pkg.filename,
+	return _alpm_gpgme_checksig(pkg.getHandle(), cast(char*)pkg.getFilename().toStringz,
 			cast(char*)pkg.base64_sig, siglist);
 }
 

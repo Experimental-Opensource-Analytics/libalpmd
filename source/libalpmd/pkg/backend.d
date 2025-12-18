@@ -414,7 +414,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	AlpmFileList filelist = [];
 
 	_alpm_log(handle, ALPM_LOG_DEBUG,
-			"found mtree for package %s, getting file list\n", pkg.filename);
+			"found mtree for package %s, getting file list\n", pkg.getFilename());
 
 	/* create a new archive to parse the mtree and load it from archive into memory */
 	/* TODO: split this into a function */
@@ -435,7 +435,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 
 		if(size < 0) {
 			logger.tracef(("error while reading package %s: %s\n"),
-					pkg.filename, archive_error_string(_archive));
+					pkg.getFilename(), archive_error_string(_archive));
 			GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 		}
 		if(size == 0) {
@@ -448,7 +448,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 	if(archive_read_open_memory(mtree, mtree_data.ptr, mtree_cursize)) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				("error while reading mtree of package %s: %s\n"),
-				pkg.filename, archive_error_string(mtree));
+				pkg.getFilename(), archive_error_string(mtree));
 		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
@@ -471,7 +471,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 
 	if(ret != ARCHIVE_EOF && ret != ARCHIVE_OK) { /* An error occurred */
 		logger.tracef(("error while reading mtree of package %s: %s\n"),
-				pkg.filename, archive_error_string(mtree));
+				pkg.getFilename(), archive_error_string(mtree));
 		GOTO_ERR(handle, ALPM_ERR_LIBARCHIVE, "error");
 	}
 
@@ -486,7 +486,7 @@ private int build_filelist_from_mtree(AlpmHandle handle, AlpmPkg pkg, archive* _
 
 	free(mtree_data.ptr);
 	_alpm_archive_read_free(mtree);
-	logger.tracef("finished mtree reading for %s\n", pkg.filename);
+	logger.tracef("finished mtree reading for %s\n", pkg.getFilename());
 	return 0;
 error:
 	/* throw away any files we loaded from the mtree */
@@ -538,7 +538,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	if(newpkg is null) {
 		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}
-	newpkg.filename = pkgfile.to!string;
+	newpkg.setFilename(pkgfile.to!string);
 	newpkg.size = st.st_size;
 
 	logger.tracef("starting package load for %s\n", pkgfile);
