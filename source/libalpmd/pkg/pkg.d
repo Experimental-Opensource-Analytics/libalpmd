@@ -39,7 +39,8 @@ import std.base64;
 import std.algorithm;
 // import core.sys.darwin.mach.loader;
 
-alias AlpmPkgs = DList!AlpmPkg;
+/// alias for AlpmList!AlpmPkg
+alias AlpmPkgs = AlpmList!AlpmPkg;
 
 ///Enum type for determine from package getted from
 enum AlpmPkgFrom {
