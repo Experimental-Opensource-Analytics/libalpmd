@@ -299,7 +299,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		return null;
 	}
 
-	if(likely_pkg && pkgname_hash == likely_pkg.name_hash
+	if(likely_pkg && pkgname_hash == likely_pkg.getNameHash()
 			&& likely_pkg.getName() == pkgname) {
 		pkg = likely_pkg;
 	} else {
@@ -313,7 +313,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 
 		pkg.setName(pkgname);
 		pkg.version_ = pkgver.to!string;
-		pkg.name_hash = pkgname_hash;
+		pkg.setNameHash(pkgname_hash);
 
 		pkg.setOriginDB(db, AlpmPkgFrom.SyncDB);
 		// pkg.ops = get_sync_pkg_ops();

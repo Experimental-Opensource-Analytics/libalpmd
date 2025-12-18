@@ -451,7 +451,7 @@ private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 
 int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
 {
-	if(pkg.name_hash != dep.name_hash
+	if(pkg.getNameHash() != dep.name_hash
 			|| cmp(pkg.getName(), dep.name) != 0) {
 		/* skip more expensive checks */
 		return 0;
@@ -714,7 +714,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 		}
 		foreach(pkg; (db.getPkgCacheList())[]) {
 			// AlpmPkg pkg = cast(AlpmPkg)j.data;
-			if((pkg.name_hash != dep.name_hash || cmp(pkg.getName(), dep.name) != 0)
+			if((pkg.getNameHash() != dep.name_hash || cmp(pkg.getName(), dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
 					&& !alpm_pkg_find_n(excluding, pkg.getName())) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {

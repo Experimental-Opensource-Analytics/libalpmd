@@ -21,8 +21,8 @@ import libalpmd.pkg;
  */
 int conflict_isin(AlpmConflict needle, AlpmConflicts haystack) {
 	foreach(conflict; haystack) {
-		if(needle.package1.name_hash == conflict.package1.name_hash
-				&& needle.package2.name_hash == conflict.package2.name_hash
+		if(needle.package1.getNameHash() == conflict.package1.getNameHash()
+				&& needle.package2.getNameHash() == conflict.package2.getNameHash()
 				&& needle.package1.getName() == conflict.package1.getName()
 				&& needle.package2.getName() == conflict.package2.getName()) {
 			return 1;

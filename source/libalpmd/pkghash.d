@@ -138,7 +138,7 @@ public:
 		for(i = 0; i < this.buckets; i++) {
 			if(!this.hash_table[i].empty()) {
 				AlpmPkg package_ = this.hash_table[i].front();
-				uint position = this.getHashPosition(package_.name_hash);
+				uint position = this.getHashPosition(package_.getNameHash());
 
 				newHashTable[position] = this.hash_table[i];
 				// this.hash_table[i] = null;
@@ -165,7 +165,7 @@ public:
 			}
 		}
 
-		position = this.getHashPosition(pkg.name_hash);
+		position = this.getHashPosition(pkg.getNameHash());
 
 
 		// ptr.data = cast(void*)pkg;
@@ -221,7 +221,7 @@ public:
 		while(end != start) {
 			AlpmPkgs i = this.hash_table[end];
 			AlpmPkg info = cast(AlpmPkg)i.front();
-			uint new_position = this.getHashPosition(info.name_hash);
+			uint new_position = this.getHashPosition(info.getNameHash());
 
 			if(new_position == start) {
 				this.hash_table[start] = i;
@@ -249,11 +249,11 @@ public:
 			return this;
 		}
 
-		position = pkg.name_hash % this.buckets;
+		position = pkg.getNameHash() % this.buckets;
 		while(!(i = this.hash_table[position]).empty()) {
 			AlpmPkg info = cast(AlpmPkg)i.front();
 
-			if(info.name_hash == pkg.name_hash &&
+			if(info.getNameHash() == pkg.getNameHash() &&
 						info.getName()== pkg.getName()) {
 				uint stop = void, prev = void;
 
@@ -318,7 +318,7 @@ public:
 		while(!(lp = this.hash_table[position]).empty()) {
 			AlpmPkg info = cast(AlpmPkg)lp.front;
 
-			if(info.name_hash == name_hash && strcmp(cast(char*)info.getName(), name) == 0) {
+			if(info.getNameHash() == name_hash && strcmp(cast(char*)info.getName(), name) == 0) {
 				return info;
 			}
 

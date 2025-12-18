@@ -139,7 +139,7 @@ void check_conflict(AlpmHandle handle, AlpmPkgs list1, AlpmPkgs  list2, ref Alpm
 		foreach(conflict1; pkg1.getConflicts()[]) {
 			foreach(pkg2; list2[]) {
 
-				if(pkg1.name_hash == pkg2.name_hash
+				if(pkg1.getNameHash() == pkg2.getNameHash()
 						&& pkg1.getName()== pkg2.getName()) {
 					/* skip the package we're currently processing */
 					continue;

@@ -495,7 +495,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 
 				/* we duplicated the package when we put it in the removal list, so we
 				 * so we can't use direct pointer comparison here. */
-				if(oldpkg.name_hash == local_pkg.name_hash
+				if(oldpkg.getNameHash() == local_pkg.getNameHash()
 						&& oldpkg.getName() == local_pkg.getName()) {
 					continue;
 				}

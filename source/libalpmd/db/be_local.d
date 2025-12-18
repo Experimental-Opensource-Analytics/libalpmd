@@ -490,7 +490,8 @@ enum string LAZY_LOAD(string info) = `
 			}
 			/* split the db entry name */
 			string splitResult;
-			if(alpmSplitName(name.to!string, splitResult, pkg.version_, pkg.name_hash) != 0) {
+			ulong hash;
+			if(alpmSplitName(name.to!string, splitResult, pkg.version_, hash) != 0) {
 				_alpm_log(this.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
 						name);
 				destroy!false(pkg);
@@ -498,6 +499,7 @@ enum string LAZY_LOAD(string info) = `
 			}
 
 			pkg.setName(splitResult);
+			pkg.setNameHash(hash);
 
 			/* duplicated database entries are not allowed */
 			if(this.pkgcache.find(cast(char*)pkg.getName())) {

@@ -154,7 +154,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			if(strcmp(key, "pkgname") == 0) {
 				STRDUP(tmp, ptr);
 				newpkg.setName(tmp.to!string);
-				newpkg.name_hash = alpmSDBMHash(newpkg.getName());
+				newpkg.setNameHash(alpmSDBMHash(newpkg.getName()));
 			} else if(strcmp(key, "pkgbase") == 0) {
 				newpkg.base = ptr.to!string;
 			} else if(strcmp(key, "pkgver") == 0) {

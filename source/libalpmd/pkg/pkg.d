@@ -54,7 +54,7 @@ enum AlpmPkgFrom {
 
 ///Alpm package class
 class AlpmPkg {
-	c_ulong name_hash;
+	protected c_ulong name_hash;
 	protected string filename;
 	string base;
 	protected string name;
@@ -133,7 +133,14 @@ public:
 	void 	setName(string name) {
 		this.name = name;
 	}
-	
+
+	///
+	c_ulong getNameHash() => this.name_hash; 
+	//
+	void 	setNameHash(c_ulong name_hash) {
+		this.name_hash = name_hash;
+	}
+
 	string getBase() => this.base;
 	string getVersion() => this.version_;
 	string getDesc() => this.desc;
