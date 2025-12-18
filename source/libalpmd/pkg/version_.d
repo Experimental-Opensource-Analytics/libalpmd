@@ -92,7 +92,7 @@ void parseEVR(string evr,  out string ep, out string vp, out string rp){//!forma
  *        0: a and b are the same version
  *       -1: b is newer than a
  */
-private int rpmvercmp(  char*a,   char*b)
+int rpmvercmp(  char*a,   char*b)
 {
 	char oldch1 = void, oldch2 = void;
 	char* str1 = void, str2 = void;
@@ -225,48 +225,5 @@ private int rpmvercmp(  char*a,   char*b)
 cleanup:
 	free(str1);
 	free(str2);
-	return ret;
-}
-
-int  alpm_pkg_vercmp(  char*a,   char*b)
-{
-	char* full1 = void, full2 = void;
-	string epoch1 = void, ver1 = void, rel1 = void;
-	string epoch2 = void, ver2 = void, rel2 = void;
-	int ret = void;
-
-	/* ensure our strings are not null */
-	if(!a && !b) {
-		return 0;
-	} else if(!a) {
-		return -1;
-	} else if(!b) {
-		return 1;
-	}
-	/* another quick shortcut- if full version specs are equal */
-	if(strcmp(a, b) == 0) {
-		return 0;
-	}
-
-	/* Parse both versions into [epoch:]version[-release] triplets. We probably
-	 * don't need epoch and release to support all the same magic, but it is
-	 * easier to just run it all through the same code. */
-	full1 = strdup(a);
-	full2 = strdup(b);
-
-	/* parseEVR modifies passed in version, so have to dupe it first */
-	parseEVR(full1.to!string, epoch1, ver1, rel1);
-	parseEVR(full2.to!string, epoch2, ver2, rel2);
-
-	ret = rpmvercmp(cast(char*)epoch1, cast(char*)epoch2);
-	if(ret == 0) {
-		ret = rpmvercmp(cast(char*)ver1, cast(char*)ver2);
-		if(ret == 0 && rel1 && rel2) {
-			ret = rpmvercmp(cast(char*)rel1, cast(char*)rel2);
-		}
-	}
-
-	free(full1);
-	free(full2);
 	return ret;
 }

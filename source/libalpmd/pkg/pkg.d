@@ -411,7 +411,11 @@ public:
 		return newPkg;
 	}
 
-	/* check that package metadata meets our requirements */
+	/** 
+	 * Checks metadata (name ind version) of pkg 
+	 *
+	 * Throws: Exception, if name or/and version isn't valid
+	 */
 	void checkMeta() {
 		string c;
 
@@ -439,7 +443,7 @@ public:
 		/* local db entry is <pkgname>-<pkgver> */
 		if(this.name.length + this.version_.length + 1 > NAME_MAX) {
 			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package name and version too long)");
-		};
+		}
 	}
 
 	~this() {
@@ -480,10 +484,52 @@ public:
 		destroy!false(this.oldpkg);
 	}
 
-	/* Is spkg an upgrade for localpkg? */
-	int compareVersions(AlpmPkg localpkg)
-	{
-		return alpm_pkg_vercmp(cast(char*)this.version_.toStringz, cast(char*)localpkg.version_.toStringz);
+	/** 
+	 * Compare packages's versions 
+	 *
+	 * Params:
+	 *   localpkg = package to compare
+	 * Returns: 
+	 * 	 0 if version is equal
+	 * 	 1 if this package is newer
+	 *   -1 if this package is older	
+	 */
+	int compareVersions(AlpmPkg localpkg) {
+		string a = this.version_, b = localpkg.version_;
+		string epoch1 = void, ver1 = void, rel1 = void;
+		string epoch2 = void, ver2 = void, rel2 = void;
+		int ret = void;
+
+		/* ensure our strings are not null */
+		if(a.isEmpty && b.isEmpty) {
+			return 0;
+		} else if(a.isEmpty) {
+			return -1;
+		} else if(b.isEmpty) {
+			return 1;
+		}
+		/* another quick shortcut- if full version specs are equal */
+		if(cmp(a, b)) {
+			return 0;
+		}
+
+		/* Parse both versions into [epoch:]version[-release] triplets. We probably
+		* don't need epoch and release to support all the same magic, but it is
+		* easier to just run it all through the same code. */
+// 
+		/* parseEVR modifies passed in version, so have to dupe it first */
+		parseEVR(a.to!string, epoch1, ver1, rel1);
+		parseEVR(b.to!string, epoch2, ver2, rel2);
+
+		ret = rpmvercmp(cast(char*)epoch1, cast(char*)epoch2);
+		if(ret == 0) {
+			ret = rpmvercmp(cast(char*)ver1, cast(char*)ver2);
+			if(ret == 0 && rel1 && rel2) {
+				ret = rpmvercmp(cast(char*)rel1, cast(char*)rel2);
+			}
+		}
+
+		return ret;
 	}
 
 	int  shouldIgnore(AlpmHandle handle)

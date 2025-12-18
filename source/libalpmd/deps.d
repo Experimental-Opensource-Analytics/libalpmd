@@ -431,12 +431,18 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 
 private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 {
+	//!NEED TO FIX THIS
+	AlpmPkg fakePkg1 = new AlpmPkg;
+	fakePkg1.setVersion(version1.to!string);
+
+	AlpmPkg fakePkg2 = new AlpmPkg;
+	fakePkg2.setVersion(version2.to!string);
 	int equal = 0;
 
 	if(mod == ALPM_DEP_MOD_ANY) {
 		equal = 1;
 	} else {
-		int cmp = alpm_pkg_vercmp(version1, version2);
+		int cmp = fakePkg1.compareVersions(fakePkg2);
 		switch(mod) {
 			case ALPM_DEP_MOD_EQ: equal = (cmp == 0); break;
 			case ALPM_DEP_MOD_GE: equal = (cmp >= 0); break;
