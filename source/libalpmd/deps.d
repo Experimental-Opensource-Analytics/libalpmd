@@ -365,7 +365,7 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 	/* look for unsatisfied dependencies of the upgrade list */
 	foreach(tp; upgrade[]) {
 		logger.tracef("checkdeps: package %s-%s\n",
-				tp.getName(), tp.version_);
+				tp.getName(), tp.getVersion());
 
 		foreach(depend; tp.getDepends()[]) {
 			alpm_depmod_t orig_mod = depend.mod;
@@ -456,7 +456,7 @@ int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
 		/* skip more expensive checks */
 		return 0;
 	}
-	return dep_vercmp(cast(char*)pkg.version_.toStringz, dep.mod, cast(char*)dep.version_.toStringz);
+	return dep_vercmp(cast(char*)pkg.getVersion().toStringz, dep.mod, cast(char*)dep.version_.toStringz);
 }
 
 /**
@@ -696,7 +696,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 					QUESTION(handle, question);
 				} else {
 					_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
-							pkg.getName(), pkg.version_);
+							pkg.getName(), pkg.getVersion());
 				}
 				if(!question.getAnswer()) {
 					ignored = 1;
@@ -723,7 +723,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 						QUESTION(handle, question);
 					} else {
 						_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
-								pkg.getName(), pkg.version_);
+								pkg.getName(), pkg.getVersion());
 					}
 					if(!question.getAnswer()) {
 						ignored = 1;

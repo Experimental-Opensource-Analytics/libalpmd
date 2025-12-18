@@ -48,7 +48,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(trans != null);
 	ASSERT(trans.state == AlpmTransState.Initialized);
 
-	pkgver = pkg.version_;
+	pkgver = pkg.getVersion();
 
 	logger.tracef("adding package '%s'\n", pkgname);
 
@@ -63,7 +63,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 
 	if((local = handle.getDBLocal().getPkgFromCache(cast(char*)pkgname)) !is null) {
 		string localpkgname = local.getName();
-		string localpkgver = local.version_;
+		string localpkgver = local.getVersion();
 		int cmp = pkg.compareVersions(local);
 
 		if(cmp == 0) {
@@ -164,7 +164,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			cast(char*)handle.getDBLocal.calcPath(), cast(char*)newpkg.getName(), cast(char*)newpkg.version_, dbfile);
+			cast(char*)handle.getDBLocal.calcPath(), cast(char*)newpkg.getName(), cast(char*)newpkg.getVersion(), dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
@@ -436,14 +436,14 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	pkgfile = cast(char*)newpkg.getOriginFile();
 
 	logger.tracef("%s package %s-%s\n",
-			log_msg, newpkg.getName(), newpkg.version_);
+			log_msg, newpkg.getName(), newpkg.getVersion());
 		/* pre_install/pre_upgrade scriptlet */
 	if(newpkg.hasScriptlet() &&
 			!(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "pre_upgrade" : "pre_install");
 
 		_alpm_runscriptlet(handle, pkgfile, scriptlet_name,
-				cast(char*)newpkg.version_, oldpkg ? cast(char*)oldpkg.version_ : null, 1);
+				cast(char*)newpkg.getVersion(), oldpkg ? cast(char*)oldpkg.getVersion() : null, 1);
 	}
 
 	/* we override any pre-set reason if we have alldeps or allexplicit set */
@@ -514,12 +514,12 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
 			int percent = void;
 
-			if(newpkg.size != 0) {
+			if(newpkg.getSize() != 0) {
 				/* Using compressed size for calculations here, as newpkg->isize is not
 				 * exact when it comes to comparing to the ACTUAL uncompressed size
 				 * (missing metadata sizes) */
 				long pos = _alpm_archive_compressed_ftell(archive);
-				percent = cast(int)((pos * 100) / newpkg.size);
+				percent = cast(int)((pos * 100) / newpkg.getSize());
 				if(percent >= 100) {
 					percent = 100;
 				}
@@ -571,10 +571,10 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 
 	if(_alpm_local_db_write(db, newpkg, AlpmDBInfRq.All)) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not update database entry %s-%s\n"),
-				newpkg.getName(), newpkg.version_);
+				newpkg.getName(), newpkg.getVersion());
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 				// "error: could not update database entry %s-%s\n",
-				// newpkg.getName(), newpkg.version_);
+				// newpkg.getName(), newpkg.getVersion());
 		handle.pm_errno = ALPM_ERR_DB_WRITE;
 		return -1;
 	}
@@ -589,19 +589,19 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	switch(event.operation) {
 		case AlpmPackageOperationType.Install:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "installed %s (%s)\n",
-					// newpkg.name, newpkg.version_);
+					// newpkg.name, newpkg.getVersion());
 			break;
 		case AlpmPackageOperationType.Downgrade:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "downgraded %s (%s -> %s)\n",
-					// newpkg.name, oldpkg.version_, newpkg.version_);
+					// newpkg.name, oldpkg.getVersion(), newpkg.getVersion());
 			break;
 		case AlpmPackageOperationType.Reinstall:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "reinstalled %s (%s)\n",
-					// newpkg.name, newpkg.version_);
+					// newpkg.name, newpkg.getVersion());
 			break;
 		case AlpmPackageOperationType.Upgrade:
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX, "upgraded %s (%s -> %s)\n",
-					// newpkg.name, oldpkg.version_, newpkg.version_);
+					// newpkg.name, oldpkg.getVersion(), newpkg.getVersion());
 			break;
 		default:
 			/* we should never reach here */
@@ -615,7 +615,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "post_upgrade" : "post_install");
 
 		_alpm_runscriptlet(handle, scriptlet, scriptlet_name,
-				cast(char*)newpkg.version_, oldpkg ? cast(char*)oldpkg.version_ : null, 0);
+				cast(char*)newpkg.getVersion(), oldpkg ? cast(char*)oldpkg.getVersion() : null, 0);
 		free(scriptlet);
 	}
 

@@ -156,21 +156,21 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.setName(tmp.to!string);
 				newpkg.setNameHash(alpmSDBMHash(newpkg.getName()));
 			} else if(strcmp(key, "pkgbase") == 0) {
-				newpkg.base = ptr.to!string;
+				newpkg.setBase(ptr.to!string);
 			} else if(strcmp(key, "pkgver") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.version_ = tmp.to!string;
+				newpkg.setVersion(tmp.to!string);
 			} else if(strcmp(key, "basever") == 0) {
 				/* not used atm */
 			} else if(strcmp(key, "pkgdesc") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.desc = tmp.to!string;
+				newpkg.setDesc(tmp.to!string);
 			} else if(strcmp(key, "group") == 0) {
 				STRDUP(tmp, ptr);
 				newpkg.groups.insertFront(tmp.to!string);
 			} else if(strcmp(key, "url") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.url = tmp.to!string;
+				newpkg.setUrl(tmp.to!string);
 			} else if(strcmp(key, "license") == 0) {
 				STRDUP(tmp, ptr);
 				newpkg.licenses.insertFront(tmp.to!string);
@@ -178,7 +178,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 				newpkg.builddate = alpmParseDate(ptr.to!string);
 			} else if(strcmp(key, "packager") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.packager = tmp.to!string;
+				newpkg.setPackager(tmp.to!string);
 			} else if(strcmp(key, "arch") == 0) {
 				newpkg.arch = ptr.to!string;
 			} else if(strcmp(key, "size") == 0) {
@@ -539,7 +539,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 		GOTO_ERR(handle, ALPM_ERR_MEMORY, "error");
 	}
 	newpkg.setFilename(pkgfile.to!string);
-	newpkg.size = st.st_size;
+	newpkg.setSize(st.st_size);
 
 	logger.tracef("starting package load for %s\n", pkgfile);
 
@@ -560,11 +560,11 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package name in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
-			if(newpkg.version_ == null || newpkg.version_.length == 0) {
+			if(newpkg.getVersion() == null || newpkg.getVersion().length == 0) {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package version in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}
-			if(strchr(cast(char*)newpkg.version_, '-') == null) {
+			if(strchr(cast(char*)newpkg.getVersion(), '-') == null) {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("invalid package version in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}

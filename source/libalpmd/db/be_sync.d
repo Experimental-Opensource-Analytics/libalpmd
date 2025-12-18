@@ -312,7 +312,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 		}
 
 		pkg.setName(pkgname);
-		pkg.version_ = pkgver.to!string;
+		pkg.setVersion(pkgver.to!string);
 		pkg.setNameHash(pkgname_hash);
 
 		pkg.setOriginDB(db, AlpmPkgFrom.SyncDB);
@@ -406,6 +406,14 @@ enum string READ_NEXT() = `do {
 	line = buf.line; 
 	_alpm_strip_newline(line, buf.real_line_size); 
 } while(0);`;
+
+enum string READ_AND_STORE_THIS(string f) = `do { 
+	` ~ READ_NEXT!() ~ `; 
+	char* tmp = null;
+	STRDUP(tmp, line);
+	`~f~`(tmp.to!string);
+} while(0);`;
+
 
 enum string READ_AND_STORE(string f) = `do { 
 	` ~ READ_NEXT!() ~ `; 
@@ -507,7 +515,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				}
 			} else if(strcmp(line, "%VERSION%") == 0) {
 				mixin(READ_NEXT!());
-				if(strcmp(line, cast(char*)pkg.version_) != 0) {
+				if(strcmp(line, cast(char*)pkg.getVersion()) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: version "
 								~ "mismatch on package %s\n"), db.treename, pkg.getName());
 				}
@@ -518,13 +526,13 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 					return -1;
 				}
 			} else if(strcmp(line, "%BASE%") == 0) {
-				mixin(READ_AND_STORE!(`pkg.base`));
+				mixin(READ_AND_STORE_THIS!(`pkg.setBase`));
 			} else if(strcmp(line, "%DESC%") == 0) {
-				mixin(READ_AND_STORE!(`pkg.desc`));
+				mixin(READ_AND_STORE_THIS!(`pkg.setDesc`));
 			} else if(strcmp(line, "%GROUPS%") == 0) {
 				mixin(READ_AND_STORE_ALL_L!(`pkg.groups`));
 			} else if(strcmp(line, "%URL%") == 0) {
-				mixin(READ_AND_STORE!(`pkg.url`));
+				mixin(READ_AND_STORE_THIS!(`pkg.setUrl`));
 			} else if(strcmp(line, "%LICENSE%") == 0) {
 				mixin(READ_AND_STORE_ALL_L!(`pkg.licenses`));
 			} else if(strcmp(line, "%ARCH%") == 0) {
@@ -533,10 +541,10 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				mixin(READ_NEXT!());
 				pkg.builddate = alpmParseDate(line.to!string);
 			} else if(strcmp(line, "%PACKAGER%") == 0) {
-				mixin(READ_AND_STORE!(`pkg.packager`));
+				mixin(READ_AND_STORE_THIS!(`pkg.setPackager`));
 			} else if(strcmp(line, "%CSIZE%") == 0) {
 				mixin(READ_NEXT!());
-				pkg.size = alpmStrToOfft(line.to!string);
+				pkg.setSize(alpmStrToOfft(line.to!string));
 			} else if(strcmp(line, "%ISIZE%") == 0) {
 				mixin(READ_NEXT!());
 				pkg.isize = alpmStrToOfft(line.to!string);

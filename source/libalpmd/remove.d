@@ -676,7 +676,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg, size_t targ_count, size_t pkg_count)
 {
 	string pkgname = oldpkg.getName();
-	char*pkgver = cast(char*)oldpkg.version_;
+	char*pkgver = cast(char*)oldpkg.getVersion();
 
 	AlpmEventPackageOperation event;
 	event = new AlpmEventPackageOperation(

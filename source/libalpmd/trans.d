@@ -152,7 +152,7 @@ private AlpmStrings check_arch(AlpmHandle handle, AlpmPkgs pkgs)
 		if(!found) {
 			string string_;
 			string pkgname = pkg.getName();
-			string pkgver = pkg.version_;
+			string pkgver = pkg.getVersion();
 
 			string_ = pkgname ~ "-" ~ pkgver ~ "-" ~ pkgarch;
 			invalid.insertBack(string_);

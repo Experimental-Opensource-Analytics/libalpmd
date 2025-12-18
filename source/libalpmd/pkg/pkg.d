@@ -37,6 +37,7 @@ import libalpmd.libarchive_compat;
 import libalpmd.pkg;;
 import std.base64;
 import std.algorithm;
+import std.regex.internal.parser;
 // import core.sys.darwin.mach.loader;
 
 /// alias for AlpmList!AlpmPkg
@@ -54,14 +55,16 @@ enum AlpmPkgFrom {
 
 ///Alpm package class
 class AlpmPkg {
-	protected c_ulong name_hash;
-	protected string filename;
+private:
+	c_ulong name_hash;
+	string filename;
 	string base;
-	protected string name;
+	string name;
 	string version_;
 	string desc;
 	string url;
 	string packager;
+public:
 	string md5sum;
 	string sha256sum;
 	string base64_sig;
@@ -74,7 +77,7 @@ class AlpmPkg {
 	off_t isize;
 	off_t download_size;
 
-	protected AlpmHandle handle;
+	AlpmHandle handle;
 
 	AlpmStrings licenses;
 	AlpmDeps replaces;
@@ -136,24 +139,89 @@ public:
 
 	///
 	c_ulong getNameHash() => this.name_hash; 
-	//
+	///
 	void 	setNameHash(c_ulong name_hash) {
 		this.name_hash = name_hash;
 	}
 
-	string getBase() => this.base;
-	string getVersion() => this.version_;
-	string getDesc() => this.desc;
-	string getUrl() => this.url;
-	string getPackager() => this.packager;
+	///
+	string getBase() => this.base; 
+	///
+	void 	setBase(string base) {
+		this.base = base;
+	}
+
+	///
+	string getVersion() => this.version_; 
+	///
+	void 	setVersion(string version_) {
+		this.version_ = version_;
+	}
+
+	///
+	string getDesc() => this.desc; 
+	///
+	void 	setDesc(string desc) {
+		this.desc = desc;
+	}
+
+	///
+	string getUrl() => this.url; 
+	///
+	void 	setUrl(string url) {
+		this.url = url;
+	}
+
+	///
+	AlpmTime getBuildDate() => this.builddate; 
+	///
+	void 	setBuildDate(AlpmTime builddate) {
+		this.builddate = builddate;
+	}
+
+	///
+	auto getSize() => this.size; 
+	///
+	void 	setSize(off_t size) {
+		this.size = size;
+	}
+
+	///
+	AlpmPkg getOldPkg() => this.oldpkg; 
+	///
+	void 	setOldPkg(AlpmPkg oldpkg) {
+		this.oldpkg = oldpkg;
+	}	
+	///
+	int getValidation() => this.validation; 
+	///
+	void 	setValidation(int validation) {
+		this.validation = validation;
+	}
+
+	///
+	AlpmPkgReason getReason() => this.reason; 
+	///
+	void 	setReason(AlpmPkgReason reason) {
+		this.reason = reason;
+	}
+
+	///
+	string getPackager() => this.packager; 
+	///
+	void 	setPackager(string packager) {
+		this.packager = packager;
+	}
+	// string getVersion() => this.version_;
+	// string getPackager() => this.packager;
 	string getMD5Sum() => this.md5sum;
 	string getSHA256Sum() => this.sha256sum;
 	string getBase64Sig() => this.base64_sig;
 	string getArch() => this.arch;
 
-	AlpmTime getBuildDate() => this.builddate;
+	// AlpmTime getBuildDate() => this.builddate;
 	AlpmTime getInstallDate() => this.installdate;
-	off_t getSize() => this.size;
+	// off_t getSize() => this.size;
 	off_t getInstallSize() => this.isize;
 	off_t getDownloadSize() => this.download_size;
 
@@ -168,7 +236,7 @@ public:
 	AlpmDeps getConflicts() => this.conflicts;
 	AlpmDeps getProvides() => this.provides;
 	AlpmPkgs getRemoves() => this.removes;
-	AlpmPkg getOldPkg() => this.oldpkg;
+	// AlpmPkg getOldPkg() => this.oldpkg;
 
 	/** 
 	* Getting AlpmPkgFrom origin type
@@ -214,8 +282,8 @@ public:
 		this.originData.filename = filename;
 	}
 
-	AlpmPkgReason getReason() => this.reason;
-	int getValidation() => this.validation;
+	// AlpmPkgReason getReason() => this.reason;
+	// int getValidation() => this.validation;
 	AlpmFileList getFiles() => this.files;
 	int hasScriptlet() => this.scriptlet;
 

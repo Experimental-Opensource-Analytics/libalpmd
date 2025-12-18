@@ -1529,24 +1529,6 @@ alpm_list_t* alpm_pkg_compute_optionalfor(AlpmPkg pkg);
  * @{
  */
 
-/** Gets the name of the file from which the package was loaded.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-const(char)* alpm_pkg_get_filename(AlpmPkg pkg);
-
-/** Returns the package base name.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-const(char)* alpm_pkg_get_base(AlpmPkg pkg);
-
-/** Returns the package name.
- * @param pkg a pointer to package
- * @return a reference to an internal string
- */
-const(char)* alpm_pkg_get_name(AlpmPkg pkg);
-
 /** Returns the package URL.
  * @param pkg a pointer to package
  * @return a reference to an internal string
