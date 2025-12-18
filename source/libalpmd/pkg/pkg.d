@@ -532,32 +532,6 @@ public:
 		return ret;
 	}
 
-	int  shouldIgnore(AlpmHandle handle)
-	{
-		/* first see if the package is ignored */
-		if(findAmong(handle.ignorepkg, this.name)) {
-			return 1;
-		}
-
-		/* next see if the package is in a group that is ignored */
-		foreach(group; groups[]) {
-			char* grp = cast(char*)group;
-			if(findAmong(handle.ignoregroup, grp.to!string)) {
-				return 1;
-			}
-		}
-
-		return 0;
-	}
-
-	bool findAmong(AlpmStrings strings, string str) {
-		foreach(str_; strings[]) {
-			if(alpmFnmatchPatterns(strings, name))
-				return true;
-		}
-
-		return false;
-	}
 
 	/* Look for a filename in a alpm_pkg_t.backup list. If we find it,
 	* then we return the full backup entry.
@@ -630,9 +604,4 @@ AlpmPkg alpm_pkg_find_n(AlpmPkgs haystack, string needle)
 		}
 	}
 	return null;
-}
-
-int  alpm_pkg_should_ignore(AlpmHandle handle, AlpmPkg pkg)
-{
-	return pkg.shouldIgnore(handle);
 }

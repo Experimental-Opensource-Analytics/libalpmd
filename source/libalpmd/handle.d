@@ -39,6 +39,7 @@ import core.sys.posix.unistd;
 import std.conv;
 import std.file;
 import std.range;
+import std.algorithm;
 
 import libalpmd.alpm_list;
 import libalpmd.util;
@@ -190,6 +191,29 @@ public:
 				return reqs;
 			}
 		}
+	}
+
+	/** 
+	 * Checks should be package ignored 
+	 *
+	 * Params:
+	 *   pkg = package
+	 * Returns: 
+	 * 		true if package should be ignored
+	 *		false in other 
+	 */
+	bool  shouldPkgIgnore(AlpmPkg pkg) {
+		if(ignorepkg[].canFind(pkg.getName())) {
+			return true;
+		}
+
+		foreach(group; pkg.groups[]) {
+			if(ignoregroup.dup.alpmFnmatchPatterns(group)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** Lock the database */

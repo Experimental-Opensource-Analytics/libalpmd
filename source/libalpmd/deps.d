@@ -696,7 +696,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 		pkg = db.getPkgFromCache(cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
 				&& !alpm_pkg_find_n(excluding, pkg.getName())) {
-			if(alpm_pkg_should_ignore(handle, pkg)) {
+			if(handle.shouldPkgIgnore(pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				if(prompt) {
 					QUESTION(handle, question);
@@ -723,7 +723,7 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 			if((pkg.getNameHash() != dep.name_hash || cmp(pkg.getName(), dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
 					&& !alpm_pkg_find_n(excluding, pkg.getName())) {
-				if(alpm_pkg_should_ignore(handle, pkg)) {
+				if(handle.shouldPkgIgnore(pkg)) {
 					auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 					if(prompt) {
 						QUESTION(handle, question);

@@ -114,8 +114,8 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 		logger.tracef("new version of '%s' found (%s => %s)\n",
 				lpkg.getName(), lpkg.getVersion(), spkg.getVersion());
 		/* check IgnorePkg/IgnoreGroup */
-		if(alpm_pkg_should_ignore(handle, spkg)
-				|| alpm_pkg_should_ignore(handle, lpkg)) {
+		if(handle.shouldPkgIgnore(spkg)
+					|| handle.shouldPkgIgnore(lpkg)) {
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package upgrade (%s => %s)\n",
 					lpkg.getName(), lpkg.getVersion(), spkg.getVersion());
 		} else {
@@ -126,8 +126,8 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 	} else if(cmp < 0) {
 		if(enable_downgrade) {
 			/* check IgnorePkg/IgnoreGroup */
-			if(alpm_pkg_should_ignore(handle, spkg)
-					|| alpm_pkg_should_ignore(handle, lpkg)) {
+			if(handle.shouldPkgIgnore(spkg)
+					|| handle.shouldPkgIgnore(lpkg)) {
 				_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package downgrade (%s => %s)\n",
 						lpkg.getName(), lpkg.getVersion(), spkg.getVersion());
 			} else {
@@ -164,8 +164,8 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 			auto question = new AlpmQuestionReplace(lpkg, spkg, sdb);
 			AlpmPkg tpkg = void;
 			/* check IgnorePkg/IgnoreGroup */
-			if(alpm_pkg_should_ignore(handle, spkg)
-					|| alpm_pkg_should_ignore(handle, lpkg)) {
+			if(handle.shouldPkgIgnore(spkg)
+					|| handle.shouldPkgIgnore(lpkg)) {
 				_alpm_log(handle, ALPM_LOG_WARNING,
 						("ignoring package replacement (%s-%s => %s-%s)\n"),
 						lpkg.getName(), lpkg.getVersion(), spkg.getName(), spkg.getVersion());
@@ -288,7 +288,7 @@ AlpmPkgs findPkgInGroupAcrossDB(AlpmDBs dbs, char*name) {
 					continue;
 				}
 			}
-			if(alpm_pkg_should_ignore(db.handle, pkg)) {
+			if(db.handle.shouldPkgIgnore(pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				ignorelist.insertBack(pkg);
 				QUESTION(db.handle, question);

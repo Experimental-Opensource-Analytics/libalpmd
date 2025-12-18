@@ -1520,7 +1520,7 @@ int alpmFnmatchPatternsNew(List)(List patterns, string _string)  {//!Waint for A
 * @return 0 if string matches pattern, negative if they don't match and
 * positive if the last match was inverted
 */
-int alpmFnmatchPatterns(AlpmStrings patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
+bool alpmFnmatchPatterns(AlpmStrings patterns, string _string)  {//!Waint for AlpmHandle strings lists reworking
 	short inverted = void;
 
 	foreach_reverse(pattern; patterns[]) {
@@ -1531,11 +1531,11 @@ int alpmFnmatchPatterns(AlpmStrings patterns, string _string)  {//!Waint for Alp
 		}
 
 		if(alpmFnMatch(pattern.to!string, _string.to!string) == 0) {
-			return inverted;
+			return cast(bool)inverted;
 		}
 	}
 
-	return -1;
+	return false;
 }
 
 /** Checks whether a string matches a shell wildcard pattern.
