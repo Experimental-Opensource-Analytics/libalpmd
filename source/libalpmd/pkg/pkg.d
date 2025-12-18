@@ -387,7 +387,6 @@ public:
 
 		/* multiple '-' in pkgver can cause local db entries for different packages
 		* to overlap (e.g. foo-1=2-3 and foo=1-2-3 both give foo-1-2-3) */
-		// if((c = strchr(cast(char*)pkg.version_, '-')) !is null && (strchr(c + 1, '-'))) {
 		if((c = this.getVersion().find('-')) != [] && c[1..$-1].find('-')) {
 			throw new Exception("invalid metadata for package "~this.name~"-"~this.version_~", (package version contains invalid characters)");
 		}
@@ -452,21 +451,22 @@ public:
 	}
 
 
-	/* Look for a filename in a alpm_pkg_t.backup list. If we find it,
-	* then we return the full backup entry.
+	/**
+	*  Look for a filename in a AlpmPkg.backup list. If we find it,
+	*  then we return the full backup entry.
+	*
+	* Params:
+	*   file = filenames
+	*
+	* Return:
+	* 	Backup entry
 	*/
 	AlpmBackup needBackup(string file) {
-		if(!file) {
+		if(file.isEmpty) {
 			return null;
 		}
 
-		foreach(_backup; backup[]) {
-			if(_backup.isBackup(file)) {
-				return _backup;
-			}
-		}
-
-		return null;
+		return backup[].find!(a => a.isBackup(file)).front();
 	}
 
 	/** Check if pkg2 satisfies a dependency of pkg1 */
