@@ -1,3 +1,4 @@
+///Main libalpmd AlpmPkg module
 module libalpmd.pkg;
 
 public {

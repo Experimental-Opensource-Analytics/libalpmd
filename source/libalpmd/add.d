@@ -85,7 +85,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	}
 
 	/* add the package to the transaction */
-	pkg.reason = ALPM_PKG_REASON_EXPLICIT;
+	pkg.reason = AlpmPkgReason.Explicit;
 	logger.tracef("adding package %s-%s to the transaction add list\n",
 						pkgname, pkgver);
 	trans.add.insertBack(pkg);
@@ -449,9 +449,9 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 
 	/* we override any pre-set reason if we have alldeps or allexplicit set */
 	if(trans.flags & ALPM_TRANS_FLAG_ALLDEPS) {
-		newpkg.reason = ALPM_PKG_REASON_DEPEND;
+		newpkg.reason = AlpmPkgReason.Depend;
 	} else if(trans.flags & ALPM_TRANS_FLAG_ALLEXPLICIT) {
-		newpkg.reason = ALPM_PKG_REASON_EXPLICIT;
+		newpkg.reason = AlpmPkgReason.Explicit;
 	}
 
 	if(oldpkg) {

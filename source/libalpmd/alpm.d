@@ -1434,34 +1434,6 @@ int alpm_option_set_disable_sandbox(AlpmHandle handle, ushort disable_sandbox);
  * @{
  */
 
-/** Package install reasons. */
-enum AlpmPkgReason {
-	/** Explicitly requested by the user. */
-	ALPM_PKG_REASON_EXPLICIT = 0,
-	/** Installed as a dependency for another package. */
-	ALPM_PKG_REASON_DEPEND = 1,
-	/** Failed parsing of local database */
-	ALPM_PKG_REASON_UNKNOWN = 2
-}
-alias ALPM_PKG_REASON_EXPLICIT = AlpmPkgReason.ALPM_PKG_REASON_EXPLICIT;
-alias ALPM_PKG_REASON_DEPEND = AlpmPkgReason.ALPM_PKG_REASON_DEPEND;
-alias ALPM_PKG_REASON_UNKNOWN = AlpmPkgReason.ALPM_PKG_REASON_UNKNOWN;
-
-/** Method used to validate a package. */
-enum AlpmPkgValidation {
-	/** The package's validation type is unknown */
-	Unknow = 0,
-	/** The package does not have any validation */
-	None = (1 << 0),
-	/** The package is validated with md5 */
-	MD5 = (1 << 1),
-	/** The package is validated with sha256 */
-	SHA256 = (1 << 2),
-	/** The package is validated with a PGP signature */
-	Signature = (1 << 3)
-}
-
-
 /** Create a package from a file.
  * If full is false, the archive is read only until all necessary
  * metadata is found. If it is true, the entire archive is read, which

@@ -191,8 +191,8 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 						lpkg.getName(), tpkg.getName());
 				tpkg.removes.insertFront(lpkg);
 				/* check the to-be-replaced package's reason field */
-				if(lpkg.getReason() == ALPM_PKG_REASON_EXPLICIT) {
-					tpkg.reason = ALPM_PKG_REASON_EXPLICIT;
+				if(lpkg.getReason() == AlpmPkgReason.Explicit) {
+					tpkg.reason = AlpmPkgReason.Explicit;
 				}
 			} else {
 				/* add spkg to the target list */
@@ -486,7 +486,7 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 		/* Set DEPEND reason for pulled packages */
 		foreach(pkg; resolved[]) {
 			if(!alpmFindPkgByHash(trans.add, pkg.getName())) {
-				pkg.reason = ALPM_PKG_REASON_DEPEND;
+				pkg.reason = AlpmPkgReason.Depend;
 			}
 		}
 

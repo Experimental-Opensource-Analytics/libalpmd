@@ -585,7 +585,7 @@ private void _alpm_select_depends(ref AlpmPkgs from, ref AlpmPkgs to, AlpmPkg pk
 	foreach(deppkg; from[]) {
 		// AlpmPkg deppkg = cast(AlpmPkg)i.data;
 		// next = i.next;
-		if((explicit || deppkg.getReason() == ALPM_PKG_REASON_DEPEND)
+		if((explicit || deppkg.getReason() == AlpmPkgReason.Depend)
 				&& pkg.dependsOn(deppkg)) {
 			to.insertBack(deppkg);
 			from.linearRemoveElement(deppkg);

@@ -20,6 +20,7 @@ import std.ascii;
 import std.typecons;
 import std.format;
 import std.algorithm;
+import libalpmd.pkg;
 
 template HasVersion(string versionId) {
 	mixin("version("~versionId~") {enum HasVersion = true;} else {enum HasVersion = false;}");

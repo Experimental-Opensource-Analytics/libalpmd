@@ -43,6 +43,30 @@ import std.regex.internal.parser;
 /// alias for AlpmList!AlpmPkg
 alias AlpmPkgs = AlpmList!AlpmPkg;
 
+/** Package install reasons. */
+enum AlpmPkgReason {
+	/** Explicitly requested by the user. */
+	Explicit = 0,
+	/** Installed as a dependency for another package. */
+	Depend = 1,
+	/** Failed parsing of local database */
+	Unknow = 2
+}
+
+/** Method used to validate a package. */
+enum AlpmPkgValidation {
+	/** The package's validation type is unknown */
+	Unknow = 0,
+	/** The package does not have any validation */
+	None = (1 << 0),
+	/** The package is validated with md5 */
+	MD5 = (1 << 1),
+	/** The package is validated with sha256 */
+	SHA256 = (1 << 2),
+	/** The package is validated with a PGP signature */
+	Signature = (1 << 3)
+}
+
 ///Enum type for determine from package getted from
 enum AlpmPkgFrom {
 	/// Loaded from a file

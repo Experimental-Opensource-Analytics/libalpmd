@@ -635,12 +635,12 @@ private int local_db_create(AlpmDB db,   char*dbpath)
 
 private AlpmPkgReason _read_pkgreason(AlpmHandle handle,   char*pkgname,   char*line) {
 	if(strcmp(line, "0") == 0) {
-		return ALPM_PKG_REASON_EXPLICIT;
+		return AlpmPkgReason.Explicit;
 	} else if(strcmp(line, "1") == 0) {
-		return ALPM_PKG_REASON_DEPEND;
+		return AlpmPkgReason.Depend;
 	} else {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("unknown install reason for package %s: %s\n"), pkgname, line);
-		return ALPM_PKG_REASON_UNKNOWN;
+		return AlpmPkgReason.Unknow;
 	}
 }
 
