@@ -401,43 +401,7 @@ public:
 		}
 	}
 
-	~this() {
-		FREE(this.filename);
-		FREE(this.base);
-		FREE(this.name);
-		FREE(this.version_);
-		FREE(this.desc);
-		FREE(this.url);
-		FREE(this.packager);
-		FREE(this.md5sum);
-		FREE(this.sha256sum);
-		FREE(this.base64_sig);
-		FREE(this.arch);
-
-		// FREELIST(this.licenses);
-		// free_deplist(this.replaces);
-		// FREELIST(this.groups);
-		if(this.files.count) {
-			size_t i = void;
-			for(i = 0; i < this.files.count; i++) {
-				FREE(this.files.ptr[i].name);
-			}
-			// free(this.files.ptr);
-			this.files = [];
-		}
-		// alpm_list_free_inner(this.backup, cast(alpm_list_fn_free)&_alpm_backup_free);
-		// alpm_list_free(this.backup);
-		// alpm_list_free_inner(this.xdata, cast(alpm_list_fn_free)&_alpm_pkg_xdata_free);
-		// alpm_list_free(this.xdata);
-		// free_deplist(this.depends);
-		// free_deplist(this.optdepends);
-		// free_deplist(this.checkdepends);
-		// free_deplist(this.makedepends);
-		// free_deplist(this.conflicts);
-		// free_deplist(this.provides);
-		// alpm_list_free(this.removes);
-		destroy!false(this.oldpkg);
-	}
+	~this() {}
 
 	/** 
 	 * Compare packages's versions 
