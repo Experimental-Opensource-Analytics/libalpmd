@@ -317,7 +317,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 
 		pkg.setOriginDB(db, AlpmPkgFrom.SyncDB);
 		// pkg.ops = get_sync_pkg_ops();
-		pkg.handle = db.handle;
+		pkg.setHandle(db.handle);
 
 		if(pkg.checkMeta() != 0) {
 			destroy!false(pkg);

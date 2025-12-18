@@ -505,7 +505,7 @@ enum string LAZY_LOAD(string info) = `
 
 			pkg.setOriginDB(this, AlpmPkgFrom.LocalDB);
 			// pkg.ops = &local_pkg_ops;
-			pkg.handle = this.handle;
+			pkg.setHandle(this.handle);
 
 			/* explicitly read with only 'BASE' data, accessors will handle the rest */
 			if(local_db_read(pkg,AlpmDBInfRq.Base) == -1) {
@@ -1179,9 +1179,9 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 {
 	ASSERT(pkg !is null);
 	ASSERT(pkg.origin == AlpmPkgFrom.LocalDB);
-	ASSERT(pkg.getOriginDB() == pkg.handle.getDBLocal);
+	ASSERT(pkg.getOriginDB() == pkg.getHandle().getDBLocal);
 
-	_alpm_log(pkg.handle, ALPM_LOG_DEBUG,
+	_alpm_log(pkg.getHandle(), ALPM_LOG_DEBUG,
 			"setting install reason %u for %s\n", reason, pkg.name);
 	if(pkg.getReason() == reason) {
 		/* we are done */
@@ -1190,8 +1190,8 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 	/* set reason (in pkgcache) */
 	pkg.reason = reason;
 	/* write DESC */
-	if(_alpm_local_db_write(pkg.handle.getDBLocal, pkg, AlpmDBInfRq.Desc)) {
-		RET_ERR(pkg.handle, ALPM_ERR_DB_WRITE, -1);
+	if(_alpm_local_db_write(pkg.getHandle().getDBLocal, pkg, AlpmDBInfRq.Desc)) {
+		RET_ERR(pkg.getHandle(), ALPM_ERR_DB_WRITE, -1);
 	}
 
 	return 0;
@@ -1237,7 +1237,7 @@ AlpmPkgChangelog openChangelog(AlpmPkg pkg) {
 	stat_t buf = void;
 	int fd = void;
 
-	fd = _alpm_open_archive(pkg.handle, cast(char*)pkg.getOriginFile(), &buf,
+	fd = _alpm_open_archive(pkg.getHandle(), cast(char*)pkg.getOriginFile(), &buf,
 			&_archive, ALPM_ERR_PKG_OPEN);
 	if(fd < 0) {
 		return null;

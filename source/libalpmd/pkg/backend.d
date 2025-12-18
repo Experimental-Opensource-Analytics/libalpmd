@@ -72,7 +72,7 @@ private size_t _package_changelog_read(void* ptr, size_t size,  AlpmPkg pkg, voi
 	ssize_t sret = archive_read_data(changelog._archive, ptr, size);
 	/* Report error (negative values) */
 	if(sret < 0) {
-		RET_ERR(cast(AlpmHandle)pkg.handle, ALPM_ERR_LIBARCHIVE, 0);
+		RET_ERR(pkg.getHandle(), ALPM_ERR_LIBARCHIVE, 0);
 	} else {
 		return cast(size_t)sret;
 	}
@@ -611,7 +611,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 	/* internal fields for package struct */
 	newpkg.setOriginFile(pkgfile.to!string);
 	// newpkg.ops = get_file_pkg_ops();
-	newpkg.handle = handle;
+	newpkg.setHandle(handle);
 	newpkg.infolevel =AlpmDBInfRq.Base | AlpmDBInfRq.Desc | AlpmDBInfRq.Scriptlet;
 	newpkg.validation = AlpmPkgValidation.None;
 

@@ -1529,12 +1529,6 @@ alpm_list_t* alpm_pkg_compute_optionalfor(AlpmPkg pkg);
  * @{
  */
 
-/** Gets the handle of a package
- * @param pkg a pointer to package
- * @return the alpm handle that the package belongs to
- */
-AlpmHandle alpm_pkg_get_handle(AlpmPkg pkg);
-
 /** Gets the name of the file from which the package was loaded.
  * @param pkg a pointer to package
  * @return a reference to an internal string
@@ -1552,11 +1546,6 @@ const(char)* alpm_pkg_get_base(AlpmPkg pkg);
  * @return a reference to an internal string
  */
 const(char)* alpm_pkg_get_name(AlpmPkg pkg);
-
-/** Returns the origin of the package.
- * @return an AlpmPkgFrom constant, -1 on error
- */
-AlpmPkgFrom alpm_pkg_get_origin(AlpmPkg pkg);
 
 /** Returns the package URL.
  * @param pkg a pointer to package

@@ -80,7 +80,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, AlpmDBs dbs_sync)
 	AlpmPkg spkg = null;
 
 	//ASSERT(pkg != null);
-	pkg.handle.pm_errno = ALPM_ERR_OK;
+	pkg.getHandle().pm_errno = ALPM_ERR_OK;
 
 	foreach(db; dbs_sync[]) {
 		// AlpmDB db = cast(AlpmDB)i.data;
@@ -91,14 +91,14 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, AlpmDBs dbs_sync)
 	}
 
 	if(spkg is null) {
-		_alpm_log(pkg.handle, ALPM_LOG_DEBUG, "'%s' not found in sync db => no upgrade\n",
+		_alpm_log(pkg.getHandle(), ALPM_LOG_DEBUG, "'%s' not found in sync db => no upgrade\n",
 				pkg.name);
 		return null;
 	}
 
 	/* compare versions and see if spkg is an upgrade */
 	if(spkg.compareVersions(pkg) > 0) {
-		_alpm_log(pkg.handle, ALPM_LOG_DEBUG, "new version of '%s' found (%s => %s)\n",
+		_alpm_log(pkg.getHandle(), ALPM_LOG_DEBUG, "new version of '%s' found (%s => %s)\n",
 					pkg.name, pkg.version_, spkg.version_);
 		return spkg;
 	}
@@ -314,7 +314,7 @@ private int compute_download_size(AlpmPkg newpkg)
 	  char*fname = void;
 	char* fpath = void, fnamepart = null;
 	off_t size = 0;
-	AlpmHandle handle = newpkg.handle;
+	AlpmHandle handle = newpkg.getHandle();
 	int ret = 0;
 	size_t fnamepartlen = 0;
 
@@ -1124,7 +1124,7 @@ private int check_pkg_field_matches_db_n(List)(AlpmHandle handle,   char*field, 
 
 private int check_pkg_matches_db(AlpmPkg spkg, AlpmPkg pkgfile)
 {
-	AlpmHandle handle = spkg.handle;
+	AlpmHandle handle = spkg.getHandle();
 	int error = 0;
 
 enum string CHECK_FIELD_N(string STR, string FIELD, string CMP) = `do { 

@@ -74,7 +74,7 @@ class AlpmPkg {
 	off_t isize;
 	off_t download_size;
 
-	AlpmHandle handle;
+	protected AlpmHandle handle;
 
 	AlpmStrings licenses;
 	AlpmDeps replaces;
@@ -112,7 +112,23 @@ class AlpmPkg {
 
 public:
 	this() {}
+
+	/** 
+	* Getting ALPM handle
+	*
+	* Returns: handle object
+	*/
 	auto getHandle() => this.handle;
+
+	/**
+	* Setting handle
+	* 
+	* Params:  
+	* 	handle = origin database 
+	*/
+	void setHandle(AlpmHandle handle) {
+		this.handle = handle;
+	}
 
 	string getFilename() => this.filename;
 	string getName() => this.name; 
