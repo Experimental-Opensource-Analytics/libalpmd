@@ -216,18 +216,7 @@ class AlpmDBSync : AlpmDB {
 	}
 	
 	override void unregister() {
-		int found;
-		void* data = void;
-		handle.getDBsSync = alpm_new_list_remove(handle.getDBsSync,
-				this, &_alpm_db_cmp, &data);
-		
-		if(data) {
-			found = 1;
-		}
-
-		if(!found) {
-			RET_ERR(handle, ALPM_ERR_DB_NOT_FOUND, -1);
-		}
+		handle.getDBsSync().linearRemoveElement(this);
 	}
 
 	override string genPath() {

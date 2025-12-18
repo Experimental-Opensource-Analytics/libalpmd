@@ -41,6 +41,7 @@ import std.regex;
 import std.conv;
 import std.path;
 import std.range;
+import std.algorithm;
 
 import libalpmd.alpm_list;
 import libalpmd.alpm;
@@ -191,7 +192,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, AlpmPkgs lp)
  * the packages blocking the transaction.
  *
  * @param handle the context handle
- * @param data a pointer to an alpm_list_t* to fill
+ * @param data a pointer to an //alpm_list_t* to fill
  *
  * @return 0 on success, -1 on error
  */
@@ -581,7 +582,7 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 private int should_skip_file(AlpmHandle handle, AlpmPkg newpkg,   char*path)
 {
 	return alpmFnmatchPatterns(handle.noupgrade, path.to!string) == 0
-		|| alpm_list_find_str(handle.trans.skip_remove.newToOld(), path)
+		|| handle.trans.skip_remove[].canFind!((a) => cmp(a, path.to!string))
 		//|| (newpkg && _alpm_needbackup(path, newpkg)
 		|| (newpkg && newpkg.needBackup(path.to!string)
 

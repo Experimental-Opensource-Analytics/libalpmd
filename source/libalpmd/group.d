@@ -48,4 +48,4 @@ class AlpmGroup {
 	}
 }
 
-alias AlpmGroups = DList!AlpmGroup;
+alias AlpmGroups = AlpmList!AlpmGroup;

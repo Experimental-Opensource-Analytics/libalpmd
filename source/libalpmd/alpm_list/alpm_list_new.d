@@ -9,12 +9,8 @@ import std.functional: binaryFun;
 import std.algorithm: sort, setDifference;
 import std.conv;
 
-import libalpmd.alpm_list.alpm_list_old : alpm_list_t, alpm_list_add;
-import libalpmd.alpm_list.searching;
-
 ///Alias for standart DList;
-// alias AlpmList(T) = DList!T;
-
+alias AlpmList(T) = DList!T;
 alias AlpmStrings = DList!string;
 
 auto alpmStringsDup(AlpmStrings strings) {
@@ -27,24 +23,24 @@ auto alpmStringsDup(AlpmStrings strings) {
 	return copy;
 }
 
-alias AlpmList(Item) = DList!Item;
+// alias AlpmList(Item) = DList!Item;
 
-auto oldToNewList(T)(alpm_list_t* list) {
-	auto old = list;
-	AlpmList!T newList;
-	while(old) {
-		static if(is(T == string)) { 
-			newList.insertBack((cast(char*)list.data).to!string);
-		}
-		else {
-			newList.insertBack(cast(T)list.data);
-		}
+// auto oldToNewList(T)(//alpm_list_t* list) {
+// 	auto old = list;
+// 	AlpmList!T newList;
+// 	while(old) {
+// 		static if(is(T == string)) { 
+// 			newList.insertBack((cast(char*)list.data).to!string);
+// 		}
+// 		else {
+// 			newList.insertBack(cast(T)list.data);
+// 		}
 
-		old = old.next;
-	}
+// 		old = old.next;
+// 	}
 
-	return newList;
-}
+// 	return newList;
+// }
 
 auto alpmListDiff(alias fn = "a < b", List)(List lhs, List rhs) {
     auto left = lhs[].array.sort!fn.array;
@@ -60,7 +56,7 @@ auto alpmListDiff(alias fn = "a < b", List)(List lhs, List rhs) {
 }
 
 auto newToOld(List)(List list_) {
-	alpm_list_t* list;
+	//alpm_list_t* list;
 
 	foreach (key; list_) {
 		list = alpm_list_add(list, cast(void*)key);

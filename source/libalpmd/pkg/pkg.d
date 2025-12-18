@@ -1,47 +1,29 @@
 ///Alpm package class module
 module libalpmd.pkg.pkg;
 
-import core.stdc.config: c_long, c_ulong;
 import core.sys.posix.sys.types : off_t;
-
 import core.sys.posix.unistd;
+import core.stdc.errno;
 
 import std.conv;
 import std.string;
 import std.array;
+import std.algorithm;
+import std.base64;
+
+import derelict.libarchive;
 
 import libalpmd.pkg;
-
-import libalpmd.deps;
-import libalpmd.consts;
-/* libalpm */
-import libalpmd.alpm_list.alpm_list_new;
-import libalpmd.alpm_list.alpm_list_old;
-import libalpmd.log;
-import libalpmd.util;
-import libalpmd.db;
-import libalpmd.handle;
 import libalpmd.alpm;
-import libalpmd.group;
-import libalpmd.util_common;
-import derelict.libarchive;
-import libalpmd.signing;
+import libalpmd.alpm_list;
+import libalpmd.handle;
+import libalpmd.deps ;
 import libalpmd.backup;
-import core.stdc.errno;
-import std.algorithm;
-import libalpmd.util;
-
 import libalpmd.file;
-// import libalpmd.be_package;
-import libalpmd.libarchive_compat;
-import libalpmd.pkg;;
-import std.base64;
-import std.algorithm;
-import std.regex.internal.parser;
-// import core.sys.darwin.mach.loader;
-
-/// alias for AlpmList!AlpmPkg
-alias AlpmPkgs = AlpmList!AlpmPkg;
+import libalpmd.db;
+import libalpmd.util;
+import libalpmd.log;
+import libalpmd.consts;
 
 /** Package install reasons. */
 enum AlpmPkgReason {
@@ -80,7 +62,7 @@ enum AlpmPkgFrom {
 ///Alpm package class
 class AlpmPkg {
 private:
-	c_ulong name_hash;
+	ulong name_hash;
 	string filename;
 	string base;
 	string name;
@@ -162,9 +144,9 @@ public:
 	}
 
 	///
-	c_ulong getNameHash() => this.name_hash; 
+	ulong getNameHash() => this.name_hash; 
 	///
-	void 	setNameHash(c_ulong name_hash) {
+	void 	setNameHash(ulong name_hash) {
 		this.name_hash = name_hash;
 	}
 
@@ -508,6 +490,9 @@ public:
 				(dep) => _alpm_depcmp(pkg, dep)); 
 	}
 }
+
+/// alias for AlpmList!AlpmPkg
+alias AlpmPkgs = AlpmList!AlpmPkg;
 
 /** 
  *	Find package int list by hash

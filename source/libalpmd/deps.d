@@ -34,7 +34,7 @@ import std.string;
 import std.range;
 
 import libalpmd.alpm_list;
-import libalpmd.alpm_list.alpm_list_new : oldToNewList;
+// import libalpmd.alpm_list;
 import libalpmd.util;
 import libalpmd.log;
 import libalpmd.graph;
@@ -253,7 +253,7 @@ private void _alpm_warn_dep_cycle(AlpmHandle handle, AlpmPkgs targets, AlpmGraph
  *
  * if reverse is > 0, the dependency order will be reversed.
  *
- * This function returns the new alpm_list_t* target list.
+ * This function returns the new //alpm_list_t* target list.
  *
  */
 AlpmPkgs _alpm_sortbydeps(AlpmHandle handle, AlpmPkgs targets, AlpmPkgs ignore, int reverse)

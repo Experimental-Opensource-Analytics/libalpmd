@@ -291,7 +291,7 @@ class AlpmDB {
 				/* first look through the group cache for a group with this name */
 				foreach(grp; this.grpcache[]) {
 					if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
-							&& !alpm_new_list_find_ptr(grp.packages, cast(void*)pkg)) {
+							&& !grp.packages[].canFind!((a) => a is pkg)) {
 						grp.packages.insertBack(pkg);
 						found = 1;
 						break;

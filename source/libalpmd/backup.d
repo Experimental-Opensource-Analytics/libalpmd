@@ -51,4 +51,4 @@ public:
 		bool isHash(string hash) => this.hash == hash;
 }
 
-alias AlpmBackups = DList!AlpmBackup;
+alias AlpmBackups = AlpmList!AlpmBackup;

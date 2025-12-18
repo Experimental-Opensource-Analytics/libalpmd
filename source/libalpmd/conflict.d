@@ -81,7 +81,8 @@ class AlpmConflict {
 		);
 }
 
-alias AlpmConflicts = DList!AlpmConflict; 
+// alias AlpmConflicts = DList!AlpmConflict;
+alias AlpmConflicts = AlpmList!AlpmConflict; 
 
 void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
 {
