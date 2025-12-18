@@ -57,7 +57,7 @@ class AlpmPkg {
 	c_ulong name_hash;
 	protected string filename;
 	string base;
-	string name;
+	protected string name;
 	string version_;
 	string desc;
 	string url;
@@ -115,7 +115,6 @@ public:
 
 	///
 	auto getHandle() => this.handle;
-
 	///
 	void setHandle(AlpmHandle handle) {
 		this.handle = handle;
@@ -123,12 +122,18 @@ public:
 
 	///
 	string 	getFilename() => this.filename;
-
 	///
 	void 	setFilename(string filename) {
 		this.filename = filename;
 	}
+
+	///
 	string getName() => this.name; 
+	//
+	void 	setName(string name) {
+		this.name = name;
+	}
+	
 	string getBase() => this.base;
 	string getVersion() => this.version_;
 	string getDesc() => this.desc;

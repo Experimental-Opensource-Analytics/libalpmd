@@ -254,7 +254,7 @@ public:
 			AlpmPkg info = cast(AlpmPkg)i.front();
 
 			if(info.name_hash == pkg.name_hash &&
-						info.name == pkg.name) {
+						info.getName()== pkg.getName()) {
 				uint stop = void, prev = void;
 
 				/* remove from list and this */
@@ -318,7 +318,7 @@ public:
 		while(!(lp = this.hash_table[position]).empty()) {
 			AlpmPkg info = cast(AlpmPkg)lp.front;
 
-			if(info.name_hash == name_hash && strcmp(cast(char*)info.name, name) == 0) {
+			if(info.name_hash == name_hash && strcmp(cast(char*)info.getName(), name) == 0) {
 				return info;
 			}
 

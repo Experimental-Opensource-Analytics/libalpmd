@@ -34,7 +34,7 @@ import libalpmd.event;
 
 int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
-	string pkgname = pkg.name;
+	string pkgname = pkg.getName();
 	string pkgver = void;
 	AlpmTrans trans = void;
 	AlpmPkg local = void;
@@ -62,7 +62,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	}
 
 	if((local = handle.getDBLocal().getPkgFromCache(cast(char*)pkgname)) !is null) {
-		string localpkgname = local.name;
+		string localpkgname = local.getName();
 		string localpkgver = local.version_;
 		int cmp = pkg.compareVersions(local);
 
@@ -164,7 +164,7 @@ private int extract_db_file(AlpmHandle handle, archive* archive, archive_entry* 
 	}
 	archive_entry_set_perm(entry, octal!"0644");
 	snprintf(filename.ptr, PATH_MAX, "%s%s-%s/%s",
-			cast(char*)handle.getDBLocal.calcPath(), cast(char*)newpkg.name, cast(char*)newpkg.version_, dbfile);
+			cast(char*)handle.getDBLocal.calcPath(), cast(char*)newpkg.getName(), cast(char*)newpkg.version_, dbfile);
 	return perform_extraction(handle, archive, entry, filename.ptr);
 }
 
@@ -187,7 +187,7 @@ int extract_single_file(AlpmHandle handle, archive* archive, archive_entry* entr
 	if (!alpm_filelist_contains(newpkg.files, entryname.to!string)) {
 		_alpm_log(handle, ALPM_LOG_WARNING,
 				("file not found in file list for package %s. skipping extraction of %s\n"),
-				newpkg.name, entryname);
+				newpkg.getName(), entryname);
 		return 0;
 	}
 
@@ -403,7 +403,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	//ASSERT(trans != null);
 
 	/* see if this is an upgrade. if so, remove the old package first */
-	if(db.getPkgFromCache(cast(char*)newpkg.name) && (oldpkg = newpkg.oldpkg) !is null) {
+	if(db.getPkgFromCache(cast(char*)newpkg.getName()) && (oldpkg = newpkg.oldpkg) !is null) {
 		int cmp = newpkg.compareVersions(oldpkg);
 		if(cmp < 0) {
 			log_msg = cast(char*)"downgrading";
@@ -436,7 +436,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	pkgfile = cast(char*)newpkg.getOriginFile();
 
 	logger.tracef("%s package %s-%s\n",
-			log_msg, newpkg.name, newpkg.version_);
+			log_msg, newpkg.getName(), newpkg.version_);
 		/* pre_install/pre_upgrade scriptlet */
 	if(newpkg.hasScriptlet() &&
 			!(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
@@ -509,7 +509,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		logger.tracef("extracting files\n");
 
 		/* call PROGRESS once with 0 percent, as we sort-of skip that here */
-		PROGRESS(handle, progress, newpkg.name, 0, pkg_count, pkg_current);
+		PROGRESS(handle, progress, newpkg.getName(), 0, pkg_count, pkg_current);
 
 		while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
 			int percent = void;
@@ -527,7 +527,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 				percent = 0;
 			}
 
-			PROGRESS(handle, progress, newpkg.name, percent, pkg_count, pkg_current);
+			PROGRESS(handle, progress, newpkg.getName(), percent, pkg_count, pkg_current);
 
 			/* extract the next file from the archive */
 			errors += extract_single_file(handle, archive, entry, newpkg, oldpkg);
@@ -550,13 +550,13 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		ret = -1;
 		if(is_upgrade) {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("problem occurred while upgrading %s\n"),
-					newpkg.name);
+					newpkg.getName());
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 					// "error: problem occurred while upgrading %s\n",
 					// newpkg.name);
 		} else {
 			_alpm_log(handle, ALPM_LOG_ERROR, ("problem occurred while installing %s\n"),
-					newpkg.name);
+					newpkg.getName());
 			//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 					// "error: problem occurred while installing %s\n",
 					// newpkg.name);
@@ -567,24 +567,24 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	newpkg.installdate = time(null);
 
 	logger.tracef("updating database\n");
-	logger.tracef("adding database entry '%s'\n", newpkg.name);
+	logger.tracef("adding database entry '%s'\n", newpkg.getName());
 
 	if(_alpm_local_db_write(db, newpkg, AlpmDBInfRq.All)) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not update database entry %s-%s\n"),
-				newpkg.name, newpkg.version_);
+				newpkg.getName(), newpkg.version_);
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX,
 				// "error: could not update database entry %s-%s\n",
-				// newpkg.name, newpkg.version_);
+				// newpkg.getName(), newpkg.version_);
 		handle.pm_errno = ALPM_ERR_DB_WRITE;
 		return -1;
 	}
 
 	if(db.addPkgInCache(newpkg) == -1) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not add entry '%s' in cache\n"),
-				newpkg.name);
+				newpkg.getName());
 	}
 
-	PROGRESS(handle, progress, newpkg.name, 100, pkg_count, pkg_current);
+	PROGRESS(handle, progress, newpkg.getName(), 100, pkg_count, pkg_current);
 
 	switch(event.operation) {
 		case AlpmPackageOperationType.Install:

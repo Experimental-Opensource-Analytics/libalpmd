@@ -300,7 +300,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 	}
 
 	if(likely_pkg && pkgname_hash == likely_pkg.name_hash
-			&& likely_pkg.name == pkgname) {
+			&& likely_pkg.getName() == pkgname) {
 		pkg = likely_pkg;
 	} else {
 		pkg = db.pkgcache.find(cast(char*)pkgname);
@@ -311,7 +311,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
 		}
 
-		pkg.name = pkgname;
+		pkg.setName(pkgname);
 		pkg.version_ = pkgver.to!string;
 		pkg.name_hash = pkgname_hash;
 
@@ -326,7 +326,7 @@ AlpmPkg load_pkg_for_entry(AlpmDB db,   char*entryname,  char** entry_filename, 
 
 		/* add to the collection */
 		_alpm_log(db.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
-				pkg.name, db.treename);
+				pkg.getName(), db.treename);
 		if(db.pkgcache.add(pkg) is null) {
 			destroy!false(pkg);
 			RET_ERR(db.handle, ALPM_ERR_MEMORY, null);
@@ -501,20 +501,20 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 
 			if(strcmp(line, "%NAME%") == 0) {
 				mixin(READ_NEXT!());
-				if(strcmp(line, cast(char*)pkg.name) != 0) {
+				if(strcmp(line, cast(char*)pkg.getName()) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: name "
-								~ "mismatch on package %s\n"), db.treename, pkg.name);
+								~ "mismatch on package %s\n"), db.treename, pkg.getName());
 				}
 			} else if(strcmp(line, "%VERSION%") == 0) {
 				mixin(READ_NEXT!());
 				if(strcmp(line, cast(char*)pkg.version_) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: version "
-								~ "mismatch on package %s\n"), db.treename, pkg.name);
+								~ "mismatch on package %s\n"), db.treename, pkg.getName());
 				}
 			} else if(strcmp(line, "%FILENAME%") == 0) {
 				auto pkgfilename = cast(char*)pkg.getFilename().ptr;
 				mixin(READ_AND_STORE!(`pkgfilename`));
-				if(_alpm_validate_filename(db, cast(char*)pkg.name, cast(char*)pkg.getFilename().toStringz) < 0) {
+				if(_alpm_validate_filename(db, cast(char*)pkg.getName(), cast(char*)pkg.getFilename().toStringz) < 0) {
 					return -1;
 				}
 			} else if(strcmp(line, "%BASE%") == 0) {
@@ -596,7 +596,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				}
 				// FREELIST(lines);
 			} else {
-				_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in sync database\n"), pkg.name, line);
+				_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in sync database\n"), pkg.getName(), line);
 				AlpmStrings lines;
 				mixin(READ_AND_STORE_ALL_L!(`lines`));
 				// FREELIST(lines);

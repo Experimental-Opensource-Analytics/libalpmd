@@ -109,7 +109,7 @@ private int add_conflict(AlpmHandle handle, ref AlpmConflicts baddeps, AlpmPkg p
 		char* conflict_str = alpm_dep_compute_string(reason);
 		baddeps.insertBack(conflict);
 		logger.tracef("package %s conflicts with %s (by %s)\n",
-				pkg1.name, pkg2.name, conflict_str);
+				pkg1.getName(), pkg2.getName(), conflict_str);
 		free(conflict_str);
 	} else {
 		alpm_conflict_free(conflict);
@@ -140,7 +140,7 @@ void check_conflict(AlpmHandle handle, AlpmPkgs list1, AlpmPkgs  list2, ref Alpm
 			foreach(pkg2; list2[]) {
 
 				if(pkg1.name_hash == pkg2.name_hash
-						&& pkg1.name == pkg2.name) {
+						&& pkg1.getName()== pkg2.getName()) {
 					/* skip the package we're currently processing */
 					continue;
 				}

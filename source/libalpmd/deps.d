@@ -231,11 +231,11 @@ private void _alpm_warn_dep_cycle(AlpmHandle handle, AlpmPkgs targets, AlpmGraph
 		if(reverse) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					("%s will be removed after its %s dependency\n"),
-					ancestorpkg.name, childpkg.name);
+					ancestorpkg.getName(), childpkg.getName());
 		} else {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					("%s will be installed before its %s dependency\n"),
-					ancestorpkg.name, childpkg.name);
+					ancestorpkg.getName(), childpkg.getName());
 		}
 	}
 }
@@ -353,7 +353,7 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 	int nodepversion = void;
 
 	foreach(pkg; pkglist[]) {
-		if(alpm_pkg_find_n(rem, pkg.name) || alpm_pkg_find_n(upgrade, pkg.name)) {
+		if(alpm_pkg_find_n(rem, pkg.getName()) || alpm_pkg_find_n(upgrade, pkg.getName())) {
 			modified.insertBack(pkg);
 		} else {
 			dblist.insertBack(pkg);
@@ -365,7 +365,7 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 	/* look for unsatisfied dependencies of the upgrade list */
 	foreach(tp; upgrade[]) {
 		logger.tracef("checkdeps: package %s-%s\n",
-				tp.name, tp.version_);
+				tp.getName(), tp.version_);
 
 		foreach(depend; tp.getDepends()[]) {
 			alpm_depmod_t orig_mod = depend.mod;
@@ -382,9 +382,9 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 				AlpmDepMissing miss = void;
 				char* missdepstring = alpm_dep_compute_string(depend);
 				logger.tracef("checkdeps: missing dependency '%s' for package '%s'\n",
-						missdepstring, tp.name);
+						missdepstring, tp.getName());
 				free(missdepstring);
-				miss = new AlpmDepMissing(cast(char*)tp.name, depend, null);
+				miss = new AlpmDepMissing(cast(char*)tp.getName(), depend, null);
 				baddeps.insertBack(miss);
 			}
 			depend.mod = orig_mod;
@@ -413,9 +413,9 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 					AlpmDepMissing miss = void;
 					char* missdepstring = alpm_dep_compute_string(depend);
 					logger.tracef("checkdeps: transaction would break '%s' dependency of '%s'\n",
-							missdepstring, lp.name);
+							missdepstring, lp.getName());
 					free(missdepstring);
-					miss = new AlpmDepMissing(cast(char*)lp.name, depend, cast(char*)causingpkg.name);
+					miss = new AlpmDepMissing(cast(char*)lp.getName(), depend, cast(char*)causingpkg.getName());
 					baddeps.insertBack(miss);
 				}
 				depend.mod = orig_mod;
@@ -452,7 +452,7 @@ private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
 int _alpm_depcmp_literal(AlpmPkg pkg, AlpmDepend dep)
 {
 	if(pkg.name_hash != dep.name_hash
-			|| cmp(pkg.name, dep.name) != 0) {
+			|| cmp(pkg.getName(), dep.name) != 0) {
 		/* skip more expensive checks */
 		return 0;
 	}
@@ -646,7 +646,7 @@ int _alpm_recursedeps(AlpmDB db, ref AlpmPkgs targs, int include_explicit)
 		// AlpmPkg pkg = cast(AlpmPkg)i.data, copy = null;
 		AlpmPkg copy;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
-				"adding '%s' to the targets\n", pkg.name);
+				"adding '%s' to the targets\n", pkg.getName());
 		if((copy = pkg.dup) !is null) {
 			/* we return memory on "non-fatal" error in _alpm_pkg_dup */
 			destroy!false(copy);
@@ -689,14 +689,14 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 
 		pkg = db.getPkgFromCache(cast(char*)dep.name);
 		if(pkg && _alpm_depcmp_literal(pkg, dep)
-				&& !alpm_pkg_find_n(excluding, pkg.name)) {
+				&& !alpm_pkg_find_n(excluding, pkg.getName())) {
 			if(alpm_pkg_should_ignore(handle, pkg)) {
 				auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 				if(prompt) {
 					QUESTION(handle, question);
 				} else {
 					_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
-							pkg.name, pkg.version_);
+							pkg.getName(), pkg.version_);
 				}
 				if(!question.getAnswer()) {
 					ignored = 1;
@@ -714,16 +714,16 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 		}
 		foreach(pkg; (db.getPkgCacheList())[]) {
 			// AlpmPkg pkg = cast(AlpmPkg)j.data;
-			if((pkg.name_hash != dep.name_hash || cmp(pkg.name, dep.name) != 0)
+			if((pkg.name_hash != dep.name_hash || cmp(pkg.getName(), dep.name) != 0)
 					&& _alpm_depcmp_provides(dep, pkg.getProvides())
-					&& !alpm_pkg_find_n(excluding, pkg.name)) {
+					&& !alpm_pkg_find_n(excluding, pkg.getName())) {
 				if(alpm_pkg_should_ignore(handle, pkg)) {
 					auto question = new AlpmQuestionInstallIgnorePkg(pkg);
 					if(prompt) {
 						QUESTION(handle, question);
 					} else {
 						_alpm_log(handle, ALPM_LOG_WARNING, ("ignoring package %s-%s\n"),
-								pkg.name, pkg.version_);
+								pkg.getName(), pkg.version_);
 					}
 					if(!question.getAnswer()) {
 						ignored = 1;
@@ -731,10 +731,10 @@ private AlpmPkg resolvedep(AlpmHandle handle, AlpmDepend dep, AlpmDBs dbs, AlpmP
 					}
 				}
 				logger.tracef("provider found (%s provides %s)\n",
-						pkg.name, dep.name);
+						pkg.getName(), dep.name);
 
 				/* provide is already installed so return early instead of prompting later */
-				if(handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name)) {
+				if(handle.getDBLocal().getPkgFromCache(cast(char*)pkg.getName())) {
 					return pkg;
 				}
 
@@ -812,7 +812,7 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 	AlpmDBs dbs = void;
 	AlpmDepMissings deps;
 
-	if(alpm_pkg_find_n(packages, pkg.name) !is null) {
+	if(alpm_pkg_find_n(packages, pkg.getName()) !is null) {
 		return 0;
 	}
 
@@ -846,7 +846,7 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 		if(spkg && _alpm_resolvedeps(handle, localpkgs, spkg, preferred, packages, rem, data) == 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"pulling dependency %s (needed by %s)\n",
-					spkg.name, pkg.name);
+					spkg.getName(), pkg.getName());
 			alpm_depmissing_free(miss);
 		} else if(resolvedep(handle, missdep, (dbs = alpm_new_list_add(AlpmDBs(), handle.getDBLocal)), rem, 0)) {
 			alpm_depmissing_free(miss);
@@ -855,7 +855,7 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 			char* missdepstring = alpm_dep_compute_string(missdep);
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("cannot resolve \"%s\", a dependency of \"%s\"\n"),
-					missdepstring, pkg.name);
+					missdepstring, pkg.getName());
 			free(missdepstring);
 			// if(data) {
 				data.insertBack(miss);

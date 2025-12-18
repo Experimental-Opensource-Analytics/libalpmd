@@ -58,7 +58,7 @@ import libalpmd.event;
 
 int  alpm_remove_pkg(AlpmHandle handle, AlpmPkg pkg)
 {
-	auto pkgname = pkg.name;
+	auto pkgname = pkg.getName();
 	// string pkgname = void;
 	AlpmTrans trans = void;
 	AlpmPkg copy = void;
@@ -105,9 +105,9 @@ private int remove_prepare_cascade(AlpmHandle handle, ref AlpmDepMissings lp)
 			AlpmPkg info = handle.getDBLocal().getPkgFromCache(miss.target);
 			if(info) {
 				AlpmPkg copy = void;
-				if(!alpm_pkg_find_n(trans.remove, info.name)) {
+				if(!alpm_pkg_find_n(trans.remove, info.getName())) {
 					logger.tracef("pulling %s in target list\n",
-							info.name);
+							info.getName());
 					if((copy = info.dup) !is null) {
 						return -1;
 					}
@@ -145,7 +145,7 @@ private void remove_prepare_keep_needed(AlpmHandle handle, ref AlpmDepMissings l
 			}
 			if(trans.remove.linearRemoveElement(pkg)) {
 				_alpm_log(handle, ALPM_LOG_WARNING, ("removing %s from target list\n"),
-						pkg.name); 
+						pkg.getName()); 
 				destroy!false(pkg);
 			}
 		}
@@ -169,7 +169,7 @@ private void remove_notify_needed_optdepends(AlpmHandle handle, AlpmPkgs lp)
 		// AlpmPkg pkg = cast(AlpmPkg)i.data;
 		auto optdeps = pkg.getOptDepends();
 
-		if(!optdeps.empty && !alpm_pkg_find_n(lp, pkg.name)) {
+		if(!optdeps.empty && !alpm_pkg_find_n(lp, pkg.getName())) {
 			foreach(optdep; optdeps[]) {
 				// AlpmDepend optdep = cast(AlpmDepend)j.data;
 				char* optstring = alpm_dep_compute_string(optdep);
@@ -496,13 +496,13 @@ private int unlink_file(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg,  Alpm
 				/* we duplicated the package when we put it in the removal list, so we
 				 * so we can't use direct pointer comparison here. */
 				if(oldpkg.name_hash == local_pkg.name_hash
-						&& oldpkg.name == local_pkg.name) {
+						&& oldpkg.getName() == local_pkg.getName()) {
 					continue;
 				}
 				filelist = local_pkg.getFiles();
 				if(alpm_filelist_contains(filelist, fileobj.name)) {
 					_alpm_log(handle, ALPM_LOG_DEBUG,
-							"keeping directory %s (owned by %s)\n", file.ptr, local_pkg.name);
+							"keeping directory %s (owned by %s)\n", file.ptr, local_pkg.getName());
 					found = 1;
 					
 				}
@@ -615,7 +615,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 				&& !can_remove_file(handle, file)) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"not removing package '%s', can't remove all files\n",
-					oldpkg.name);
+					oldpkg.getName());
 			RET_ERR(handle, ALPM_ERR_PKG_CANT_REMOVE, -1);
 		}
 	}
@@ -624,7 +624,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 
 	if(!newpkg) {
 		/* init progress bar, but only on true remove transactions */
-		PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.name, 0,
+		PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.getName(), 0,
 				pkg_count, targ_count);
 	}
 
@@ -648,14 +648,14 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
 		if(!newpkg) {
 			/* update progress bar after each file */
 			int percent = cast(int)(((filelist.length - i) * 100) / filelist.length);
-			PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.name,
+			PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.getName(),
 					percent, pkg_count, targ_count);
 		}
 	}
 
 	if(!newpkg) {
 		/* set progress to 100% after we finish unlinking files */
-		PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.name, 100,
+		PROGRESS(handle, ALPM_PROGRESS_REMOVE_START, oldpkg.getName(), 100,
 				pkg_count, targ_count);
 	}
 
@@ -675,7 +675,7 @@ private int remove_package_files(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newp
  */
 int _alpm_remove_single_package(AlpmHandle handle, AlpmPkg oldpkg, AlpmPkg newpkg, size_t targ_count, size_t pkg_count)
 {
-	string pkgname = oldpkg.name;
+	string pkgname = oldpkg.getName();
 	char*pkgver = cast(char*)oldpkg.version_;
 
 	AlpmEventPackageOperation event;

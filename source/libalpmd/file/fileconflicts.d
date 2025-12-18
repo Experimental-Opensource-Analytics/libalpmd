@@ -71,22 +71,22 @@ private AlpmFileConflicts add_fileconflict(AlpmHandle handle, ref AlpmFileConfli
 {
 	AlpmFileConflict conflict = new AlpmFileConflict();
 
-	conflict.target = pkg1.name;
+	conflict.target = pkg1.getName();
 	conflict.file = filestr.to!string;
 	if(!pkg2) {
 		conflict.type = AlpmFileConflictType.Filesystem;
 		conflict.ctarget = "";
 	} else if(pkg2.origin == AlpmPkgFrom.LocalDB) {
 		conflict.type = AlpmFileConflictType.Filesystem;
-		conflict.ctarget = pkg2.name;
+		conflict.ctarget = pkg2.getName();
 	} else {
 		conflict.type = AlpmFileConflictType.Target;
-		conflict.ctarget = pkg2.name;
+		conflict.ctarget = pkg2.getName();
 	}
 
 	conflicts.insertBack(conflict);
 	logger.tracef("found file conflict %s, packages %s and %s\n",
-	          filestr, pkg1.name, pkg2 ? cast(char*)pkg2.name : "(filesystem)");
+	          filestr, pkg1.getName(), pkg2 ? cast(char*)pkg2.getName() : "(filesystem)");
 
 	return conflicts;
 
@@ -238,7 +238,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 
 		/* CHECK 1: check every target against every target */
 		logger.tracef("searching for file conflicts: %s\n",
-				p1.name);
+				p1.getName());
 		foreach(p2; range) {
 			AlpmStrings common_files = void;
 			AlpmFileList p1_files = p1.getFiles();
@@ -259,7 +259,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 							&& alpm_filelist_contains(p2_files, filename.to!string)) {
 						_alpm_log(handle, ALPM_LOG_DEBUG,
 							"%s exists in both '%s' and '%s'\n", filename,
-							p1.name, p2.name);
+							p1.getName(), p2.getName());
 						_alpm_log(handle, ALPM_LOG_DEBUG,
 							"file-file conflict being forced\n");
 						continue;
@@ -278,8 +278,8 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 
 		/* CHECK 2: check every target against the filesystem */
 		logger.tracef("searching for filesystem conflicts: %s\n",
-				p1.name);
-		dbpkg = handle.getDBLocal().getPkgFromCache(cast(char*)p1.name);
+				p1.getName());
+		dbpkg = handle.getDBLocal().getPkgFromCache(cast(char*)p1.getName());
 
 		/* Do two different checks here. If the package is currently installed,
 		 * then only check files that are new in the new package. If the package
@@ -342,7 +342,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 					 * NOTE: afterward, j will point to the last file inside filestr */
 					 auto range2 = range;
 					foreach(str_; range2) {
-						  char*filestr2 = cast(char*)str_.name.toStringz;
+						  char*filestr2 = cast(char*)str_.getName().toStringz;
 						if(strncmp(filestr, filestr2, fslen) != 0) {
 							break;
 						}
@@ -364,7 +364,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 
 						auto range2 = range;
 						foreach(j; range2) {
-							  char*filestr2 = cast(char*)j.name.toStringz();
+							  char*filestr2 = cast(char*)j.getName().toStringz();
 							if(strncmp(filestr, filestr2, fslen) != 0) {
 								break;
 							}
@@ -391,7 +391,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 					 * so they can be compared directly */
 					continue;
 				}
-				localp2 = handle.getDBLocal().getPkgFromCache(cast(char*)p2.name);
+				localp2 = handle.getDBLocal().getPkgFromCache(cast(char*)p2.getName());
 
 				/* localp2->files will be removed (target conflicts are handled by CHECK 1) */
 				if(localp2 && alpm_filelist_contains(localp2.getFiles(), relative_path.to!string)) {
@@ -412,7 +412,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 						 * NOTE: afterward, j will point to the last file inside filestr */
 						auto range2 = range;
 						foreach(j; range2) {
-							  char*filestr2 = cast(char*)j.name.toStringz();
+							  char*filestr2 = cast(char*)j.getName().toStringz();
 							if(strncmp(filestr, filestr2, fslen) != 0) {
 								break;
 							}

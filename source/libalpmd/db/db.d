@@ -348,7 +348,7 @@ class AlpmDB {
 			foreach(pkg; list[]) {
 				// AlpmPkg pkg = cast(AlpmPkg)j.data;
 				char* matched = null;
-				string name = pkg.name;
+				string name = pkg.getName();
 				char*desc = cast(char*)pkg.getDesc();
 
 				/* check name as plain text */
@@ -452,7 +452,7 @@ class AlpmDB {
 		}
 
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "adding entry '%s' in '%s' cache\n",
-							newpkg.name, this.treename);
+							pkg.getName(), this.treename);
 		if(newpkg.origin == AlpmPkgFrom.File) {
 			free(cast(void*)newpkg.getOriginFile());
 		}
@@ -482,13 +482,13 @@ class AlpmDB {
 		}
 
 		_alpm_log(this.handle, ALPM_LOG_DEBUG, "removing entry '%s' from '%s' cache\n",
-							pkg.name, this.treename);
+							pkg.getName(), this.treename);
 
 		this.pkgcache = this.pkgcache.remove(pkg, &data);
 		if(data is null) {
 			/* package not found */
 			_alpm_log(this.handle, ALPM_LOG_DEBUG, "cannot remove entry '%s' from '%s' cache: not found\n",
-								pkg.name, this.treename);
+								pkg.getName(), this.treename);
 			return -1;
 		}
 

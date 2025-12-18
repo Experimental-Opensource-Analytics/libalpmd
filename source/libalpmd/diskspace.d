@@ -553,7 +553,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 				numtargs, current);
 
 		/* is this package already installed? */
-		local_pkg = handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name);
+		local_pkg = handle.getDBLocal().getPkgFromCache(cast(char*)pkg.getName());
 		if(local_pkg) {
 			calculate_removed_size(handle, mount_points, local_pkg);
 		}

@@ -489,16 +489,19 @@ enum string LAZY_LOAD(string info) = `
 				RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
 			}
 			/* split the db entry name */
-			if(alpmSplitName(name.to!string, pkg.name, pkg.version_, pkg.name_hash) != 0) {
+			string splitResult;
+			if(alpmSplitName(name.to!string, splitResult, pkg.version_, pkg.name_hash) != 0) {
 				_alpm_log(this.handle, ALPM_LOG_ERROR, ("invalid name for database entry '%s'\n"),
 						name);
 				destroy!false(pkg);
 				continue;
 			}
 
+			pkg.setName(splitResult);
+
 			/* duplicated database entries are not allowed */
-			if(this.pkgcache.find(cast(char*)pkg.name)) {
-				_alpm_log(this.handle, ALPM_LOG_ERROR, ("duplicated database entry '%s'\n"), pkg.name);
+			if(this.pkgcache.find(cast(char*)pkg.getName())) {
+				_alpm_log(this.handle, ALPM_LOG_ERROR, ("duplicated database entry '%s'\n"), pkg.getName());
 				destroy!false(pkg);
 				continue;
 			}
@@ -520,7 +523,7 @@ enum string LAZY_LOAD(string info) = `
 
 			/* add to the collection */
 			_alpm_log(this.handle, ALPM_LOG_FUNCTION, "adding '%s' to package cache for db '%s'\n",
-					pkg.name, this.treename);
+					pkg.getName(), this.treename);
 			if(this.pkgcache.add(pkg) is null) {
 				destroy!false(pkg);
 				RET_ERR(this.handle, ALPM_ERR_MEMORY, -1);
@@ -643,10 +646,10 @@ char* _alpm_local_db_pkgpath(AlpmDB db, AlpmPkg info,   char*filename)
 	  char*dbpath = void;
 
 	dbpath = cast(char*)db.calcPath();
-	len = strlen(dbpath) + info.name.length + info.version_.length + 3;
+	len = strlen(dbpath) + info.getName().length + info.version_.length + 3;
 	len += filename ? strlen(filename) : 0;
 	MALLOC(pkgpath, len);
-	snprintf(pkgpath, len, "%s%s-%s/%s", dbpath, cast(char*)info.name.ptr, cast(char*)info.version_,
+	snprintf(pkgpath, len, "%s%s-%s/%s", dbpath, cast(char*)info.getName().ptr, cast(char*)info.version_,
 			filename ? filename : "");
 	return pkgpath;
 }
@@ -723,7 +726,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 
 	_alpm_log(db.handle, ALPM_LOG_FUNCTION,
 			"loading package data for %s : level=0x%x\n",
-			info.name, inforeq);
+			info.getName(), inforeq);
 
 	/* DESC */
 	if(inforeq & AlpmDBInfRq.Desc && !(info.infolevel & AlpmDBInfRq.Desc)) {
@@ -744,15 +747,15 @@ private int local_db_read(AlpmPkg info, int inforeq)
 			}
 			if(strcmp(line.ptr, "%NAME%") == 0) {
 				mixin(READ_NEXT!());
-				if(strcmp(line.ptr, cast(char*)info.name) != 0) {
+				if(strcmp(line.ptr, cast(char*)info.getName()) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: name "
-								~ "mismatch on package %s\n"), db.treename, info.name);
+								~ "mismatch on package %s\n"), db.treename, info.getName());
 				}
 			} else if(strcmp(line.ptr, "%VERSION%") == 0) {
 				mixin(READ_NEXT!());
 				if(strcmp(line.ptr, cast(char*)info.version_) != 0) {
 					_alpm_log(db.handle, ALPM_LOG_ERROR, ("%s database is inconsistent: version "
-								~ "mismatch on package %s\n"), db.treename, info.name);
+								~ "mismatch on package %s\n"), db.treename, info.getName());
 				}
 			} else if(strcmp(line.ptr, "%BASE%") == 0) {
 				mixin(READ_AND_STORE!(`info.base`));
@@ -776,7 +779,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				mixin(READ_AND_STORE!(`info.packager`));
 			} else if(strcmp(line.ptr, "%REASON%") == 0) {
 				mixin(READ_NEXT!());
-				info.reason = _read_pkgreason(db.handle, cast(char*)info.name, line.ptr);
+				info.reason = _read_pkgreason(db.handle, cast(char*)info.getName(), line.ptr);
 			} else if(strcmp(line.ptr, "%VALIDATION%") == 0) {
 				AlpmStrings v;
 				mixin(READ_AND_STORE_ALL_L!(`v`));
@@ -793,7 +796,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 					} else {
 						_alpm_log(db.handle, ALPM_LOG_WARNING,
 								("unknown validation type for package %s: %s\n"),
-								info.name, cast(char*)str.toStringz);
+								info.getName(), cast(char*)str.toStringz);
 					}
 				}
 				v.clear();
@@ -826,7 +829,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				}
 				lines.clear();
 			} else {
-				_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in local database\n"), info.name, line.ptr);
+				_alpm_log(db.handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in local database\n"), info.getName(), line.ptr);
 				AlpmStrings lines;
 				mixin(READ_AND_STORE_ALL_L!(`lines`));
 				// FREELIST(lines);
@@ -983,7 +986,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		char* path = void;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s DESC information back to db\n",
-				info.name, info.version_);
+				info.getName(), info.version_);
 		path = _alpm_local_db_pkgpath(db, info, cast(char*)"desc");
 		if(!path || (fp = fopen(path, "w")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
@@ -994,7 +997,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		}
 		free(path);
 		fprintf(fp, "%%NAME%%\n%s\n\n"
-						~ "%%VERSION%%\n%s\n\n", cast(char*)info.name.ptr, cast(char*)info.version_);
+						~ "%%VERSION%%\n%s\n\n", cast(char*)info.getName().toStringz, cast(char*)info.version_);
 		if(info.base) {
 			fprintf(fp, "%%BASE%%\n"
 							~ "%s\n\n", info.base.ptr);
@@ -1089,7 +1092,7 @@ int _alpm_local_db_write(AlpmDB db, AlpmPkg info, int inforeq)
 		char* path = void;
 		_alpm_log(db.handle, ALPM_LOG_DEBUG,
 				"writing %s-%s FILES information back to db\n",
-				info.name, info.version_);
+				info.getName(), info.version_);
 		path = _alpm_local_db_pkgpath(db, info, cast(char*)"files");
 		if(!path || (fp = fopen(path, "w")) == null) {
 			_alpm_log(db.handle, ALPM_LOG_ERROR, ("could not open file %s: %s\n"),
@@ -1182,7 +1185,7 @@ int  alpm_pkg_set_reason(AlpmPkg pkg, AlpmPkgReason reason)
 	ASSERT(pkg.getOriginDB() == pkg.getHandle().getDBLocal);
 
 	_alpm_log(pkg.getHandle(), ALPM_LOG_DEBUG,
-			"setting install reason %u for %s\n", reason, pkg.name);
+			"setting install reason %u for %s\n", reason, pkg.getName());
 	if(pkg.getReason() == reason) {
 		/* we are done */
 		return 0;

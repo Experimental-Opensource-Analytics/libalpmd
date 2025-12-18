@@ -387,11 +387,11 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 
 	if(t.op & AlpmHookOp.Install || t.op & AlpmHookOp.Upgrade) {
 		foreach(pkg; handle.trans.add[]) {
-			if(alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
+			if(alpmFnmatchPatternsNew(t.targets, pkg.getName()) == 0) {
 				if(pkg.oldpkg) {
 					if(t.op & AlpmHookOp.Upgrade) {
 						if(hook.needs_targets) {
-							upgrade.insertBack(pkg.name);
+							upgrade.insertBack(pkg.getName());
 						} else {
 							return 1;
 						}
@@ -399,7 +399,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 				} else {
 					if(t.op & AlpmHookOp.Install) {
 						if(hook.needs_targets) {
-							install.insertBack(pkg.name);
+							install.insertBack(pkg.getName());
 						} else {
 							return 1;
 						}
@@ -411,10 +411,10 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 
 	if(t.op & AlpmHookOp.Remove) {
 		foreach(pkg; handle.trans.remove[]) {
-			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.name) == 0) {
+			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.getName()) == 0) {
 				if(!handle.trans.add[].canFind(pkg)) {
 					if(hook.needs_targets) {
-						remove.insertBack(pkg.name);
+						remove.insertBack(pkg.getName());
 					} else {
 						return 1;
 					}

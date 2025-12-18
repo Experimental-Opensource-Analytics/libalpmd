@@ -145,7 +145,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 		if(!ptr || cast(size_t)(ptr - key + 2) > len || memcmp(cast(void*)ptr, " = ".ptr, 3) != 0) {
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"%s: syntax error in description file line %d\n",
-					newpkg.name ? newpkg.name : "error", linenum);
+					newpkg.getName() ? newpkg.getName() : "error", linenum);
 		} else {
 			/* NULL the end of the key portion, move ptr to start of value */
 			*ptr = '\0';
@@ -153,8 +153,8 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 			char* tmp = null;
 			if(strcmp(key, "pkgname") == 0) {
 				STRDUP(tmp, ptr);
-				newpkg.name = tmp.to!string;
-				newpkg.name_hash = alpmSDBMHash(newpkg.name);
+				newpkg.setName(tmp.to!string);
+				newpkg.name_hash = alpmSDBMHash(newpkg.getName());
 			} else if(strcmp(key, "pkgbase") == 0) {
 				newpkg.base = ptr.to!string;
 			} else if(strcmp(key, "pkgver") == 0) {
@@ -214,7 +214,7 @@ private int parse_descfile(AlpmHandle handle, archive* a, AlpmPkg newpkg)
 					return -1;
 				}
 			} else {
-				  char*pkgname = cast(char*)(newpkg.name ? newpkg.name : "error") ;
+				  char*pkgname = cast(char*)(newpkg.getName() ? newpkg.getName() : "error") ;
 				_alpm_log(handle, ALPM_LOG_WARNING, ("%s: unknown key '%s' in package description\n"), pkgname, key);
 				logger.tracef("%s: unknown key '%s' in description file line %d\n",
 									pkgname, key, linenum);
@@ -556,7 +556,7 @@ AlpmPkg _alpm_pkg_load_internal(AlpmHandle handle,   char*pkgfile, int full)
 						pkgfile);
 				goto pkg_invalid;
 			}
-			if(newpkg.name == "") {
+			if(newpkg.getName() == "") {
 				_alpm_log(handle, ALPM_LOG_ERROR, ("missing package name in %s\n"), pkgfile);
 				goto pkg_invalid;
 			}

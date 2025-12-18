@@ -84,7 +84,7 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, AlpmDBs dbs_sync)
 
 	foreach(db; dbs_sync[]) {
 		// AlpmDB db = cast(AlpmDB)i.data;
-		spkg = db.getPkgFromCache(cast(char*)pkg.name);
+		spkg = db.getPkgFromCache(cast(char*)pkg.getName());
 
 		if(spkg is null)
 			break;
@@ -92,14 +92,14 @@ AlpmPkg alpm_sync_get_new_version(AlpmPkg pkg, AlpmDBs dbs_sync)
 
 	if(spkg is null) {
 		_alpm_log(pkg.getHandle(), ALPM_LOG_DEBUG, "'%s' not found in sync db => no upgrade\n",
-				pkg.name);
+				pkg.getName());
 		return null;
 	}
 
 	/* compare versions and see if spkg is an upgrade */
 	if(spkg.compareVersions(pkg) > 0) {
 		_alpm_log(pkg.getHandle(), ALPM_LOG_DEBUG, "new version of '%s' found (%s => %s)\n",
-					pkg.name, pkg.version_, spkg.version_);
+					pkg.getName(), pkg.version_, spkg.version_);
 		return spkg;
 	}
 	/* spkg is not an upgrade */
@@ -112,15 +112,15 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 	int cmp = spkg.compareVersions(lpkg);
 	if(cmp > 0) {
 		logger.tracef("new version of '%s' found (%s => %s)\n",
-				lpkg.name, lpkg.version_, spkg.version_);
+				lpkg.getName(), lpkg.version_, spkg.version_);
 		/* check IgnorePkg/IgnoreGroup */
 		if(alpm_pkg_should_ignore(handle, spkg)
 				|| alpm_pkg_should_ignore(handle, lpkg)) {
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package upgrade (%s => %s)\n",
-					lpkg.name, lpkg.version_, spkg.version_);
+					lpkg.getName(), lpkg.version_, spkg.version_);
 		} else {
 			logger.tracef("adding package %s-%s to the transaction targets\n",
-					spkg.name, spkg.version_);
+					spkg.getName(), spkg.version_);
 			return 1;
 		}
 	} else if(cmp < 0) {
@@ -129,16 +129,16 @@ private int check_literal(AlpmHandle handle, AlpmPkg lpkg, AlpmPkg spkg, int ena
 			if(alpm_pkg_should_ignore(handle, spkg)
 					|| alpm_pkg_should_ignore(handle, lpkg)) {
 				_alpm_log(handle, ALPM_LOG_WARNING, "%s: ignoring package downgrade (%s => %s)\n",
-						lpkg.name, lpkg.version_, spkg.version_);
+						lpkg.getName(), lpkg.version_, spkg.version_);
 			} else {
 				_alpm_log(handle, ALPM_LOG_WARNING, "%s: downgrading from version %s to version %s\n",
-						lpkg.name, lpkg.version_, spkg.version_);
+						lpkg.getName(), lpkg.version_, spkg.version_);
 				return 1;
 			}
 		} else {
 			AlpmDB sdb = spkg.getOriginDB();
 			_alpm_log(handle, ALPM_LOG_WARNING, "%s: local (%s) is newer than %s (%s)\n",
-					lpkg.name, lpkg.version_, sdb.treename, spkg.version_);
+					lpkg.getName(), lpkg.version_, sdb.treename, spkg.version_);
 		}
 	}
 	return 0;
@@ -150,7 +150,7 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 	AlpmPkgs replacers;
 	_alpm_log(handle, ALPM_LOG_DEBUG,
 			"searching for replacements for %s in %s\n",
-			lpkg.name, sdb.treename);
+			lpkg.getName(), sdb.treename);
 	foreach(spkg; (sdb.getPkgCacheList())[]) {
 		int found = 0;
 		foreach(l; spkg.getReplaces()[]) {
@@ -168,7 +168,7 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 					|| alpm_pkg_should_ignore(handle, lpkg)) {
 				_alpm_log(handle, ALPM_LOG_WARNING,
 						("ignoring package replacement (%s-%s => %s-%s)\n"),
-						lpkg.name, lpkg.version_, spkg.name, spkg.version_);
+						lpkg.getName(), lpkg.version_, spkg.getName(), spkg.version_);
 				continue;
 			}
 
@@ -179,16 +179,16 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 
 			/* If spkg is already in the target list, we append lpkg to spkg's
 			 * removes list */
-			tpkg = alpm_pkg_find_n(handle.trans.add, spkg.name);
+			tpkg = alpm_pkg_find_n(handle.trans.add, spkg.getName());
 			if(tpkg) {
-				/* sanity check, multiple repos can contain spkg->name */
+				/* sanity check, multiple repos can contain spkg->getName() */
 				if(tpkg.getOriginDB() != sdb) {
 					_alpm_log(handle, ALPM_LOG_WARNING, "cannot replace %s by %s\n",
-							lpkg.name, spkg.name);
+							lpkg.getName(), spkg.getName());
 					continue;
 				}
 				logger.tracef("appending %s to the removes list of %s\n",
-						lpkg.name, tpkg.name);
+						lpkg.getName(), tpkg.getName());
 				tpkg.removes.insertFront(lpkg);
 				/* check the to-be-replaced package's reason field */
 				if(lpkg.getReason() == ALPM_PKG_REASON_EXPLICIT) {
@@ -201,7 +201,7 @@ private AlpmPkgs check_replacers(AlpmHandle handle, AlpmPkg lpkg, AlpmDB sdb)
 				spkg.removes.insertFront(lpkg);
 				_alpm_log(handle, ALPM_LOG_DEBUG,
 						"adding package %s-%s to the transaction targets\n",
-						spkg.name, spkg.version_);
+						spkg.getName(), spkg.version_);
 				replacers.insertBack(spkg);
 			}
 		}
@@ -221,13 +221,13 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 	foreach(lpkg; (handle.getDBLocal().getPkgCacheList())[]) {
 		// AlpmPkg lpkg = cast(AlpmPkg)i.data;
 
-		if(alpm_pkg_find_n(trans.remove, lpkg.name)) {
-			logger.tracef("%s is marked for removal -- skipping\n", lpkg.name);
+		if(alpm_pkg_find_n(trans.remove, lpkg.getName())) {
+			logger.tracef("%s is marked for removal -- skipping\n", lpkg.getName());
 			continue;
 		}
 
-		if(alpm_pkg_find_n(trans.add, lpkg.name)) {
-			logger.tracef("%s is already in the target list -- skipping\n", lpkg.name);
+		if(alpm_pkg_find_n(trans.add, lpkg.getName())) {
+			logger.tracef("%s is already in the target list -- skipping\n", lpkg.getName());
 			continue;
 		}
 
@@ -246,7 +246,7 @@ int  alpm_sync_sysupgrade(AlpmHandle handle, int enable_downgrade)
 				/* jump to next local package */
 				break;
 			} else {
-				AlpmPkg spkg = sdb.getPkgFromCache(cast(char*)lpkg.name);
+				AlpmPkg spkg = sdb.getPkgFromCache(cast(char*)lpkg.getName());
 				if(spkg) {
 					if(check_literal(handle, lpkg, spkg, enable_downgrade)) {
 						trans.add.insertBack(spkg);
@@ -275,15 +275,15 @@ AlpmPkgs findPkgInGroupAcrossDB(AlpmDBs dbs, char*name) {
 		foreach(pkg; grp.packages[]) {
 			AlpmTrans trans = db.handle.trans;
 
-			if(alpm_pkg_find_n(ignorelist, pkg.name)) {
+			if(alpm_pkg_find_n(ignorelist, pkg.getName())) {
 				continue;
 			}
 			if(trans !is null && trans.flags & ALPM_TRANS_FLAG_NEEDED) {
-				AlpmPkg local = db.handle.getDBLocal().getPkgFromCache(cast(char*)pkg.name);
+				AlpmPkg local = db.handle.getDBLocal().getPkgFromCache(cast(char*)pkg.getName());
 				if(local && pkg.compareVersions(local) == 0) {
 					/* with the NEEDED flag, packages up to date are not reinstalled */
 					_alpm_log(db.handle, ALPM_LOG_WARNING, "%s-%s is up to date -- skipping\n",
-							local.name, local.version_);
+							local.getName(), local.version_);
 					ignorelist.insertBack(pkg);
 					continue;
 				}
@@ -296,7 +296,7 @@ AlpmPkgs findPkgInGroupAcrossDB(AlpmDBs dbs, char*name) {
 					continue;
 				}
 			}
-			if(!alpm_pkg_find_n(pkgs, pkg.name)) {
+			if(!alpm_pkg_find_n(pkgs, pkg.getName())) {
 				pkgs.insertBack(pkg);
 			}
 		}
@@ -355,7 +355,7 @@ private int compute_download_size(AlpmPkg newpkg)
 
 finish:
 	logger.tracef("setting download size %jd for pkg %s\n",
-			cast(intmax_t)size, newpkg.name);
+			cast(intmax_t)size, newpkg.getName());
 
 	newpkg.infolevel |= AlpmDBInfRq.DSize;
 	newpkg.download_size = size;
@@ -472,7 +472,7 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 					ret = -1;
 					(cast(AlpmHandle)handle).pm_errno = ALPM_ERR_TRANS_DUP_FILENAME;
 					_alpm_log(handle, ALPM_LOG_ERROR, "packages %s and %s have the same filename: %s\n",
-						pkg1.name, pkg2.name, pkg1.getFilename());
+						pkg1.getName(), pkg2.getName(), pkg1.getFilename());
 				}
 			}
 		}
@@ -485,7 +485,7 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 
 		/* Set DEPEND reason for pulled packages */
 		foreach(pkg; resolved[]) {
-			if(!alpm_pkg_find_n(trans.add, pkg.name)) {
+			if(!alpm_pkg_find_n(trans.add, pkg.getName())) {
 				pkg.reason = ALPM_PKG_REASON_DEPEND;
 			}
 		}
@@ -514,8 +514,8 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 		conflicts = _alpm_innerconflicts(handle, trans.add);
 
 		foreach(conflict; conflicts[]) {
-			string name1 = conflict.package1.name;
-			string name2 = conflict.package2.name;
+			string name1 = conflict.package1.getName();
+			string name2 = conflict.package2.getName();
 			AlpmPkg rsync = void, sync = void, sync1 = void, sync2 = void;
 
 			/* have we already removed one of the conflicting targets? */
@@ -564,7 +564,7 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 			/* Prints warning */
 			_alpm_log(handle, ALPM_LOG_WARNING,
 					("removing '%s-%s' from target list because it conflicts with '%s-%s'\n"),
-					rsync.name, rsync.version_, sync.name, sync.version_);
+					rsync.getName(), rsync.version_, sync.getName(), sync.version_);
 			trans.add.linearRemoveElement(rsync);
 			/* rsync is not a transaction target anymore */
 			trans.unresolvable.insertBack(rsync);
@@ -582,8 +582,8 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 		// for(auto i = deps; i; i = i.next) {
 		foreach(conflict; conflicts[]) {
 			// AlpmConflict conflict = cast(AlpmConflict)i.data;
-			string name1 = conflict.package1.name;
-			string name2 = conflict.package2.name;
+			string name1 = conflict.package1.getName();
+			string name2 = conflict.package2.getName();
 			auto question = new AlpmQuestionConflict(conflict);
 			int found = 0;
 
@@ -637,9 +637,9 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 	foreach(spkg; trans.add[]) {
 		foreach(rpkg; spkg.removes[]) {
 			// AlpmPkg rpkg = cast(AlpmPkg)j.data;
-			if(!alpm_pkg_find_n(trans.remove, rpkg.name)) {
+			if(!alpm_pkg_find_n(trans.remove, rpkg.getName())) {
 				AlpmPkg copy = void;
-				logger.tracef("adding '%s' to remove list\n", rpkg.name);
+				logger.tracef("adding '%s' to remove list\n", rpkg.getName());
 				if((copy = rpkg.dup) !is null) {
 					return -1;
 				}
@@ -667,7 +667,7 @@ int _alpm_sync_prepare(AlpmHandle handle, ref RefTransData data)
 	}
 	foreach(spkg; trans.add) {
 		/* update download size field */
-		AlpmPkg lpkg = handle.getDBLocal.getPkg(spkg.name);
+		AlpmPkg lpkg = handle.getDBLocal.getPkg(spkg.getName());
 		if(compute_download_size(spkg) < 0) {
 			ret = -1;
 			goto cleanup;
@@ -1012,7 +1012,7 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 
 		if(!v.path) {
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					("%s: could not find package in cache\n"), v.pkg.name);
+					("%s: could not find package in cache\n"), v.pkg.getName());
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
 		}
 
@@ -1048,10 +1048,10 @@ private int check_validity(AlpmHandle handle, size_t total, ulong total_bytes)
 			switch(v.error) {
 				case ALPM_ERR_PKG_MISSING_SIG:
 					_alpm_log(handle, ALPM_LOG_ERROR,
-							("%s: missing required signature\n"), v.pkg.name);
+							("%s: missing required signature\n"), v.pkg.getName());
 					break;
 				case ALPM_ERR_PKG_INVALID_SIG:
-					_alpm_process_siglist(handle, cast(char*)v.pkg.name, v.siglist,
+					_alpm_process_siglist(handle, cast(char*)v.pkg.getName(), v.siglist,
 							v.siglevel & AlpmSigLevel.PackageOptional,
 							v.siglevel & AlpmSigLevel.PackageMarginalOk,
 							v.siglevel & AlpmSigLevel.PackageUnknowOk);
@@ -1145,10 +1145,10 @@ enum string CHECK_FIELD(string STR, string FIELD, string CMP) = `do {
 	} 
 } while(0);`;
 
-	if(spkg.name != pkgfile.name) {
+	if(spkg.getName() != pkgfile.getName()) {
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				"internal package name mismatch, expected: '%s', actual: '%s'\n",
-				spkg.name, pkgfile.name);
+				spkg.getName(), pkgfile.getName());
 		error = 1;
 	}
 	if(strcmp(cast(char*)spkg.version_, cast(char*)pkgfile.version_) != 0) {
@@ -1203,7 +1203,7 @@ private int load_packages(AlpmHandle handle, ref AlpmStrings data, size_t total,
 		if(!filepath) {
 			// FREELIST(delete_list);
 			_alpm_log(handle, ALPM_LOG_ERROR,
-					("%s: could not find package in cache\n"), spkg.name);
+					("%s: could not find package in cache\n"), spkg.getName());
 			RET_ERR(handle, ALPM_ERR_PKG_NOT_FOUND, -1);
 		}
 
@@ -1211,7 +1211,7 @@ private int load_packages(AlpmHandle handle, ref AlpmStrings data, size_t total,
 		/* TODO: alpm_pkg_get_db() will not work on this target anymore */
 		_alpm_log(handle, ALPM_LOG_DEBUG,
 				"replacing pkgcache entry with package file for target %s\n",
-				spkg.name);
+				spkg.getName());
 		AlpmPkg pkgfile = _alpm_pkg_load_internal(handle, filepath, 1);
 		if(!pkgfile) {
 			logger.tracef("failed to load pkgfile internal\n");
