@@ -169,6 +169,29 @@ public:
 	string getDBPath() => this.dbpath;
 	string getLogfile() => this.logfile;
 
+	AlpmStrings computeRequiredBy(AlpmPkg pkg, int optional) {
+
+		if(pkg.getOrigin() == AlpmPkgFrom.File) {
+			/* The sane option; search locally for things that require this. */
+			return dbLocal.findRequiredBy(pkg, optional);
+		} else {
+			/* We have a DB package. if it is a local package, then we should
+			* only search the local DB; else search all known sync databases. */
+			AlpmDB db = pkg.getOriginDB();
+			if(db.status & AlpmDBStatus.Local) {
+				return db.findRequiredBy(pkg, optional);
+			} else {
+				AlpmStrings reqs;
+				foreach(idb; this.dbsSync[]) {
+					reqs.insertBack(idb.findRequiredBy(pkg, optional)[]);
+				}
+				reqs = AlpmStrings(lazySort(reqs));
+
+				return reqs;
+			}
+		}
+	}
+
 	/** Lock the database */
 	void lockDBs() {
 		scope string dir = "./";

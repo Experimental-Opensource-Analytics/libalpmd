@@ -333,76 +333,24 @@ public:
 		}
 	}
 
-	AlpmStrings findRequiredBy(AlpmDB db, int optional) {
-		AlpmStrings res;
-		foreach(cachepkg; (db.getPkgCacheList())[]) { 
-			AlpmDeps deps;
-
-			if(optional == 0) {
-				deps = cachepkg.getDepends();
-			} else {
-				deps = cachepkg.getOptDepends();
-			}
-
-			foreach(dep; deps[]) {
-				if(_alpm_depcmp(this, dep)) {
-					string cachepkgname = cachepkg.name;
-					if(!res[].canFind(cachepkgname)) 
-						res.insertBack(cachepkgname);
-				}
-			}
-		}
-		return res;
-	}
-
-	AlpmStrings computeRequiredBy(int optional) {
-
-		if(this.origin == AlpmPkgFrom.File) {
-			/* The sane option; search locally for things that require this. */
-			return this.findRequiredBy(this.handle.getDBLocal, optional);
-		} else {
-			/* We have a DB package. if it is a local package, then we should
-			* only search the local DB; else search all known sync databases. */
-			AlpmDB db = this.originData.db;
-			if(db.status & AlpmDBStatus.Local) {
-				return this.findRequiredBy(db, optional);
-			} else {
-				AlpmStrings reqs;
-				foreach(idb; this.handle.getDBsSync[]) {
-					reqs.insertBack(this.findRequiredBy(idb, optional)[]);
-				}
-				reqs = AlpmStrings(lazySort(reqs));
-
-				return reqs;
-			}
-		}
-	}
-
 	AlpmStrings computeRequiredBy() {
-		return computeRequiredBy(0);
+		return handle.computeRequiredBy(this, 0);
 	}
 
 	AlpmStrings computeOptionalFor() {
-		return computeRequiredBy(1);
+		return handle.computeRequiredBy(this, 1);
 	}
-
-	/* This function should be used when removing a target from upgrade/sync target list
-	* Case 1: If pkg is a loaded package file (AlpmPkgFrom.File), it will be freed.
-	* Case 2: If pkg is a pkgcache entry (ALPM_PKG_FROM_CACHE), it won't be freed,
-	*         only the transaction specific fields of pkg will be freed.
+	/**
+	* Clearing trans specific fields or if origin is File, return true for deleting outside
+	* 
+	* Return: need to be destroed outside? 
 	*/
-	void freeTrans()
-	{
-		if(this.origin == AlpmPkgFrom.File) {
-			destroy!false(this);
-			return;
-		}
-
-		//TODO: recheck alpm_list_free(this.removes)
-		// alpm_list_free(this.removes);
-		destroy(this.removes);
-		destroy!false(this.oldpkg);
+	bool freeTrans() {
+		if(this.origin == AlpmPkgFrom.File)
+			return true;
+		this.removes.clear();
 		this.oldpkg = null;
+		return false;
 	}
 
 	/**

@@ -5,6 +5,7 @@ import core.stdc.stdlib;
 import core.stdc.string;
 import core.stdc.stddef;
 import std.regex;
+import std.algorithm;
 
 /* libalpm */
 // import libalpmd.db;
@@ -421,6 +422,28 @@ class AlpmDB {
 
 		this.status |= AlpmDBStatus.PkgCache;
 		return 0;
+	}
+
+	AlpmStrings findRequiredBy(AlpmPkg pkg, int optional) {
+		AlpmStrings res;
+		AlpmDeps deps;
+		foreach(cachepkg; this.pkgcache.getList[]) { 
+
+			if(optional == 0) {
+				deps = cachepkg.getDepends();
+			} else {
+				deps = cachepkg.getOptDepends();
+			}
+
+			foreach(dep; deps[]) {
+				if(_alpm_depcmp(pkg, dep)) {
+					string cachepkgname = cachepkg.getName();
+					if(res[].canFind(cachepkgname)) 
+						res.insertBack(cachepkgname);
+				}
+			}
+		}
+		return res;
 	}
 
 	private void freeGroupCache()
