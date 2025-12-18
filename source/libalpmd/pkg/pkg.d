@@ -333,54 +333,49 @@ public:
 		}
 	}
 
-	void findRequiredBy(AlpmDB db, ref AlpmStrings reqs, int optional) {
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
-
-		//[ ] _alpm_db_get_pkgcache
+	AlpmStrings findRequiredBy(AlpmDB db, int optional) {
+		AlpmStrings res;
 		foreach(cachepkg; (db.getPkgCacheList())[]) { 
-			// AlpmPkg cachepkg = cast(AlpmPkg)i.data;
-			AlpmDeps j;
+			AlpmDeps deps;
 
 			if(optional == 0) {
-				j = cachepkg.getDepends();
+				deps = cachepkg.getDepends();
 			} else {
-				j = cachepkg.getOptDepends();
+				deps = cachepkg.getOptDepends();
 			}
 
-			foreach(dep; j[]) {
-				if(_alpm_depcmp(this, dep)) {//[ ] _alpm_depcmp
+			foreach(dep; deps[]) {
+				if(_alpm_depcmp(this, dep)) {
 					string cachepkgname = cachepkg.name;
-					if(!reqs[].canFind(cachepkgname)) 
-						reqs.insertBack(cachepkgname);
+					if(!res[].canFind(cachepkgname)) 
+						res.insertBack(cachepkgname);
 				}
 			}
 		}
+		return res;
 	}
 
 	AlpmStrings computeRequiredBy(int optional) {
-		AlpmStrings reqs;
-		AlpmDB db = void;
-
-		(cast(AlpmHandle)this.handle).pm_errno = ALPM_ERR_OK;
 
 		if(this.origin == AlpmPkgFrom.File) {
 			/* The sane option; search locally for things that require this. */
-			this.findRequiredBy(this.handle.getDBLocal, reqs, optional);
+			return this.findRequiredBy(this.handle.getDBLocal, optional);
 		} else {
 			/* We have a DB package. if it is a local package, then we should
 			* only search the local DB; else search all known sync databases. */
-			db = this.originData.db;
+			AlpmDB db = this.originData.db;
 			if(db.status & AlpmDBStatus.Local) {
-				this.findRequiredBy(db, reqs, optional);
+				return this.findRequiredBy(db, optional);
 			} else {
-				foreach(i; this.handle.getDBsSync[]) {
-					db = cast(AlpmDB)i;
-					this.findRequiredBy(db, reqs, optional);
+				AlpmStrings reqs;
+				foreach(idb; this.handle.getDBsSync[]) {
+					reqs.insertBack(this.findRequiredBy(idb, optional)[]);
 				}
 				reqs = AlpmStrings(lazySort(reqs));
+
+				return reqs;
 			}
 		}
-		return reqs;
 	}
 
 	AlpmStrings computeRequiredBy() {
