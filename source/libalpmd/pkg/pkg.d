@@ -355,58 +355,13 @@ public:
 
 	/**
 	* Duplicate a package data struct.
-	* @param pkg the package to duplicate
-	* @param new_ptr location to store duplicated package pointer
-	* @return 0 on success, -1 on fatal error, 1 on non-fatal error
+	* 
+	* Return: new copy of package
 	*/
 	AlpmPkg dup() {
-		if(!this.handle) {
-			return null;
-		}
-
 		AlpmPkg newPkg = new AlpmPkg;
 
-		newPkg.name_hash = this.name_hash;
-		newPkg.filename = this.filename.dup;
-		newPkg.base = this.base.dup;
-		newPkg.name = this.name.dup;
-		newPkg.version_ = this.version_.dup;
-		newPkg.desc = this.desc.dup;
-		newPkg.url = this.url.dup;
-		newPkg.builddate = this.builddate;
-		newPkg.installdate = this.installdate;
-		newPkg.packager = this.packager.dup;
-		newPkg.md5sum = this.md5sum.dup;
-		newPkg.sha256sum = this.sha256sum.dup;
-		newPkg.arch = this.arch.dup;
-		newPkg.size = this.size;
-		newPkg.isize = this.isize;
-		newPkg.scriptlet = this.scriptlet;
-		newPkg.reason = this.reason;
-		newPkg.validation = this.validation;
-		newPkg.licenses = alpmStringsDup(this.licenses);
-		// newPkg.replaces   = alpmDepsDup(this.replaces.dup)
-		newPkg.replaces = this.replaces.dup();
-		newPkg.groups     = alpmStringsDup(this.groups);
-		foreach(_i; this.backup[]) {
-			newPkg.backup.insertFront(_i.dup);
-		}
-		newPkg.depends    = this.depends.dup();
-		newPkg.optdepends = this.optdepends.dup();
-		newPkg.conflicts  = this.conflicts.dup();
-		newPkg.provides   = this.provides.dup();
-
-		newPkg.files = this.files.dup;
-
-		newPkg.infolevel = this.infolevel;
-		newPkg.origin = this.origin;
-		if(newPkg.origin == AlpmPkgFrom.File) {
-			newPkg.originData.filename = this.originData.filename;
-		} else {
-			newPkg.originData.db = this.originData.db;
-		}
-		
-		newPkg.handle = this.handle;
+		newPkg.tupleof = this.tupleof;
 
 		return newPkg;
 	}
