@@ -469,19 +469,31 @@ public:
 		return backup[].find!(a => a.isBackup(file)).front();
 	}
 
-	/** Check if pkg2 satisfies a dependency of pkg1 */
-	int dependsOn(AlpmPkg pkg2) {
-		foreach(dep; this.getDepends()[]) {
-			if(_alpm_depcmp(pkg2, dep)) {
-				return 1;
-			}
-		}
-		return 0;
+	/**
+	*  Checks package depends on other package
+	*
+	* Params:
+	*   pkg = other package
+	*
+	* Return:
+	* 	true if depends
+	*/
+	bool dependsOn(AlpmPkg pkg) {
+		return this.depends[]
+			.canFind!(
+				(dep) => _alpm_depcmp(pkg, dep)); 
 	}
-
 }
 
-
+/** 
+ *	Find package int list by hash
+ * 
+ * Params:
+ *   haystack = Package list
+ *   needle = package name
+ * Returns: 
+ * 		Package object from list 
+ */
 AlpmPkg alpmFindPkgByHash(AlpmPkgs haystack, string needle) {
 	return haystack[].find!((a) => (a.getNameHash == needle.alpmSDBMHash())).front();
 }
