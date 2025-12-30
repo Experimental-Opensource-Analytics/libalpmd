@@ -106,10 +106,6 @@ class AlpmDepend {
 
 alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
-void  alpm_dep_free(void* _dep) {
-	destroy(_dep);
-}
-
 void  alpm_depmissing_free(AlpmDepMissing miss)
 {
 	//ASSERT(miss != null);
@@ -774,7 +770,7 @@ AlpmPkg alpm_find_dbs_satisfier(AlpmHandle handle, AlpmDBs dbs,   char*depstring
 	dep = alpm_dep_from_string(depstring);
 	//ASSERT(dep !is null);
 	pkg = resolvedep(handle, dep, dbs, AlpmPkgs(), 1);
-	alpm_dep_free(cast(void*)dep);
+	// alpm_dep_free(cast(void*)dep);
 	dep = null;
 	return pkg;
 }
