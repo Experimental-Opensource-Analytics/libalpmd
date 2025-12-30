@@ -106,8 +106,7 @@ class AlpmDepend {
 
 alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
-private AlpmPkg find_dep_satisfier(AlpmPkgs pkgs, AlpmDepend dep)
-{
+AlpmPkg alpmPkgsFindDepSatisfier(AlpmPkgs pkgs, AlpmDepend dep) {
 	foreach(pkg; pkgs[]) {
 		if(_alpm_depcmp(pkg, dep)) {
 			return pkg;
@@ -314,7 +313,7 @@ AlpmPkg alpm_find_satisfier(AlpmPkgs pkgs,   char*depstring)
 	if(!dep) {
 		return null;
 	}
-	AlpmPkg pkg = find_dep_satisfier(pkgs, dep);
+	AlpmPkg pkg = pkgs.alpmPkgsFindDepSatisfier(dep);
 	// alpm_dep_free(cast(void*)dep);
 	dep = null;
 	return pkg;
@@ -350,8 +349,8 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 			/* 1. we check the upgrade list */
 			/* 2. we check database for untouched satisfying packages */
 			/* 3. we check the dependency ignore list */
-			if(!find_dep_satisfier(upgrade, depend) &&
-					!find_dep_satisfier(dblist, depend) &&
+			if(!upgrade.alpmPkgsFindDepSatisfier(depend) &&
+					!dblist.alpmPkgsFindDepSatisfier(depend) &&
 					!_alpm_depcmp_provides(depend, handle.assumeinstalled)) {
 				/* Unsatisfied dependency in the upgrade list */
 				AlpmDepMissing miss = void;
@@ -376,14 +375,14 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 				if(nodepversion) {
 					depend.mod = ALPM_DEP_MOD_ANY;
 				}
-				AlpmPkg causingpkg = find_dep_satisfier(modified, depend);
+				AlpmPkg causingpkg = modified.alpmPkgsFindDepSatisfier(depend);
 				/* we won't break this depend, if it is already broken, we ignore it */
 				/* 1. check upgrade list for satisfiers */
 				/* 2. check dblist for satisfiers */
 				/* 3. we check the dependency ignore list */
 				if(causingpkg &&
-						!find_dep_satisfier(upgrade, depend) &&
-						!find_dep_satisfier(dblist, depend) &&
+						!upgrade.alpmPkgsFindDepSatisfier(depend) &&
+						!dblist.alpmPkgsFindDepSatisfier(depend) &&
 						!_alpm_depcmp_provides(depend, handle.assumeinstalled)) {
 					AlpmDepMissing miss = void;
 					char* missdepstring = alpm_dep_compute_string(depend);
@@ -813,13 +812,13 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 		AlpmDepend missdep = miss.depend;
 		/* check if one of the packages in the [*packages] list already satisfies
 		 * this dependency */
-		if(find_dep_satisfier(packages, missdep)) {
+		if(packages.alpmPkgsFindDepSatisfier(missdep)) {
 			miss = null; //rework deleting miss object
 			continue;
 		}
 		/* check if one of the packages in the [preferred] list already satisfies
 		 * this dependency */
-		AlpmPkg spkg = find_dep_satisfier(preferred, missdep);
+		AlpmPkg spkg = preferred.alpmPkgsFindDepSatisfier(missdep);
 		if(!spkg) {
 			/* find a satisfier package in the given repositories */
 			spkg = resolvedep(handle, missdep, handle.getDBsSync, packages, 0);
