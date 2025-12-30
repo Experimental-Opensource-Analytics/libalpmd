@@ -854,7 +854,7 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 					"pulling dependency %s (needed by %s)\n",
 					spkg.getName(), pkg.getName());
 			alpm_depmissing_free(miss);
-		} else if(resolvedep(handle, missdep, (dbs = alpm_new_list_add(AlpmDBs(), handle.getDBLocal)), rem, 0)) {
+		} else if(resolvedep(handle, missdep, AlpmDBs(handle.getDBLocal), rem, 0)) {
 			alpm_depmissing_free(miss);
 		} else {
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;

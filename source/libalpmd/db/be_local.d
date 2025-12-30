@@ -835,7 +835,7 @@ private int local_db_read(AlpmPkg info, int inforeq)
 				mixin(READ_AND_STORE_ALL_L!(`lines`));
 				foreach(str; lines[]) {
 					AlpmPkgXData pd = AlpmPkgXData.parseFrom(str);
-					if(!alpm_new_list_append(&info.xdata, pd)) {
+					if(!info.xdata.insertBack(pd)) {
 						lines.clear();
 						goto error;
 					}

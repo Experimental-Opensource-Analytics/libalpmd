@@ -585,7 +585,7 @@ int sync_db_read(AlpmDB db, archive* archive, archive_entry* entry, AlpmPkg* lik
 				mixin(READ_AND_STORE_ALL_L!(`lines`));
 				foreach(line_; lines[]) {
 					AlpmPkgXData pd = AlpmPkgXData.parseFrom(line_.to!string);
-					if(!alpm_new_list_append(&pkg.xdata, pd)) {			
+					if(!pkg.xdata.insertBack(pd)) {			
 						// _alpm_pkg_xdata_free(pd);
 						// FREELIST(lines);
 						goto error;

@@ -31,16 +31,16 @@ import std.bigint;
 
 /** The usage level of a database. */
 enum AlpmDBUsage {
-       /** Enable refreshes for this database */
-       Sync = 1,
-       /** Enable search for this database */
-       Search = (1 << 1),
-       /** Enable installing packages from this database */
-       Install = (1 << 2),
-       /** Enable sysupgrades with this database */
-       Upgrade = (1 << 3),
-       /** Enable all usage levels */
-       All = (1 << 4) - 1,
+	/** Enable refreshes for this database */
+	Sync = 1,
+	/** Enable search for this database */
+	Search = (1 << 1),
+	/** Enable installing packages from this database */
+	Install = (1 << 2),
+	/** Enable sysupgrades with this database */
+	Upgrade = (1 << 3),
+	/** Enable all usage levels */
+	All = (1 << 4) - 1,
 }
 
 enum AlpmDBInfRq {
