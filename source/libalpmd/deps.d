@@ -106,16 +106,6 @@ class AlpmDepend {
 
 alias AlpmDeps = libalpmd.alpm_list.alpm_list_new.AlpmList!AlpmDepend;
 
-void  alpm_depmissing_free(AlpmDepMissing miss)
-{
-	//ASSERT(miss != null);
-	// alpm_dep_free(cast(void*)miss.depend);
-	// miss.depend = null;
-	// FREE(miss.target);
-	// FREE(miss.causingpkg);
-	// FREE(miss);
-}
-
 private AlpmPkg find_dep_satisfier(AlpmPkgs pkgs, AlpmDepend dep)
 {
 	foreach(pkg; pkgs[]) {
@@ -819,12 +809,12 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 	deps = alpm_checkdeps(handle, localpkgs, rem, targ, 0);
 	targ.clear();
 
-	foreach(miss; deps[]) {
+	foreach(ref miss; deps[]) {
 		AlpmDepend missdep = miss.depend;
 		/* check if one of the packages in the [*packages] list already satisfies
 		 * this dependency */
 		if(find_dep_satisfier(packages, missdep)) {
-			alpm_depmissing_free(miss);
+			miss = null; //rework deleting miss object
 			continue;
 		}
 		/* check if one of the packages in the [preferred] list already satisfies
@@ -838,9 +828,9 @@ int _alpm_resolvedeps(AlpmHandle handle, AlpmPkgs localpkgs, AlpmPkg pkg, AlpmPk
 			_alpm_log(handle, ALPM_LOG_DEBUG,
 					"pulling dependency %s (needed by %s)\n",
 					spkg.getName(), pkg.getName());
-			alpm_depmissing_free(miss);
+			miss = null; //rework deleting miss object
 		} else if(resolvedep(handle, missdep, AlpmDBs(handle.getDBLocal), rem, 0)) {
-			alpm_depmissing_free(miss);
+			miss = null; //rework deleting miss object
 		} else {
 			handle.pm_errno = ALPM_ERR_UNSATISFIED_DEPS;
 			char* missdepstring = alpm_dep_compute_string(missdep);
