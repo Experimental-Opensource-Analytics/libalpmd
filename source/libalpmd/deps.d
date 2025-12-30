@@ -49,28 +49,17 @@ import libalpmd.pkg;
 /** Missing dependency. */
 class AlpmDepMissing {
 	/** Name of the package that has the dependency */
-	char* target;
+	string target;
 	/** The dependency that was wanted */
 	AlpmDepend depend;
 	/** If the depmissing was caused by a conflict, the name of the package
 	 * that would be installed, causing the satisfying package to be removed */
-	char* causingpkg;
+	string causingpkg;
 
-	this(  char*target, AlpmDepend dep,   char*causingpkg)
-	{
-		// AlpmDepMissing miss = new AlpmDepMissing;
-
-		// CALLOC(miss, 1, alpm_depmissing_t.sizeof);
-
-		STRNDUP(this.target, target, strlen(target));
+	this(string target, AlpmDepend dep, string causingpkg) {
+		this.target = target;
 		this.depend = dep.dup();
-		STRNDUP(this.causingpkg, causingpkg, strlen(causingpkg));
-
-	// 	return miss;
-
-	// error:
-	// 	alpm_depmissing_free(miss);
-	// 	return null;
+		this.causingpkg = causingpkg;
 	}
 }
 
@@ -384,7 +373,7 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 				logger.tracef("checkdeps: missing dependency '%s' for package '%s'\n",
 						missdepstring, tp.getName());
 				free(missdepstring);
-				miss = new AlpmDepMissing(cast(char*)tp.getName(), depend, null);
+				miss = new AlpmDepMissing(tp.getName(), depend, null);
 				baddeps.insertBack(miss);
 			}
 			depend.mod = orig_mod;
@@ -415,7 +404,7 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 					logger.tracef("checkdeps: transaction would break '%s' dependency of '%s'\n",
 							missdepstring, lp.getName());
 					free(missdepstring);
-					miss = new AlpmDepMissing(cast(char*)lp.getName(), depend, cast(char*)causingpkg.getName());
+					miss = new AlpmDepMissing(lp.getName(), depend, causingpkg.getName());
 					baddeps.insertBack(miss);
 				}
 				depend.mod = orig_mod;

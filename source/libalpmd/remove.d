@@ -103,7 +103,7 @@ private int remove_prepare_cascade(AlpmHandle handle, ref AlpmDepMissings lp)
 	while(!lp.empty) {
 		foreach(miss; lp[]) {
 			// AlpmDepMissing miss = cast(AlpmDepMissing)i.data;
-			AlpmPkg info = handle.getDBLocal().getPkgFromCache(miss.target);
+			AlpmPkg info = handle.getDBLocal().getPkgFromCache(cast(char*)miss.target);
 			if(info) {
 				AlpmPkg copy = void;
 				if(!alpmFindPkgByHash(trans.remove, info.getName())) {
