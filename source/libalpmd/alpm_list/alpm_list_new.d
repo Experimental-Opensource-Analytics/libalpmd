@@ -13,35 +13,6 @@ import std.conv;
 alias AlpmList(T) = DList!T;
 alias AlpmStrings = DList!string;
 
-// auto alpmStringsDup(AlpmStrings strings) {
-// 	AlpmStrings copy;
-
-// 	foreach(item; strings[]) {
-// 		copy.insertBack(item.idup);
-// 	}
-
-// 	return copy;
-// }
-
-// alias AlpmList(Item) = DList!Item;
-
-// auto oldToNewList(T)(//alpm_list_t* list) {
-// 	auto old = list;
-// 	AlpmList!T newList;
-// 	while(old) {
-// 		static if(is(T == string)) { 
-// 			newList.insertBack((cast(char*)list.data).to!string);
-// 		}
-// 		else {
-// 			newList.insertBack(cast(T)list.data);
-// 		}
-
-// 		old = old.next;
-// 	}
-
-// 	return newList;
-// }
-
 auto alpmListDiff(alias fn = "a < b", List)(List lhs, List rhs) {
     auto left = lhs[].array.sort!fn.array;
     auto right = rhs[].array.sort!fn.array;
