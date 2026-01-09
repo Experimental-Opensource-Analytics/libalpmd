@@ -20,8 +20,8 @@ public:
 			return newBackup;
 		}
 
-		void fillByString(string _string) {
-			auto splitter = _string.split('\t');
+		void fillByString(string string_) {
+			auto splitter = string_.split('\t');
 			this.name = splitter[0].dup;
 			this.hash = splitter[1].dup;
 		}
