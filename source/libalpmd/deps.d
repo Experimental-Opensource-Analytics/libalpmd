@@ -403,20 +403,50 @@ AlpmDepMissings alpm_checkdeps(AlpmHandle handle, AlpmPkgs pkglist, AlpmPkgs rem
 	return baddeps;
 }
 
-private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2)
-{
-	//!NEED TO FIX THIS
-	AlpmPkg fakePkg1 = new AlpmPkg;
-	fakePkg1.setVersion(version1.to!string);
+int compareStringVersions(string pkgVer1, string pkgVer2) {
+	string epoch1 = void, ver1 = void, rel1 = void;
+	string epoch2 = void, ver2 = void, rel2 = void;
+	int ret = void;
 
-	AlpmPkg fakePkg2 = new AlpmPkg;
-	fakePkg2.setVersion(version2.to!string);
+	/* ensure our strings are not null */
+	if(pkgVer1.isEmpty && pkgVer2.isEmpty) {
+		return 0;
+	} else if(pkgVer1.isEmpty) {
+		return -1;
+	} else if(pkgVer2.isEmpty) {
+		return 1;
+	}
+	/* another quick shortcut- if full version specs are equal */
+	if(cmp(pkgVer1, pkgVer2)) {
+		return 0;
+	}
+
+	/* Parse both versions into [epoch:]version[-release] triplets. We probably
+	* don't need epoch and release to support all the same magic, but it is
+	* easier to just run it all through the same code. */
+// 
+	/* parseEVR modifies passed in version, so have to dupe it first */
+	parseEVR(pkgVer1.to!string, epoch1, ver1, rel1);
+	parseEVR(pkgVer2.to!string, epoch2, ver2, rel2);
+
+	ret = rpmvercmp(cast(char*)epoch1, cast(char*)epoch2);
+	if(ret == 0) {
+		ret = rpmvercmp(cast(char*)ver1, cast(char*)ver2);
+		if(ret == 0 && rel1 && rel2) {
+			ret = rpmvercmp(cast(char*)rel1, cast(char*)rel2);
+		}
+	}
+
+	return ret;
+}
+
+private int dep_vercmp(  char*version1, alpm_depmod_t mod,   char*version2){
 	int equal = 0;
 
 	if(mod == ALPM_DEP_MOD_ANY) {
 		equal = 1;
 	} else {
-		int cmp = fakePkg1.compareVersions(fakePkg2);
+		int cmp = compareStringVersions(version1.to!string, version2.to!string);
 		switch(mod) {
 			case ALPM_DEP_MOD_EQ: equal = (cmp == 0); break;
 			case ALPM_DEP_MOD_GE: equal = (cmp >= 0); break;
