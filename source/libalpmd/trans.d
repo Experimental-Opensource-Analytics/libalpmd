@@ -168,6 +168,48 @@ public:
 	ref auto getSkippedRemoved() {
 		return skip_remove;
 	}
+
+	int  prepare(ref RefTransData data) {
+		/* If there's nothing to do, return without complaining */
+		if(this.add.empty() && this.remove.empty()) {
+			return 0;
+		}
+
+		AlpmStrings invalid = this.checkArch();
+		if(!invalid.empty()) {
+			data.strings = invalid;
+			RET_ERR(handle, ALPM_ERR_PKG_INVALID_ARCH, -1);
+		}
+
+		if(this.add.empty()) {
+			if(_alpm_remove_prepare(handle, data) == -1) {
+				/* pm_errno is set by _alpm_remove_prepare() */
+				return -1;
+			}
+		} else {
+			if(_alpm_sync_prepare(handle, data) == -1) {
+				/* pm_errno is set by _alpm_sync_prepare() */
+				return -1;
+			}
+		}
+
+		if(!(this.flags & ALPM_TRANS_FLAG_NODEPS)) {
+			logger.tracef("sorting by dependencies\n");
+			if(!this.add.empty()) {
+				auto add_orig = this.add.dup();
+				this.add = _alpm_sortbydeps(handle, add_orig, this.remove, 0);
+			}
+			if(!this.remove.empty()) {
+				auto rem_orig = this.remove.dup();
+
+				this.remove = _alpm_sortbydeps(handle, rem_orig, this.remove, 0);
+			}
+		}
+
+		this.state = AlpmTransState.Prepared;
+
+		return 0;
+	}
 }
 
 // int  alpm_trans_init(AlpmHandle handle, int flags)
@@ -198,66 +240,6 @@ union RefTransData {
 	AlpmConflicts		conflicts;
 	AlpmStrings			strings; 
 	AlpmFileConflicts	fileConflicts;
-}
-
-int  alpm_trans_prepare(AlpmHandle handle, ref RefTransData data)
-{
-	AlpmTrans trans = void;
-
-	/* Sanity checks */
-	//ASSERT(data != null);
-
-	trans = handle.trans;
-
-	//ASSERT(trans != null);
-	ASSERT(trans.getState == AlpmTransState.Initialized);
-
-	/* If there's nothing to do, return without complaining */
-	if(trans.getAdded.empty() && trans.getRemoved.empty()) {
-		return 0;
-	}
-
-	AlpmStrings invalid = trans.checkArch();
-	if(!invalid.empty()) {
-		// if(data) {
-			data.strings = invalid;
-		// }
-		RET_ERR(handle, ALPM_ERR_PKG_INVALID_ARCH, -1);
-	}
-
-	if(trans.getAdded.empty()) {
-		if(_alpm_remove_prepare(handle, data) == -1) {
-			/* pm_errno is set by _alpm_remove_prepare() */
-			return -1;
-		}
-	} else {
-		if(_alpm_sync_prepare(handle, data) == -1) {
-			/* pm_errno is set by _alpm_sync_prepare() */
-			return -1;
-		}
-	}
-
-	
-
-	if(!(trans.getFlags & ALPM_TRANS_FLAG_NODEPS)) {
-		logger.tracef("sorting by dependencies\n");
-		if(!trans.getAdded.empty()) {
-			auto add_orig = trans.getAdded.dup();
-			trans.getAdded = _alpm_sortbydeps(handle, add_orig, trans.getRemoved, 0);
-			// alpm_list_free(add_orig);
-		}
-		if(!trans.getRemoved.empty()) {
-			// auto rem_orig = newToOld(trans.getRemoved);
-			auto rem_orig = trans.getRemoved.dup();
-
-			trans.getRemoved = _alpm_sortbydeps(handle, rem_orig, trans.getRemoved, 0);
-			// alpm_list_free(rem_orig);
-		}
-	}
-
-	trans.getState = AlpmTransState.Prepared;
-
-	return 0;
 }
 
 int  alpm_trans_commit(AlpmHandle handle, ref RefTransData data)
