@@ -62,6 +62,7 @@ import std.conv;
 import libalpmd.trans;
 import libalpmd.consts;
 
+import libalpmd.handle;
 import libalpmd.alpm_list;
 import libalpmd.pkg;
 import libalpmd.util;
@@ -90,15 +91,52 @@ enum AlpmTransState {
 class AlpmTrans {
 	/* bitfield of alpm_transflag_t flags */
 	int flags;
+	AlpmHandle handle;
 	AlpmTransState state;
 	AlpmPkgs unresolvable;  /* list of (AlpmPkg) */
 	AlpmPkgs add;           /* list of (AlpmPkg) */
 	AlpmPkgs remove;        /* list of (AlpmPkg) */
 	AlpmStrings skip_remove;   /* list of (char *) */
 
-	this(int flags) {
+	this(AlpmHandle handle, int flags) {
 		this.flags = flags;
 		this.state = AlpmTransState.Initialized;
+		this.handle = handle;
+	}
+
+	AlpmStrings checkArch(AlpmPkgs pkgs) {
+		AlpmStrings invalid;
+
+		if(handle.architectures.empty) {
+			logger.tracef("skipping architecture checks\n");
+			return AlpmStrings();
+		}
+		foreach(pkg; pkgs[]) {
+			int found = 0;
+			string pkgarch = pkg.getArch();
+
+			/* always allow non-architecture packages and those marked "any" */
+			if(!pkgarch || pkgarch == "any") {
+				continue;
+			}
+
+			foreach(arch; handle.architectures[]) {
+				if(pkgarch == arch) {
+					found = 1;
+					break;
+				}
+			}
+
+			if(!found) {
+				string string_;
+				string pkgname = pkg.getName();
+				string pkgver = pkg.getVersion();
+
+				string_ = pkgname ~ "-" ~ pkgver ~ "-" ~ pkgarch;
+				invalid.insertBack(string_);
+			}
+		}
+		return invalid;
 	}
 }
 
@@ -125,42 +163,6 @@ class AlpmTrans {
 // 	return 0;
 // }
 
-private AlpmStrings check_arch(AlpmHandle handle, AlpmPkgs pkgs)
-{
-	AlpmStrings invalid;
-
-	if(handle.architectures.empty) {
-		logger.tracef("skipping architecture checks\n");
-		return AlpmStrings();
-	}
-	foreach(pkg; pkgs[]) {
-		int found = 0;
-		string pkgarch = pkg.getArch();
-
-		/* always allow non-architecture packages and those marked "any" */
-		if(!pkgarch || pkgarch == "any") {
-			continue;
-		}
-
-		foreach(arch; handle.architectures[]) {
-			if(pkgarch == arch) {
-				found = 1;
-				break;
-			}
-		}
-
-		if(!found) {
-			string string_;
-			string pkgname = pkg.getName();
-			string pkgver = pkg.getVersion();
-
-			string_ = pkgname ~ "-" ~ pkgver ~ "-" ~ pkgarch;
-			invalid.insertBack(string_);
-		}
-	}
-	return invalid;
-}
-
 union RefTransData {
 	AlpmDepMissings 	missings;
 	AlpmConflicts		conflicts;
@@ -185,7 +187,7 @@ int  alpm_trans_prepare(AlpmHandle handle, ref RefTransData data)
 		return 0;
 	}
 
-	AlpmStrings invalid = check_arch(handle, trans.add);
+	AlpmStrings invalid = trans.check_arch(trans.add);
 	if(!invalid.empty()) {
 		// if(data) {
 			data.strings = invalid;
