@@ -84,11 +84,6 @@ class AlpmConflict {
 // alias AlpmConflicts = DList!AlpmConflict;
 alias AlpmConflicts = AlpmList!AlpmConflict; 
 
-void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
-{
-	destroy!false(conflict);
-}
-
 /**
  * @brief Adds the pkg1/pkg2 conflict to the baddeps list.
  *
@@ -112,9 +107,8 @@ auto addConflict(ref AlpmConflicts baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepe
 		logger.tracef("package %s conflicts with %s (by %s)\n",
 				pkg1.getName(), pkg2.getName(), conflict_str);
 		free(conflict_str);
-	} else {
-		alpm_conflict_free(conflict);
-	}
+	} 
+	
 	return 0;
 }
 
