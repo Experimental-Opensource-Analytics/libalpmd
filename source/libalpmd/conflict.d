@@ -100,13 +100,13 @@ void  alpm_conflict_free(AlpmConflict conflict) //! For alpm_list_free*
  *
  * @return 0 on success, -1 on error
  */
-private int add_conflict(AlpmHandle handle, ref AlpmConflicts baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
+auto addConflict(ref AlpmConflicts baddeps, AlpmPkg pkg1, AlpmPkg pkg2, AlpmDepend reason)
 {
 	AlpmConflict conflict = new AlpmConflict(pkg1, pkg2, reason);
 	if(!conflict) {
 		return -1;
 	}
-	if(!conflict_isin(conflict, baddeps)) {
+	if(!baddeps.isInConflicts(conflict)) {
 		char* conflict_str = alpm_dep_compute_string(reason);
 		baddeps.insertBack(conflict);
 		logger.tracef("package %s conflicts with %s (by %s)\n",
@@ -148,9 +148,9 @@ void check_conflict(AlpmHandle handle, AlpmPkgs list1, AlpmPkgs  list2, ref Alpm
 
 				if(_alpm_depcmp(pkg2, conflict1)) {
 					if(order >= 0) {
-						add_conflict(handle, baddeps, pkg1, pkg2, conflict1);
+						baddeps.addConflict(pkg1, pkg2, conflict1);
 					} else {
-						add_conflict(handle, baddeps, pkg2, pkg1, conflict1);
+						baddeps.addConflict(pkg2, pkg1, conflict1);
 					}
 				}
 			}
