@@ -71,6 +71,15 @@ class AlpmConflict {
 
 	~this() {}
 
+	override bool opEquals(Object object) {
+		AlpmConflict conflict = cast(AlpmConflict)object;
+
+		return  this.package1.getNameHash() == conflict.package1.getNameHash()
+				&& this.package2.getNameHash() == conflict.package2.getNameHash()
+				&& this.package1.getName() == conflict.package1.getName()
+				&& this.package2.getName() == conflict.package2.getName();
+	}
+
 	/**
 	* @brief Creates a copy of a conflict.
 	*/
