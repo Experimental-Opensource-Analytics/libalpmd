@@ -272,7 +272,7 @@ AlpmPkgs findPkgInGroupAcrossDB(AlpmDBs dbs, char*name) {
 			continue;
 		}
 
-		foreach(pkg; grp.packages[]) {
+		foreach(pkg; grp.getPackagesRange) {
 			AlpmTrans trans = db.handle.trans;
 
 			if(alpmFindPkgByHash(ignorelist, pkg.getName())) {

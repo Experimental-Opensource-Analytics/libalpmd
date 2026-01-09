@@ -261,7 +261,7 @@ class AlpmDB {
 		}
 
 		foreach(info; grpcache[]) {
-			if(strcmp(cast(char*)info.name, target) == 0) {
+			if(strcmp(cast(char*)info.getName(), target) == 0) {
 				return info;
 			}
 		}
@@ -290,9 +290,9 @@ class AlpmDB {
 
 				/* first look through the group cache for a group with this name */
 				foreach(grp; this.grpcache[]) {
-					if(strcmp(cast(char*)grp.name, cast(char*)grpname) == 0
-							&& !grp.packages[].canFind!((a) => a is pkg)) {
-						grp.packages.insertBack(pkg);
+					if(strcmp(cast(char*)grp.getName, cast(char*)grpname) == 0
+							&& !grp.isPkgIn(pkg)) {
+						grp.addPkg(pkg);
 						found = 1;
 						break;
 					}
@@ -306,7 +306,7 @@ class AlpmDB {
 					this.freeGroupCache();
 					return -1;
 				}
-				grp.packages.insertBack(pkg);
+				grp.addPkg(pkg);
 				this.grpcache.insertBack(grp);
 			}
 		}

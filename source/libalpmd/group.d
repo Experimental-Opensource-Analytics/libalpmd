@@ -24,6 +24,8 @@ module libalpmd.group;
 import core.stdc.stdlib;
 import core.stdc.string;
 
+import std.algorithm;
+
 /* libalpm */
 import libalpmd.group;
 import libalpmd.alpm_list;
@@ -34,13 +36,31 @@ import libalpmd.alpm;
 
 /** Package group */
 class AlpmGroup {
+private:
 	/** group name */
 	string name;
 	/** list of alpm_pkg_t packages */
 	AlpmPkgs packages;
 
+public:
 	this(string name) {
 		this.name = name;
+	}
+
+	string getName() {
+		return name;
+	}
+
+	bool isPkgIn(AlpmPkg pkg) {
+		return packages[].canFind!(a => a is pkg);
+	}
+
+	void addPkg(AlpmPkg pkg) {
+		packages.insertBack(pkg);
+	}
+
+	auto getPackagesRange() {
+		return packages[];
 	}
 
 	~this() {
