@@ -26,7 +26,7 @@ auto alpmListDiff(alias fn = "a < b", List)(List lhs, List rhs) {
     return result;
 }
 
-///Lazy sorting function dor AlpmList
+///Lazy sorting function for AlpmList
 struct LazySortedRange(T) {
 	T list;
 	auto front() => list[].minElement();

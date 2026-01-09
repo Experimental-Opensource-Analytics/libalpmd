@@ -5,6 +5,7 @@ module libalpmd.alpm_list.searching;
 *   For that we must to realize opCmp and opEquals methods for most ALPM entity classes.
 *   After that we can delete that module
 */
+import std.algorithm;
 
 import libalpmd.alpm_list;
 
@@ -20,16 +21,7 @@ import libalpmd.pkg;
  * @return 1 if needle is in haystack, 0 otherwise
  */
 bool isInConflicts(AlpmConflicts haystack, AlpmConflict needle) {
-	foreach(conflict; haystack) {
-		if(needle.package1.getNameHash() == conflict.package1.getNameHash()
-				&& needle.package2.getNameHash() == conflict.package2.getNameHash()
-				&& needle.package1.getName() == conflict.package1.getName()
-				&& needle.package2.getName() == conflict.package2.getName()) {
-			return true;
-		}
-	}
-
-	return false;
+	return haystack[].canFind(needle);
 }
 
 /* trivial helper function for alpm_list_find_ptr */
