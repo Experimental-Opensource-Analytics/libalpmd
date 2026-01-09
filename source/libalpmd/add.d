@@ -47,13 +47,13 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	//ASSERT(handle == pkg.handle);
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	ASSERT(trans.state == AlpmTransState.Initialized);
+	ASSERT(trans.getState == AlpmTransState.Initialized);
 
 	pkgver = pkg.getVersion();
 
 	logger.tracef("adding package '%s'\n", pkgname);
 
-	if((dup = alpmFindPkgByHash(trans.add, pkgname)) !is null){
+	if((dup = alpmFindPkgByHash(trans.getAdded, pkgname)) !is null){
 		if(dup == pkg) {
 			logger.tracef("skipping duplicate target: %s\n", pkgname);
 			return 0;
@@ -68,16 +68,16 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 		int cmp = pkg.compareVersions(local);
 
 		if(cmp == 0) {
-			if(trans.flags & ALPM_TRANS_FLAG_NEEDED) {
+			if(trans.getFlags & ALPM_TRANS_FLAG_NEEDED) {
 				/* with the NEEDED flag, packages up to date are not reinstalled */
 				_alpm_log(handle, ALPM_LOG_WARNING, ("%s-%s is up to date -- skipping\n"),
 						localpkgname, localpkgver);
 				return 0;
-			} else if(!(trans.flags & ALPM_TRANS_FLAG_DOWNLOADONLY)) {
+			} else if(!(trans.getFlags & ALPM_TRANS_FLAG_DOWNLOADONLY)) {
 				_alpm_log(handle, ALPM_LOG_WARNING, ("%s-%s is up to date -- reinstalling\n"),
 						localpkgname, localpkgver);
 			}
-		} else if(cmp < 0 && !(trans.flags & ALPM_TRANS_FLAG_DOWNLOADONLY)) {
+		} else if(cmp < 0 && !(trans.getFlags & ALPM_TRANS_FLAG_DOWNLOADONLY)) {
 			/* local version is newer */
 			_alpm_log(handle, ALPM_LOG_WARNING, ("downgrading package %s (%s => %s)\n"),
 					localpkgname, localpkgver, pkgver);
@@ -88,7 +88,7 @@ int  alpm_add_pkg(AlpmHandle handle, AlpmPkg pkg)
 	pkg.reason = AlpmPkgReason.Explicit;
 	logger.tracef("adding package %s-%s to the transaction add list\n",
 						pkgname, pkgver);
-	trans.add.insertBack(pkg);
+	trans.getAdded.insertBack(pkg);
 
 	return 0;
 }
@@ -440,7 +440,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 			log_msg, newpkg.getName(), newpkg.getVersion());
 		/* pre_install/pre_upgrade scriptlet */
 	if(newpkg.hasScriptlet() &&
-			!(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
+			!(trans.getFlags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "pre_upgrade" : "pre_install");
 
 		_alpm_runscriptlet(handle, pkgfile, scriptlet_name,
@@ -448,9 +448,9 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 	}
 
 	/* we override any pre-set reason if we have alldeps or allexplicit set */
-	if(trans.flags & ALPM_TRANS_FLAG_ALLDEPS) {
+	if(trans.getFlags & ALPM_TRANS_FLAG_ALLDEPS) {
 		newpkg.reason = AlpmPkgReason.Depend;
-	} else if(trans.flags & ALPM_TRANS_FLAG_ALLEXPLICIT) {
+	} else if(trans.getFlags & ALPM_TRANS_FLAG_ALLEXPLICIT) {
 		newpkg.reason = AlpmPkgReason.Explicit;
 	}
 
@@ -496,7 +496,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 		return -1;
 	}
 
-	if(trans.flags & ALPM_TRANS_FLAG_DBONLY) {
+	if(trans.getFlags & ALPM_TRANS_FLAG_DBONLY) {
 		logger.tracef("extracting db files\n");
 		while(archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
 			  char*entryname = cast(char*)archive_entry_pathname(entry);
@@ -611,7 +611,7 @@ int commit_single_pkg(AlpmHandle handle, AlpmPkg newpkg, size_t pkg_current, siz
 
 	/* run the post-install script if it exists */
 	if(newpkg.hasScriptlet()
-			&& !(trans.flags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
+			&& !(trans.getFlags & ALPM_TRANS_FLAG_NOSCRIPTLET)) {
 		char* scriptlet = _alpm_local_db_pkgpath(db, newpkg, cast(char*)"install");
 		  char*scriptlet_name = cast(char*)(is_upgrade ? "post_upgrade" : "post_install");
 

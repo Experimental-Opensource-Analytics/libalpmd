@@ -400,7 +400,7 @@ AlpmFileConflicts _alpm_db_find_fileconflicts(AlpmHandle handle, AlpmPkgs upgrad
 					/* skip removal of file, but not add. this will prevent a second
 					 * package from removing the file when it was already installed
 					 * by its new owner (whether the file is in backup array or not */
-					handle.trans.skip_remove.insertBack(strdup(relative_path).to!string);
+					handle.trans.getSkippedRemoved.insertBack(strdup(relative_path).to!string);
 					_alpm_log(handle, ALPM_LOG_DEBUG,
 							"file changed packages, adding to remove skiplist\n");
 					resolved_conflict = 1;

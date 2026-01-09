@@ -304,7 +304,7 @@ private int no_dep_version(AlpmHandle handle)
 	if(!handle.trans) {
 		return 0;
 	}
-	return (handle.trans.flags & ALPM_TRANS_FLAG_NODEPVERSION);
+	return (handle.trans.getFlags & ALPM_TRANS_FLAG_NODEPVERSION);
 }
 
 AlpmPkg alpm_find_satisfier(AlpmPkgs pkgs,   char*depstring)

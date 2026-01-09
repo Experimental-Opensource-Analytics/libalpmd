@@ -477,22 +477,22 @@ public:
 		int skip_ldconfig = 0, ret = 0;
 		// AlpmTrans trans = handle.trans;
 
-		if(trans.add.empty) {
+		if(trans.getAdded.empty) {
 			return 0;
 		}
 
-		pkg_count = this.trans.add[].walkLength();
+		pkg_count = this.trans.getAdded[].walkLength();
 		pkg_current = 1;
 
 		/* loop through our package list adding/upgrading one at a time */
-		foreach(newpkg; this.trans.add[]) {
-			if(this.trans.state == AlpmTransState.Interrupted) {
+		foreach(newpkg; this.trans.getAdded[]) {
+			if(this.trans.getState == AlpmTransState.Interrupted) {
 				return ret;
 			}
 
 			if(commit_single_pkg(this, newpkg, pkg_current, pkg_count)) {
 				/* something screwed up on the commit, abort the trans */
-				trans.state = AlpmTransState.Interrupted;
+				trans.getState = AlpmTransState.Interrupted;
 				this.pm_errno = ALPM_ERR_TRANS_ABORT;
 				/* running ldconfig at this point could possibly screw system */
 				skip_ldconfig = 1;

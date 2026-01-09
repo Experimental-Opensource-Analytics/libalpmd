@@ -89,6 +89,7 @@ enum AlpmTransState {
 
 /* Transaction */
 class AlpmTrans {
+private:
 	/* bitfield of alpm_transflag_t flags */
 	int flags;
 	AlpmHandle handle;
@@ -97,6 +98,7 @@ class AlpmTrans {
 	AlpmPkgs add;           /* list of (AlpmPkg) */
 	AlpmPkgs remove;        /* list of (AlpmPkg) */
 	AlpmStrings skip_remove;   /* list of (char *) */
+public:
 
 	this(AlpmHandle handle, int flags) {
 		this.flags = flags;
@@ -104,14 +106,14 @@ class AlpmTrans {
 		this.handle = handle;
 	}
 
-	AlpmStrings checkArch(AlpmPkgs pkgs) {
+	AlpmStrings checkArch() {
 		AlpmStrings invalid;
 
 		if(handle.architectures.empty) {
 			logger.tracef("skipping architecture checks\n");
 			return AlpmStrings();
 		}
-		foreach(pkg; pkgs[]) {
+		foreach(pkg; add[]) {
 			int found = 0;
 			string pkgarch = pkg.getArch();
 
@@ -138,6 +140,34 @@ class AlpmTrans {
 		}
 		return invalid;
 	}
+
+	bool isRemoveEmpty() {
+		return remove.empty();
+	}
+
+	auto getFlags() {
+		return flags;
+	}
+
+	ref auto getAdded() {
+		return add;
+	}
+
+	ref auto getRemoved() {
+		return remove;
+	}
+
+	ref auto getUnresolvable() {
+		return unresolvable;
+	}
+
+	ref auto getState() {
+		return state;
+	}
+
+	ref auto getSkippedRemoved() {
+		return skip_remove;
+	}
 }
 
 // int  alpm_trans_init(AlpmHandle handle, int flags)
@@ -155,8 +185,8 @@ class AlpmTrans {
 // 	}
 
 // 	trans = new AlpmTrans;
-// 	trans.flags = flags;
-// 	trans.state = AlpmTransState.Initialized;
+// 	trans.getFlags = flags;
+// 	trans.getState = AlpmTransState.Initialized;
 
 // 	handle.trans = trans;
 
@@ -180,14 +210,14 @@ int  alpm_trans_prepare(AlpmHandle handle, ref RefTransData data)
 	trans = handle.trans;
 
 	//ASSERT(trans != null);
-	ASSERT(trans.state == AlpmTransState.Initialized);
+	ASSERT(trans.getState == AlpmTransState.Initialized);
 
 	/* If there's nothing to do, return without complaining */
-	if(trans.add.empty() && trans.remove.empty()) {
+	if(trans.getAdded.empty() && trans.getRemoved.empty()) {
 		return 0;
 	}
 
-	AlpmStrings invalid = trans.check_arch(trans.add);
+	AlpmStrings invalid = trans.checkArch();
 	if(!invalid.empty()) {
 		// if(data) {
 			data.strings = invalid;
@@ -195,7 +225,7 @@ int  alpm_trans_prepare(AlpmHandle handle, ref RefTransData data)
 		RET_ERR(handle, ALPM_ERR_PKG_INVALID_ARCH, -1);
 	}
 
-	if(trans.add.empty()) {
+	if(trans.getAdded.empty()) {
 		if(_alpm_remove_prepare(handle, data) == -1) {
 			/* pm_errno is set by _alpm_remove_prepare() */
 			return -1;
@@ -207,24 +237,25 @@ int  alpm_trans_prepare(AlpmHandle handle, ref RefTransData data)
 		}
 	}
 
+	
 
-	if(!(trans.flags & ALPM_TRANS_FLAG_NODEPS)) {
+	if(!(trans.getFlags & ALPM_TRANS_FLAG_NODEPS)) {
 		logger.tracef("sorting by dependencies\n");
-		if(!trans.add.empty()) {
-			auto add_orig = trans.add.dup();
-			trans.add = _alpm_sortbydeps(handle, add_orig, trans.remove, 0);
+		if(!trans.getAdded.empty()) {
+			auto add_orig = trans.getAdded.dup();
+			trans.getAdded = _alpm_sortbydeps(handle, add_orig, trans.getRemoved, 0);
 			// alpm_list_free(add_orig);
 		}
-		if(!trans.remove.empty()) {
-			// auto rem_orig = newToOld(trans.remove);
-			auto rem_orig = trans.remove.dup();
+		if(!trans.getRemoved.empty()) {
+			// auto rem_orig = newToOld(trans.getRemoved);
+			auto rem_orig = trans.getRemoved.dup();
 
-			trans.remove = _alpm_sortbydeps(handle, rem_orig, trans.remove, 0);
+			trans.getRemoved = _alpm_sortbydeps(handle, rem_orig, trans.getRemoved, 0);
 			// alpm_list_free(rem_orig);
 		}
 	}
 
-	trans.state = AlpmTransState.Prepared;
+	trans.getState = AlpmTransState.Prepared;
 
 	return 0;
 }
@@ -239,21 +270,21 @@ int  alpm_trans_commit(AlpmHandle handle, ref RefTransData data)
 	trans = handle.trans;
 
 	//ASSERT(trans != null);
-	ASSERT(trans.state == AlpmTransState.Prepared);
+	ASSERT(trans.getState == AlpmTransState.Prepared);
 
-	//ASSERT(!(trans.flags & ALPM_TRANS_FLAG_NOLOCK));
+	//ASSERT(!(trans.getFlags & ALPM_TRANS_FLAG_NOLOCK));
 
 	/* If there's nothing to do, return without complaining */
-	if(trans.add.empty() && trans.remove.empty()) {
+	if(trans.getAdded.empty() && trans.getRemoved.empty()) {
 		return 0;
 	}
 
-	if(!trans.add.empty()) {
+	if(!trans.getAdded.empty()) {
 		if(_alpm_sync_load(handle, data) != 0) {
 			/* pm_errno is set by _alpm_sync_load() */
 			return -1;
 		}
-		if(trans.flags & ALPM_TRANS_FLAG_DOWNLOADONLY) {
+		if(trans.getFlags & ALPM_TRANS_FLAG_DOWNLOADONLY) {
 			return 0;
 		}
 		// auto x = (*data).oldToNewList!AlpmFileConflict;
@@ -263,18 +294,18 @@ int  alpm_trans_commit(AlpmHandle handle, ref RefTransData data)
 		}
 	}
 
-	if(!(trans.flags & ALPM_TRANS_FLAG_NOHOOKS) &&
+	if(!(trans.getFlags & ALPM_TRANS_FLAG_NOHOOKS) &&
 			_alpm_hook_run(handle, AlpmHookWhen.PreTransaction) != 0) {
 		RET_ERR(handle, ALPM_ERR_TRANS_HOOK_FAILED, -1);
 	}
 
-	trans.state = AlpmTransState.Commiting;
+	trans.getState = AlpmTransState.Commiting;
 
 	//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction started\n");
 	event = new AlpmEventTransaction(AlpmEventDefStatus.Start);
 	EVENT(handle, event);
 
-	if(trans.add.empty()) {
+	if(trans.getAdded.empty()) {
 		if(_alpm_remove_packages(handle, 1) == -1) {
 			/* pm_errno is set by _alpm_remove_packages() */
 			alpm_errno_t save = handle.pm_errno;
@@ -292,19 +323,19 @@ int  alpm_trans_commit(AlpmHandle handle, ref RefTransData data)
 		}
 	}
 
-	if(trans.state == AlpmTransState.Interrupted) {
+	if(trans.getState == AlpmTransState.Interrupted) {
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction interrupted\n");
 	} else {
 		event = new AlpmEventTransaction(AlpmEventDefStatus.Done);
 		EVENT(handle, event);
 		//alpm_logaction(handle, ALPM_CALLER_PREFIX, "transaction completed\n");
 
-		if(!(trans.flags & ALPM_TRANS_FLAG_NOHOOKS)) {
+		if(!(trans.getFlags & ALPM_TRANS_FLAG_NOHOOKS)) {
 			_alpm_hook_run(handle, AlpmHookWhen.PostTransaction);
 		}
 	}
 
-	trans.state = AlpmTransState.Commited;
+	trans.getState = AlpmTransState.Commited;
 
 	return 0;
 }
@@ -316,9 +347,9 @@ int  alpm_trans_interrupt(AlpmHandle handle)
 	/* Sanity checks */
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	ASSERT(trans.state == AlpmTransState.Commiting || trans.state == AlpmTransState.Interrupted);
+	ASSERT(trans.getState == AlpmTransState.Commiting || trans.getState == AlpmTransState.Interrupted);
 
-	trans.state = AlpmTransState.Interrupted;
+	trans.getState = AlpmTransState.Interrupted;
 
 	return 0;
 }
@@ -330,9 +361,9 @@ int  alpm_trans_release(AlpmHandle handle)
 	/* Sanity checks */
 	trans = handle.trans;
 	//ASSERT(trans != null);
-	ASSERT(trans.state != AlpmTransState.Idle);
+	ASSERT(trans.getState != AlpmTransState.Idle);
 
-	int nolock_flag = trans.flags & ALPM_TRANS_FLAG_NOLOCK;
+	int nolock_flag = trans.getFlags & ALPM_TRANS_FLAG_NOLOCK;
 
 	_alpm_trans_free(trans);
 	handle.trans = null;
@@ -351,11 +382,11 @@ void _alpm_trans_free(AlpmTrans trans)
 		return;
 	}
 
-	trans.unresolvable.clear();
-	trans.add.clear();
-	trans.remove.clear();
+	trans.getUnresolvable.clear();
+	trans.getAdded.clear();
+	trans.getRemoved.clear();
 
-	// FREELIST(trans.skip_remove);
+	// FREELIST(trans.getSkippedRemoved);
 
 	// FREE(trans);
 }
@@ -482,15 +513,15 @@ cleanup:
 
 int  alpm_trans_get_flags(AlpmHandle handle)
 {
-	return handle.trans.flags;
+	return handle.trans.getFlags;
 }
 
 AlpmPkgs alpm_trans_get_add(AlpmHandle handle)
 {
-	return handle.trans.add;
+	return handle.trans.getAdded;
 }
 
 AlpmPkgs alpm_trans_get_remove(AlpmHandle handle)
 {
-	return handle.trans.remove;
+	return handle.trans.getRemoved;
 }

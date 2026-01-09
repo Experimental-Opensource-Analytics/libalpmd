@@ -274,7 +274,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 	int ret = 0;
 
 	/* check if file will be installed */
-	foreach(pkg; handle.trans.add[]) {
+	foreach(pkg; handle.trans.getAdded[]) {
 		AlpmFileList filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
@@ -289,7 +289,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 	}
 
 	/* check if file will be removed due to package upgrade */
-	foreach(spkg; handle.trans.add[]) {
+	foreach(spkg; handle.trans.getAdded[]) {
 		AlpmPkg pkg = spkg.oldpkg;
 		if(pkg) {
 			AlpmFileList filelist = pkg.files;
@@ -304,7 +304,7 @@ private int _alpm_hook_trigger_match_file(AlpmHandle handle, AlpmHook* hook, Alp
 	}
 
 	/* check if file will be removed due to package removal */
-	foreach(pkg; handle.trans.remove[]) {
+	foreach(pkg; handle.trans.getRemoved[]) {
 		AlpmFileList filelist = pkg.files;
 		size_t f = void;
 		for(f = 0; f < filelist.length; f++) {
@@ -386,7 +386,7 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 	AlpmStrings remove;
 
 	if(t.op & AlpmHookOp.Install || t.op & AlpmHookOp.Upgrade) {
-		foreach(pkg; handle.trans.add[]) {
+		foreach(pkg; handle.trans.getAdded[]) {
 			if(alpmFnmatchPatternsNew(t.targets, pkg.getName()) == 0) {
 				if(pkg.oldpkg) {
 					if(t.op & AlpmHookOp.Upgrade) {
@@ -410,9 +410,9 @@ private int _alpm_hook_trigger_match_pkg(AlpmHandle handle, AlpmHook* hook, Alpm
 	}
 
 	if(t.op & AlpmHookOp.Remove) {
-		foreach(pkg; handle.trans.remove[]) {
+		foreach(pkg; handle.trans.getRemoved[]) {
 			if(pkg && alpmFnmatchPatternsNew(t.targets, pkg.getName()) == 0) {
-				if(!handle.trans.add[].canFind(pkg)) {
+				if(!handle.trans.getAdded[].canFind(pkg)) {
 					if(hook.needs_targets) {
 						remove.insertBack(pkg.getName());
 					} else {

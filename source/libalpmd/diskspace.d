@@ -519,7 +519,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 	int error = 0;
 	AlpmTrans trans = handle.trans;
 
-	numtargs = trans.add[].walkLength();
+	numtargs = trans.getAdded[].walkLength();
 	mount_points = mount_point_list(handle);
 	if(mount_points.empty()) {
 		_alpm_log(handle, ALPM_LOG_ERROR, ("could not determine filesystem mount points\n"));
@@ -533,10 +533,10 @@ int _alpm_check_diskspace(AlpmHandle handle)
 		goto finish;
 	}
 
-	replaces = trans.remove[].walkLength();
+	replaces = trans.getRemoved[].walkLength();
 	if(replaces) {
 		numtargs += replaces;
-		foreach(local_pkg; handle.trans.remove[]) {
+		foreach(local_pkg; handle.trans.getRemoved[]) {
 			int percent = cast(int)((current * 100) / numtargs);
 			PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
 					numtargs, current);
@@ -546,7 +546,7 @@ int _alpm_check_diskspace(AlpmHandle handle)
 		}
 	}
 
-	foreach(pkg; handle.trans.add[]) {
+	foreach(pkg; handle.trans.getAdded[]) {
 		AlpmPkg local_pkg = void;
 		int percent = cast(int)((current * 100) / numtargs);
 		PROGRESS(handle, ALPM_PROGRESS_DISKSPACE_START, "", percent,
