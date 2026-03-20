@@ -1,7 +1,5 @@
 module libalpmd.alpm_list.alpm_list_new;
 
-import core.stdc.stdlib;
-
 import std.container : DList;
 import std.range;
 import std.algorithm;
@@ -43,67 +41,21 @@ auto lazySort(T) (T _list) {
 	return LazySortedRange!T(_list);
 }
 
-int alpmListCmpUnsorted(T)(T left, T right) {
-	auto _l = left[];
-	auto _r = right[];
-	int* matched = void;
+int alpmListCmpUnsorted(R1, R2)(R1 left, R2 right) {
+    auto rightElems = right.array;
+    auto matched = new bool[rightElems.length];
 
-	/* short circuiting length comparison */
-	while(!_l.empty && !_r.empty) {
-		_l.popFront;
-		_r.popFront;
-	}
-	if(_l.empty || _r.empty) {
-		return 0;			//   char*grpname =  cast(char*)i.data;
-
-	}
-
-	// /* faster comparison for if the lists happen to be in the same order */
-	// while(left && fn(left.data, right.data) == 0) {
-	// 	left = left.next;
-	// 	right = right.next;
-	// }
-	// if(!left) {
-	// 	return 1;
-	// }
-
-	matched = cast(int*) calloc(right[].walkLength, int.sizeof);
-	if(matched == null) {
-		return -1;
-	}
-
-	foreach(l; left[]) {
-		int found = 0;
-		int n = 0;
-
-		foreach(r; right[]) {
-			/* make sure we don't match the same value twice */
-			if(matched[n]) {
-				continue;
-			}
-			static if(is(T : string)) {
-				if(cmp(l, r) == 0) {
-					found = 1;
-					matched[n] = 1;
-					break;
-				}
-			}
-			else {
-				if(l == r) {
-					found = 1;
-					matched[n] = 1;
-					break;
-				}
-			}
-			n++;
-		}
-
-		if(!found) {
-			free(matched);
-			return 0;
-		}
-	}
-
-	free(matched);
-	return 1;
+    foreach (l; left) {
+        bool found = false;
+        foreach (i, ref r; rightElems) {
+            if (!matched[i] && l == r) {
+                matched[i] = true;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return 0; 
+    }
+    return 1;
 }
